@@ -278,3 +278,18 @@ export interface DividerBlockProps extends BaseBlockProps {
 export interface SpacerBlockProps extends BaseBlockProps {
   block: SpacerProps;
 }
+
+export interface Theme {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    text: string;
+  },
+  spacing: {
+    small: number;
+    medium: number;
+    large: number;
+  },
+  borderRadius: number;
+}

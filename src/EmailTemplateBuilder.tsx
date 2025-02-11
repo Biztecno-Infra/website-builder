@@ -6,21 +6,29 @@ import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
 import MultiViewContainer from "@containers/MultiViewContainer";
 import { BlockHookProvider } from "./context/BlockContext";
-import { BlockHookRef } from "./types";
+import { BlockHookRef, Theme } from "./types";
+import CustomThemeProvider from "@context/ThemeContext";
 
 import "./styles/index.scss";
 
 
-const EmailTemplateBuilder = forwardRef<BlockHookRef>((props, ref) => {
+interface Props {
+  theme?: Theme;
+}
+
+
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({theme}, ref) => {
   return (
     <DndProvider backend={HTML5Backend}>
-      <BlockHookProvider ref={ref} >
-        <div className="flex width-100 height-100 test">
-          <ElementsPanel />
-          <MultiViewContainer />
-          <PropertyPanel />
-        </div>
-      </BlockHookProvider>
+      <CustomThemeProvider theme={theme! || {}}>
+        <BlockHookProvider ref={ref} >
+          <div className="flex width-100 height-100 test">
+            <ElementsPanel />
+            <MultiViewContainer />
+            <PropertyPanel />
+          </div>
+        </BlockHookProvider>
+      </CustomThemeProvider>
     </DndProvider>
   );
 });

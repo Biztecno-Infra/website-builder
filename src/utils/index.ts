@@ -19,6 +19,7 @@ import {
   TextProps,
   DividerProps,
   SpacerProps,
+  Theme,
 } from "../types";
 
 const generateBlockToJsonData = (block: Block) => {
@@ -244,3 +245,18 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
 
   return {blocks , rootBlock: emailLayoutJson.root};
 };
+
+export const defaultTheme: Theme = {
+  colors: {
+    primary: "#007bff",
+    secondary: "#6c757d",
+    background: "#f8f9fa",
+    text: "#212529",
+  },
+  spacing: {
+    small: 8,
+    medium: 16,
+    large: 24,
+  },
+  borderRadius: 4,
+}
