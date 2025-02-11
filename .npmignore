@@ -1,0 +1,13 @@
+# Ignore build tools
+rollup.config.js
+vite.config.ts
+tsup.config.js
+tsconfig.json
+
+# Ignore source files and other unnecessary items
+src/
+node_modules/
+*.log
+*.tgz
+.vscode/
+.git/

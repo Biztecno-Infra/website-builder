@@ -1,0 +1,69 @@
+.background {
+  &-primary-color {
+    background-color: $primary-color;
+  }
+
+  &-transparent {
+    background-color: transparent;
+  }
+
+  &-secondary-color {
+    background-color: $secondary-color;
+  }
+
+  &-linear1 {
+    background: $background-linear1;
+  }
+
+  &-linear2 {
+    background: $background-linear2;
+  }
+
+  &-blue-shade3 {
+    background-color: $blue-shade-3;
+  }
+
+  &-grey-shade1 {
+    background-color: $grey-shade-1;
+  }
+
+  &-grey-shade5 {
+    background-color: $grey-shade-5;
+  }
+
+  &-green-shade4 {
+    background-color: $green-shade-4;
+  }
+
+  &-orange-shade2 {
+    background-color: $orange-shade-2;
+  }
+
+  &-gradient-shade-1 {
+    background: $gradient-shade-1
+  }
+
+  &-gradient-shade-2 {
+    background: $gradient-shade-2;
+  }
+
+  &-gradient-shade-3 {
+    background: $gradient-shade-3;
+  }
+
+  &-red-shade1 {
+    background-color: $red-shade-1;
+  }
+
+  &-light-blue {
+    background-color: $light-blue-shade;
+  }
+
+  &-default-color {
+    background-color: $default-color;
+  }
+
+  &-danger-color {
+    background-color: $danger-color;
+  }
+}

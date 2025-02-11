@@ -1,0 +1,65 @@
+import React, { useCallback, useMemo } from "react";
+import Droppable from "../Droppable";
+import { TextBlockProps, TextAlign } from "../../types";
+
+export const TextBlock: React.FC<TextBlockProps> = ({
+  block,
+  handleDropper,
+  handleBlockClick,
+  isSelected
+}) => {
+  const {
+    text,
+    textColor,
+    backgroundColor,
+    fontFamily,
+    fontSize,
+    fontWeight,
+    padding,
+    alignment,
+    backgroundImage,
+    lineHeight,
+    navigateToUrl , 
+    ...rest
+  } = block;
+
+  const handleDrop = useCallback(
+    (item: { type: string; name: string; id: number }) => {
+      handleDropper(item, block.id);
+    },
+    [handleDropper]
+  );
+
+  return (
+    <Droppable
+      accept="BLOCK"
+      onDrop={handleDrop}
+      style={{
+        color: textColor,
+        backgroundColor: backgroundColor,
+        fontFamily: fontFamily,
+        fontSize: `${fontSize}px`,
+        fontWeight: fontWeight,
+        paddingTop: `${padding.top}px`,
+        paddingRight: `${padding.right}px`,
+        paddingBottom: `${padding.bottom}px`,
+        paddingLeft: `${padding.left}px`,
+        textAlign: alignment as TextAlign,
+        backgroundImage: backgroundImage?.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+        wordBreak: "break-word",
+        whiteSpace: "pre-wrap",
+        lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
+        border: `2px solid ${isSelected && block.parentId ? "blue" : "transparent"}`,
+        ...rest,
+      }}
+      onClick={handleBlockClick}
+    >
+      {text}
+    </Droppable>
+  );
+};

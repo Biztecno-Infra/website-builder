@@ -1,0 +1,29 @@
+.input-label {
+  font-size: 0.85rem;
+  line-height: 1rem;
+  font-weight: 600;
+  padding-left: 0.25rem;
+}
+
+.customcss-dropdown {
+  &.ui.selection.dropdown {
+    height: 2.375rem !important;
+    max-height: 2.375rem !important;
+    padding: 0.5rem !important;
+    font-size: 0.75rem !important;
+
+    input {
+      height: 100%;
+    }
+    &.ui.search.selection.dropdown>input.search {
+      padding: 0.5rem !important;
+    }
+    &.ui.dropdown>.text {
+      padding-top: 0.25rem;
+      font-size: 0.75rem !important;
+    }
+    &.ui.dropdown .menu>.item {
+    font-size: 0.75rem !important;
+    }
+  }
+}

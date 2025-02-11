@@ -1,0 +1,92 @@
+/*
+* Font Size
+* Our Root font size is 16px;
+*/
+
+// Font Family
+$primary-font: 'Montserrat';
+
+// Color Variables
+$primary-color: #FE9B37;
+$secondary-color: #ffffff;
+$danger-color:red;
+$default-color: #000000;
+
+$border-bottom-color: #dddddd;
+$green-shade-1: #47F582;
+$green-shade-2: #388F30;
+$green-shade-3: #5CBB5A;
+$green-shade-4: #D1F9D5;
+
+$blue-color: #4285F4;
+$light-blue-shade: #F5F6FF;
+$light-blue-shade2: #F0FBFF;
+
+$blue-shade-1 : #135988;
+$blue-shade-2 : #2A3F6E;
+$blue-shade-3: #3B4071;
+$blue-shade-4: #A1DDFF;
+$blue-shade-5: #213957;
+$blue-shade-6: #3DB2E4;
+
+$black-shade-1: #333333;
+$black-shade-3: black;
+$black-shade-2: #232323;
+
+$red-shade-1: #FFDEDE;
+$purple-shade-1: #631F98;
+
+$grey-shade-1 :#D9D9D9;
+$grey-shade-2: #999999;
+$grey-shade-3: #E2E2E2;
+$grey-shade-4: #666666;
+$grey-shade-5: #F6F6F6;
+$grey-shade-6: #DCDCDC;
+$grey-shade-7: #EEEEEE ;
+
+$orange-shade-1: #F17D08;
+$orange-shade-2: #FFBB77;
+$orange-shade-3: #9C4E00;
+
+$background-linear1: linear-gradient(31.94deg, #FF10D9 0.95%, #FF5BF8 0.96%, #FF5BF8 0.97%, #EEC3EC 49.97%, #32B5FF 99.99%);
+$background-linear2: linear-gradient(212.18deg, #BD7AFF 0%, #FFE924 100%);
+
+$gradient-shade-1: linear-gradient(180deg, #7BB1ED 0%, #F8D4EE 100%);
+$gradient-shade-2: linear-gradient(180deg, #FFA497 0%, #FFDA9A 100%);
+$gradient-shade-3: linear-gradient(180deg, #9ADCBE 0%, #FBF2B3 100%);
+
+
+$padding-0: 0rem;
+$padding-1: 0.25rem;
+$padding-2: 0.5rem;
+$padding-3: 0.75rem;
+$padding-4: 1rem;
+$padding-5: 1.25rem;
+$padding-6: 1.5rem;
+$padding-7: 1.75rem;
+$padding-8: 2rem;
+$padding-9: 2.25rem;
+$padding-10: 2.5rem;
+$padding-11: 2.75rem;
+$padding-12: 3rem;
+
+// Margin Variables
+$margin-0: 0rem;
+$margin-1: 0.25rem;
+$margin-2: 0.5rem;
+$margin-3: 0.75rem;
+$margin-4: 1rem;
+$margin-5: 1.25rem;
+$margin-6: 1.5rem;
+$margin-7: 1.75rem;
+$margin-8: 2rem;
+
+// Screen Resolution Variables
+$mobile-min: 320px;
+$mobile-max: 767px;
+
+$tab-min: 768px;
+$tab-max: 1100px;
+
+$dekstop: 1101px;
+$large-monitor: 1920px;
