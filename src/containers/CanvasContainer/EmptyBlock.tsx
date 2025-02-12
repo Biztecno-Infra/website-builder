@@ -1,16 +1,36 @@
-import SvgIcon, { CUSTOM_SVG_ICON, SVGType } from "@components/SvgIcon";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import styled from "styled-components";
+
+// Styled Components
+const EmptyBlockContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 2rem; /* Assuming text-7 corresponds to 2rem */
+`;
+
+const MessageText = styled.div`
+  font-size: inherit;
+`;
+
+const SvgIconWrapper = styled.div`
+  margin-top: 1rem; /* Assuming margin-t-4 corresponds to 1rem */
+`;
 
 const EmptyBlock = () => {
   return (
-    <div className="flex flex-column flex-align-center flex-justify-center width-100 height-100 text-7">
-      <div>Drag block and drop here</div>
-      <SvgIcon
-        name={CUSTOM_SVG_ICON.Plus}
-        svgType={SVGType.CUSTOM}
-        size={"large"}
-        baseclassname={"margin-t-4"}
-      />
-    </div>
+    <EmptyBlockContainer>
+      <MessageText>Drag block and drop here</MessageText>
+      <SvgIconWrapper>
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.Plus}
+          size={"large"}
+        />
+      </SvgIconWrapper>
+    </EmptyBlockContainer>
   );
 };
 

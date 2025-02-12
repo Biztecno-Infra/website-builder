@@ -284,7 +284,10 @@ export interface Theme {
     primary: string;
     secondary: string;
     background: string;
-    text: string;
+    textPrimary: string;
+    textSecondary: string;
+    buttonPrimary: string;
+    buttonSecondary: string;
   },
   spacing: {
     small: number;

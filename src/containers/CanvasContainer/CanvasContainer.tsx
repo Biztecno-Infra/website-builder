@@ -1,70 +1,77 @@
 import React, { useCallback, useMemo } from "react";
-import { Icon } from "semantic-ui-react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
 import { getDroppableStyles, getTableStyles } from "@utils/common";
 import { useBlockHook } from "context/BlockContext";
-import "./style.scss";
+import styled from "styled-components";
+
+// Define the prop type for globalStyles
+interface TableWrapperProps {
+  globalStyles: any;
+}
+
+const BlockWrapper = styled.div<{ isSelected: boolean }>`
+  cursor: pointer;
+  border: ${({ isSelected }) => (isSelected ? "2px solid blue" : "none")};
+  position: relative;
+`;
+
+const TrashIconWrapper = styled.div`
+  position: absolute;
+  top: 0;
+  right: -35px;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+  z-index: 1000;
+`;
+
+const TableWrapper = styled.table<TableWrapperProps>`
+  ${({ globalStyles }) : any => getTableStyles(globalStyles) as React.CSSProperties};
+  width: 100%;
+`;
 
 const Canvas: React.FC = () => {
-
   const {
     selectedBlock,
     handleDropper,
     rootBlockOrder,
     setSelectedBlock,
     globalStyles,
-    onDeleteBlock
+    onDeleteBlock,
   } = useBlockHook();
 
-  const handleDrop = useCallback((
-    item: { type: string; name: string; id: number},
-  ) => {
-    handleDropper(item, undefined!);
-  }, [handleDropper])
+  const handleDrop = useCallback(
+    (item: { type: string; name: string; id: number }) => {
+      handleDropper(item, undefined!);
+    },
+    [handleDropper]
+  );
 
   const renderBlock = (blockId: string, index: number) => {
     return (
-      <div
-        key={blockId}
-        style={{
-          cursor: "pointer",
-          border: blockId === selectedBlock?.id ? "2px solid blue" : "none",
-          position: "relative",
-        }}
-      >
-        <BlockComponent
-          blockId={blockId}
-        />
+      <BlockWrapper key={blockId} isSelected={blockId === selectedBlock?.id}>
+        <BlockComponent blockId={blockId} />
 
         {blockId === selectedBlock?.id && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              right: -35,
-              borderRadius: "50%",
-              padding: "5px",
-              cursor: "pointer",
-              zIndex: 1000,
-            }}
+          <TrashIconWrapper
             onClick={(e) => {
               e.stopPropagation();
               onDeleteBlock(blockId);
               setSelectedBlock(null);
             }}
           >
-            <Icon name="trash" />
-          </div>
+            delete
+            {/* <Icon name="trash" /> */}
+          </TrashIconWrapper>
         )}
-      </div>
-    )
-  } 
- 
+      </BlockWrapper>
+    );
+  };
 
-  const [droppableStyles, tableStyles] = useMemo(() => {
-    return [getDroppableStyles(globalStyles), getTableStyles(globalStyles)];
+  const [droppableStyles] = useMemo(() => {
+    return [getDroppableStyles(globalStyles)];
   }, [globalStyles]);
 
   return (
@@ -75,13 +82,13 @@ const Canvas: React.FC = () => {
       onClick={() => setSelectedBlock(null)}
     >
       {rootBlockOrder.length > 0 ? (
-        <table style={tableStyles as React.CSSProperties}>
+        <TableWrapper globalStyles={globalStyles}>
           <tbody>
             <tr>
-              <td style={{padding:0}}>{rootBlockOrder.map(renderBlock)}</td>
+              <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>
             </tr>
           </tbody>
-        </table>
+        </TableWrapper>
       ) : (
         <EmptyBlock />
       )}

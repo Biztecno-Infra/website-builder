@@ -27,3 +27,57 @@
     }
   }
 }
+
+
+
+///customcss
+.dropdown-wrapper {
+  position: relative;
+  width: 200px;
+}
+
+.dropdown-search-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.dropdown-item {
+  padding: 8px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+.dropdown-item:hover {
+  background-color: #f0f0f0;
+}
+
+.value-input {
+  padding: 8px;
+  margin-right: 8px;
+  width: 120px;
+}
+
+.add-button {
+  padding: 8px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.add-button:hover {
+  background-color: #45a049;
+}

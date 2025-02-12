@@ -250,10 +250,13 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
 
 export const defaultTheme: Theme = {
   colors: {
-    primary: "#007bff",
-    secondary: "#6c757d",
+    primary: "#006E75",
+    secondary: "#FFFFFF",
     background: "#f8f9fa",
-    text: "#212529",
+    textPrimary: "#000000",
+    textSecondary: "#212529",
+    buttonPrimary: "#0B978E",
+    buttonSecondary: ""
   },
   fonts: {
     primaryFont: "Modern Sans"

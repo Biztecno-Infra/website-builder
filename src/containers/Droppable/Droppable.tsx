@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
 import { useDrop } from "react-dnd";
+import styled from "styled-components";
 
 interface DroppableProps extends React.HTMLAttributes<HTMLElement> {
   accept: string | string[];
@@ -7,14 +8,18 @@ interface DroppableProps extends React.HTMLAttributes<HTMLElement> {
   style?: React.CSSProperties;
 }
 
+// Define a styled div that will be used for the droppable area
+const DroppableWrapper = styled.div<{ isOver: boolean }>`
+  background-color: ${({ isOver }) => (isOver ? "#b3cee5" : "")};
+  ${({ style }) => style && { ...style }};
+`;
+
 const Droppable = forwardRef<HTMLElement, DroppableProps>(
   ({ accept, onDrop, children, style, ...props }, ref) => {
     // Dropping logic
     const [{ isOver }, dropRef] = useDrop({
       accept,
-      canDrop: (item, monitor) => {
-        return monitor.isOver({ shallow: true }); 
-      },
+      canDrop: (item, monitor) => monitor.isOver({ shallow: true }),
       drop: (item, monitor) => {
         onDrop(item, monitor);
       },
@@ -25,16 +30,14 @@ const Droppable = forwardRef<HTMLElement, DroppableProps>(
     });
 
     return (
-      <div
-        style={{
-          backgroundColor: isOver ? "#b3cee5" : "",
-          ...style,
-        }}
-        ref={node => {if(node) dropRef(node)}}
+      <DroppableWrapper
+        ref={node => { if (node) dropRef(node); }}
+        isOver={isOver}
+        style={style}
         {...props}
       >
         {children}
-      </div>
+      </DroppableWrapper>
     );
   }
 );

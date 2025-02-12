@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import styled from "styled-components";
 import { CustomInput } from "@components/CustomInputs";
 
 interface ColumnCellWidthProps {
@@ -8,6 +9,16 @@ interface ColumnCellWidthProps {
   updateCellWidths: (newWidths: number[]) => void;
 }
 
+const ColumnCellWidthContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const Label = styled.label`
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+`;
 
 const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
   rows,
@@ -46,12 +57,11 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
   };
 
   return (
-    <div className="flex flex-column">
-      <label className="input-label margin-b-2">Column Cell Widths</label>
+    <ColumnCellWidthContainer>
+      <Label>Column Cell Widths</Label>
       {localWidths.map((width, index) => (
         <CustomInput
           key={index}
-          id={`cell-width-${index}`}
           name={`cell-width-${index}`}
           type="number"
           label={`Width (Column ${index + 1})`}
@@ -60,7 +70,7 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
           placeholder="Enter width in percentage"
         />
       ))}
-    </div>
+    </ColumnCellWidthContainer>
   );
 };
 

@@ -5,7 +5,6 @@ import { ViewMode } from "../../types";
 import HtmlContent from "@components/HtmlViewer";
 import JsonContainer from "@components/JsonViewer";
 import TabComponent from "@components/TabComponent";
-import JsonUploadModal from "./JsonUploadModal";
 import { useBlockHook } from "context/BlockContext";
 import "./style.scss";
 
@@ -67,13 +66,6 @@ export const MultiViewContainer: React.FC = () => {
   const jsonData = blocksToJson(blocks, globalStyles, rootBlockOrder);
   const htmlData = convertJsonToHtml(jsonData, globalStyles);
 
-  const onJsonUpload = (jsonData: any) => {
-    handleJsonUpload(jsonData);
-    setIsModalOpen(false);
-    setViewMode(ViewMode.Canvas);
-  };
-
-  const closeModal = () => setIsModalOpen(false);
 
   return (
     <Container>
@@ -118,10 +110,6 @@ export const MultiViewContainer: React.FC = () => {
         {viewMode === ViewMode.Json && <JsonContainer jsonData={jsonData} />}
         {viewMode === ViewMode.Canvas && <CanvasContainer />}
       </CanvasContainerWrapper>
-
-      {isModalOpen && (
-        <JsonUploadModal onJsonUpload={onJsonUpload} onClose={closeModal} />
-      )}
     </Container>
   );
 };

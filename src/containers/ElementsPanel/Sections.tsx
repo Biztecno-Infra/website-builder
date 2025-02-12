@@ -20,7 +20,7 @@ export const BlockItem = ({ type, name , elements }: IElements , ) => {
 console.log(elements)
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       style={{
         opacity: isDragging ? 0.5 : 1,
         padding: elements.padding,
@@ -39,8 +39,7 @@ console.log(elements)
 
 const Sections: React.FC = () => {
   const theme = useTheme();
-  console.log(theme , "ll")
-  debugger
+  console.log(theme , "ltegjdjd")
   const blockItems = [
     { type: BlockType.TEXT, name: "Text" },
     { type: BlockType.IMAGE, name: "Image" },

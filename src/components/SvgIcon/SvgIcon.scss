@@ -24,19 +24,19 @@
   &.circular {
       border-radius: 100%;
   }
-  &.hover{
-    &:hover {
-    color: $purple-shade-1;
-  }}
+  // &.hover{
+  //   &:hover {
+  //   color: $purple-shade-1;
+  // }}
 }
 
 
-i.icon {
-  &.primary-color {
-    color: $purple-shade-1;
-  }
+// i.icon {
+//   &.primary-color {
+//     color: $purple-shade-1;
+//   }
 
-  &.danger-color {
-    color: $danger-color;
-  }
-}
+//   &.danger-color {
+//     color: $danger-color;
+//   }
+// }

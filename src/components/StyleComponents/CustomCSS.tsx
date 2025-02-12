@@ -1,111 +1,174 @@
-import React, { SyntheticEvent, useState, useCallback } from "react";
-import { Dropdown, DropdownOnSearchChangeData, DropdownProps } from "semantic-ui-react";
-import SvgIcon, { CUSTOM_SVG_ICON, SVGType } from "@components/SvgIcon";
-import { CustomInput } from "@components/CustomInputs";
-import "./style.scss";
-
-const initialCssPropertiesList = [
-  "alignItems", "background", "border", "borderRadius", "boxShadow", "color", "display", "fontSize",
-  "fontFamily", "height", "margin", "padding", "textAlign", "width", "zIndex", "flex", "position",
-  "top", "left", "right", "bottom", "transform", "overflow", "opacity", "visibility", "justifyContent",
-  "gap", "gridTemplateColumns", "gridTemplateRows", "borderWidth", "wordSpacing", "letterSpacing",
-  "textIndent", "maxWidth", "minWidth", "maxHeight", "minHeight",
-];
+import React, { useState, useCallback } from "react";
+import styled from "styled-components";
 
 interface CustomCSSInputProps {
   label: string;
   onAddProperty: (property: string, value: string) => void;
 }
 
+const InputLabel = styled.label`
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+`;
+
+const FlexContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+`;
+
+const PropertyInput = styled.input`
+  margin-right: 0.5rem;
+  padding: 5px;
+  font-size: 1rem;
+  width: 150px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const ValueInput = styled.input`
+  margin-right: 0.5rem;
+  padding: 5px;
+  font-size: 1rem;
+  width: 150px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+`;
+
+const AddButton = styled.button`
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 1rem;
+
+  &:hover {
+    background-color: #218838;
+  }
+`;
+
+const CssPropertiesList = styled.div`
+  margin-top: 1rem;
+`;
+
+const CssPropertyItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+`;
+
+const PropertyName = styled.span`
+  font-size: 1rem;
+`;
+
+const EditButton = styled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #007bff;
+  padding: 2px 6px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const DeleteButton = styled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #dc3545;
+  padding: 2px 6px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
 export const CustomCSSInput: React.FC<CustomCSSInputProps> = ({
   label,
   onAddProperty,
 }) => {
+  const [cssProperties, setCssProperties] = useState<{ property: string; value: string }[]>([]);
   const [property, setProperty] = useState<string>("");
   const [value, setValue] = useState<string>("");
-  const [cssPropertiesList, setCssPropertiesList] = useState<string[]>(initialCssPropertiesList);
 
-  // Handle input changes and filter the CSS properties based on the user's input
-  const handlePropertyChange = useCallback(
-    (event: SyntheticEvent<HTMLElement, Event>, data: DropdownOnSearchChangeData) => {
-      const newValue = data.value;
-      setProperty(newValue as string);
-    },
-    []
-  );
-
-  // Function to handle the selection of a suggestion
-  const handleSuggestionSelect = useCallback(
-    (event: React.SyntheticEvent, data: any) => {
-      setProperty(data.value); // Autofill the property input
-    },
-    []
-  );
-
-  // Handle adding new custom property to the list
-  const handleAddItem = useCallback(
-    (e: React.SyntheticEvent, { value }: DropdownProps) => {
-      if (value && !cssPropertiesList.includes(value as string)) {
-        setCssPropertiesList((prevList) => [...prevList, value as string]);
-      }
-      setProperty(value as string);
-    },
-    [cssPropertiesList]
-  );
-
-  const handleAdd = useCallback(() => {
+  const handleAddProperty = useCallback(() => {
     if (property && value) {
-      onAddProperty(property, value);
+      const newProperty = { property, value };
+      setCssProperties((prev) => [...prev, newProperty]);
       setProperty(""); // Reset property input
       setValue(""); // Reset value input
     }
-  }, [property, value, onAddProperty]);
+  }, [property, value]);
 
-  // Prepare the items for the dropdown based on the updated list of CSS properties
-  const dropdownItems = cssPropertiesList.map((prop) => ({
-    key: prop,
-    text: prop,
-    value: prop,
-  }));
+  const handleDeleteProperty = useCallback((propertyToDelete: string) => {
+    setCssProperties((prev) =>
+      prev.filter((item) => item.property !== propertyToDelete)
+    );
+  }, []);
+
+  const handleEditProperty = useCallback(
+    (propertyToEdit: string, newValue: string) => {
+      setCssProperties((prev) =>
+        prev.map((item) =>
+          item.property === propertyToEdit ? { ...item, value: newValue } : item
+        )
+      );
+    },
+    []
+  );
 
   return (
     <>
-      <label className="input-label">{label}</label>
-      <div className="flex flex-row flex-align-center width-100">
-        {/* Input field with Semantic UI dropdown */}
-        <Dropdown
-          search
-          selection
-          value={property}
-          onChange={handleSuggestionSelect}
-          onSearchChange={handlePropertyChange}
+      <InputLabel>{label}</InputLabel>
+      <FlexContainer>
+        <PropertyInput
+          type="text"
           placeholder="Property (e.g. 'font-size')"
-          options={dropdownItems}
-          className="margin-r-1 width-40 customcss-dropdown"
-          allowAdditions={true} // Allow users to type new properties
-          onAddItem={handleAddItem} // Handle adding new custom property
+          value={property}
+          onChange={(e) => setProperty(e.target.value)}
         />
 
-        {/* Manual input field for value */}
-        <CustomInput
-          id={value}
-          name={value}
+        <ValueInput
           type="text"
           placeholder="Value (e.g. '16px')"
           value={value}
-          onChange={(name, value) => setValue(value)}
-          baseClassName="margin-r-1 width-40"
+          onChange={(e) => setValue(e.target.value)}
         />
 
-        {/* Add button to confirm the property and value */}
-        <SvgIcon
-          name={CUSTOM_SVG_ICON.Plus}
-          svgType={SVGType.CUSTOM}
-          size={"small"}
-          baseclassname={"cusror-pointer"}
-          onClick={handleAdd}
-        />
-      </div>
+        <AddButton onClick={handleAddProperty}>+</AddButton>
+      </FlexContainer>
+
+      <CssPropertiesList>
+        {cssProperties.map(({ property, value }) => (
+          <CssPropertyItem key={property}>
+            <PropertyName>{property}: {value}</PropertyName>
+            <div>
+              <EditButton
+                onClick={() => {
+                  const newValue = prompt("Edit Value", value);
+                  if (newValue) handleEditProperty(property, newValue);
+                }}
+              >
+                ✏️
+              </EditButton>
+              <DeleteButton
+                onClick={() => handleDeleteProperty(property)}
+              >
+                🗑️
+              </DeleteButton>
+            </div>
+          </CssPropertyItem>
+        ))}
+      </CssPropertiesList>
     </>
   );
 };
