@@ -59,8 +59,8 @@ export const MultiViewContainer: React.FC = () => {
       activeIndex === 0
         ? ViewMode.Canvas
         : activeIndex === 1
-        ? ViewMode.Json
-        : ViewMode.Html
+          ? ViewMode.Json
+          : ViewMode.Html
     );
   }, []);
 
@@ -84,8 +84,8 @@ export const MultiViewContainer: React.FC = () => {
             viewMode === ViewMode.Canvas
               ? 0
               : viewMode === ViewMode.Json
-              ? 1
-              : 2
+                ? 1
+                : 2
           }
           onTabChange={handleViewChange}
           panes={
