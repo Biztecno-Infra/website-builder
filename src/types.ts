@@ -299,9 +299,14 @@ export interface Theme {
     padding: string;
     borderRadius: string;
     textAlign: string;
+    border: string;
+    marginBottom: string;
+    cursor: string;
+    width: string;
+
   };
   fonts: {
-    primaryFont : string;
+    primaryFont: string;
   }
   borderRadius: number;
 }

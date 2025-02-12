@@ -266,22 +266,15 @@ export const defaultTheme: Theme = {
     medium: 16,
     large: 24,
   },
-  elementsPanel : {
-    background: "red",
+  elementsPanel: {
+    background: "white",
     borderRadius: "5px",
     padding: "5px",
-    textAlign: "left"
+    textAlign: "center",
+    border: "1px solid #ccc",
+    marginBottom: "10px",
+    cursor: "pointer",
+    width: "90%",
   },
   borderRadius: 4,
 }
-
-export const StyledBlockItem = styled.div<IStyledBlockItemProps>`
-  opacity: ${(props) => (props.isDragging ? 0.5 : 1)};
-  padding: ${(props) => props.padding};
-  border: ${(props) => props.border};
-  margin-bottom: ${(props) => props.marginBottom};
-  cursor: ${(props) => props.cursor};
-  width: ${(props) => props.width};
-  text-align: ${(props) => props.textAlign};
-  background-color: ${(props) => props.backgroundColor || (props.isDragging ? "#f0f0f0" : "#fff")};
-`;

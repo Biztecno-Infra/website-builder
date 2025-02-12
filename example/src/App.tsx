@@ -13,9 +13,8 @@ const App = () => {
     <Fragment>
       <EmailBuilder ref={builderRef} theme={{
         ...defaultTheme,
-        borderRadius: 10
+        borderRadius: 10,
       }}
-      // section={}
       />
     </Fragment>
   );
