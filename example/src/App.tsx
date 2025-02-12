@@ -1,5 +1,5 @@
 import React, { Fragment, useRef } from "react";
-import {EmailBuilder, BlockHookRef, defaultTheme} from "email-builder-react";
+import { EmailBuilder, BlockHookRef, defaultTheme } from "email-builder-react";
 import "email-builder-react/index.css";
 
 const App = () => {
@@ -14,7 +14,9 @@ const App = () => {
       <EmailBuilder ref={builderRef} theme={{
         ...defaultTheme,
         borderRadius: 10
-      }} />
+      }}
+      // section={}
+      />
     </Fragment>
   );
 };

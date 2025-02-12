@@ -6,24 +6,23 @@ import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
 import MultiViewContainer from "@containers/MultiViewContainer";
 import { BlockHookProvider } from "./context/BlockContext";
-import { BlockHookRef, Theme } from "./types";
+import { BlockHookRef, IStyledBlockItemProps, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 
 import "./styles/index.scss";
 
-
 interface Props {
   theme?: Theme;
+  section?: IStyledBlockItemProps;
 }
 
-
-const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({theme}, ref) => {
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme, section }, ref) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <CustomThemeProvider theme={theme! || {}}>
-        <BlockHookProvider ref={ref} >
+        <BlockHookProvider ref={ref}>
           <div className="flex width-100 height-100 test">
-            <ElementsPanel />
+            <ElementsPanel section={section} />
             <MultiViewContainer />
             <PropertyPanel />
           </div>

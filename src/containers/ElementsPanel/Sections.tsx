@@ -1,67 +1,45 @@
-import { BlockType } from "../../types";
+import { StyledBlockItem } from "@utils/index";
 import React from "react";
 import { useDrag } from "react-dnd";
+import { IStyledBlockItemProps } from "types";
 
-export interface IElements {
+export interface IElements extends IStyledBlockItemProps {
   type: string;
   name: string;
 }
 
-export const BlockItem = ({ type, name }: IElements) => {
+export const BlockItem: React.FC<IElements> = ({
+  type,
+  name,
+  padding = "10px",
+  border = "1px solid #ccc",
+  marginBottom = "10px",
+  cursor = "pointer",
+  width = "90%",
+  textAlign = "center",
+  backgroundColor,
+}) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: "BLOCK", 
-    item: { type, name }, 
+    type: "BLOCK",
+    item: { type, name },
     collect: (monitor) => ({
-      isDragging: monitor.isDragging(), 
+      isDragging: monitor.isDragging(),
     }),
   }));
 
   return (
-    <div
+    <StyledBlockItem
       ref={drag}
-      style={{
-        opacity: isDragging ? 0.5 : 1,
-        padding: "10px",
-        border: "1px solid #ccc",
-        marginBottom: "10px",
-        cursor: "pointer",
-        width: "90%",
-        textAlign:"center",
-        backgroundColor: isDragging ? "#f0f0f0" : "#fff", // Lighten background when dragging
-      }}
+      isDragging={isDragging}
+      padding={padding}
+      border={border}
+      marginBottom={marginBottom}
+      cursor={cursor}
+      width={width}
+      textAlign={textAlign}
+      backgroundColor={backgroundColor || (isDragging ? "#f0f0f0" : "#fff")}
     >
-     {name}
-    </div>
+      {name}
+    </StyledBlockItem>
   );
 };
-
-const Sections: React.FC = () => {
-  const blockItems = [
-    { type: BlockType.TEXT, name: "Text" },
-    { type: BlockType.IMAGE, name: "Image" },
-    { type: BlockType.BUTTON, name: "Button" },
-    { type: BlockType.GRID, name: "Grid" },
-    { type: BlockType.DIVIDER, name: "Divider" },
-    { type: BlockType.SPACER, name: "Spacer" },
-  ];
-
-  return (
-    <div
-      className="width-100 flex flex-column padding-2 flex-align-center"
-      style={{
-        // boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.1)", 
-        backgroundColor: "#fff", 
-        position: "relative",
-        zIndex: "1000", 
-        paddingTop: "20px", 
-      }}
-    >
-      <h3>Blocks</h3>
-      {blockItems.map((block, index) => (
-          <BlockItem key={index} type={block.type} name={block.name} />
-        ))}
-    </div>
-  );
-};
-
-export default Sections;

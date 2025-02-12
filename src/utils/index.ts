@@ -20,7 +20,9 @@ import {
   DividerProps,
   SpacerProps,
   Theme,
+  IStyledBlockItemProps,
 } from "../types";
+import styled from "styled-components";
 
 const generateBlockToJsonData = (block: Block) => {
   let blockData: any;
@@ -243,7 +245,7 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
     blocks[rootChildId] = rootBlock;
   });
 
-  return {blocks , rootBlock: emailLayoutJson.root};
+  return { blocks, rootBlock: emailLayoutJson.root };
 };
 
 export const defaultTheme: Theme = {
@@ -260,3 +262,14 @@ export const defaultTheme: Theme = {
   },
   borderRadius: 4,
 }
+
+export const StyledBlockItem = styled.div<IStyledBlockItemProps>`
+  opacity: ${(props) => (props.isDragging ? 0.5 : 1)};
+  padding: ${(props) => props.padding};
+  border: ${(props) => props.border};
+  margin-bottom: ${(props) => props.marginBottom};
+  cursor: ${(props) => props.cursor};
+  width: ${(props) => props.width};
+  text-align: ${(props) => props.textAlign};
+  background-color: ${(props) => props.backgroundColor || (props.isDragging ? "#f0f0f0" : "#fff")};
+`;
