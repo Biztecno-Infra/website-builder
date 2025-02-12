@@ -1,43 +1,25 @@
 import React, { useState } from "react";
 import TabComponent from "@components/TabComponent";
 import NodeTree from "../BlockTreeComponent";
-import { BlockItem } from "./Sections";
+import Sections, { BlockItem } from "./Sections";
 import { BlockType, IStyledBlockItemProps } from "../../types";
 
-interface ElementsPanelProps {
-  section?: IStyledBlockItemProps;
-}
+// interface ElementsPanelProps {
+//   section?: IStyledBlockItemProps;
+// }
 
-const ElementsPanel: React.FC<ElementsPanelProps> = ({ section }) => {
+const ElementsPanel: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const handleTabChange = (index: number) => {
     setActiveIndex(index);
   };
 
-  const blockItems = [
-    { type: BlockType.TEXT, name: "Text" },
-    { type: BlockType.IMAGE, name: "Image" },
-    { type: BlockType.BUTTON, name: "Button" },
-    { type: BlockType.GRID, name: "Grid" },
-    { type: BlockType.DIVIDER, name: "Divider" },
-    { type: BlockType.SPACER, name: "Spacer" },
-  ];
-
   const panes = [
     {
       menuItem: "Sections",
       render: () => (
-        <div>
-          {blockItems.map((item, index) => (
-            <BlockItem
-              key={index}
-              type={item.type}
-              name={item.name}
-              {...section}
-            />
-          ))}
-        </div>
+       <Sections />
       ),
     },
     {

@@ -291,6 +291,15 @@ export interface Theme {
     medium: number;
     large: number;
   },
+  elementsPanel: {
+    background: string;
+    padding: string;
+    borderRadius: string;
+    textAlign: string;
+  };
+  fonts: {
+    primaryFont : string;
+  }
   borderRadius: number;
 }
 

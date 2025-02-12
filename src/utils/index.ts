@@ -255,10 +255,19 @@ export const defaultTheme: Theme = {
     background: "#f8f9fa",
     text: "#212529",
   },
+  fonts: {
+    primaryFont: "Modern Sans"
+  },
   spacing: {
     small: 8,
     medium: 16,
     large: 24,
+  },
+  elementsPanel : {
+    background: "red",
+    borderRadius: "5px",
+    padding: "5px",
+    textAlign: "left"
   },
   borderRadius: 4,
 }

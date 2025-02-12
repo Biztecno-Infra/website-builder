@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import styled from "styled-components";
 
 import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
@@ -9,23 +10,29 @@ import { BlockHookProvider } from "./context/BlockContext";
 import { BlockHookRef, IStyledBlockItemProps, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 
-import "./styles.scss";
+import "./style.scss";
 
 interface Props {
   theme?: Theme;
-  section?: IStyledBlockItemProps;
+  // section?: IStyledBlockItemProps;
 }
 
-const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme, section }, ref) => {
+const Container = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100%;
+`;
+
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {
   return (
     <DndProvider backend={HTML5Backend}>
       <CustomThemeProvider theme={theme! || {}}>
         <BlockHookProvider ref={ref}>
-          <div className="flex width-100 height-100 test">
-            <ElementsPanel section={section} />
+          <Container>
+            <ElementsPanel />
             <MultiViewContainer />
             <PropertyPanel />
-          </div>
+            </Container>
         </BlockHookProvider>
       </CustomThemeProvider>
     </DndProvider>
