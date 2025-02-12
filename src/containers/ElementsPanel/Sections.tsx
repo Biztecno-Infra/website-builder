@@ -1,4 +1,4 @@
-import { BlockType } from "../../types";
+import { BlockType, Theme } from "../../types";
 import React from "react";
 import { useDrag } from "react-dnd";
 import { useTheme } from "styled-components";
@@ -6,9 +6,10 @@ import { useTheme } from "styled-components";
 export interface IElements {
   type: string;
   name: string;
+  elements: any;
 }
 
-export const BlockItem = ({ type, name }: IElements) => {
+export const BlockItem = ({ type, name , elements }: IElements , ) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "BLOCK", 
     item: { type, name }, 
@@ -16,13 +17,13 @@ export const BlockItem = ({ type, name }: IElements) => {
       isDragging: monitor.isDragging(), 
     }),
   }));
-
+console.log(elements)
   return (
     <div
       ref={drag}
       style={{
         opacity: isDragging ? 0.5 : 1,
-        padding: "10px",
+        padding: elements.padding,
         border: "1px solid #ccc",
         marginBottom: "10px",
         cursor: "pointer",
@@ -38,7 +39,8 @@ export const BlockItem = ({ type, name }: IElements) => {
 
 const Sections: React.FC = () => {
   const theme = useTheme();
-  console.log(theme , "styled")
+  console.log(theme , "ll")
+  debugger
   const blockItems = [
     { type: BlockType.TEXT, name: "Text" },
     { type: BlockType.IMAGE, name: "Image" },
@@ -61,7 +63,7 @@ const Sections: React.FC = () => {
     >
       <h3>Blocks</h3>
       {blockItems.map((block, index) => (
-          <BlockItem key={index} type={block.type} name={block.name} />
+          <BlockItem key={index} type={block.type} name={block.name} elements={theme.elementsPanel} />
         ))}
     </div>
   );

@@ -1,12 +1,16 @@
 import React, { useState } from "react";
+import styled from "styled-components";
 import TabComponent from "@components/TabComponent";
 import NodeTree from "../BlockTreeComponent";
-import Sections, { BlockItem } from "./Sections";
-import { BlockType, IStyledBlockItemProps } from "../../types";
+import Sections from "./Sections";
 
-// interface ElementsPanelProps {
-//   section?: IStyledBlockItemProps;
-// }
+
+const ElementsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  height: 100%;
+`;
 
 const ElementsPanel: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -18,9 +22,7 @@ const ElementsPanel: React.FC = () => {
   const panes = [
     {
       menuItem: "Sections",
-      render: () => (
-       <Sections />
-      ),
+      render: () => (<Sections /> ),
     },
     {
       menuItem: "Tree",
@@ -29,7 +31,7 @@ const ElementsPanel: React.FC = () => {
   ];
 
   return (
-    <div className="flex flex-column width-15 height-100">
+    <ElementsContainer>
       <TabComponent
         activeIndex={activeIndex}
         onTabChange={(activeIndex) => handleTabChange(activeIndex)}
@@ -37,7 +39,7 @@ const ElementsPanel: React.FC = () => {
         panes={panes as any}
         style={{ height: "100%", margin: 0 }}
       />
-    </div>
+    </ElementsContainer>
   );
 };
 
