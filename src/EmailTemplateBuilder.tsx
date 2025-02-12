@@ -9,7 +9,7 @@ import { BlockHookProvider } from "./context/BlockContext";
 import { BlockHookRef, IStyledBlockItemProps, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 
-import "./styles/index.scss";
+import "./styles.scss";
 
 interface Props {
   theme?: Theme;
