@@ -6,6 +6,7 @@ const StyledTabMenu = styled.div`
   display: flex;
   border-bottom: 2px solid #ccc;
   margin-bottom: 1rem;
+  flex-direction: column;
 `;
 
 const StyledTabMenuItem = styled.div<{ active: boolean }>`
