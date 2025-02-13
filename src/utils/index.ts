@@ -11,7 +11,6 @@ import {
   Block,
   BlockType,
   ButtonProps,
-  GlobalStyles,
   IGridCellProps,
   GridProps,
   IBlocksState,
@@ -278,7 +277,7 @@ export const defaultTheme: Theme = {
     subHeader: "1rem"
   },
   canvas:{
-    canvasColor: "red",
+    canvasColor: "#FFFFFF",
     backgroundColor: "#F1F1F1",
     canvasFont: "Montserrat",
     canvasFontSize: "1rem"

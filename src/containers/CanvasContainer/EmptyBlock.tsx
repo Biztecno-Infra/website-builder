@@ -9,7 +9,7 @@ const EmptyBlockContainer = styled.div`
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 2rem; /* Assuming text-7 corresponds to 2rem */
+  font-size: 2rem;
 `;
 
 const MessageText = styled.div`
@@ -17,7 +17,7 @@ const MessageText = styled.div`
 `;
 
 const SvgIconWrapper = styled.div`
-  margin-top: 1rem; /* Assuming margin-t-4 corresponds to 1rem */
+  margin-top: 1rem;
 `;
 
 const EmptyBlock = () => {

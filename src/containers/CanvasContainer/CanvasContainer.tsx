@@ -38,7 +38,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   font-size: ${({ theme }) => theme.canvasFontSize};
   border-collapse: collapse;
   table-layout: fixed;
-  height:100%
+  height:100%;
   padding:10px;
 `;
 
@@ -84,7 +84,7 @@ const Canvas: React.FC = () => {
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
-        backgroundColor: theme.backgroundColor,
+        backgroundColor: theme.canvas.backgroundColor,
         height: "100%",
         padding: "1.5rem 0",
         fontSize: "1rem",
@@ -95,7 +95,7 @@ const Canvas: React.FC = () => {
       onClick={() => setSelectedBlock(null)}
     >
       {rootBlockOrder.length > 0 ? (
-        <TableWrapper theme={{ backgroundColor: theme.backgroundColor, textColor: theme.textColor }}>
+        <TableWrapper theme={theme.canvas}>
           <tbody>
             <tr>
               <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>
