@@ -38,7 +38,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   font-size: ${({ theme }) => theme.canvasFontSize};
   border-collapse: collapse;
   table-layout: fixed;
-  padding:10px;
+  padding: 10px;
 `;
 
 const Canvas: React.FC = () => {

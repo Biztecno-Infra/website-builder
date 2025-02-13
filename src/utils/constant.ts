@@ -10,14 +10,6 @@ import {
 } from "../types";
 
 
-export const globalStyle = {
-  backdropColor: "#F5F5F5",
-  canvasColor: "#FFFFFF",
-  textColor: "#262626",
-  fontFamily: "MODERN_SANS",
-  initialBgColor: "",
-};
-
 export const defaultPadding = {
   top: 10,
   right: 10,

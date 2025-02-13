@@ -280,7 +280,9 @@ export const defaultTheme: Theme = {
     canvasColor: "#FFFFFF",
     backgroundColor: "#F1F1F1",
     canvasFont: "Montserrat",
-    canvasFontSize: "1rem"
+    canvasFontSize: "1rem",
+    canvasPadding: "0px",
+    canvasTextColor: "#000000"
   }, 
   borderRadius: "5px",
 }

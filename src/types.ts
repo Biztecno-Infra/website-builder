@@ -184,7 +184,7 @@ export interface PropertyPanelProps {
 }
 
 export interface GlobalStyles {
-  backdropColor: string;
+  canvasPadding: string;
   canvasColor: string;
   textColor: string;
   fontFamily: string;
@@ -226,7 +226,7 @@ export interface IBlockContext {
   handleJsonUpload: (jsonData: any) => void;
   handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
   rootBlockOrder: string[];
-  globalStyles: GlobalStyles;
+  // globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
   blocksToJson: any;
   convertJsonToHtml: any;
@@ -310,6 +310,8 @@ export interface Theme {
     backgroundColor: string;
     canvasColor: string;
     canvasFont : string;
+    canvasTextColor: string;
+    canvasPadding: string;
     canvasFontSize: string;
   };
   fontSize: {

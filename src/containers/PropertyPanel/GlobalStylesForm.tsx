@@ -2,15 +2,11 @@ import React, { useState, useEffect } from "react";
 import { FontFamilyDropdown } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { ColorPicker } from "@components/CustomInputs";
+import { GlobalStyles } from "types";
 
 interface GlobalStylesFormProps {
-  globalStyles: {
-    backdropColor: string;
-    canvasColor: string;
-    textColor: string;
-    fontFamily: string;
-  };
-  updateGlobalStyles: (updatedStyles: any) => void; // Function to update global styles
+  globalStyles: GlobalStyles;
+  updateGlobalStyles: (updatedStyles: any) => void; 
 }
 
 export const GlobalStylesForm: React.FC<GlobalStylesFormProps> = ({
@@ -19,14 +15,14 @@ export const GlobalStylesForm: React.FC<GlobalStylesFormProps> = ({
 }) => {
   // Destructure the initial global styles and set up the state
   const {
-    backdropColor: initialBackdropColor = "#F5F5F5",
+    canvasPadding: initialPadding = "0px",
     canvasColor: initialCanvasColor = "#FFFFFF",
     textColor: initialTextColor = "#262626",
     fontFamily: initialFontFamily = "MODERN_SANS",
   } = globalStyles;
 
   const [styles, setStyles] = useState({
-    backdropColor: initialBackdropColor,
+    canvasPadding: initialPadding , 
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
@@ -48,12 +44,7 @@ export const GlobalStylesForm: React.FC<GlobalStylesFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Global Styles">
-      <ColorPicker
-        type={"backdropColor"}
-        label={"Select Backdrop color"}
-        onColorChange={(field, value) => handleChange("backdropColor", value)}
-        selectedColor={globalStyles.backdropColor}
-      />
+      
 
       <ColorPicker
         type={"canvasColor"}

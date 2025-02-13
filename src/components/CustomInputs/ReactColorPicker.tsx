@@ -2,7 +2,7 @@ import React, { useState, useCallback, useMemo } from "react";
 import GradientColorPicker from "react-best-gradient-color-picker";
 import useClickOutside from "hoc/useClickOutside";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { globalStyle, rgbToHex } from "@utils/constant";
+import { rgbToHex } from "@utils/constant";
 import styled from "styled-components";
 
 interface ColorPickerProps {
@@ -69,18 +69,18 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   const [isPickerVisible, setPickerVisible] = useState(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
 
-  const defaultColor = useMemo(() => {
-    switch (label) {
-      case "Select Text color":
-        return globalStyle.textColor;
-      case "Select Backdrop color":
-        return globalStyle.backdropColor;
-      case "Select Canvas color":
-        return globalStyle.canvasColor;
-      default:
-        return globalStyle.initialBgColor;
-    }
-  }, [label]);
+  // const defaultColor = useMemo(() => {
+  //   switch (label) {
+  //     case "Select Text color":
+  //       return globalStyle.textColor;
+  //     case "Select Backdrop color":
+  //       return globalStyle.backdropColor;
+  //     case "Select Canvas color":
+  //       return globalStyle.canvasColor;
+  //     default:
+  //       return globalStyle.initialBgColor;
+  //   }
+  // }, [label]);
 
   const handleColorChange = useCallback(
     (newColor: string) => {
@@ -92,10 +92,10 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
     [selectedColor, onColorChange, type]
   );
 
-  const handleReset = () => {
-    onColorChange("color", defaultColor, type);
-    setPickerVisible(false);
-  };
+  // const handleReset = () => {
+  //   onColorChange("color", defaultColor, type);
+  //   setPickerVisible(false);
+  // };
 
   const handleColorPickerClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -110,17 +110,17 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
         {label && <Label>{label}</Label>}
 
         <ColorBox
-          selectedColor={selectedColor || defaultColor}
+          selectedColor={selectedColor}
           onClick={handleColorPickerClick}
         >
-          {(selectedColor === defaultColor || !selectedColor) && (
+          {(!selectedColor) && (
             <SvgIcon name={CUSTOM_SVG_ICON.Plus} size="huge" />
           )}
         </ColorBox>
 
-        {selectedColor && selectedColor !== defaultColor && (
+        {/* {selectedColor  && (
           <ResetButton onClick={handleReset}>Reset</ResetButton>
-        )}
+        )} */}
       </PickerRow>
 
       {isPickerVisible && (
