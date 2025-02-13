@@ -38,7 +38,6 @@ const TableWrapper = styled.table<TableWrapperProps>`
   font-size: ${({ theme }) => theme.canvasFontSize};
   border-collapse: collapse;
   table-layout: fixed;
-  height:100%;
   padding:10px;
 `;
 

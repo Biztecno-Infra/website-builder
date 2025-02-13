@@ -28,6 +28,7 @@ const StyledTabPane = styled.div<{ active: boolean }>`
 
 const StyledTabContainer = styled.div`
   width: 100%;
+  height:100%;
 `;
 
 // Define a generic interface for the TabComponent

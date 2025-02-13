@@ -11,7 +11,6 @@ import CustomThemeProvider from "@context/ThemeContext";
 import { ButtonComponent } from "@components/lib";
 import CanvasContainer from "@containers/CanvasContainer";
 
-import "./style.scss";
 
 interface Props {
   theme?: Theme;

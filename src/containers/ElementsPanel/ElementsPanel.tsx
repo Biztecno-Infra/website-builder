@@ -37,7 +37,7 @@ const ElementsPanel: React.FC = () => {
         onTabChange={(activeIndex) => handleTabChange(activeIndex)}
         menuProps={{ secondary: true, pointing: true }}
         panes={panes as any}
-        style={{ height: "100%", margin: 0}}
+        style={{ height: "100%", margin: 0 , width:"100%"}}
       />
     </ElementsContainer>
   );
