@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
+// Define the InputContainer with dynamic styles based on props
 const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -9,10 +10,11 @@ const InputContainer = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 0.85rem;
   line-height: 1rem;
   font-weight: 600;
   padding-left: 0.25rem;
+  color:  ${(props) => props.color};
+  font-size: ${(props: any) => props.fontSize};
 
   @media screen and (min-width: 1919px) {
     font-size: 1rem;
@@ -24,13 +26,13 @@ const StyledInput = styled.input`
   width: 100%;
   height: 2.375rem;
   padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 10px;
+  border: 1px solid ${(props: any) => props.theme.colors.inputColor}; 
+  border-radius:  ${(props) => props.theme.borderRadius};
   font-family: Arial, sans-serif;
   font-size: 0.75rem;
 
   &::placeholder {
-    color: rgba(191, 191, 191, 0.87);
+    color: ${(props) => props.theme.colors.inputPlaceholderColor}; 
   }
 `;
 
@@ -49,6 +51,7 @@ interface InputProps {
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   type?: string;
   disabled?: boolean;
+  elements: any;
 }
 
 export function CustomInput({
@@ -60,8 +63,10 @@ export function CustomInput({
   onBlur,
   type = "text",
   disabled = false,
+  elements,
 }: InputProps) {
   const [error, setError] = useState<string>("");
+  const theme = useTheme();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -78,8 +83,14 @@ export function CustomInput({
 
   return (
     <InputContainer>
-      {label && <Label>{label}</Label>}
+      {label &&
+        <Label
+          color={theme.colors.primary}
+          font-Size={theme.fontSize.labelHeader}>
+          {label}
+        </Label>}
       <StyledInput
+        theme={theme}
         type={type}
         value={value}
         name={name}
@@ -92,4 +103,3 @@ export function CustomInput({
     </InputContainer>
   );
 }
-

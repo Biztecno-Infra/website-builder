@@ -256,7 +256,9 @@ export const defaultTheme: Theme = {
     textPrimary: "#000000",
     textSecondary: "#212529",
     buttonPrimary: "#0B978E",
-    buttonSecondary: ""
+    buttonSecondary: "",
+    inputColor: "#F1F1F1",
+    inputPlaceholderColor: "#8D8D8D"
   },
   fonts: {
     primaryFont: "Modern Sans"
@@ -276,5 +278,9 @@ export const defaultTheme: Theme = {
     cursor: "pointer",
     width: "90%",
   },
-  borderRadius: 4,
+  fontSize: {
+    labelHeader: "1.25rem",
+    subHeader: "1rem"
+  },
+  borderRadius: "5px",
 }

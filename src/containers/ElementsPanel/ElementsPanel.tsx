@@ -22,7 +22,7 @@ const ElementsPanel: React.FC = () => {
   const panes = [
     {
       menuItem: "Sections",
-      render: () => (<Sections /> ),
+      render: () => (<Sections />),
     },
     {
       menuItem: "Tree",
@@ -37,7 +37,7 @@ const ElementsPanel: React.FC = () => {
         onTabChange={(activeIndex) => handleTabChange(activeIndex)}
         menuProps={{ secondary: true, pointing: true }}
         panes={panes as any}
-        style={{ height: "100%", margin: 0 }}
+        style={{ height: "100%", margin: 0, flexDirection: "column" }}
       />
     </ElementsContainer>
   );
