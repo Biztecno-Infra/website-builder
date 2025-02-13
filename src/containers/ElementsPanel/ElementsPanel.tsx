@@ -7,8 +7,8 @@ import Sections from "./Sections";
 
 const ElementsContainer = styled.div`
   display: flex;
-  flex-direction: column;
-  width: 15%;
+  flex-direction: row;
+  width: 23rem;
   height: 100%;
 `;
 
