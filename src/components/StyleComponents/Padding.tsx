@@ -1,7 +1,7 @@
 import React from "react";
-
 import { CustomInput } from "../CustomInputs";
 import { Padding } from "types";
+import styled from "styled-components";
 
 interface PaddingProps {
   padding: Padding;
@@ -9,7 +9,17 @@ interface PaddingProps {
   mainLabel?: string;
 }
 
-export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange , mainLabel }) => {
+const PaddingWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const PaddingLabel = styled.label`
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+`;
+
+export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
   const handlePaddingChange = (side: string, value: number) => {
     onChange({
       ...padding,
@@ -18,49 +28,45 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange , mainL
   };
 
   return (
-    <div className="flex flex-column ">
-      {mainLabel && <label className="input-label padding-b-2">Button Padding</label>}
+    <PaddingWrapper>
+      {mainLabel && <PaddingLabel>Button Padding</PaddingLabel>}
+      
       <CustomInput
-        id="paddingTop"
         name="paddingTop"
         label="Padding Top"
         placeholder="Enter padding top"
         value={padding.top}
         onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
         type="number"
-        baseClassName="margin-b-2"
+        // baseClassName="margin-b-2"
       />
       <CustomInput
-        id="paddingRight"
         name="paddingRight"
         label="Padding Right"
         placeholder="Enter padding right"
         value={padding.right}
         onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
         type="number"
-        baseClassName="margin-b-2"
+        // baseClassName="margin-b-2"
       />
       <CustomInput
-        id="paddingBottom"
         name="paddingBottom"
         label="Padding Bottom"
         placeholder="Enter padding bottom"
         value={padding.bottom}
         onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
         type="number"
-        baseClassName="margin-b-2"
+        // baseClassName="margin-b-2"
       />
       <CustomInput
-        id="paddingLeft"
         name="paddingLeft"
         label="Padding Left"
         placeholder="Enter padding left"
         value={padding.left}
         onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
         type="number"
-        baseClassName="margin-b-2"
+        // baseClassName="margin-b-2"
       />
-    </div>
+    </PaddingWrapper>
   );
 };
-

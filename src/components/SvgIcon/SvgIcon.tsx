@@ -1,29 +1,20 @@
-import { Icon } from "semantic-ui-react";
 import classNames from "classnames";
 import { CustomIconRef } from "./IconRef";
-
 import "./SvgIcon.scss";
 
-export enum SVGType {
-  SEMANTIC = "SEMANTIC",
-  CUSTOM = "CUSTOM"
-}
-
 export interface Props {
-  svgType: SVGType;
+  name: string; 
   circular?: boolean;
-  name: any;
-  size?: any;
-  baseclassname?: any;
+  size?: string | number; 
+  baseclassname?: string; 
   inverted?: boolean;
-  onClick?: () => void;
-  hover?: boolean;
+  onClick?: () => void; 
+  hover?: boolean; 
 }
-
-
 
 const SvgIcon = (props: Props) => {
-  const { circular, name, size, baseclassname, inverted, onClick , hover } = props;
+  const { circular, name, size, baseclassname, inverted, onClick, hover } = props;
+
   const CustomIcon = CustomIconRef[name];
 
   const handleClick = () => {
@@ -32,22 +23,20 @@ const SvgIcon = (props: Props) => {
     }
   };
 
-  return props.svgType === SVGType.SEMANTIC ? (
-    <Icon
-      circular={circular}
-      name={name}
-      size={size}
-      className={baseclassname}
-      inverted={inverted}
-      onClick={onClick}
-    />
-  ) : (
+  return (
     <div
-      className={classNames(["custom-svg-icon", baseclassname, `${size}`], {
-        circular: circular, 
-        hover: hover
+      className={classNames("custom-svg-icon", baseclassname, `${size}`, {
+        circular: circular,
+        hover: hover,
+        inverted: inverted,
       })}
       onClick={handleClick}
+      style={{
+        display: "inline-block",
+        width: size,
+        height: size,
+        ...(circular ? { borderRadius: "50%" } : {}),
+      }}
     >
       {CustomIcon && <CustomIcon />}
     </div>

@@ -66,7 +66,7 @@ export interface TextProps extends BaseBlock {
   fontSize?: number;
   fontWeight?: string;
   backgroundImage?: string;
-  lineHeight?:any
+  lineHeight?: any
   padding: {
     top: number;
     right: number;
@@ -164,7 +164,7 @@ export interface BlockItemProps {
 }
 
 export interface MultiViewContainerProps {
-  
+
   onBlockClick: (block: Block) => void;
   onDeleteBlock: any;
   globalStyles: GlobalStyles;
@@ -224,12 +224,12 @@ export interface IBlockContext {
   updateBlock: (blockId: string, property: string, value: any) => void;
   onDeleteBlock: (blockId: string) => void;
   handleJsonUpload: (jsonData: any) => void;
-  handleDropper: (dragSrc: any, dropAreaId: string , dropExtraInfo?: any) => void;
+  handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
   rootBlockOrder: string[];
   globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
-  blocksToJson:any;
-  convertJsonToHtml:any;
+  blocksToJson: any;
+  convertJsonToHtml: any;
 }
 export interface BlockHookRef {
   getHTML: () => string;
@@ -253,7 +253,7 @@ export interface GridCellProps {
 }
 
 interface BaseBlockProps {
-  handleDropper: (dragSrc: any, dropAreaId: string , dropExtraInfo?: any) => void;
+  handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
   handleBlockClick: (e: any) => void;
   isSelected: boolean;
 }
@@ -277,4 +277,47 @@ export interface DividerBlockProps extends BaseBlockProps {
 
 export interface SpacerBlockProps extends BaseBlockProps {
   block: SpacerProps;
+}
+
+export interface Theme {
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    textPrimary: string;
+    textSecondary: string;
+    buttonPrimary: string;
+    buttonSecondary: string;
+  },
+  spacing: {
+    small: number;
+    medium: number;
+    large: number;
+  },
+  elementsPanel: {
+    background: string;
+    padding: string;
+    borderRadius: string;
+    textAlign: string;
+    border: string;
+    marginBottom: string;
+    cursor: string;
+    width: string;
+
+  };
+  fonts: {
+    primaryFont: string;
+  }
+  borderRadius: number;
+}
+
+export interface IStyledBlockItemProps {
+  isDragging: boolean;
+  padding: string;
+  border: string;
+  marginBottom: string;
+  cursor: string;
+  width: string;
+  textAlign: string;
+  backgroundColor: string;
 }

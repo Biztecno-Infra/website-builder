@@ -3,7 +3,37 @@ import BlockComponent from "./BlockComponent";
 import { GridCellProps, IGridCellProps } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import GridEmptyCell from "./GridEmptyCell";
-import { Icon } from "semantic-ui-react";
+import styled from "styled-components";
+
+// Styled component for the delete button container
+const DeleteButton = styled.div`
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  background: white;
+  border-radius: 50%;
+  padding: 5px;
+`;
+
+// Styled component for the grid cell
+const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number }>`
+  border: ${(props) => (props.selected ? "2px solid blue" : "2px solid transparent")};
+  padding-top: ${(props) => props.padding?.top};
+  padding-bottom: ${(props) => props.padding?.bottom};
+  padding-right: ${(props) => props.padding?.right};
+  padding-left: ${(props) => props.padding?.left};
+  text-align: center;
+  vertical-align: ${(props) => (props as any).verticalAlignment || "middle"};
+  cursor: pointer;
+  position: relative;
+  width: ${(props) => `${Math.round(props.cellWidth)}px`};
+  max-width: ${(props) => `${Math.round(props.cellWidth)}px`};
+  background-color: ${(props) => (props as any).backgroundColor || ""};
+`;
+
+const GridCellContainer = styled.div`
+position:relative `;
 
 const GridCell: React.FC<GridCellProps> = ({
   cellWidth,
@@ -37,50 +67,30 @@ const GridCell: React.FC<GridCellProps> = ({
     onDeleteBlock(deleteBlockId)
     setSelectedBlock(null)
   };
+  
   const renderGridCellChilds = (cellBlockId: string, index: number) => {
     const hasMultipleChildBlocks = block?.childBlocks?.length > 1;
   
     return (
-      <div className="position-relative">
-        <BlockComponent key={cellBlockId} blockId={cellBlockId} />
+      <GridCellContainer key={cellBlockId}>
+        <BlockComponent blockId={cellBlockId} />
   
         {hasMultipleChildBlocks && cellBlockId === selectedBlock?.id && (
-          <div
-            style={{
-              position: "absolute",
-              top: "5px",
-              right: "5px",
-              cursor: "pointer",
-              background: "white",
-              borderRadius: "50%",
-              padding: "5px",
-            }}
-            onClick={(e) => handleDeleteClick(e, cellBlockId)}
-          >
-            <Icon name="trash" />
-          </div>
+          <DeleteButton onClick={(e) => handleDeleteClick(e, cellBlockId)}>
+            delete
+            {/* <Icon name="trash" /> */}
+          </DeleteButton>
         )}
-      </div>
+      </GridCellContainer>
     );
   };
   
 
   return (
-    <td
-      style={{
-        border: blockId === selectedBlock?.id ? "2px solid blue" : "2px solid transparent",
-        paddingTop: (block as IGridCellProps).padding?.top,
-        paddingBottom: (block as IGridCellProps).padding?.bottom,
-        paddingRight: (block as IGridCellProps).padding?.right,
-        paddingLeft: (block as IGridCellProps).padding?.left,
-        textAlign: "center",
-        verticalAlign : (block as IGridCellProps)?.verticalAlignment,
-        cursor: "pointer",
-        position: "relative",
-        width: `${Math.round(cellWidth)}px`,
-        maxWidth: `${Math.round(cellWidth)}px`,
-        backgroundColor: block?.backgroundColor || "",
-      }}
+    <StyledCell 
+      selected={isSelected} 
+      padding={(block as any)?.padding || {}} 
+      cellWidth={cellWidth}
       onClick={handleCellBlockClick}
     >
       {
@@ -90,7 +100,7 @@ const GridCell: React.FC<GridCellProps> = ({
       {
         block?.childBlocks?.length === 0 && <GridEmptyCell handleDropper={handleGridCellDropper}/>
       }
-    </td>
+    </StyledCell>
   );
 };
 

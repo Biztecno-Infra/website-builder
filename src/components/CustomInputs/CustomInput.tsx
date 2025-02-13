@@ -1,121 +1,95 @@
 import React, { useState } from "react";
-import classNames from "classnames";
-import SvgIcon, { SVGType } from "@components/SvgIcon";
-import { IconSizeProp } from "semantic-ui-react/dist/commonjs/elements/Icon/Icon";
-import { Input } from "semantic-ui-react";
-import "./style.scss";
+import styled from "styled-components";
 
-interface IICONPROPS {
-  svgType: SVGType;
-  circular?: boolean;
-  name: any;
-  size?: IconSizeProp;
-  baseclassname?: any;
-  inverted?: boolean;
-}
+const InputContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 10px 0;
+`;
 
-interface IProps {
+const Label = styled.label`
+  font-size: 0.85rem;
+  line-height: 1rem;
+  font-weight: 600;
+  padding-left: 0.25rem;
+
+  @media screen and (min-width: 1919px) {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
+`;
+
+const StyledInput = styled.input`
+  width: 100%;
+  height: 2.375rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+
+  &::placeholder {
+    color: rgba(191, 191, 191, 0.87);
+  }
+`;
+
+const ErrorText = styled.div`
+  color: red;
+  font-size: 0.75rem;
+  margin-top: 4px;
+`;
+
+interface InputProps {
   label?: string;
-  labelClassName?: string;
-  baseClassName?: string;
-  onChange?: (name: string, value: any) => void;
-  inputClassName?: string;
-  id: string;
-  placeholder: string;
-  iconProps?: IICONPROPS;
-  disabled?: boolean;
-  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   name: string;
-  value: any;
-  iconRight?: boolean;
+  value: string | number;
+  placeholder?: string;
+  onChange?: (name: string, value: any) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
   type?: string;
+  disabled?: boolean;
 }
 
-export function CustomInput(props: IProps) {
-  const {
-    label,
-    labelClassName,
-    baseClassName,
-    onChange,
-    inputClassName,
-    id,
-    placeholder,
-    iconProps,
-    disabled,
-    onBlur,
-    name,
-    value,
-    iconRight,
-    type,
-  } = props;
-
+export function CustomInput({
+  label,
+  name,
+  value,
+  placeholder,
+  onChange,
+  onBlur,
+  type = "text",
+  disabled = false,
+}: InputProps) {
   const [error, setError] = useState<string>("");
 
-  // Handle input change
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    const numericValue = Number(event.target.value);
-    if (type === "number") {
-    
-      if (numericValue < 0) {
-        setError("Value must be greater than or equal to 0");
-        return;
-      }
-    
-      if (name === "columns" && numericValue < 1) {
-        setError("Columns must be 1 or greater");
-        return;
-      } else {
-        setError("");
-      }
-    }
-    
+    const numericValue = Number(value);
 
-    // Pass the change to the parent component
-    if (typeof onChange === "function") {
-      onChange(name, type ==="number" ? numericValue : value);
+    if (type === "number" && numericValue < 0) {
+      setError("Value must be greater than or equal to 0");
+      return;
     }
-  };
 
-  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    if (onBlur) {
-      onBlur(event);
-    }
+    setError("");
+    if (onChange) onChange(name, type === "number" ? numericValue : value);
   };
 
   return (
-    <div
-      className={classNames([
-        "flex flex-column customInput position-relative",
-        baseClassName,
-      ])}
-    >
-      {label && (
-        <div className={classNames(["input-label padding-b-1", labelClassName])}>
-          {label}
-        </div>
-      )}
-      {iconProps && (
-        <SvgIcon
-          {...iconProps}
-          baseclassname={classNames([
-            "input-search",
-            { "input-search-right": iconRight },
-          ])}
-        />
-      )}
-      <Input
-        type={type || "text"}
+    <InputContainer>
+      {label && <Label>{label}</Label>}
+      <StyledInput
+        type={type}
         value={value}
-        id={id}
         name={name}
         placeholder={placeholder}
-        disabled={disabled}
-        onBlur={handleBlur}
         onChange={handleInputChange}
-        error={error ? true : false}
+        onBlur={onBlur}
+        disabled={disabled}
       />
-      {error && <div className="error-message text-3 text-danger-color">{error}</div>}
-    </div>
+      {error && <ErrorText>{error}</ErrorText>}
+    </InputContainer>
   );
 }
+

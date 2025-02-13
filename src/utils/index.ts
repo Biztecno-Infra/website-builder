@@ -19,7 +19,10 @@ import {
   TextProps,
   DividerProps,
   SpacerProps,
+  Theme,
+  IStyledBlockItemProps,
 } from "../types";
+import styled from "styled-components";
 
 const generateBlockToJsonData = (block: Block) => {
   let blockData: any;
@@ -242,5 +245,36 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
     blocks[rootChildId] = rootBlock;
   });
 
-  return {blocks , rootBlock: emailLayoutJson.root};
+  return { blocks, rootBlock: emailLayoutJson.root };
 };
+
+export const defaultTheme: Theme = {
+  colors: {
+    primary: "#006E75",
+    secondary: "#FFFFFF",
+    background: "#f8f9fa",
+    textPrimary: "#000000",
+    textSecondary: "#212529",
+    buttonPrimary: "#0B978E",
+    buttonSecondary: ""
+  },
+  fonts: {
+    primaryFont: "Modern Sans"
+  },
+  spacing: {
+    small: 8,
+    medium: 16,
+    large: 24,
+  },
+  elementsPanel: {
+    background: "white",
+    borderRadius: "5px",
+    padding: "5px",
+    textAlign: "center",
+    border: "1px solid #ccc",
+    marginBottom: "10px",
+    cursor: "pointer",
+    width: "90%",
+  },
+  borderRadius: 4,
+}

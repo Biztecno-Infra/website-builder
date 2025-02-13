@@ -1,41 +1,58 @@
-import { BlockType } from "../../types";
+import { BlockType, Theme } from "../../types";
 import React from "react";
 import { useDrag } from "react-dnd";
+import styled, { useTheme } from "styled-components";
 
 export interface IElements {
   type: string;
   name: string;
+  elements: any;
 }
 
-export const BlockItem = ({ type, name }: IElements) => {
+export const BlockItem = ({ type, name, elements }: IElements,) => {
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: "BLOCK", 
-    item: { type, name }, 
+    type: "BLOCK",
+    item: { type, name },
     collect: (monitor) => ({
-      isDragging: monitor.isDragging(), 
+      isDragging: monitor.isDragging(),
     }),
   }));
-
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       style={{
         opacity: isDragging ? 0.5 : 1,
-        padding: "10px",
-        border: "1px solid #ccc",
-        marginBottom: "10px",
-        cursor: "pointer",
-        width: "90%",
-        textAlign:"center",
-        backgroundColor: isDragging ? "#f0f0f0" : "#fff", // Lighten background when dragging
+        padding: elements.padding,
+        border: elements.border,
+        marginBottom: elements.marginBottom,
+        cursor: elements.cursor,
+        width: elements.width,
+        textAlign: elements.textAlign,
+        backgroundColor: isDragging ? "#f0f0f0" : elements.background ? elements.background : "#fff",
       }}
     >
-     {name}
+      {name}
     </div>
   );
 };
 
+
+
+const Container = styled.div`
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background-color: #fff;
+  position: relative;
+  z-index: 1000;
+  padding-top: 20px;
+`;
+
 const Sections: React.FC = () => {
+
+  const theme = useTheme();
   const blockItems = [
     { type: BlockType.TEXT, name: "Text" },
     { type: BlockType.IMAGE, name: "Image" },
@@ -45,22 +62,15 @@ const Sections: React.FC = () => {
     { type: BlockType.SPACER, name: "Spacer" },
   ];
 
+
+
   return (
-    <div
-      className="width-100 flex flex-column padding-2 flex-align-center"
-      style={{
-        // boxShadow: "4px 4px 10px rgba(0, 0, 0, 0.1)", 
-        backgroundColor: "#fff", 
-        position: "relative",
-        zIndex: "1000", 
-        paddingTop: "20px", 
-      }}
-    >
+    <Container>
       <h3>Blocks</h3>
       {blockItems.map((block, index) => (
-          <BlockItem key={index} type={block.type} name={block.name} />
-        ))}
-    </div>
+        <BlockItem key={index} type={block.type} name={block.name} elements={theme.elementsPanel} />
+      ))}
+    </Container>
   );
 };
 

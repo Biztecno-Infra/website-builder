@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
 import GradientColorPicker from "react-best-gradient-color-picker";
 import useClickOutside from "hoc/useClickOutside";
-import SvgIcon, { CUSTOM_SVG_ICON, SVGType } from "@components/SvgIcon";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { globalStyle, rgbToHex } from "@utils/constant";
-import "./style.scss";
+import styled from "styled-components";
 
 interface ColorPickerProps {
   onColorChange: (
@@ -15,6 +15,50 @@ interface ColorPickerProps {
   type: string;
   selectedColor: string;
 }
+
+const ColorPickerContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem;
+  width: 100%;
+`;
+
+const Label = styled.label`
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  margin-right: 1rem;
+`;
+
+const ColorBox = styled.div<{ selectedColor: string }>`
+  background-color: ${({ selectedColor }) => selectedColor};
+  text-align: center;
+  padding: 2px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+`;
+
+const ResetButton = styled.button`
+  margin-left: 1rem;
+  padding: 5px 10px;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #007bff;
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
+const PickerRow = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 1rem 0;
+  width: 100%;
+`;
 
 export const ColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
@@ -61,36 +105,23 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   return (
-    <div className="flex flex-column flex-align-center margin-1 width-100">
-      <div className="flex flex-row flex-align-center margin-1 width-100">
-        {label && (
-          <label className="input-label margin-b-2 margin-r-2">{label}</label>
-        )}
+    <ColorPickerContainer>
+      <PickerRow>
+        {label && <Label>{label}</Label>}
 
-        <div
-          className="color-box"
-          style={{
-            backgroundColor: selectedColor || defaultColor,
-            textAlign: "center",
-            padding: "2px",
-          }}
+        <ColorBox
+          selectedColor={selectedColor || defaultColor}
           onClick={handleColorPickerClick}
         >
           {(selectedColor === defaultColor || !selectedColor) && (
-            <SvgIcon
-              name={CUSTOM_SVG_ICON.Plus}
-              svgType={SVGType.CUSTOM}
-              size="huge"
-            />
+            <SvgIcon name={CUSTOM_SVG_ICON.Plus} size="huge" />
           )}
-        </div>
+        </ColorBox>
 
         {selectedColor && selectedColor !== defaultColor && (
-          <button onClick={handleReset} className="reset-button margin-l-2">
-            Reset
-          </button>
+          <ResetButton onClick={handleReset}>Reset</ResetButton>
         )}
-      </div>
+      </PickerRow>
 
       {isPickerVisible && (
         <div ref={pickerRef}>
@@ -110,6 +141,6 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
           />
         </div>
       )}
-    </div>
+    </ColorPickerContainer>
   );
 };

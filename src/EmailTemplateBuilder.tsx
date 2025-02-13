@@ -1,26 +1,40 @@
 import { forwardRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import styled from "styled-components";
 
 import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
 import MultiViewContainer from "@containers/MultiViewContainer";
 import { BlockHookProvider } from "./context/BlockContext";
-import { BlockHookRef } from "./types";
+import { BlockHookRef, IStyledBlockItemProps, Theme } from "./types";
+import CustomThemeProvider from "@context/ThemeContext";
 
-import "./styles/index.scss";
+import "./style.scss";
 
+interface Props {
+  theme?: Theme;
+  // section?: IStyledBlockItemProps;
+}
 
-const EmailTemplateBuilder = forwardRef<BlockHookRef>((props, ref) => {
+const Container = styled.div`
+  display: flex;
+  width: 100%;
+  height: 100%;
+`;
+
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {
   return (
     <DndProvider backend={HTML5Backend}>
-      <BlockHookProvider ref={ref} >
-        <div className="flex width-100 height-100">
-          <ElementsPanel />
-          <MultiViewContainer />
-          <PropertyPanel />
-        </div>
-      </BlockHookProvider>
+      <CustomThemeProvider theme={theme! || {}}>
+        <BlockHookProvider ref={ref}>
+          <Container>
+            <ElementsPanel />
+            <MultiViewContainer />
+            <PropertyPanel />
+            </Container>
+        </BlockHookProvider>
+      </CustomThemeProvider>
     </DndProvider>
   );
 });
