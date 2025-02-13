@@ -20,12 +20,13 @@ const Container = styled.div`
   display: flex;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 `;
 
 const MiddleContainer = styled.div`
   display: flex;
   flex-direction: column;
-  width: calc(100% - 23rem);
+  width: calc(100% - 20rem);
   height: 100%;
 `;
 
@@ -34,8 +35,8 @@ width:100%;
 height: 4rem;
 display: flex;
 justify-content: flex-end;
-padding-right: 1rem;
 border: 1px solid #DDDDDD;
+padding-right: 10px;
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {

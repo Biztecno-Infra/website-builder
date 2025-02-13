@@ -8,7 +8,7 @@ import Sections from "./Sections";
 const ElementsContainer = styled.div`
   display: flex;
   flex-direction: row;
-  width: 23rem;
+  width: 20rem;
   height: 100%;
 `;
 

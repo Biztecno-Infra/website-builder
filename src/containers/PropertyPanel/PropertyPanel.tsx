@@ -29,7 +29,6 @@ const blockFormMapping: any = {
 
 const PropertyPanelWrapper = styled.div`
   width: 23rem;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
   overflow: auto;

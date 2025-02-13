@@ -87,8 +87,7 @@ const Canvas: React.FC = () => {
         height: "100%",
         padding: "1.5rem 0",
         fontSize: "1rem",
-        color: "#F1F1F1",
-        width: "100%",
+        width: "calc(100% - 23rem)",
         overflow: "auto",
       }}
       onClick={() => setSelectedBlock(null)}

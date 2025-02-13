@@ -1,6 +1,6 @@
 import React, { Fragment, useRef } from "react";
 import { EmailBuilder, BlockHookRef, defaultTheme } from "email-builder-react";
-import "email-builder-react/index.css";
+// import "./index.css";
 
 const App = () => {
   const builderRef = useRef<BlockHookRef>(null);
@@ -13,7 +13,7 @@ const App = () => {
     <Fragment>
       <EmailBuilder ref={builderRef} theme={{
         ...defaultTheme,
-        borderRadius: 10,
+        // borderRadius: 10,
       }}
       />
     </Fragment>
