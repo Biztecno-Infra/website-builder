@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
 const DropdownContainer = styled.div`
   display: flex;
@@ -9,11 +9,11 @@ const DropdownContainer = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 0.85rem;
   line-height: 1rem;
   font-weight: 600;
   padding-left: 0.25rem;
-
+  color:  ${(props) => props.color};
+  font-size: ${(props: any) => props.fontSize};
   @media screen and (min-width: 1919px) {
     font-size: 1rem;
     line-height: 1.25rem;
@@ -25,7 +25,7 @@ const StyledSelect = styled.select`
   height: 2.375rem !important;
   padding: 0.5rem !important;
   min-height: 2rem !important;
-  border: 1px solid #ccc;
+  border: 1px solid ${(props: any) => props.theme.colors.inputColor}; 
   border-radius: 10px;
   font-family: Arial, sans-serif;
   font-size: 0.75rem;
@@ -67,6 +67,9 @@ export function CustomDropdown({
   options,
   disabled = false,
 }: DropdownProps) {
+
+  const theme = useTheme();
+
   const handleDropdownChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     if (onChange) {
       onChange(name, event.target.value);
@@ -75,8 +78,14 @@ export function CustomDropdown({
 
   return (
     <DropdownContainer>
-      {label && <Label>{label}</Label>}
-      <StyledSelect name={name} value={initialValue} onChange={handleDropdownChange} disabled={disabled}>
+      {label &&
+        <Label
+          color={theme.colors.primary}
+          font-Size={theme.fontSize.labelHeader}>
+          {label}
+        </Label>}
+      <StyledSelect theme={theme}
+        name={name} value={initialValue} onChange={handleDropdownChange} disabled={disabled}>
         {placeholder && <Option value="">{placeholder}</Option>}
         {options.map((option) => (
           <Option key={option.key} value={option.value}>

@@ -288,6 +288,8 @@ export interface Theme {
     textSecondary: string;
     buttonPrimary: string;
     buttonSecondary: string;
+    inputColor: string;
+    inputPlaceholderColor: string;
   },
   spacing: {
     small: number;
@@ -308,7 +310,11 @@ export interface Theme {
   fonts: {
     primaryFont: string;
   }
-  borderRadius: number;
+  fontSize: {
+    labelHeader: string;
+    subHeader: string;
+  }
+  borderRadius: string;
 }
 
 export interface IStyledBlockItemProps {

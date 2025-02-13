@@ -60,13 +60,12 @@ const TabComponent: React.FC<TabComponentProps> = ({
             active={activeIndex === index}
             onClick={() => onTabChange(index)}
           >
-            {/* Render the menuItem content */}
             {typeof pane.menuItem === "string" ? (
               pane.menuItem
             ) : (
               <>
-                {pane.menuItem.icon} {/* Render the icon if provided */}
-                {pane.menuItem.content} {/* Render the content */}
+                {pane.menuItem.icon}
+                {pane.menuItem.content}
               </>
             )}
           </StyledTabMenuItem>
@@ -74,7 +73,7 @@ const TabComponent: React.FC<TabComponentProps> = ({
       </StyledTabMenu>
       {panes.map((pane, index) => (
         <StyledTabPane key={index} active={activeIndex === index}>
-          {pane.render ? pane.render() : null} {/* Render the content of the pane */}
+          {pane.render ? pane.render() : null}
         </StyledTabPane>
       ))}
     </StyledTabContainer>
