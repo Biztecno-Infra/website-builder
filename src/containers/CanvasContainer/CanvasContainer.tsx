@@ -1,14 +1,16 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
-import { getDroppableStyles, getTableStyles } from "@utils/common";
 import { useBlockHook } from "context/BlockContext";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
-// Define the prop type for globalStyles
 interface TableWrapperProps {
-  globalStyles: any;
+  theme: {
+    canvasColor: string;
+    canvasFont: string;
+    canvasFontSize: string;
+  };
 }
 
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
@@ -28,8 +30,16 @@ const TrashIconWrapper = styled.div`
 `;
 
 const TableWrapper = styled.table<TableWrapperProps>`
-  ${({ globalStyles }) : any => getTableStyles(globalStyles) as React.CSSProperties};
-  width: 100%;
+  margin: 0 auto;
+  width: 600px;
+  max-width: 600px;
+  background-color: ${({ theme }) => theme.canvasColor};
+  font-family: ${({ theme }) => theme.canvasFont};
+  font-size: ${({ theme }) => theme.canvasFontSize};
+  border-collapse: collapse;
+  table-layout: fixed;
+  height:100%
+  padding:10px;
 `;
 
 const Canvas: React.FC = () => {
@@ -38,9 +48,10 @@ const Canvas: React.FC = () => {
     handleDropper,
     rootBlockOrder,
     setSelectedBlock,
-    globalStyles,
     onDeleteBlock,
   } = useBlockHook();
+  
+  const theme = useTheme(); 
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -53,7 +64,6 @@ const Canvas: React.FC = () => {
     return (
       <BlockWrapper key={blockId} isSelected={blockId === selectedBlock?.id}>
         <BlockComponent blockId={blockId} />
-
         {blockId === selectedBlock?.id && (
           <TrashIconWrapper
             onClick={(e) => {
@@ -63,26 +73,29 @@ const Canvas: React.FC = () => {
             }}
           >
             delete
-            {/* <Icon name="trash" /> */}
           </TrashIconWrapper>
         )}
       </BlockWrapper>
     );
   };
 
-  const [droppableStyles] = useMemo(() => {
-    return [getDroppableStyles(globalStyles)];
-  }, [globalStyles]);
-
   return (
     <Droppable
       accept="BLOCK"
       onDrop={handleDrop}
-      style={droppableStyles}
+      style={{
+        backgroundColor: theme.backgroundColor,
+        height: "100%",
+        padding: "1.5rem 0",
+        fontSize: "1rem",
+        color: "#F1F1F1",
+        width: "100%",
+        overflow: "auto",
+      }}
       onClick={() => setSelectedBlock(null)}
     >
       {rootBlockOrder.length > 0 ? (
-        <TableWrapper globalStyles={globalStyles}>
+        <TableWrapper theme={{ backgroundColor: theme.backgroundColor, textColor: theme.textColor }}>
           <tbody>
             <tr>
               <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>

@@ -36,6 +36,7 @@ height: 4rem;
 display: flex;
 justify-content: flex-end;
 padding-right: 1rem;
+border: 1px solid #DDDDDD;
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {

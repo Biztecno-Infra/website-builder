@@ -305,25 +305,16 @@ export interface Theme {
     marginBottom: string;
     cursor: string;
     width: string;
-
   };
-  fonts: {
-    primaryFont: string;
-  }
+  canvas: {
+    backgroundColor: string;
+    canvasColor: string;
+    canvasFont : string;
+    canvasFontSize: string;
+  };
   fontSize: {
     labelHeader: string;
     subHeader: string;
   }
   borderRadius: string;
-}
-
-export interface IStyledBlockItemProps {
-  isDragging: boolean;
-  padding: string;
-  border: string;
-  marginBottom: string;
-  cursor: string;
-  width: string;
-  textAlign: string;
-  backgroundColor: string;
 }

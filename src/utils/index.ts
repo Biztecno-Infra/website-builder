@@ -20,9 +20,7 @@ import {
   DividerProps,
   SpacerProps,
   Theme,
-  IStyledBlockItemProps,
 } from "../types";
-import styled from "styled-components";
 
 const generateBlockToJsonData = (block: Block) => {
   let blockData: any;
@@ -260,9 +258,6 @@ export const defaultTheme: Theme = {
     inputColor: "#F1F1F1",
     inputPlaceholderColor: "#8D8D8D"
   },
-  fonts: {
-    primaryFont: "Modern Sans"
-  },
   spacing: {
     small: 8,
     medium: 16,
@@ -282,5 +277,11 @@ export const defaultTheme: Theme = {
     labelHeader: "1.25rem",
     subHeader: "1rem"
   },
+  canvas:{
+    canvasColor: "red",
+    backgroundColor: "#F1F1F1",
+    canvasFont: "Montserrat",
+    canvasFontSize: "1rem"
+  }, 
   borderRadius: "5px",
 }
