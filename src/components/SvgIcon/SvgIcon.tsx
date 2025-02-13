@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { CustomIconRef } from "./IconRef";
-import "./SvgIcon.scss";
 
 export interface Props {
   name: string; 
