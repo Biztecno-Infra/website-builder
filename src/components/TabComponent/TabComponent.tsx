@@ -11,8 +11,8 @@ const StyledTabMenu = styled.div`
 const StyledTabMenuItem = styled.div<{ active: boolean }>`
   padding: 0.5rem 1rem;
   cursor: pointer;
-  border-bottom: ${({ active }) => (active ? "2px solid blue" : "none")};
-  color: ${({ active }) => (active ? "blue" : "black")};
+  border-right: ${({ active }) => (active ? "4px solid #006E75" : "none")};
+  color: ${({ active }) => (active ? "#006E75" : "#8A8A8A")};
   &:hover {
     background-color: #f0f0f0;
   }
