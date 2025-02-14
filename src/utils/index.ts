@@ -264,25 +264,25 @@ export const defaultTheme: Theme = {
   },
   elementsPanel: {
     background: "white",
-    borderRadius: "5px",
     padding: "5px",
     textAlign: "center",
-    border: "1px solid #ccc",
+    border: "1px solid #0B978E",
+    borderRadius: "10px",
     marginBottom: "10px",
     cursor: "pointer",
-    width: "90%",
+    width: "80%",
   },
   fontSize: {
     labelHeader: "1.25rem",
     subHeader: "1rem"
   },
-  canvas:{
+  canvas: {
     canvasColor: "#FFFFFF",
     backgroundColor: "#F1F1F1",
     canvasFont: "Montserrat",
     canvasFontSize: "1rem",
     canvasPadding: "0px",
     canvasTextColor: "#000000"
-  }, 
+  },
   borderRadius: "5px",
 }

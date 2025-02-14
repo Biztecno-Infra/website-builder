@@ -3,6 +3,7 @@ import styled from "styled-components";
 import TabComponent from "@components/TabComponent";
 import NodeTree from "../BlockTreeComponent";
 import Sections from "./Sections";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 
 const ElementsContainer = styled.div`
@@ -21,11 +22,17 @@ const ElementsPanel: React.FC = () => {
 
   const panes = [
     {
-      menuItem: "Sections",
-      render: () => (<Sections />),
+      menuItem:
+      {
+        icon: <SvgIcon name={CUSTOM_SVG_ICON.SectionIcon} size={"large"} />,
+      },
+      render: () => <Sections />,
     },
     {
-      menuItem: "Tree",
+      menuItem:
+      {
+        icon: <SvgIcon name={CUSTOM_SVG_ICON.TreeIcon} size={"large"} />,
+      },
       render: () => <NodeTree />,
     },
   ];
