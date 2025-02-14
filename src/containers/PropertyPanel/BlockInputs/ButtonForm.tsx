@@ -7,13 +7,14 @@ import {
   PaddingInput,
   AlignmentDropdown,
 } from "@components/StyleComponents";
-import { ColorPicker, CustomInput } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import CustomCSSRenderer from "./CustomCssRenderer";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
+import { Input } from "@components/lib";
+import { ReactColorPicker } from "@components/CustomInputs";
 
 export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -33,7 +34,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     padding = defaultPadding, 
     borderRadius, 
     borderColor, 
-    borderWidth, 
+    borderWidth = "", 
     borderStyle, 
     buttonPadding , 
     width , 
@@ -101,54 +102,47 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Button Block">
-      <CustomInput
-        id="buttonText"
+      <Input
         name="buttonText"
         label="Button Text"
         placeholder="Enter Button Text"
         value={formData.buttonText}
         onChange={handleChange}
       />
-    <CustomInput
+    <Input
         type="number"
-        id="width"
         name="width"
         label="Width"
         placeholder="Enter Button Width"
         value={formData.width || ""}
         onChange={(name: string, value: string) => handleChange("width", value)}
       />
-      <CustomInput
+      <Input
         type="number"
-        id="height"
         name="height"
         label="Height"
         placeholder="Enter Button Height"
         value={formData.height || ""}
         onChange={(name: string, value: string) => handleChange("height", value)}
       />
-      <CustomInput
-        id="navigateToUrl"
+      <Input
         name="navigateToUrl"
         label="Button Navigation URL"
         placeholder="Enter Button Navigation URL"
         value={formData.navigateToUrl}
         onChange={handleChange}
       />
-      <ColorPicker
-        type="textColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("textColor", value)}
         label="Select Text color"
         selectedColor={formData.textColor || ""}
       />
-      <ColorPicker
-        type="bgColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label="Select Background Color"
         selectedColor={formData.backgroundColor}
       />
-      <ColorPicker
-        type="buttonColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("buttonColor", value)}
         label="Select Button Color"
         selectedColor={formData.buttonColor || ""}
@@ -174,8 +168,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
         value={formData.borderStyle || ""}
       />
-      <CustomInput
-        id="borderWidth"
+      <Input
         name="borderWidth"
         label="Border Width"
         placeholder="Enter Border Width (px)"
@@ -183,14 +176,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         type="number"
         onChange={handleChange}
       />
-      <ColorPicker
-        type="borderColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("borderColor", value)}
         label="Select Border Color"
         selectedColor={formData.borderColor || ""}
       />
-      <CustomInput
-        id="borderRadius"
+      <Input
         name="borderRadius"
         label="Border Radius"
         placeholder="Enter Border Radius (px)"

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Jimp } from "jimp";
 import { BlockFormProps } from "../types";
 import { AlignmentDropdown, PaddingInput } from "@components/StyleComponents";
-import { ColorPicker, CustomInput } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import CustomCSSRenderer from "./CustomCssRenderer";
 import { ImageProps } from "../../../types";
+import { Input } from "@components/lib";
 
 export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -133,8 +134,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Image Block">
-      <CustomInput
-        id="imageUrl"
+      <Input
         name="imageUrl"
         label="Image URL"
         placeholder="Enter Image URL"
@@ -142,8 +142,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         onChange={(name: string, value: string) => handleImageUrlChange(value)} 
       />
       
-      <CustomInput
-        id="altText"
+      <Input
         name="altText"
         label="Alt Text"
         placeholder="Enter Alt Text"
@@ -151,8 +150,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         onChange={(name: string, value: string) => handleChange("altText", value)}
       />
       
-      <CustomInput
-        id="navigateToUrl"
+      <Input
         name="navigateToUrl"
         label="Image Navigation URL"
         placeholder="Enter Image Navigation URL"
@@ -160,24 +158,21 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
       />
       
-      <ColorPicker
-        type={"bgColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label={"Select Background color"}
         selectedColor={formData.backgroundColor}
       />
-      <CustomInput
+      <Input
         type="number"
-        id="width"
         name="width"
         label="Width"
         placeholder="Enter Width"
         value={formData.width || ""}
         onChange={(name: string, value: string) => handleChange("width", value)}
       />
-      <CustomInput
+      <Input
         type="number"
-        id="height"
         name="height"
         label="Height"
         placeholder="Enter Height"
@@ -189,8 +184,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         padding={formData.padding}
         onChange={(padding: any) => handleChange("padding", padding)}
       />
-      <CustomInput
-        id="borderWidth"
+      <Input
         name="borderWidth"
         placeholder="Border Width"
         type="number"
@@ -199,14 +193,12 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
       />
       <BorderStyleDropdown value={formData.borderStyle || ""} onChange={handleChange} />
-      <ColorPicker
-        type="borderColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("borderColor", value)}
         label="Select Border Color"
         selectedColor={formData.borderColor || ""}
       />
-      <CustomInput
-        id="borderRadius"
+      <Input
         name="borderRadius"
         placeholder="Border Radius"
         type="number"

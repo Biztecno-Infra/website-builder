@@ -1,28 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { FontFamilyDropdown } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { ColorPicker } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import { GlobalStyles } from "types";
 
 interface GlobalStylesFormProps {
   globalStyles: GlobalStyles;
-  updateGlobalStyles: (updatedStyles: any) => void; 
+  updateGlobalStyles: (updatedStyles: any) => void;
 }
 
-export const GlobalStylesForm: React.FC<GlobalStylesFormProps> = ({
+export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   globalStyles,
   updateGlobalStyles,
 }) => {
   // Destructure the initial global styles and set up the state
   const {
-    canvasPadding: initialPadding = "0px",
     canvasColor: initialCanvasColor = "#FFFFFF",
     textColor: initialTextColor = "#262626",
     fontFamily: initialFontFamily = "MODERN_SANS",
   } = globalStyles;
 
   const [styles, setStyles] = useState({
-    canvasPadding: initialPadding , 
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
@@ -41,28 +39,25 @@ export const GlobalStylesForm: React.FC<GlobalStylesFormProps> = ({
       return updatedStyles;
     });
   };
+  console.log("Called")
 
   return (
     <BasePropertyWrapper name="Global Styles">
-      
-
-      <ColorPicker
-        type={"canvasColor"}
+      <ReactColorPicker
         label={"Select Canvas color"}
         onColorChange={(field, value) => handleChange("canvasColor", value)}
-        selectedColor={globalStyles.canvasColor}
+        selectedColor={styles.canvasColor}
       />
 
-      <ColorPicker
-        type={"textColor"}
+      <ReactColorPicker
         label={"Select Text color"}
         onColorChange={(field, value) => handleChange("textColor", value)}
-        selectedColor={globalStyles.textColor}
+        selectedColor={styles.textColor}
       />
 
       <FontFamilyDropdown
         onChange={(field, value) => handleChange("fontFamily", value)}
-        value={globalStyles.fontFamily}
+        value={styles.fontFamily}
       />
     </BasePropertyWrapper>
   );

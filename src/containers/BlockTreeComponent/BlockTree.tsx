@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Block, BlockType, GridProps } from "../../types";
+import { Block, BlockType, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import styled from "styled-components";
 import Droppable from "@containers/Droppable";
@@ -166,8 +166,14 @@ const DroppableContainer = styled(Droppable)`
   padding-bottom: 200px;
 `;
 
+const RootBlockContainer = styled.div`
+  cursor: pointer;
+  padding: 10px;
+  background: #f0f0f0;
+`;
+
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper } = useBlockHook();
+  const { rootBlockOrder, handleDropper , setSelectedBlock , globalStyles } = useBlockHook();
 
   const renderBlockNode = (blockId: string) => {
     return <BlockNode key={blockId} blockId={blockId} />;
@@ -177,12 +183,30 @@ const NodeTree = () => {
     handleDropper(item, undefined!);
   };
 
+  const handleRootClick = () => {
+    const rootBlock : RootLayout = {
+        type: "EmailLayout",
+        data: {
+          style: {
+          canvasColor: globalStyles?.canvasColor,
+          textColor: globalStyles?.textColor,
+          fontFamily: globalStyles?.fontFamily,
+          },
+          childrenIds: rootBlockOrder,
+      },
+    }
+    setSelectedBlock(rootBlock); 
+  };
+
   return (
     <DroppableContainer
       accept="TREE_BLOCK"
       onDrop={handleDrop}
       onClick={() => {}}
     >
+      <RootBlockContainer onClick={handleRootClick}>
+        Root Block
+      </RootBlockContainer>
       {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>
   );

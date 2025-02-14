@@ -1,4 +1,4 @@
-import { CustomInput } from "@components/CustomInputs";
+import { Input } from "@components/lib";
 import React from "react";
 import styled from "styled-components";
 
@@ -17,7 +17,7 @@ const FontSizeContainer = styled.div`
 export const FontSizeInput: React.FC<FontSizeProps> = ({ fontSize, onChange }) => {
   return (
     <FontSizeContainer>
-      <CustomInput
+      <Input
         name="fontSize"
         label="Font Size"
         placeholder="Enter font size"

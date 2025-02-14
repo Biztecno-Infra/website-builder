@@ -6,14 +6,10 @@ import { rgbToHex } from "@utils/constant";
 import styled from "styled-components";
 
 interface ColorPickerProps {
-  onColorChange: (
-    field: "text" | "color",
-    value: string,
-    type?: string
-  ) => void;
+  onColorChange: (field:string, value: string) => void;
   label: string;
-  type: string;
   selectedColor: string;
+  defaultColor?: string; 
 }
 
 const ColorPickerContainer = styled.div`
@@ -31,12 +27,17 @@ const Label = styled.label`
 `;
 
 const ColorBox = styled.div<{ selectedColor: string }>`
-  background-color: ${({ selectedColor }) => selectedColor};
+  background-color: ${({ selectedColor }) => selectedColor || "#e0e0e0"};
   text-align: center;
   padding: 2px;
   cursor: pointer;
   width: 40px;
   height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 `;
 
 const ResetButton = styled.button`
@@ -47,6 +48,7 @@ const ResetButton = styled.button`
   cursor: pointer;
   font-size: 0.875rem;
   color: #007bff;
+
   &:hover {
     background-color: #f0f0f0;
   }
@@ -60,42 +62,33 @@ const PickerRow = styled.div`
   width: 100%;
 `;
 
-export const ColorPicker: React.FC<ColorPickerProps> = ({
+export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   label,
-  type,
   selectedColor,
+  defaultColor = "#ffffff", // Default color set to white if not provided
 }) => {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
 
-  // const defaultColor = useMemo(() => {
-  //   switch (label) {
-  //     case "Select Text color":
-  //       return globalStyle.textColor;
-  //     case "Select Backdrop color":
-  //       return globalStyle.backdropColor;
-  //     case "Select Canvas color":
-  //       return globalStyle.canvasColor;
-  //     default:
-  //       return globalStyle.initialBgColor;
-  //   }
-  // }, [label]);
+  const memoizedDefaultColor = useMemo(() => {
+    return defaultColor || selectedColor;
+  }, [defaultColor, selectedColor]);
 
   const handleColorChange = useCallback(
     (newColor: string) => {
       const hexColor = rgbToHex(newColor);
       if (hexColor !== selectedColor) {
-        onColorChange("color", hexColor, type);
+        onColorChange("color", hexColor);
       }
     },
-    [selectedColor, onColorChange, type]
+    [selectedColor, onColorChange]
   );
 
-  // const handleReset = () => {
-  //   onColorChange("color", defaultColor, type);
-  //   setPickerVisible(false);
-  // };
+  const handleReset = useCallback(() => {
+    onColorChange("color", memoizedDefaultColor);
+    setPickerVisible(false);
+  }, [memoizedDefaultColor, onColorChange]);
 
   const handleColorPickerClick = (
     e: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -109,18 +102,15 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({
       <PickerRow>
         {label && <Label>{label}</Label>}
 
-        <ColorBox
-          selectedColor={selectedColor}
-          onClick={handleColorPickerClick}
-        >
-          {(!selectedColor) && (
+        <ColorBox selectedColor={selectedColor} onClick={handleColorPickerClick}>
+          {!selectedColor && (
             <SvgIcon name={CUSTOM_SVG_ICON.Plus} size="huge" />
           )}
         </ColorBox>
 
-        {/* {selectedColor  && (
+        {selectedColor && (
           <ResetButton onClick={handleReset}>Reset</ResetButton>
-        )} */}
+        )}
       </PickerRow>
 
       {isPickerVisible && (

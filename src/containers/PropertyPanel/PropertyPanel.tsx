@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
 import { TextBlockForm } from "./BlockInputs/TextForm";
 import { ImageBlockForm } from "./BlockInputs/ImageForm";
 import { ButtonBlockForm } from "./BlockInputs/ButtonForm";
 import { GridBlockForm } from "./BlockInputs/GridForm";
-import { BlockType } from "../../types";
-import TabComponent from "@components/TabComponent";
-import { GlobalStylesForm } from "./GlobalStylesForm";
+import { Block, BlockType } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import { GridCellForm } from "./BlockInputs/GridCellForm";
 import { DividerBlockForm } from "./BlockInputs/DividerBlockForm";
 import { SpacerBlockForm } from "./BlockInputs/SpacerBlockForm";
-import styled from "styled-components";
+import { RootStylesForm } from "./BlockInputs/RootStylesForm";
 
 export enum PropertyTabView {
   Global = "Global",
@@ -43,12 +42,17 @@ function PropertyPanel() {
   const {
     updateBlock,
     selectedBlock,
+    globalStyles , 
+    updateGlobalStyles
   } = useBlockHook();
 
   const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global);
 
   const renderBlockForm = useMemo(() => {
+    console.log(selectedBlock)
     if (!selectedBlock) return <div>Select a block to edit</div>;
+
+    if(selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles}/>;
 
     const BlockFormComponent = blockFormMapping[selectedBlock.type];
     if (BlockFormComponent) {
@@ -84,7 +88,7 @@ function PropertyPanel() {
     } else {
       setTabView(PropertyTabView.Global);
     }
-  }, [selectedBlock?.id]);
+  }, [(selectedBlock as Block)?.id]);
 
   useEffect(() => {
     if (selectedBlock && tabView === PropertyTabView.Global) {
