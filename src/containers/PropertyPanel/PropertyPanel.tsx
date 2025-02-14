@@ -23,7 +23,7 @@ const blockFormMapping: any = {
   [BlockType.GRID]: GridBlockForm,
   [BlockType.GRIDCELL]: GridCellForm,
   [BlockType.DIVIDER]: DividerBlockForm,
-  [BlockType.SPACER]: SpacerBlockForm,
+  [BlockType.SPACER]: SpacerBlockForm
 };
 
 const PropertyPanelWrapper = styled.div`
@@ -49,7 +49,6 @@ function PropertyPanel() {
   const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global);
 
   const renderBlockForm = useMemo(() => {
-    console.log(selectedBlock)
     if (!selectedBlock) return <div>Select a block to edit</div>;
 
     if(selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles}/>;

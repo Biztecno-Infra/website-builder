@@ -5,7 +5,8 @@ interface ButtonProps {
   secondary?: boolean;
   transparent?: boolean;
   outline?: boolean;
-  text?: string;  // Optional prop for passing text directly to the button
+  text?: string;  
+  handleClick?: any;
 }
 
 const Button = styled.button<ButtonProps>`
@@ -38,9 +39,9 @@ const Button = styled.button<ButtonProps>`
   }
 `;
 
-const ButtonComponent: React.FC<ButtonProps> = ({ primary, secondary, transparent, outline, text }) => {
+const ButtonComponent: React.FC<ButtonProps> = ({ primary, secondary, transparent, outline, text , handleClick }) => {
   return (
-    <Button primary={primary} secondary={secondary} transparent={transparent} outline={outline}>
+    <Button primary={primary} secondary={secondary} transparent={transparent} outline={outline} onClick={handleClick}>
       {text}
     </Button>
   );

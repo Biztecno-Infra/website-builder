@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
@@ -10,12 +10,16 @@ import { BlockHookRef, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 import { ButtonComponent } from "@components/lib";
 import CanvasContainer from "@containers/CanvasContainer";
+import useClickOutside from "@hoc/useClickOutside";
+import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
+import ExportModal from "@components/Modals/ExportModal";
+import UploadModal from "@components/Modals/UploadJsonModal";
+import SendTestModal from "@components/Modals/SendFileModal";
 
 interface Props {
   theme?: Theme;
 }
-
-// Main container for the layout
+// Styled Components
 const Container = styled.div`
   display: flex;
   width: 100%;
@@ -23,7 +27,6 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
-// Container for the middle content (canvas and properties)
 const MiddleContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -31,7 +34,6 @@ const MiddleContainer = styled.div`
   height: 100%;
 `;
 
-// Header with buttons
 const Header = styled.div`
   width: 100%;
   height: 4rem;
@@ -41,7 +43,6 @@ const Header = styled.div`
   padding-right: 10px;
 `;
 
-// Flex container for the canvas and properties panel
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -49,28 +50,71 @@ const ContentWrapper = styled.div`
   height: calc(100% - 4rem);
 `;
 
-const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {
-  return (
-    <DndProvider backend={HTML5Backend}>
-      <CustomThemeProvider theme={theme! || {}}>
-        <BlockHookProvider ref={ref}>
-          <Container>
-            <ElementsPanel />
-            <MiddleContainer>
-              <Header>
-                <ButtonComponent primary text="Send" />
-                <ButtonComponent primary text="Actions" />
-              </Header>
-              <ContentWrapper>
-                <CanvasContainer />
-                <PropertyPanel />
-              </ContentWrapper>
-            </MiddleContainer>
-          </Container>
-        </BlockHookProvider>
-      </CustomThemeProvider>
-    </DndProvider>
-  );
-});
+// Modal Overlay Styles
+const ModalOverlay = styled.div<{ isOpen: boolean }>`
+  display: ${(props) => (props.isOpen ? "flex" : "none")};
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  align-items: center;
+  justify-content: center;
+`;
+
+const ModalContent = styled.div`
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 300px;
+  text-align: center;
+`;
+
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
+  ({ theme }, ref) => {
+    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+    return (
+      <DndProvider backend={HTML5Backend}>
+        <CustomThemeProvider theme={theme! || {}}>
+          <BlockHookProvider ref={ref}>
+            <Container>
+              <ElementsPanel />
+              <MiddleContainer>
+                <Header>
+                  <ButtonComponent primary text="Send" />
+                  {/* <button onClick={() => setSelectedOption("Export")}>Test Export</button> */}
+
+                  <CustomDropdownButton
+                    options={["Export", "Upload", "Send Test"]}
+                    onSelect={(option) => {
+                      console.log("Selected Option:", option);
+                      setSelectedOption(option);
+                    }}
+                    buttonText="Actions"
+                  />
+                </Header>
+
+                <ContentWrapper>
+                  <CanvasContainer />
+                  <PropertyPanel />
+                </ContentWrapper>
+              </MiddleContainer>
+            </Container>
+            {selectedOption === "Export" && (
+              <SendTestModal
+                onClose={() => {}}
+                onSend={(file) => {
+                  console.log(file);
+                }}
+              />
+            )}
+          </BlockHookProvider>
+        </CustomThemeProvider>
+      </DndProvider>
+    );
+  }
+);
 
 export default EmailTemplateBuilder;

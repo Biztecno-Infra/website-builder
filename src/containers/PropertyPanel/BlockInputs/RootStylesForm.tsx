@@ -39,7 +39,6 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
       return updatedStyles;
     });
   };
-  console.log("Called")
 
   return (
     <BasePropertyWrapper name="Global Styles">
