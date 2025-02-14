@@ -43,8 +43,6 @@ function PropertyPanel() {
   const {
     updateBlock,
     selectedBlock,
-    globalStyles,
-    updateGlobalStyles,
   } = useBlockHook();
 
   const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global);
@@ -65,15 +63,15 @@ function PropertyPanel() {
   }, [selectedBlock, tabView]);
 
   const panes = [
-    {
-      menuItem: PropertyTabView.Global,
-      render: () => (
-        <GlobalStylesForm
-          globalStyles={globalStyles}
-          updateGlobalStyles={updateGlobalStyles}
-        />
-      ),
-    },
+    // {
+    //   menuItem: PropertyTabView.Global,
+    //   render: () => (
+    //     <GlobalStylesForm
+    //       globalStyles={globalStyles}
+    //       updateGlobalStyles={updateGlobalStyles}
+    //     />
+    //   ),
+    // },
     {
       menuItem: PropertyTabView.Inspect,
       render: () => renderBlockForm,
@@ -96,15 +94,7 @@ function PropertyPanel() {
 
   return (
     <PropertyPanelWrapper>
-      <TabComponent
-        activeIndex={tabView === PropertyTabView.Global ? 0 : 1}
-        onTabChange={(newIndex) => {
-          const selectedTab =
-            newIndex === 0 ? PropertyTabView.Global : PropertyTabView.Inspect;
-          setTabView(selectedTab);
-        }}
-        panes={panes as any}
-      />
+     {renderBlockForm}
     </PropertyPanelWrapper>
   );
 }

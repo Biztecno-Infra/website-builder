@@ -11,11 +11,11 @@ import CustomThemeProvider from "@context/ThemeContext";
 import { ButtonComponent } from "@components/lib";
 import CanvasContainer from "@containers/CanvasContainer";
 
-
 interface Props {
   theme?: Theme;
 }
 
+// Main container for the layout
 const Container = styled.div`
   display: flex;
   width: 100%;
@@ -23,6 +23,7 @@ const Container = styled.div`
   overflow: hidden;
 `;
 
+// Container for the middle content (canvas and properties)
 const MiddleContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -30,13 +31,22 @@ const MiddleContainer = styled.div`
   height: 100%;
 `;
 
+// Header with buttons
 const Header = styled.div`
-width:100%;
-height: 4rem;
-display: flex;
-justify-content: flex-end;
-border: 1px solid #DDDDDD;
-padding-right: 10px;
+  width: 100%;
+  height: 4rem;
+  display: flex;
+  justify-content: flex-end;
+  border: 1px solid #dddddd;
+  padding-right: 10px;
+`;
+
+// Flex container for the canvas and properties panel
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: calc(100% - 4rem);
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {
@@ -48,16 +58,15 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) =>
             <ElementsPanel />
             <MiddleContainer>
               <Header>
-                <ButtonComponent primary  text="Send"  />
-                <ButtonComponent primary  text="Actions" />
+                <ButtonComponent primary text="Send" />
+                <ButtonComponent primary text="Actions" />
               </Header>
-              <div style={{display: "flex" , flexDirection:"row" , width: "100%" , height: "calc(100% - 4rem)"}}>
-            <CanvasContainer />
-            <PropertyPanel />
-              </div>
+              <ContentWrapper>
+                <CanvasContainer />
+                <PropertyPanel />
+              </ContentWrapper>
             </MiddleContainer>
-            
-            </Container>
+          </Container>
         </BlockHookProvider>
       </CustomThemeProvider>
     </DndProvider>
