@@ -4,16 +4,15 @@ import styled from "styled-components";
 // Styled components for the Tab
 const StyledTabMenu = styled.div`
   display: flex;
-  border-bottom: 2px solid #ccc;
-  margin-bottom: 1rem;
+  border-right: 1px solid #DDDDDD;
   flex-direction: column;
 `;
 
 const StyledTabMenuItem = styled.div<{ active: boolean }>`
   padding: 0.5rem 1rem;
   cursor: pointer;
-  border-bottom: ${({ active }) => (active ? "2px solid blue" : "none")};
-  color: ${({ active }) => (active ? "blue" : "black")};
+  border-right: ${({ active }) => (active ? "4px solid #006E75" : "none")};
+  color: ${({ active }) => (active ? "#006E75" : "#8A8A8A")};
   &:hover {
     background-color: #f0f0f0;
   }
@@ -24,7 +23,7 @@ const StyledTabMenuItem = styled.div<{ active: boolean }>`
 
 const StyledTabPane = styled.div<{ active: boolean }>`
   display: ${({ active }) => (active ? "block" : "none")};
-  padding: 1rem;
+  width: 100%;
 `;
 
 const StyledTabContainer = styled.div`
@@ -36,10 +35,11 @@ const StyledTabContainer = styled.div`
 interface TabComponentProps {
   activeIndex: number; // The active tab's index
   onTabChange: (activeIndex: number) => void; // Handler for tab change
-  panes: {
-    menuItem: string | { key: string; icon?: React.ReactNode; content: React.ReactNode }; // menuItem can be a string or an object
-    render?: () => React.ReactNode; // Function that returns the content of the tab
-  }[]; // Array of panes for each tab
+  panes: any
+  // panes: {
+  //   menuItem: string | { icon?: any; }; // menuItem can be a string or an object
+  //   render?: () => React.ReactNode; // Function that returns the content of the tab
+  // }[]; // Array of panes for each tab
   menuProps?: any; // Additional props to customize the tab menu
   style?: React.CSSProperties;
   className?: string;
@@ -56,24 +56,23 @@ const TabComponent: React.FC<TabComponentProps> = ({
   return (
     <StyledTabContainer style={style} className={className}>
       <StyledTabMenu>
-        {panes.map((pane, index) => (
+        {panes.map((pane: any, index: any) => (
           <StyledTabMenuItem
-            key={typeof pane.menuItem === "string" ? pane.menuItem : pane.menuItem.key}
+            key={typeof pane.menuItem === "string" ? pane.menuItem : index}
             active={activeIndex === index}
             onClick={() => onTabChange(index)}
           >
-            {typeof pane.menuItem === "string" ? (
-              pane.menuItem
-            ) : (
-              <>
-                {pane.menuItem.icon}
-                {pane.menuItem.content}
-              </>
+            {/* Render icon if menuItem is an object and has an icon
+            {typeof pane.menuItem === "object" && pane.menuItem.icon && (
+              <span></span>
             )}
+            {/* Render text if menuItem is a string */}
+            {/* {typeof pane.menuItem === "string" && pane.menuItem}  */}
+            {pane.menuItem.icon}
           </StyledTabMenuItem>
         ))}
       </StyledTabMenu>
-      {panes.map((pane, index) => (
+      {panes.map((pane: any, index: any) => (
         <StyledTabPane key={index} active={activeIndex === index}>
           {pane.render ? pane.render() : null}
         </StyledTabPane>
@@ -83,7 +82,6 @@ const TabComponent: React.FC<TabComponentProps> = ({
 };
 
 export default TabComponent;
-// import React from "react";
 // import { Tab } from "semantic-ui-react";
 
 // // Define a generic interface for the TabComponent

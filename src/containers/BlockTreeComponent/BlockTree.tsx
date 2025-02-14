@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { Block, BlockType, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
 
 interface BlockNodeProps {
@@ -162,18 +162,19 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
 const DroppableContainer = styled(Droppable)`
   min-height: 100%;
   width: 100%;
-  padding: 0.5rem;
+  /* padding: 0.5rem; */
   padding-bottom: 200px;
 `;
 
 const RootBlockContainer = styled.div`
   cursor: pointer;
-  padding: 10px;
+  /* padding: 10px; */
   background: #f0f0f0;
 `;
 
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper , setSelectedBlock , globalStyles } = useBlockHook();
+  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } = useBlockHook();
+  const theme = useTheme();
 
   const renderBlockNode = (blockId: string) => {
     return <BlockNode key={blockId} blockId={blockId} />;
@@ -184,26 +185,27 @@ const NodeTree = () => {
   };
 
   const handleRootClick = () => {
-    const rootBlock : RootLayout = {
-        type: "EmailLayout",
-        data: {
-          style: {
+    const rootBlock: RootLayout = {
+      type: "EmailLayout",
+      data: {
+        style: {
           canvasColor: globalStyles?.canvasColor,
           textColor: globalStyles?.textColor,
           fontFamily: globalStyles?.fontFamily,
-          },
-          childrenIds: rootBlockOrder,
+        },
+        childrenIds: rootBlockOrder,
       },
     }
-    setSelectedBlock(rootBlock); 
+    setSelectedBlock(rootBlock);
   };
 
   return (
     <DroppableContainer
       accept="TREE_BLOCK"
       onDrop={handleDrop}
-      onClick={() => {}}
+      onClick={() => { }}
     >
+      <div style={{ fontSize: theme.fontSize.labelHeader, borderBottom: '1px solid #DDDDDD', padding: "0.7rem", width: "91%", fontWeight: "500" }}>Layers</div>
       <RootBlockContainer onClick={handleRootClick}>
         Root Block
       </RootBlockContainer>
