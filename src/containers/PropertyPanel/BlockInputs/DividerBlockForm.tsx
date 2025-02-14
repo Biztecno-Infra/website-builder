@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ColorPicker, CustomInput } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
+import { Input } from "@components/lib";
 
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -51,22 +52,19 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Divider Block">
-      <ColorPicker
-        type={"dividerColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("dividerColor", value)}
         label={"Select Divider color"}
         selectedColor={formData.dividerColor || ""}
       />
 
-      <ColorPicker
-        type={"bgColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label={"Select Background color"}
         selectedColor={formData.backgroundColor}
       />
 
-      <CustomInput
-        id="thickness"
+      <Input
         name="thickness"
         label="Divider Thickness"
         placeholder="Enter Divider Thickness"

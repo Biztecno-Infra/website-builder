@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ColorPicker, CustomInput } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
@@ -42,8 +42,7 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Spacer Block">
-      <ColorPicker
-        type={"bgColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label={"Select Background color"}
         selectedColor={formData.backgroundColor}

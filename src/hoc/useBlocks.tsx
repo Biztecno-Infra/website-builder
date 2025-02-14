@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import update from "immutability-helper";
 import { html as beautifyHtml } from "js-beautify";
 
-import { getDefaultBlockProperties } from "@utils/constant";
+import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
 import {
   Block,
   BlockType,
@@ -10,6 +10,7 @@ import {
   IBlockContext,
   IBlocksState,
   GlobalStyles,
+  RootLayout,
 } from "../types";
 import { generateUniqueId } from "@utils/common";
 import { jsonToBlocks, processBlock } from "utils";
@@ -48,14 +49,14 @@ const getDistributtedLength = (length: number): Array<number> => {
 export const useBlocks = (): IBlockContext => {
   const theme = useTheme();
   console.log(theme , "hjkshkjshkjsh")
-  const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
-  // const [globalStyles, setGlobalStyles] = useState();
+  const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(null);
+  const [globalStyles, setGlobalStyles] = useState<GlobalStyles>(initialGlobalStyle);
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
   const updateGlobalStyles = (updatedStyles: any) => {
-    // setGlobalStyles(updatedStyles);
+    setGlobalStyles(updatedStyles);
   };
 
   const updateBlock = (blockId: any, property: any, value: any) => {
@@ -482,17 +483,14 @@ export const useBlocks = (): IBlockContext => {
     blocks: IBlocksState,
     rootBlockOrder: string[]
   ) => {
-    const {  canvasColor , canvasFont , canvasFontSize , canvasPadding , canvasTextColor} = theme.canvas || {};
     const layout = {
       root: {
         type: "EmailLayout",
         data: {
           style: {
-            canvasColor , 
-            textColor: canvasTextColor,
-            fontFamily: canvasFont,
-            canvasPadding ,
-            fontSize: canvasFontSize
+          canvasColor: globalStyles?.canvasColor,
+          textColor: globalStyles?.textColor,
+          fontFamily: globalStyles?.fontFamily,
           },
           childrenIds: rootBlockOrder,
         },
@@ -510,8 +508,6 @@ export const useBlocks = (): IBlockContext => {
   };
 
   function convertJsonToHtml(jsonData: any) {
-    const {  canvasColor , canvasFont , canvasFontSize , canvasPadding , canvasTextColor} = theme.canvas || {};
-
     const rootData = jsonData?.root?.data;
     const blocksHtml = rootData?.childrenIds
       .map((childId: string) => convertToHtml(jsonData[childId], jsonData))
@@ -526,7 +522,7 @@ export const useBlocks = (): IBlockContext => {
         <title>Email Layout</title>
       </head>
       <body>
-        <table style="padding:${canvasPadding};font-family:${canvasFont};font-size:${canvasFontSize}; width:600px; max-width:600px; margin:0 auto; background-color:${canvasColor}; color:${canvasTextColor}; ${tableCommonStyle}">
+        <table style="font-family:${globalStyles?.fontFamily}; width:600px; max-width:600px; margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
           <tbody>
             <tr>
               <td style="vertical-align:top; padding:0;">${blocksHtml}</td>
@@ -537,8 +533,6 @@ export const useBlocks = (): IBlockContext => {
       </html>`;
     return beautifyHtml(rawHtml, { indent_size: 2 });
   }
-
-  console.log(blocksToJson(blocks ,  rootBlockOrder))
 
   return {
     setSelectedBlock,
@@ -552,5 +546,6 @@ export const useBlocks = (): IBlockContext => {
     updateGlobalStyles,
     blocksToJson,
     convertJsonToHtml,
+    globalStyles
   };
 };

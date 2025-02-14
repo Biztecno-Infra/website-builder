@@ -6,13 +6,14 @@ import {
   FontWeightDropdown,
   PaddingInput,
 } from "@components/StyleComponents";
-import { ColorPicker, CustomInput, CustomTextArea } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import { defaultPadding } from "@utils/constant";
 import { TextProps } from "../../../types";
 import CustomCSSRenderer from "./CustomCssRenderer";
+import { TextArea , Input } from "@components/lib";
 
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -116,17 +117,15 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Text Block">
-      <CustomTextArea
-        id="content"
+      <TextArea
         name="content"
         label="Content"
         placeholder="Enter Content"
-        initialValue={formData.text}
+        value={formData.text || ""}
         onChange={(name: string, value: string) => handleChange("text", value)}
-        numberOfrows={5}
+        // numberOfrows={5}
       />
-      <CustomInput
-        id="navigateToUrl"
+      <Input
         name="navigateToUrl"
         label="Text Navigation URL"
         placeholder="Enter Text Navigation URL"
@@ -134,8 +133,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
       />
 
-      <CustomInput
-        id="bgImage"
+      <Input
         name="backgroundImage"
         placeholder="Enter Background Image Url"
         value={formData.backgroundImage}
@@ -143,15 +141,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         label="Background Image"
       />
 
-      <ColorPicker
-        type={"textColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("textColor", value)}
         label={"Select Text color"}
         selectedColor={formData.textColor || ""}
       />
 
-      <ColorPicker
-        type={"bgColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label={"Select Background color"}
         selectedColor={formData.backgroundColor}
@@ -165,8 +161,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         fontSize={formData.fontSize}
         onChange={(value: number) => handleChange("fontSize", value)}
       />
-      <CustomInput
-        id="lineHeight"
+      <Input
         name="lineHeight"
         label="Line Height"
         placeholder="Enter Line Height"

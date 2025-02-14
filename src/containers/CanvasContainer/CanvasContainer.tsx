@@ -4,13 +4,12 @@ import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
+import { Block } from "types";
 
 interface TableWrapperProps {
-  theme: {
-    canvasColor: string;
-    canvasFont: string;
-    canvasFontSize: string;
-  };
+  canvasColor: string;
+  canvasFont: string;
+  canvasFontColor: string;
 }
 
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
@@ -33,9 +32,9 @@ const TableWrapper = styled.table<TableWrapperProps>`
   margin: 0 auto;
   width: 600px;
   max-width: 600px;
-  background-color: ${({ theme }) => theme.canvasColor};
-  font-family: ${({ theme }) => theme.canvasFont};
-  font-size: ${({ theme }) => theme.canvasFontSize};
+  background-color: ${({ canvasColor }) => canvasColor};
+  font-family: ${({ canvasFont }) => canvasFont};
+  color: ${({ canvasFontColor }) => canvasFontColor};
   border-collapse: collapse;
   table-layout: fixed;
   padding: 10px;
@@ -48,6 +47,7 @@ const Canvas: React.FC = () => {
     rootBlockOrder,
     setSelectedBlock,
     onDeleteBlock,
+    globalStyles
   } = useBlockHook();
   
   const theme = useTheme(); 
@@ -61,9 +61,9 @@ const Canvas: React.FC = () => {
 
   const renderBlock = (blockId: string, index: number) => {
     return (
-      <BlockWrapper key={blockId} isSelected={blockId === selectedBlock?.id}>
+      <BlockWrapper key={blockId} isSelected={blockId === (selectedBlock as Block)?.id}>
         <BlockComponent blockId={blockId} />
-        {blockId === selectedBlock?.id && (
+        {blockId === (selectedBlock as Block)?.id && (
           <TrashIconWrapper
             onClick={(e) => {
               e.stopPropagation();
@@ -93,7 +93,7 @@ const Canvas: React.FC = () => {
       onClick={() => setSelectedBlock(null)}
     >
       {rootBlockOrder.length > 0 ? (
-        <TableWrapper theme={theme.canvas}>
+        <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
           <tbody>
             <tr>
               <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>

@@ -1,7 +1,7 @@
 import React from "react";
-import { CustomInput } from "../CustomInputs";
 import { Padding } from "types";
 import styled from "styled-components";
+import { Input } from "@components/lib";
 
 interface PaddingProps {
   padding: Padding;
@@ -31,7 +31,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
     <PaddingWrapper>
       {mainLabel && <PaddingLabel>Button Padding</PaddingLabel>}
       
-      <CustomInput
+      <Input
         name="paddingTop"
         label="Padding Top"
         placeholder="Enter padding top"
@@ -40,7 +40,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
         type="number"
         // baseClassName="margin-b-2"
       />
-      <CustomInput
+      <Input
         name="paddingRight"
         label="Padding Right"
         placeholder="Enter padding right"
@@ -49,7 +49,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
         type="number"
         // baseClassName="margin-b-2"
       />
-      <CustomInput
+      <Input
         name="paddingBottom"
         label="Padding Bottom"
         placeholder="Enter padding bottom"
@@ -58,7 +58,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
         type="number"
         // baseClassName="margin-b-2"
       />
-      <CustomInput
+      <Input
         name="paddingLeft"
         label="Padding Left"
         placeholder="Enter padding left"

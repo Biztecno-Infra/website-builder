@@ -4,7 +4,7 @@ import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { defaultGridPadding } from "@utils/constant";
-import { ColorPicker } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -40,8 +40,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
         padding={formData.padding}
         onChange={(padding) => handleChange("padding", padding)}
       />
-      <ColorPicker
-        type={"bgColor"}
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label={"Select Background color"}
         selectedColor={formData.backgroundColor}

@@ -184,7 +184,6 @@ export interface PropertyPanelProps {
 }
 
 export interface GlobalStyles {
-  canvasPadding: string;
   canvasColor: string;
   textColor: string;
   fontFamily: string;
@@ -193,10 +192,11 @@ export interface GlobalStyles {
 export interface RootLayout {
   type: string;
   data: {
-    backdropColor: string;
+    style: {
     canvasColor: string;
     textColor: string;
     fontFamily: string;
+    };
     childrenIds: string[];
   };
 }
@@ -218,15 +218,15 @@ export interface BlockData {
 }
 
 export interface IBlockContext {
-  setSelectedBlock: (block: Block | null) => void;
-  selectedBlock: Block | null;
+  setSelectedBlock: (block: Block | RootLayout | null) => void;
+  selectedBlock: Block | RootLayout | null;
   blocks: IBlocksState;
   updateBlock: (blockId: string, property: string, value: any) => void;
   onDeleteBlock: (blockId: string) => void;
   handleJsonUpload: (jsonData: any) => void;
   handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
   rootBlockOrder: string[];
-  // globalStyles: GlobalStyles;
+  globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
   blocksToJson: any;
   convertJsonToHtml: any;

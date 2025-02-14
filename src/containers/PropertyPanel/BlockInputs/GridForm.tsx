@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { BlockFormProps } from "../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { ColorPicker, CustomInput } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
+import { Input } from "@components/lib";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -77,14 +78,12 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <BasePropertyWrapper name="Grid Block">
-      <ColorPicker
-        type="bgColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label="Select background color"
         selectedColor={formData.backgroundColor}
       />
-      <CustomInput
-        id="columns"
+      <Input
         name="columns"
         placeholder="Cols"
         label="Columns"
@@ -92,8 +91,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
         type="number"
       />
-      <CustomInput
-        id="columnGap"
+      <Input
         name="columnGap"
         placeholder="Column Gap"
         type="number"
@@ -107,8 +105,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         cellWidths={formData.cellWidths}
         updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
       />
-      <CustomInput
-        id="borderWidth"
+      <Input
         name="borderWidth"
         placeholder="Table Border Width"
         type="number"
@@ -117,14 +114,12 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
       />
       <BorderStyleDropdown value={formData.borderStyle || ""} onChange={handleChange} />
-      <ColorPicker
-        type="borderColor"
+      <ReactColorPicker
         onColorChange={(field, value) => handleChange("borderColor", value)}
         label="Select Border Color"
         selectedColor={formData.borderColor || ""}
       />
-      <CustomInput
-        id="borderRadius"
+      <Input
         name="borderRadius"
         placeholder="Border Radius"
         type="number"

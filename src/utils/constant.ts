@@ -2,6 +2,7 @@ import {
   BlockType,
   ButtonProps,
   DividerProps,
+  GlobalStyles,
   GridProps,
   IGridCellProps,
   ImageProps,
@@ -9,6 +10,12 @@ import {
   TextProps,
 } from "../types";
 
+
+export const initialGlobalStyle : GlobalStyles = {
+  canvasColor: "#FFFFFF",
+  textColor: "#262626",
+  fontFamily: "MODERN_SANS",
+};
 
 export const defaultPadding = {
   top: 10,
