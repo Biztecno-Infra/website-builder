@@ -34,7 +34,7 @@ const PropertyPanelWrapper = styled.div`
   height: 100%;
   box-shadow: 4px 4px 0 5px rgba(0, 0, 0, 0.15);
   position: relative;
-  z-index: 1000;
+  z-index: 100;
   border-bottom: none;
 `;
 

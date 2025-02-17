@@ -4,12 +4,13 @@ import useClickOutside from "hoc/useClickOutside";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { rgbToHex } from "@utils/constant";
 import styled from "styled-components";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 interface ColorPickerProps {
-  onColorChange: (field:string, value: string) => void;
+  onColorChange: (field: string, value: string) => void;
   label: string;
   selectedColor: string;
-  defaultColor?: string; 
+  defaultColor?: string;
 }
 
 const ColorPickerContainer = styled.div`
@@ -62,6 +63,10 @@ const PickerRow = styled.div`
   width: 100%;
 `;
 
+const GradientPickerContainer = styled.div`
+  margin-top: 1rem;
+`;
+
 export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   label,
@@ -104,7 +109,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
 
         <ColorBox selectedColor={selectedColor} onClick={handleColorPickerClick}>
           {!selectedColor && (
-            <SvgIcon name={CUSTOM_SVG_ICON.Plus} size="huge" />
+            <SvgIcon name={CUSTOM_SVG_ICON.Plus} size={SizeEnum.Huge} />
           )}
         </ColorBox>
 
@@ -114,7 +119,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
       </PickerRow>
 
       {isPickerVisible && (
-        <div ref={pickerRef}>
+        <GradientPickerContainer ref={pickerRef}>
           <GradientColorPicker
             value={selectedColor}
             onChange={handleColorChange}
@@ -129,7 +134,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
             hideEyeDrop
             hideControls
           />
-        </div>
+        </GradientPickerContainer>
       )}
     </ColorPickerContainer>
   );

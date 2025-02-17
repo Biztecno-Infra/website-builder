@@ -1,4 +1,5 @@
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import styled from "styled-components";
 
 // Styled Components
@@ -27,7 +28,7 @@ const EmptyBlock = () => {
       <SvgIconWrapper>
         <SvgIcon
           name={CUSTOM_SVG_ICON.Plus}
-          size={"large"}
+          size={SizeEnum.Large}
         />
       </SvgIconWrapper>
     </EmptyBlockContainer>

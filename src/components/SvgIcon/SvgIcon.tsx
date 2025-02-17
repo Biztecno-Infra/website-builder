@@ -1,20 +1,76 @@
-import classNames from "classnames";
-import { CustomIconRef } from "./IconRef";
+import React from 'react';
+import styled, { css } from 'styled-components';
+import { CustomIconRef } from './IconRef';
 
-export interface Props {
-  name: string; 
-  circular?: boolean;
-  size?: string | number; 
-  baseclassname?: string; 
-  inverted?: boolean;
-  onClick?: () => void; 
-  hover?: boolean; 
+export enum SizeEnum {
+  Small = "small",
+  Medium = "medium",
+  Large = "large",
+  Huge = "huge",
+  Mini = "mini",
 }
 
-const SvgIcon = (props: Props) => {
-  const { circular, name, size, baseclassname, inverted, onClick, hover } = props;
+export const sizeMapping: { [key in SizeEnum]: string } = {
+  [SizeEnum.Small]: '1.2rem',
+  [SizeEnum.Medium]: '2rem',
+  [SizeEnum.Large]: '3rem',
+  [SizeEnum.Huge]: '4rem',
+  [SizeEnum.Mini]: '0.8rem',
+};
 
-  const CustomIcon = CustomIconRef[name];
+export interface Props {
+  name: keyof typeof CustomIconRef; 
+  circular?: boolean;
+  size?: SizeEnum;
+  inverted?: boolean;
+  onClick?: () => void;
+  hover?: boolean;
+  color?: string;
+  bgColor?: string;
+}
+
+const SvgIconContainer = styled.div<Props>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: ${(props) => sizeMapping[props.size || SizeEnum.Medium]};
+  height: ${(props) => sizeMapping[props.size || SizeEnum.Medium]};
+  color: ${(props) => props.color || 'currentColor'}; 
+  background-color: ${(props) => props.bgColor || 'transparent'};
+
+  ${(props) =>
+    props.circular &&
+    css`
+      border-radius: 20%;
+    `}
+
+  ${(props) =>
+    props.hover &&
+    css`
+      cursor: pointer;
+      &:hover {
+        opacity: 0.8;
+      }
+    `}
+
+  ${(props) =>
+    props.inverted &&
+    css`
+      filter: invert(1);
+    `}
+`;
+
+const SvgIcon: React.FC<Props> = ({
+  name,
+  circular,
+  size = SizeEnum.Medium, 
+  inverted,
+  onClick,
+  hover,
+  color,
+  bgColor,
+}) => {
+  const CustomIcon = CustomIconRef[name]; 
 
   const handleClick = () => {
     if (onClick) {
@@ -23,22 +79,18 @@ const SvgIcon = (props: Props) => {
   };
 
   return (
-    <div
-      className={classNames("custom-svg-icon", baseclassname, `${size}`, {
-        circular: circular,
-        hover: hover,
-        inverted: inverted,
-      })}
+    <SvgIconContainer
+      circular={circular}
+      size={size}
+      inverted={inverted}
+      hover={hover}
       onClick={handleClick}
-      style={{
-        display: "inline-block",
-        width: size,
-        height: size,
-        ...(circular ? { borderRadius: "50%" } : {}),
-      }}
+      color={color}
+      bgColor={bgColor}
+      name={name}
     >
       {CustomIcon && <CustomIcon />}
-    </div>
+    </SvgIconContainer>
   );
 };
 

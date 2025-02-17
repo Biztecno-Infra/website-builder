@@ -1,7 +1,7 @@
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import React, { useState } from "react";
 import styled from "styled-components";
 
-// Styled Components
 const Overlay = styled.div`
   position: fixed;
   top: 0;
@@ -94,7 +94,6 @@ const Button = styled.button<{ primary?: boolean }>`
   }
 `;
 
-// Modal Component
 interface ExportModalProps {
   onClose: () => void;
   onExport: (format: "JSON" | "HTML") => void;
@@ -107,14 +106,14 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
     <Overlay>
       <ModalContainer>
         <CloseButton onClick={onClose}>
-          {/* <FaTimes /> */}
+          <SvgIcon name={CUSTOM_SVG_ICON.Close} />
         </CloseButton>
         <Title>Export</Title>
         <Subtitle>Select the format before exporting:</Subtitle>
 
         <OptionsContainer>
           <Option selected={selectedFormat === "JSON"}>
-            <img src="/json-icon.png" alt="JSON" />
+            <SvgIcon name={CUSTOM_SVG_ICON.JsonFile} />
             <input
               type="radio"
               name="exportFormat"
@@ -125,8 +124,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
           </Option>
 
           <Option selected={selectedFormat === "HTML"}>
-            <img src="/html-icon.png" alt="HTML" />
-            <input
+          <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} />
+          <input
               type="radio"
               name="exportFormat"
               value="HTML"

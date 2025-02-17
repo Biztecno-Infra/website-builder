@@ -1,48 +1,84 @@
-import styled, { css } from "styled-components";
+import React from "react";
+import styled from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon"; // Ensure the import is correct
+import { SizeEnum, sizeMapping } from "@components/SvgIcon/SvgIcon";
 
 interface ButtonProps {
   primary?: boolean;
   secondary?: boolean;
   transparent?: boolean;
   outline?: boolean;
-  text?: string;  
-  handleClick?: any;
+  text?: string;
+  handleClick?: () => void;
+  iconProps?: {
+    iconName?: CUSTOM_SVG_ICON; // Name of the icon
+    iconPosition?: "left" | "right"; // Position of the icon
+    iconSize?: SizeEnum; // Icon size
+  };
 }
 
 const Button = styled.button<ButtonProps>`
-  padding: ${({ theme }) => theme.spacing.medium};
-  border-radius: ${({ theme }) => theme.borderRadius};
+  padding: 0.5rem;
+  border-radius: ${({ theme }) => theme.borderRadius}px;
   border: none;
   cursor: pointer;
+  min-width: 7.5rem;
   background-color: ${({ theme, primary, secondary, transparent, outline }) => {
     if (primary) return theme.colors.primary;
     if (secondary) return theme.colors.secondary;
     if (transparent) return "transparent";
-    if (outline) return "transparent"; // Outline uses transparent background by default
-    return theme.colors.primary; // Default to primary if no variant is selected
+    if (outline) return "transparent";
+    return theme.colors.primary;
   }};
   color: ${({ theme, primary, secondary, transparent }) => {
-    if (primary || secondary) return theme.textPrimary;
-    if (transparent) return theme.colors.primary; // Transparent buttons have primary text
-    return theme.colors.primary; // Default text color for any other cases
+    if (primary || secondary) return theme.colors.textPrimary;
+    if (transparent) return theme.colors.textPrimary;
+    return theme.colors.textDefault;
   }};
-  border: ${({ theme, outline }) => outline ? `2px solid ${theme.colors.primary}` : "none"};
+  border: ${({ theme, outline }) =>
+    outline ? `2px solid ${theme.colors.primary}` : "none"};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ iconProps }) => (iconProps?.iconName ? "0.5rem" : "0")};
+  text-align: center;
 
-  &:hover {
-    background-color: ${({ theme, primary, secondary, transparent, outline }) => {
-      if (primary) return theme.colors.secondary;
-      if (secondary) return theme.colors.primary;
-      if (transparent) return `${theme.colors.primary}80`; // Slightly transparent hover effect
-      if (outline) return theme.colors.primary;
-      return theme.colors.secondary; // Default hover color
-    }};
+  & > svg {
+    width: ${({ iconProps }) =>
+      iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
+    height: ${({ iconProps }) =>
+      iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
+    display: inline-block;
   }
+
+ 
 `;
 
-const ButtonComponent: React.FC<ButtonProps> = ({ primary, secondary, transparent, outline, text , handleClick }) => {
+const ButtonComponent: React.FC<ButtonProps> = ({
+  primary,
+  secondary,
+  transparent,
+  outline,
+  text,
+  handleClick,
+  iconProps,
+}) => {
   return (
-    <Button primary={primary} secondary={secondary} transparent={transparent} outline={outline} onClick={handleClick}>
+    <Button
+      primary={primary}
+      secondary={secondary}
+      transparent={transparent}
+      outline={outline}
+      onClick={handleClick}
+      iconProps={iconProps}
+    >
+      {iconProps?.iconName && iconProps.iconPosition === "left" && (
+        <SvgIcon name={iconProps.iconName} size={iconProps.iconSize} />
+      )}
       {text}
+      {iconProps?.iconName && iconProps.iconPosition === "right" && (
+        <SvgIcon name={iconProps.iconName} size={iconProps.iconSize} />
+      )}
     </Button>
   );
 };

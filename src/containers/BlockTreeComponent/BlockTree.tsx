@@ -37,6 +37,12 @@ const EmptyTreeNodeContainer = styled.div`
   cursor: pointer;
 `;
 
+const ChevronIcon = styled.span<{ isExpanded: boolean }>`
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 16px;
+`;
+
 const BlockNode = ({ blockId }: BlockNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -102,21 +108,6 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
     return <BlockNode key={gridChildId} blockId={gridChildId} />;
   };
 
-  const ChevronIcon = ({
-    isExpanded,
-    onClick,
-  }: {
-    isExpanded: boolean;
-    onClick: any;
-  }) => (
-    <span
-      style={{ marginRight: "10px", cursor: "pointer", fontSize: "16px" }}
-      onClick={onClick}
-    >
-      {isExpanded ? "▼" : "►"}
-    </span>
-  );
-
   return (
     <BlockContainer
       ref={(node) => {
@@ -128,7 +119,9 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
     >
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
-          <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion} />
+          <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion}>
+            {isExpanded ? "▼" : "►"}
+          </ChevronIcon>
         )}
         {block?.type} ({block?.id.substring(16)})
       </BlockContent>
@@ -160,16 +153,21 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
 };
 
 const DroppableContainer = styled(Droppable)`
-  min-height: 100%;
+  height: 100%;
   width: 100%;
-  /* padding: 0.5rem; */
-  padding-bottom: 200px;
 `;
 
 const RootBlockContainer = styled.div`
   cursor: pointer;
-  /* padding: 10px; */
   background: #f0f0f0;
+`;
+
+const HeaderContainer = styled.div`
+  font-size: ${({ theme }) => theme.fontSize.labelHeader};
+  border-bottom: 1px solid #dddddd;
+  padding: 0.7rem;
+  width: 91%;
+  font-weight: 500;
 `;
 
 const NodeTree = () => {
@@ -195,7 +193,7 @@ const NodeTree = () => {
         },
         childrenIds: rootBlockOrder,
       },
-    }
+    };
     setSelectedBlock(rootBlock);
   };
 
@@ -203,9 +201,9 @@ const NodeTree = () => {
     <DroppableContainer
       accept="TREE_BLOCK"
       onDrop={handleDrop}
-      onClick={() => { }}
+      onClick={() => {}}
     >
-      <div style={{ fontSize: theme.fontSize.labelHeader, borderBottom: '1px solid #DDDDDD', padding: "0.7rem", width: "91%", fontWeight: "500" }}>Layers</div>
+      <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>
         Root Block
       </RootBlockContainer>

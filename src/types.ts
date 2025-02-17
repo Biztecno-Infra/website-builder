@@ -286,6 +286,7 @@ export interface Theme {
     background: string;
     textPrimary: string;
     textSecondary: string;
+    textDefault: string;
     buttonPrimary: string;
     buttonSecondary: string;
     inputColor: string;
@@ -318,5 +319,5 @@ export interface Theme {
     labelHeader: string;
     subHeader: string;
   }
-  borderRadius: string;
+  borderRadius: number;
 }

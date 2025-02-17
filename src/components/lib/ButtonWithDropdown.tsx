@@ -2,40 +2,36 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { ButtonComponent } from "./Button";
 import useClickOutside from "hoc/useClickOutside";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
-// Styled Components
 const DropdownContainer = styled.div`
-  position: relative;
-  width: 150px;
+  margin-left: 10px;
+  margin-right: 20px;
+  display: flex;
+  min-width: 7.5rem;
 `;
 
-const DropdownMenu = styled.ul<{ isOpen: boolean }>`
+const DropdownList = styled.ul<{ open: any }>`
   position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: white;
-  border-radius: 5px;
-  margin-top: 5px;
+  background-color: white;
+  border: 1px solid #ddd;
+  top: 35px;
   list-style: none;
-  padding: 5px 0;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-  display: ${(props) => (props.isOpen ? "block" : "none")};
+  z-index: 999;
+  border-radius: 10px;
+  padding: 0.95rem;
+  display: ${(props) => (props.open ? "block" : "none")};
 `;
 
-const DropdownItem = styled.li`
+const DropdownListItem = styled.li`
   padding: 10px;
-  font-size: 14px;
-  color: black;
   cursor: pointer;
-  text-align: left;
-
   &:hover {
-    background: #f2f2f2;
+    background-color: #f1f1f1;
   }
 `;
 
-// Dropdown Component
 interface CustomDropdownProps {
   options: string[];
   onSelect: (option: string) => void;
@@ -52,26 +48,30 @@ const CustomDropdownButton: React.FC<CustomDropdownProps> = ({
     if (isOpen) setIsOpen(false);
   });
 
+  const handleSelect = (option: string) => {
+    onSelect(option);
+    setIsOpen(false);
+  };
+
   return (
     <DropdownContainer ref={dropdownRef}>
       <ButtonComponent
         primary
         text={buttonText}
         handleClick={() => setIsOpen((prev) => !prev)}
+        iconProps={{
+          iconName: CUSTOM_SVG_ICON.ArrowDown, 
+          iconPosition: "right",
+          iconSize: SizeEnum.Small
+        }}
       />
-      <DropdownMenu isOpen={isOpen}>
-        {options.map((option) => (
-          <DropdownItem
-            key={option}
-            onClick={() => {
-              onSelect(option);
-              setIsOpen(false);
-            }}
-          >
+      <DropdownList open={isOpen}>
+        {options.map((option, index) => (
+          <DropdownListItem key={index} onClick={() => handleSelect(option)}>
             {option}
-          </DropdownItem>
+          </DropdownListItem>
         ))}
-      </DropdownMenu>
+      </DropdownList>
     </DropdownContainer>
   );
 };

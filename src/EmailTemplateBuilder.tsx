@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useState } from "react";
+import { forwardRef, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
@@ -10,7 +10,6 @@ import { BlockHookRef, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 import { ButtonComponent } from "@components/lib";
 import CanvasContainer from "@containers/CanvasContainer";
-import useClickOutside from "@hoc/useClickOutside";
 import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
 import ExportModal from "@components/Modals/ExportModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
@@ -19,7 +18,7 @@ import SendTestModal from "@components/Modals/SendFileModal";
 interface Props {
   theme?: Theme;
 }
-// Styled Components
+
 const Container = styled.div`
   display: flex;
   width: 100%;
@@ -39,8 +38,8 @@ const Header = styled.div`
   height: 4rem;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   border: 1px solid #dddddd;
-  padding-right: 10px;
 `;
 
 const ContentWrapper = styled.div`
@@ -50,30 +49,17 @@ const ContentWrapper = styled.div`
   height: calc(100% - 4rem);
 `;
 
-// Modal Overlay Styles
-const ModalOverlay = styled.div<{ isOpen: boolean }>`
-  display: ${(props) => (props.isOpen ? "flex" : "none")};
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  align-items: center;
-  justify-content: center;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 300px;
-  text-align: center;
-`;
-
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
   ({ theme }, ref) => {
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+    const handleOptionSelect = (option: string) => {
+      setSelectedOption(option); 
+    };
+
+    const handleClose = () => {
+      setSelectedOption(null);
+    }
 
     return (
       <DndProvider backend={HTML5Backend}>
@@ -84,14 +70,9 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
               <MiddleContainer>
                 <Header>
                   <ButtonComponent primary text="Send" />
-                  {/* <button onClick={() => setSelectedOption("Export")}>Test Export</button> */}
-
                   <CustomDropdownButton
                     options={["Export", "Upload", "Send Test"]}
-                    onSelect={(option) => {
-                      console.log("Selected Option:", option);
-                      setSelectedOption(option);
-                    }}
+                    onSelect={handleOptionSelect} 
                     buttonText="Actions"
                   />
                 </Header>
@@ -102,13 +83,15 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
                 </ContentWrapper>
               </MiddleContainer>
             </Container>
+
             {selectedOption === "Export" && (
-              <SendTestModal
-                onClose={() => {}}
-                onSend={(file) => {
-                  console.log(file);
-                }}
-              />
+              <ExportModal onClose={handleClose} onExport={() => {}}/> 
+            )}
+            {selectedOption === "Upload" && (
+              <UploadModal onClose={handleClose} onUpload={() => {}}/> 
+            )}
+            {selectedOption === "Send Test" && (
+              <SendTestModal onClose={handleClose} onSend={(file) => {}} />
             )}
           </BlockHookProvider>
         </CustomThemeProvider>
@@ -116,5 +99,6 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
     );
   }
 );
+
 
 export default EmailTemplateBuilder;

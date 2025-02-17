@@ -250,7 +250,8 @@ export const defaultTheme: Theme = {
     primary: "#006E75",
     secondary: "#FFFFFF",
     background: "#f8f9fa",
-    textPrimary: "#000000",
+    textPrimary: "#FFFFFF",
+    textDefault: "#000000",
     textSecondary: "#212529",
     buttonPrimary: "#0B978E",
     buttonSecondary: "",
@@ -284,5 +285,5 @@ export const defaultTheme: Theme = {
     canvasPadding: "0px",
     canvasTextColor: "#000000"
   },
-  borderRadius: "5px",
+  borderRadius: 10,
 }

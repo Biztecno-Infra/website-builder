@@ -20,32 +20,22 @@ const ElementsPanel: React.FC = () => {
     setActiveIndex(index);
   };
 
-  const panes = [
+  const tabs = [
     {
-      menuItem:
-      {
-        icon: <SvgIcon name={CUSTOM_SVG_ICON.SectionIcon} size={"large"} />,
-      },
-      render: () => <Sections />,
+      label: CUSTOM_SVG_ICON.SectionIcon, 
+      content: <Sections />
     },
     {
-      menuItem:
-      {
-        icon: <SvgIcon name={CUSTOM_SVG_ICON.TreeIcon} size={"large"} />,
-      },
-      render: () => <NodeTree />,
+      label: CUSTOM_SVG_ICON.TreeIcon,
+      content: <NodeTree />
     },
   ];
 
+
   return (
     <ElementsContainer>
-      <TabComponent
-        activeIndex={activeIndex}
-        onTabChange={(activeIndex) => handleTabChange(activeIndex)}
-        menuProps={{ secondary: true, pointing: true }}
-        panes={panes as any}
-        style={{ height: "100%", margin: 0, width: "100%", display: "flex" }}
-      />
+     <TabComponent activeIndex={activeIndex} onTabChange={handleTabChange} tabs={tabs} />
+     {tabs[activeIndex].content}
     </ElementsContainer>
   );
 };
