@@ -1,80 +1,48 @@
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import React, { useState } from "react";
 import styled from "styled-components";
+import ModalOverlay from "@components/lib/ModalOverlay";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContainer = styled.div`
-  background: white;
-  width: 400px;
-  border-radius: 10px;
-  padding: 20px;
-  position: relative;
-  text-align: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-`;
-
-const Title = styled.h2`
-  font-size: 18px;
+const Title = styled.div`
+  font-size: 1rem;
+  font-weight: bold;
   margin-bottom: 10px;
+  text-align: left;
 `;
 
-const Subtitle = styled.p`
-  font-size: 14px;
-  color: gray;
+const Subtitle = styled.div`
+  font-size: 0.68rem;
   margin-bottom: 20px;
+  text-align: left;
 `;
 
 const OptionsContainer = styled.div`
   display: flex;
   justify-content: center;
-  gap: 20px;
   margin-bottom: 20px;
+  width: 100%;
 `;
 
 const Option = styled.label<{ selected: boolean }>`
   display: flex;
   flex-direction: column;
+  width: 50%;
   align-items: center;
   cursor: pointer;
   font-size: 14px;
   color: ${(props) => (props.selected ? "#007f7f" : "black")};
-
-  img {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 5px;
-  }
+  margin: 1rem;
 
   input {
-    display: none;
+    color: ${(props) => (props.selected ? "#007f7f" : "black")};
   }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
+  border-top: 1px solid #DDDDDD;
+  padding-top: 1rem;
 `;
 
 const Button = styled.button<{ primary?: boolean }>`
@@ -103,11 +71,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
   const [selectedFormat, setSelectedFormat] = useState<"JSON" | "HTML" | null>(null);
 
   return (
-    <Overlay>
-      <ModalContainer>
-        <CloseButton onClick={onClose}>
-          <SvgIcon name={CUSTOM_SVG_ICON.Close} />
-        </CloseButton>
+    <ModalOverlay onClose={onClose}>
         <Title>Export</Title>
         <Subtitle>Select the format before exporting:</Subtitle>
 
@@ -119,8 +83,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
               name="exportFormat"
               value="JSON"
               onChange={() => setSelectedFormat("JSON")}
+              checked={selectedFormat === "JSON"}
             />
-            JSON
           </Option>
 
           <Option selected={selectedFormat === "HTML"}>
@@ -130,8 +94,8 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
               name="exportFormat"
               value="HTML"
               onChange={() => setSelectedFormat("HTML")}
+              checked={selectedFormat === "HTML"}
             />
-            HTML
           </Option>
         </OptionsContainer>
 
@@ -141,8 +105,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             Export
           </Button>
         </ButtonContainer>
-      </ModalContainer>
-    </Overlay>
+        </ModalOverlay>
   );
 };
 

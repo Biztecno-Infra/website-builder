@@ -14,6 +14,7 @@ import FileTypeJson from "./Icons/FileTypeJson";
 import PlusSVG from "./Icons/Plus";
 import SectionIcon from "./Icons/SectionIcon";
 import TreeIcon from "./Icons/TreeIcon";
+import Upload from "./Icons/Upload";
 
 export enum CUSTOM_SVG_ICON {
   Plus = "PlusSVG",
@@ -31,7 +32,8 @@ export enum CUSTOM_SVG_ICON {
   HtmlFile = "FileTypeHtml",
   JsonFile = "FileTypeJson",
   Close = "Close",
-  ArrowDown = "ArrowDown"
+  ArrowDown = "ArrowDown",
+  UploadIcon = "Upload"
 }
 
 export const CustomIconRef: any = {
@@ -51,5 +53,6 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.HtmlFile] : FileTypeHtml,
   [CUSTOM_SVG_ICON.JsonFile] : FileTypeJson,
   [CUSTOM_SVG_ICON.Close] : Close,
-  [CUSTOM_SVG_ICON.ArrowDown] : ArrowDown
+  [CUSTOM_SVG_ICON.ArrowDown] : ArrowDown,
+  [CUSTOM_SVG_ICON.UploadIcon] : Upload
 };

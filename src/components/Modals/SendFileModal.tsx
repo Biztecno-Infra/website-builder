@@ -1,45 +1,21 @@
+import ModalOverlay from "@components/lib/ModalOverlay";
 import React, { useState } from "react";
 import styled from "styled-components";
+import { Input } from "@components/lib";
+import SvgIcon from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContainer = styled.div`
-  background: white;
-  width: 400px;
-  border-radius: 10px;
-  padding: 20px;
-  position: relative;
-  text-align: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-`;
-
-const EmailInput = styled.input`
-  width: 100%;
-  padding: 10px;
+const Title = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
   margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  text-align: left;
+`;
+
+const Subtitle = styled.div`
+  font-size: 1.12rem;
+  margin-bottom: 20px;
+  text-align: left;
 `;
 
 const EmailList = styled.div`
@@ -58,14 +34,6 @@ const EmailTag = styled.div`
   display: flex;
   align-items: center;
   gap: 5px;
-`;
-
-const RemoveButton = styled.button`
-  background: none;
-  border: none;
-  color: white;
-  font-size: 14px;
-  cursor: pointer;
 `;
 
 const ButtonContainer = styled.div`
@@ -106,33 +74,43 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
   };
 
   return (
-    <Overlay>
-      <ModalContainer>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <h2>Send Test</h2>
-        <p>Enter email below and press enter after each email (up to 5 emails)</p>
-        <EmailInput
-          type="email"
-          placeholder="Enter email here"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <EmailList>
-          {emails.map((email) => (
-            <EmailTag key={email}>
-              {email} <RemoveButton onClick={() => removeEmail(email)}>×</RemoveButton>
-            </EmailTag>
-          ))}
-        </EmailList>
-        <ButtonContainer>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button primary disabled={emails.length === 0} onClick={() => onSend(emails)}>
-            Export
-          </Button>
-        </ButtonContainer>
-      </ModalContainer>
-    </Overlay>
+    <ModalOverlay onClose={onClose}>
+      <Title>Send Test</Title>
+      <Subtitle>Enter email below and press enter after each email (up to 5 emails)</Subtitle>
+
+      <Input
+        name="email"
+        value={inputValue}
+        placeholder="Enter email here"
+        onChange={(name, value) => setInputValue(value as string)}
+        onBlur={() => {}}
+        type="email"
+      />
+
+      <EmailList>
+        {emails.map((email) => (
+          <EmailTag key={email}>
+            {email}{" "}
+            <SvgIcon
+              name="CloseIcon"  
+              size={SizeEnum.Small}
+              hover
+              onClick={() => removeEmail(email)} 
+            />
+          </EmailTag>
+        ))}
+      </EmailList>
+      <ButtonContainer>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          primary
+          disabled={emails.length === 0}
+          onClick={() => onSend(emails)}
+        >
+          Export
+        </Button>
+      </ButtonContainer>
+    </ModalOverlay>
   );
 };
 

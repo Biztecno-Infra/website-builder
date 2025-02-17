@@ -11,9 +11,9 @@ interface ButtonProps {
   text?: string;
   handleClick?: () => void;
   iconProps?: {
-    iconName?: CUSTOM_SVG_ICON; // Name of the icon
-    iconPosition?: "left" | "right"; // Position of the icon
-    iconSize?: SizeEnum; // Icon size
+    iconName?: CUSTOM_SVG_ICON; 
+    iconPosition?: "left" | "right";
+    iconSize?: SizeEnum; 
   };
 }
 
@@ -23,6 +23,7 @@ const Button = styled.button<ButtonProps>`
   border: none;
   cursor: pointer;
   min-width: 7.5rem;
+  height: 1.875rem;
   background-color: ${({ theme, primary, secondary, transparent, outline }) => {
     if (primary) return theme.colors.primary;
     if (secondary) return theme.colors.secondary;

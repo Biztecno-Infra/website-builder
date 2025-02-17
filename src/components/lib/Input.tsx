@@ -12,7 +12,7 @@ const InputContainer = styled.div`
 const Label = styled.label<{ color: string; fontSize: string }>`
   line-height: 1rem;
   font-weight: 600;
-  padding-left: 0.25rem;
+  padding-bottom: 0.5rem;
   color: ${({ color }) => color};
   font-size: ${({ fontSize }) => fontSize};
 
@@ -24,13 +24,13 @@ const Label = styled.label<{ color: string; fontSize: string }>`
 
 const StyledInput = styled.input<{ theme: any }>`
   width: 100%;
-  height: 2rem;
-  padding: 0.5rem;
+  height: 1.5rem;
+  padding: 5px;
+  background-color: #F1F1F1;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
-  border-radius: ${({ theme }) => theme.borderRadius};
+  border-radius: 5px;
   font-family: Arial, sans-serif;
   font-size: 0.75rem;
-
   &::placeholder {
     color: ${({ theme }) => theme.colors.inputPlaceholderColor};
   }

@@ -1,52 +1,30 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContainer = styled.div`
-  background: white;
-  width: 450px;
-  border-radius: 10px;
-  padding: 20px;
-  position: relative;
-  text-align: center;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-`;
+import ModalOverlay from "@components/lib/ModalOverlay";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 const DropArea = styled.div`
-  border: 2px dashed #008080;
-  padding: 30px;
+  border: 2px dashed #0B978E;
+  height: 12rem;
   border-radius: 10px;
-  background: #f9f9f9;
+  background: #F5F5F5;
   cursor: pointer;
   text-align: center;
   margin-bottom: 20px;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
+  border-top: 1px solid #DDDDDD;
+  padding-top: 1rem;
 `;
 
 const Button = styled.button<{ primary?: boolean }>`
@@ -57,8 +35,15 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#008080" : "#ddd")};
+  background: ${(props) => (props.primary ? "#0B978E" : "#ddd")};
   color: ${(props) => (props.primary ? "white" : "black")};
+`;
+
+const Title = styled.div`
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-align: left;
 `;
 
 interface UploadModalProps {
@@ -76,30 +61,31 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
   };
 
   return (
-    <Overlay>
-      <ModalContainer>
-        <CloseButton onClick={onClose}>×</CloseButton>
-        <h2>Upload JSON</h2>
-        <DropArea>
-          <input
-            type="file"
-            accept=".json"
-            onChange={handleFileChange}
-            hidden
-            id="fileInput"
-          />
-          <label htmlFor="fileInput">
-            Drag and drop JSON file or <span style={{ color: "#008080", cursor: "pointer" }}>Choose to Upload</span>
-          </label>
-        </DropArea>
-        <ButtonContainer>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button primary disabled={!file} onClick={() => file && onUpload(file)}>
-            Upload
-          </Button>
-        </ButtonContainer>
-      </ModalContainer>
-    </Overlay>
+    <ModalOverlay onClose={onClose}>
+      <Title>Upload JSON</Title>
+      <DropArea>
+        <input
+          type="file"
+          accept=".json"
+          onChange={handleFileChange}
+          hidden
+          id="fileInput"
+        />
+        <SvgIcon name={CUSTOM_SVG_ICON.UploadIcon} size={SizeEnum.Medium}/>
+        <label htmlFor="fileInput">
+          Drag and drop JSON file or{" "}
+          <span style={{ color: "#0B978E", cursor: "pointer" }}>
+            Choose to Upload
+          </span>
+        </label>
+      </DropArea>
+      <ButtonContainer>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button primary disabled={!file} onClick={() => file && onUpload(file)}>
+          Upload
+        </Button>
+      </ButtonContainer>
+    </ModalOverlay>
   );
 };
 
