@@ -48,7 +48,6 @@ const getDistributtedLength = (length: number): Array<number> => {
 
 export const useBlocks = (): IBlockContext => {
   const theme = useTheme();
-  console.log(theme , "hjkshkjshkjsh")
   const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(null);
   const [globalStyles, setGlobalStyles] = useState<GlobalStyles>(initialGlobalStyle);
 
@@ -296,14 +295,14 @@ export const useBlocks = (): IBlockContext => {
 
           const newGridBlock = isGridCell
             ? {
-                type: BlockType.GRID,
-                id: generateUniqueId(),
-                parentId: undefined,
-                ...getDefaultBlockProperties(BlockType.GRID),
-                columns: 1,
-                cellWidths: [100],
-                childBlocks: [dragBlock.id],
-              }
+              type: BlockType.GRID,
+              id: generateUniqueId(),
+              parentId: undefined,
+              ...getDefaultBlockProperties(BlockType.GRID),
+              columns: 1,
+              cellWidths: [100],
+              childBlocks: [dragBlock.id],
+            }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -488,9 +487,9 @@ export const useBlocks = (): IBlockContext => {
         type: "EmailLayout",
         data: {
           style: {
-          canvasColor: globalStyles?.canvasColor,
-          textColor: globalStyles?.textColor,
-          fontFamily: globalStyles?.fontFamily,
+            canvasColor: globalStyles?.canvasColor,
+            textColor: globalStyles?.textColor,
+            fontFamily: globalStyles?.fontFamily,
           },
           childrenIds: rootBlockOrder,
         },

@@ -19,7 +19,7 @@ export const sizeMapping: { [key in SizeEnum]: string } = {
 };
 
 export interface Props {
-  name: keyof typeof CustomIconRef; 
+  name: keyof typeof CustomIconRef;
   circular?: boolean;
   size?: SizeEnum;
   inverted?: boolean;
@@ -63,14 +63,14 @@ const SvgIconContainer = styled.div<Props>`
 const SvgIcon: React.FC<Props> = ({
   name,
   circular,
-  size = SizeEnum.Medium, 
+  size = SizeEnum.Medium,
   inverted,
   onClick,
   hover,
   color,
   bgColor,
 }) => {
-  const CustomIcon = CustomIconRef[name]; 
+  const CustomIcon = CustomIconRef[name];
 
   const handleClick = () => {
     if (onClick) {
@@ -86,7 +86,7 @@ const SvgIcon: React.FC<Props> = ({
       hover={hover}
       onClick={handleClick}
       color={color}
-      bgColor={bgColor}
+      // bgColor={bgColor}
       name={name}
     >
       {CustomIcon && <CustomIcon />}

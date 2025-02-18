@@ -4,18 +4,28 @@ import { Block, BlockType, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 interface BlockNodeProps {
   blockId: string;
 }
-
+const blockTypeIcons: Record<BlockType, any> = {
+  [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color="#006E75" />,
+  [BlockType.IMAGE]: <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#006E75" />,
+  [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#006E75" />,
+  [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#006E75" />,
+  [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#006E75" />,
+  [BlockType.GRIDCELL]: null,
+  [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
+  [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
+};
 const BlockContainer = styled.div<{ isDragging: boolean; cursor: string }>`
   opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
 `;
 
 const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
-  padding: 8px;
+  /* padding: 8px; */
   cursor: ${({ hasChildBlocks }) => (hasChildBlocks ? "pointer" : "default")};
   display: flex;
   align-items: center;
@@ -23,6 +33,17 @@ const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
 
 const ChildNodesContainer = styled.div`
   padding-left: 8px;
+`;
+
+const BlockContentText = styled.div`
+display: flex;
+flex-direction: row;
+align-items: center;
+color:#006E75 ;
+width: 100%;
+&:hover {
+    background-color: #F5F5F5;
+  }
 `;
 
 const EmptyTreeNodeContainer = styled.div`
@@ -123,7 +144,12 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
             {isExpanded ? "▼" : "►"}
           </ChevronIcon>
         )}
-        {block?.type} ({block?.id.substring(16)})
+        <BlockContentText>
+          {blockTypeIcons[block?.type]}
+          {block?.type}
+        </BlockContentText>
+        <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />
+
       </BlockContent>
 
       {isExpanded && hasChildBlocks && (
@@ -172,7 +198,7 @@ const HeaderContainer = styled.div`
 
 const NodeTree = () => {
   const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } = useBlockHook();
-  const theme = useTheme();
+
 
   const renderBlockNode = (blockId: string) => {
     return <BlockNode key={blockId} blockId={blockId} />;
@@ -201,7 +227,7 @@ const NodeTree = () => {
     <DroppableContainer
       accept="TREE_BLOCK"
       onDrop={handleDrop}
-      onClick={() => {}}
+      onClick={() => { }}
     >
       <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>

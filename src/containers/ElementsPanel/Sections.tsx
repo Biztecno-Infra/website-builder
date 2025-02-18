@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useDrag } from "react-dnd";
 import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
@@ -11,31 +11,33 @@ export interface IElements {
   elements: any;
   svgProps: {
     name: CUSTOM_SVG_ICON;
-    color: string;
-    size: SizeEnum;
-    bgColor: string;
+    color?: string;
+    size?: SizeEnum;
+    bgColor?: string;
   };
   icon: any;
 }
 
-const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any }>`
+const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHovered: boolean, colors: any }>`
   opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
-  padding: ${({ elements }) => elements.padding};
-  border: ${({ elements }) => elements.border};
   margin-bottom: ${({ elements }) => elements.marginBottom};
-  border-radius: ${({ elements }) => elements.borderRadius};
   cursor: ${({ elements }) => elements.cursor};
+  border-radius: ${({ elements }) => elements.borderRadius};
+  border: ${({ elements }) => elements.border};
   width: ${({ elements }) => elements.width};
+  padding: ${({ elements }) => elements.padding};
   text-align: ${({ elements }) => elements.textAlign};
-  background-color: ${({ isDragging, elements }) => isDragging ? "#f0f0f0" : (elements.background ? elements.background : "#fff")};
+  background-color: ${({ isHovered, colors }) => isHovered ? colors.primary : colors.secondary};
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 `;
 
-const BlockName = styled.div`
+const BlockName = styled.div<{ isHovered: boolean, colors: any }>`
   font-size: 11px;
-  color: #0b978e;
+  color: ${({ isHovered, colors }) => isHovered ? colors.secondary : colors.primary};
+  transition: color 0.3s ease;
 `;
 
 const IconContainer = styled.div`
@@ -45,6 +47,10 @@ const IconContainer = styled.div`
 `;
 
 const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const theme = useTheme();
+  const { colors } = theme as Theme || {};
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "BLOCK",
     item: { type, name },
@@ -58,10 +64,23 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       ref={drag as any}
       isDragging={isDragging}
       elements={elements}
+      isHovered={isHovered}
+      colors={colors}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <SvgIcon {...svgProps} />
-      <BlockName>{name}</BlockName>
-      <IconContainer>{icon}</IconContainer>
+      <div
+        style={
+          {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: 'center'
+          }
+        }>
+        <SvgIcon {...svgProps} color={isHovered ? colors.secondary : colors.primary} />
+        <BlockName isHovered={isHovered} colors={colors}>{name}</BlockName>
+      </div>
+      {isHovered && <IconContainer>{icon}</IconContainer>}
     </BlockItemContainer>
   );
 };
@@ -82,7 +101,7 @@ const Header = styled.div`
   border-bottom: 1px solid #dddddd;
   padding: 0.7rem;
   width: 91%;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   font-weight: 500;
 `;
 
@@ -91,12 +110,12 @@ const Sections: React.FC = () => {
   const { colors, fontSize, elementsPanel } = theme as Theme || {};
 
   const blockItems = [
-    { type: BlockType.TEXT, name: "Add Text", svgProps: { name: CUSTOM_SVG_ICON.AddText, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
-    { type: BlockType.IMAGE, name: "Add Image", svgProps: { name: CUSTOM_SVG_ICON.AddImage, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
-    { type: BlockType.BUTTON, name: "Add Button", svgProps: { name: CUSTOM_SVG_ICON.AddButton, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
-    { type: BlockType.GRID, name: "Add Columns", svgProps: { name: CUSTOM_SVG_ICON.AddColumns, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
-    { type: BlockType.DIVIDER, name: "Add Divider", svgProps: { name: CUSTOM_SVG_ICON.AddLine, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
-    { type: BlockType.SPACER, name: "Add Spacer", svgProps: { name: CUSTOM_SVG_ICON.AddSpacer, color: colors.secondary, size: SizeEnum.Medium, bgColor: colors.primary, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.TEXT, name: "Add Text", svgProps: { name: CUSTOM_SVG_ICON.AddText, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.IMAGE, name: "Add Image", svgProps: { name: CUSTOM_SVG_ICON.AddImage, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.BUTTON, name: "Add Button", svgProps: { name: CUSTOM_SVG_ICON.AddButton, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.GRID, name: "Add Columns", svgProps: { name: CUSTOM_SVG_ICON.AddColumns, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.DIVIDER, name: "Add Divider", svgProps: { name: CUSTOM_SVG_ICON.AddLine, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
+    { type: BlockType.SPACER, name: "Add Spacer", svgProps: { name: CUSTOM_SVG_ICON.AddSpacer, color: colors.primary, size: SizeEnum.Medium, circular: true }, icon: <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} /> },
   ];
 
   return (
