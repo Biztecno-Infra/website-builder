@@ -55,9 +55,10 @@ interface InputProps {
   placeholder?: string;
   onChange?: (name: string, value: any) => void;
   onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   type?: string;
   disabled?: boolean;
-  elements?: any; 
+  elements?: any;
 }
 
 export function Input({
@@ -67,6 +68,7 @@ export function Input({
   placeholder,
   onChange,
   onBlur,
+  onKeyDown,
   type = "text",
   disabled = false,
 }: InputProps) {
@@ -82,7 +84,7 @@ export function Input({
       return;
     }
 
-    setError(""); 
+    setError("");
     if (onChange) {
       onChange(name, type === "number" ? numericValue : value);
     }
@@ -105,6 +107,7 @@ export function Input({
         onChange={handleInputChange}
         onBlur={onBlur}
         disabled={disabled}
+        onKeyDown={onKeyDown}
       />
 
       {error && <ErrorText>{error}</ErrorText>}

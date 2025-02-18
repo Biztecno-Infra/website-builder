@@ -35,7 +35,7 @@ const MiddleContainer = styled.div`
 
 const Header = styled.div`
   width: 100%;
-  height: 4rem;
+  height: 3rem;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -54,7 +54,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
     const handleOptionSelect = (option: string) => {
-      setSelectedOption(option); 
+      setSelectedOption(option);
     };
 
     const handleClose = () => {
@@ -72,7 +72,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
                   <ButtonComponent primary text="Send" />
                   <CustomDropdownButton
                     options={["Export", "Upload", "Send Test"]}
-                    onSelect={handleOptionSelect} 
+                    onSelect={handleOptionSelect}
                     buttonText="Actions"
                   />
                 </Header>
@@ -85,13 +85,13 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
             </Container>
 
             {selectedOption === "Export" && (
-              <ExportModal onClose={handleClose} onExport={() => {}}/> 
+              <ExportModal onClose={handleClose} onExport={() => { }} />
             )}
             {selectedOption === "Upload" && (
-              <UploadModal onClose={handleClose} onUpload={() => {}}/> 
+              <UploadModal onClose={handleClose} onUpload={() => { }} />
             )}
             {selectedOption === "Send Test" && (
-              <SendTestModal onClose={handleClose} onSend={(file) => {}} />
+              <SendTestModal onClose={handleClose} onSend={(file) => { }} />
             )}
           </BlockHookProvider>
         </CustomThemeProvider>

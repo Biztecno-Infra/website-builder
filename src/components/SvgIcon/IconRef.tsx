@@ -6,6 +6,7 @@ import AddSpacer from "./Icons/AddSpacer";
 import AddText from "./Icons/AddText";
 import ArrowDown from "./Icons/ArrowDown";
 import CheckSVG from "./Icons/Check";
+import ClearEmail from "./Icons/ClearEmail";
 import Close from "./Icons/Close";
 import DeleteSVG from "./Icons/Delete";
 import DragIcon from "./Icons/DragIcon";
@@ -33,7 +34,8 @@ export enum CUSTOM_SVG_ICON {
   JsonFile = "FileTypeJson",
   Close = "Close",
   ArrowDown = "ArrowDown",
-  UploadIcon = "Upload"
+  UploadIcon = "Upload",
+  ClearEmail = "ClearEmail"
 }
 
 export const CustomIconRef: any = {
@@ -48,11 +50,12 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.AddImage]: AddImage,
   [CUSTOM_SVG_ICON.AddButton]: AddButton,
   [CUSTOM_SVG_ICON.AddColumns]: AddColumns,
-  [CUSTOM_SVG_ICON.AddLine] : AddLine,
+  [CUSTOM_SVG_ICON.AddLine]: AddLine,
   [CUSTOM_SVG_ICON.AddSpacer]: AddSpacer,
-  [CUSTOM_SVG_ICON.HtmlFile] : FileTypeHtml,
-  [CUSTOM_SVG_ICON.JsonFile] : FileTypeJson,
-  [CUSTOM_SVG_ICON.Close] : Close,
-  [CUSTOM_SVG_ICON.ArrowDown] : ArrowDown,
-  [CUSTOM_SVG_ICON.UploadIcon] : Upload
+  [CUSTOM_SVG_ICON.HtmlFile]: FileTypeHtml,
+  [CUSTOM_SVG_ICON.JsonFile]: FileTypeJson,
+  [CUSTOM_SVG_ICON.Close]: Close,
+  [CUSTOM_SVG_ICON.ArrowDown]: ArrowDown,
+  [CUSTOM_SVG_ICON.UploadIcon]: Upload,
+  [CUSTOM_SVG_ICON.ClearEmail]: ClearEmail
 };

@@ -28,12 +28,12 @@ const EmailList = styled.div`
 const EmailTag = styled.div`
   background: #008080;
   color: white;
-  padding: 5px 10px;
-  border-radius: 15px;
+  padding: 2px;
+  border-radius: 5px;
   font-size: 12px;
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
 `;
 
 const ButtonContainer = styled.div`
@@ -72,7 +72,6 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
   const removeEmail = (email: string) => {
     setEmails(emails.filter((e) => e !== email));
   };
-
   return (
     <ModalOverlay onClose={onClose}>
       <Title>Send Test</Title>
@@ -83,19 +82,19 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
         value={inputValue}
         placeholder="Enter email here"
         onChange={(name, value) => setInputValue(value as string)}
-        onBlur={() => {}}
+        onKeyDown={handleKeyDown}
+        onBlur={() => { }}
         type="email"
       />
 
       <EmailList>
         {emails.map((email) => (
           <EmailTag key={email}>
-            {email}{" "}
+            {email}
             <SvgIcon
-              name="CloseIcon"  
-              size={SizeEnum.Small}
+              name="ClearEmail"
               hover
-              onClick={() => removeEmail(email)} 
+              onClick={() => removeEmail(email)}
             />
           </EmailTag>
         ))}
