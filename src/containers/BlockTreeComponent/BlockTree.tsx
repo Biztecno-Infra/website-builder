@@ -185,6 +185,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
 const DroppableContainer = styled(Droppable)`
   height: 100%;
   width: 100%;
+  margin-left: 0.25rem;
 `;
 
 const RootBlockContainer = styled.div`
