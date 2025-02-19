@@ -81,7 +81,7 @@ export function CustomDropdown({
       {label &&
         <Label
           color={theme.colors.primary}
-          font-Size={theme.fontSize.labelHeader}>
+          fontSize={theme.fontSize.labelHeader}>
           {label}
         </Label>}
       <StyledSelect theme={theme}

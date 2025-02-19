@@ -58,7 +58,6 @@ const Canvas: React.FC = () => {
     onDeleteBlock,
     globalStyles
   } = useBlockHook();
-
   const theme = useTheme();
 
   const handleDrop = useCallback(

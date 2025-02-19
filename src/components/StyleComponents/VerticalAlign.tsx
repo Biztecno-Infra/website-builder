@@ -19,12 +19,11 @@ export const VerticalAlignmentDropdown: React.FC<VerticalAlignmentDropdownProps>
 }) => {
   return (
       <CustomDropdown
-        id="verticalAlignment"
         name="verticalAlignment"
         label="Vertical Alignment"
         options={verticalAlignmentOptions}
         placeholder="Select Vertical Alignment"
-        onChange={(name, value) => onChange("verticalAlignment", value)}
+        onChange={(name, value) => onChange("verticalAlignment", value as string)}
         initialValue={value}
       />
   );

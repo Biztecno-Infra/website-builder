@@ -86,7 +86,7 @@ export function CustomInput({
       {label &&
         <Label
           color={theme.colors.primary}
-          font-Size={theme.fontSize.labelHeader}>
+          fontSize={theme.fontSize.labelHeader}>
           {label}
         </Label>}
       <StyledInput

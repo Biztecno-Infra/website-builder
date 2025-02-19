@@ -112,9 +112,9 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           )}
         </ColorBox>
 
-        {selectedColor && (
+        {/* {selectedColor && (
           <ResetButton onClick={handleReset}>Reset</ResetButton>
-        )}
+        )} */}
       </PickerRow>
 
       {isPickerVisible && (
