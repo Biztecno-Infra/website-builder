@@ -58,6 +58,9 @@ const EmptyTreeNodeContainer = styled.div`
   cursor: pointer;
 `;
 
+const ExpandIcon = styled.div`
+    transform: rotate(270deg);
+`;
 const ChevronIcon = styled.span<{ isExpanded: boolean }>`
   margin-right: 10px;
   cursor: pointer;
@@ -141,7 +144,7 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
           <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion}>
-            {isExpanded ? "▼" : "►"}
+            {isExpanded ? <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /> : <ExpandIcon><SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /></ExpandIcon>}
           </ChevronIcon>
         )}
         <BlockContentText>
@@ -169,7 +172,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
   const { handleDropper } = useBlockHook();
 
   const handleDrop = (item: any) => {
-    handleDropper(item, id); // TODO: Need to modify the dropper logic to handle the correct drop action
+    handleDropper(item, id);
   };
 
   return (
