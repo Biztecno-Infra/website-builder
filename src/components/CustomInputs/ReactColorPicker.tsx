@@ -1,9 +1,9 @@
 import React, { useState, useCallback, useMemo } from "react";
 import GradientColorPicker from "react-best-gradient-color-picker";
+import styled from "styled-components";
 import useClickOutside from "hoc/useClickOutside";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { rgbToHex } from "@utils/constant";
-import styled from "styled-components";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 interface ColorPickerProps {
@@ -17,14 +17,14 @@ const ColorPickerContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: 1rem;
   width: 100%;
+  margin-bottom: 0.5rem;
 `;
 
 const Label = styled.label`
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  margin-right: 1rem;
+  margin-right: 1rem; 
 `;
 
 const ColorBox = styled.div<{ selectedColor: string }>`
@@ -59,7 +59,6 @@ const PickerRow = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin: 1rem 0;
   width: 100%;
 `;
 
@@ -71,7 +70,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   label,
   selectedColor,
-  defaultColor = "#ffffff", // Default color set to white if not provided
+  defaultColor, 
 }) => {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
@@ -109,7 +108,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
 
         <ColorBox selectedColor={selectedColor} onClick={handleColorPickerClick}>
           {!selectedColor && (
-            <SvgIcon name={CUSTOM_SVG_ICON.Plus} size={SizeEnum.Huge} />
+            <SvgIcon name={CUSTOM_SVG_ICON.Plus} size={SizeEnum.Small} />
           )}
         </ColorBox>
 

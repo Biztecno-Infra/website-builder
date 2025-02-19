@@ -15,9 +15,9 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
 }) => {
   // Destructure the initial global styles and set up the state
   const {
-    canvasColor: initialCanvasColor = "#FFFFFF",
-    textColor: initialTextColor = "#262626",
-    fontFamily: initialFontFamily = "MODERN_SANS",
+    canvasColor: initialCanvasColor ,
+    textColor: initialTextColor,
+    fontFamily: initialFontFamily , 
   } = globalStyles;
 
   const [styles, setStyles] = useState({
@@ -46,12 +46,14 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
         label={"Select Canvas color"}
         onColorChange={(field, value) => handleChange("canvasColor", value)}
         selectedColor={styles.canvasColor}
+        defaultColor={globalStyles.canvasColor}
       />
 
       <ReactColorPicker
         label={"Select Text color"}
         onColorChange={(field, value) => handleChange("textColor", value)}
         selectedColor={styles.textColor}
+        defaultColor={globalStyles.textColor}
       />
 
       <FontFamilyDropdown

@@ -41,7 +41,7 @@ const TabComponent: React.FC<TabProps> = ({
           active={activeIndex === index}
           onClick={() => onTabChange(index)}
         >
-          <SvgIcon name={tab.label} size={SizeEnum.Medium} />
+          <SvgIcon name={tab.label} size={SizeEnum.Small} />
         </TabMenuItem>
       ))}
     </TabMenu>

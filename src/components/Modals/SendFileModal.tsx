@@ -1,9 +1,8 @@
-import ModalOverlay from "@components/lib/ModalOverlay";
 import React, { useState } from "react";
 import styled from "styled-components";
 import { Input } from "@components/lib";
 import SvgIcon from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import ModalOverlay from "@components/lib/ModalOverlay";
 
 const Title = styled.div`
   font-size: 1.5rem;

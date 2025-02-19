@@ -29,7 +29,7 @@ const Container = styled.div`
 const MiddleContainer = styled.div`
   display: flex;
   flex-direction: column;
-  width: calc(100% - 20rem);
+  width: calc(100% - 16.8rem);
   height: 100%;
 `;
 

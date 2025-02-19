@@ -9,7 +9,7 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 const ElementsContainer = styled.div`
   display: flex;
   flex-direction: row;
-  width: 20rem;
+  width: 16.8rem;
   height: 100%;
 `;
 

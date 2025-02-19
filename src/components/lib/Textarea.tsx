@@ -10,7 +10,7 @@ const TextAreaContainer = styled.div`
 const Label = styled.label<{ color: string; fontSize: string }>`
   line-height: 1rem;
   font-weight: 600;
-  padding-left: 0.25rem;
+  margin-bottom: 0.5rem;
   color: ${({ color }) => color};
   font-size: ${({ fontSize }) => fontSize};
 
@@ -23,13 +23,13 @@ const Label = styled.label<{ color: string; fontSize: string }>`
 const StyledTextArea = styled.textarea`
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid ${({ theme }) => theme.colors.inputColor};
-  border-radius: ${({ theme }) => theme.borderRadius};
+  border: 1px solid #DDDDDD;
+  border-radius: 5px;
   font-family: Arial, sans-serif;
   font-size: 0.875rem;
   resize: vertical;
   min-height: 4rem;
-
+  // background-color: #F1F1F1;
   &::placeholder {
     color: ${({ theme }) => theme.colors.inputPlaceholderColor};
   }
