@@ -274,7 +274,7 @@ export const defaultTheme: Theme = {
     width: "80%",
   },
   fontSize: {
-    labelHeader: "1.25rem",
+    labelHeader: "0.875rem",
     subHeader: "1rem"
   },
   canvas: {
