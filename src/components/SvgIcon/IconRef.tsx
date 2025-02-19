@@ -9,6 +9,7 @@ import CheckSVG from "./Icons/Check";
 import ClearEmail from "./Icons/ClearEmail";
 import Close from "./Icons/Close";
 import DeleteSVG from "./Icons/Delete";
+import DeleteBlock from "./Icons/DeleteBlock";
 import DragIcon from "./Icons/DragIcon";
 import ExpandIcon from "./Icons/ExpandIcon";
 import FileTypeHtml from "./Icons/FileTypeHtml";
@@ -38,6 +39,7 @@ export enum CUSTOM_SVG_ICON {
   UploadIcon = "Upload",
   ClearEmail = "ClearEmail",
   ExpandIcon = "ExpandIcon",
+  DeleteBlock = "DeleteBlock"
 }
 
 export const CustomIconRef: any = {
@@ -60,5 +62,6 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ArrowDown]: ArrowDown,
   [CUSTOM_SVG_ICON.UploadIcon]: Upload,
   [CUSTOM_SVG_ICON.ClearEmail]: ClearEmail,
-  [CUSTOM_SVG_ICON.ExpandIcon]: ExpandIcon
+  [CUSTOM_SVG_ICON.ExpandIcon]: ExpandIcon,
+  [CUSTOM_SVG_ICON.DeleteBlock]: DeleteBlock
 };

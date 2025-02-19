@@ -5,6 +5,7 @@ import EmptyBlock from "./EmptyBlock";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import { Block } from "types";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 interface TableWrapperProps {
   canvasColor: string;
@@ -49,8 +50,8 @@ const Canvas: React.FC = () => {
     onDeleteBlock,
     globalStyles
   } = useBlockHook();
-  
-  const theme = useTheme(); 
+
+  const theme = useTheme();
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -71,7 +72,7 @@ const Canvas: React.FC = () => {
               setSelectedBlock(null);
             }}
           >
-            delete
+            <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
           </TrashIconWrapper>
         )}
       </BlockWrapper>
