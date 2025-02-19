@@ -8,15 +8,19 @@ const TabMenu = styled.div`
   flex-direction: column;
   border-right: 2px solid #ddd;
   height: 100%;
+  width: 25%;
 `;
 
 const TabMenuItem = styled.div<{ active: boolean }>`
-  padding: 1rem;
   cursor: pointer;
   color: ${({ active }) => (active ? "#006E75" : "#8A8A8A")};
   background-color: ${({ active }) => (active ? "#F5F5F5" : "transparent")};
   border-right: ${({ active }) => (active ? "4px solid #006E75" : "none")};
-
+  height: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+width: 100%;
   &:hover {
     background-color: #f0f0f0;
   }

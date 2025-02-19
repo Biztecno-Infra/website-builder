@@ -195,9 +195,12 @@ const RootBlockContainer = styled.div`
 const HeaderContainer = styled.div`
   font-size: ${({ theme }) => theme.fontSize.labelHeader};
   border-bottom: 1px solid #dddddd;
-  padding: 0.7rem;
-  width: 91%;
+  width: 97%;
+  height: 3rem;
+  display: flex;
+  align-items: center;
   font-weight: 500;
+  padding-left: 0.5rem;
 `;
 
 const NodeTree = () => {

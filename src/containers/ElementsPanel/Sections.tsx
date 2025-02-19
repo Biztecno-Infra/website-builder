@@ -98,10 +98,13 @@ const Container = styled.div`
 const Header = styled.div`
   font-size: ${({ theme }) => theme.fontSize.labelHeader};
   border-bottom: 1px solid #dddddd;
-  padding: 0.7rem;
-  width: 91%;
+  height: 3rem;
+  width: 97%;
   margin-bottom: 0.75rem;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  padding-left: 0.5rem;
 `;
 
 const Sections: React.FC = () => {
