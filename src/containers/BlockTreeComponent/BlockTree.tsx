@@ -25,7 +25,6 @@ const BlockContainer = styled.div<{ isDragging: boolean; cursor: string }>`
 `;
 
 const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
-  /* padding: 8px; */
   cursor: ${({ hasChildBlocks }) => (hasChildBlocks ? "pointer" : "default")};
   display: flex;
   align-items: center;
@@ -39,6 +38,7 @@ const BlockContentText = styled.div`
 display: flex;
 flex-direction: row;
 align-items: center;
+justify-content: space-between;
 color:#006E75 ;
 width: 100%;
 &:hover {
@@ -58,6 +58,9 @@ const EmptyTreeNodeContainer = styled.div`
   cursor: pointer;
 `;
 
+const ExpandIcon = styled.div`
+    transform: rotate(270deg);
+`;
 const ChevronIcon = styled.span<{ isExpanded: boolean }>`
   margin-right: 10px;
   cursor: pointer;
@@ -66,15 +69,13 @@ const ChevronIcon = styled.span<{ isExpanded: boolean }>`
 
 const BlockNode = ({ blockId }: BlockNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   const { blocks, handleDropper, setSelectedBlock } = useBlockHook();
 
   const block: Block = useMemo(() => blocks[blockId], [blocks[blockId]]);
 
-  const {
-    hasChildBlocks,
-    isEnableDrop,
-  }: { hasChildBlocks: boolean; isEnableDrop: boolean } = useMemo(() => {
+  const { hasChildBlocks, isEnableDrop } = useMemo(() => {
     if (block) {
       return {
         hasChildBlocks:
@@ -137,19 +138,22 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
       isDragging={isDragging}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
           <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion}>
-            {isExpanded ? "▼" : "►"}
+            {isExpanded ? <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /> : <ExpandIcon><SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /></ExpandIcon>}
           </ChevronIcon>
         )}
         <BlockContentText>
-          {blockTypeIcons[block?.type]}
-          {block?.type}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {blockTypeIcons[block?.type]}
+            {block?.type}
+          </div>
+          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />}
         </BlockContentText>
-        <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />
-
       </BlockContent>
 
       {isExpanded && hasChildBlocks && (
@@ -168,7 +172,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
   const { handleDropper } = useBlockHook();
 
   const handleDrop = (item: any) => {
-    handleDropper(item, id); // TODO: Need to modify the dropper logic to handle the correct drop action
+    handleDropper(item, id);
   };
 
   return (
