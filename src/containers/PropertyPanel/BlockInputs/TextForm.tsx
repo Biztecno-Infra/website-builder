@@ -10,7 +10,6 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
-import { defaultPadding } from "@utils/constant";
 import { TextProps } from "../../../types";
 import CustomCSSRenderer from "./CustomCssRenderer";
 import { TextArea , Input } from "@components/lib";
@@ -166,6 +165,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         label="Line Height"
         placeholder="Enter Line Height"
         value={formData.lineHeight}
+        type="number"
         onChange={handleChange}
       />
       <FontWeightDropdown

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { CustomInput } from "@components/CustomInputs";
+import { Input } from "@components/lib";
 
 interface ColumnCellWidthProps {
   rows: number;
@@ -60,7 +60,7 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
     <ColumnCellWidthContainer>
       <Label>Column Cell Widths</Label>
       {localWidths.map((width, index) => (
-        <CustomInput
+        <Input
           key={index}
           name={`cell-width-${index}`}
           type="number"

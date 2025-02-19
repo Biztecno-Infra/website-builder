@@ -46,6 +46,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       columnGap: 0,
       cellWidths: [50, 50],
       childBlocks: [],
+      borderWidth:  "", 
+      borderStyle: "", 
+      borderColor: "", 
+      borderRadius : "",
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -55,7 +59,11 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultPadding,
       navigateToUrl: "",
       width: "",
-      height: ""
+      height: "",
+      borderWidth:  "", 
+      borderStyle: "", 
+      borderColor: "", 
+      borderRadius : "",
     };
   } else if (blockType === BlockType.TEXT) {
     return {
@@ -68,6 +76,8 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       alignment: "left",
       fontFamily: defaultFont,
       navigateToUrl: "",
+      lineHeight: 16,
+      backgroundImage: "" 
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -82,7 +92,11 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       alignment: "left",
       buttonPadding: defaultPadding,
       width: 150,
-      height: 50
+      height: 50,
+      borderWidth:  "", 
+      borderStyle: "", 
+      borderColor: "", 
+      borderRadius : "",
     };
   } else if (blockType === BlockType.GRIDCELL) {
     return {

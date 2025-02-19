@@ -46,7 +46,7 @@ const ContentWrapper = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
-  height: calc(100% - 4rem);
+  height: calc(100% - 3rem);
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(

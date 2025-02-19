@@ -524,7 +524,7 @@ export const useBlocks = (): IBlockContext => {
         <table style="font-family:${globalStyles?.fontFamily}; width:600px; max-width:600px; margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
           <tbody>
             <tr>
-              <td style="vertical-align:top; padding:0;">${blocksHtml}</td>
+              <td style="padding:0;">${blocksHtml}</td>
             </tr>
           </tbody>
         </table>
