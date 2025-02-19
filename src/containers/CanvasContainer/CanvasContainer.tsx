@@ -15,8 +15,16 @@ interface TableWrapperProps {
 
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
   cursor: pointer;
-  border: ${({ isSelected }) => (isSelected ? "2px solid blue" : "none")};
+  border: ${({ isSelected }) => (isSelected ? "1px dashed #006E75" : "none")};
+  border-radius: 10px;
   position: relative;
+`;
+
+const DeleteWrapper = styled.div`
+   position: absolute;
+   cursor: pointer;
+   right: 19px; 
+   bottom: -5px;
 `;
 
 const TrashIconWrapper = styled.div`
@@ -72,7 +80,7 @@ const Canvas: React.FC = () => {
               setSelectedBlock(null);
             }}
           >
-            <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+            <DeleteWrapper><SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} /></DeleteWrapper>
           </TrashIconWrapper>
         )}
       </BlockWrapper>
