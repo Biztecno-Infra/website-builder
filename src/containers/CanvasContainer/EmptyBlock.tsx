@@ -11,26 +11,32 @@ const EmptyBlockContainer = styled.div`
   width: 100%;
   height: 100%;
   font-size: 2rem;
+  border: 1px dashed #DDDDDD;
+  border-radius: 10px;
 `;
 
 const MessageText = styled.div`
   font-size: inherit;
+  font-size: 11px;
+  font-weight:400;
+  color: #0B978E;
+  padding: 1rem;
 `;
 
 const SvgIconWrapper = styled.div`
   margin-top: 1rem;
 `;
 
-const EmptyBlock = () => {
+const EmptyBlock = ({ text }: any) => {
   return (
     <EmptyBlockContainer>
-      <MessageText>Drag block and drop here</MessageText>
       <SvgIconWrapper>
         <SvgIcon
-          name={CUSTOM_SVG_ICON.Plus}
-          size={SizeEnum.Large}
+          name={CUSTOM_SVG_ICON.EmptyCanvas}
+          size={SizeEnum.Huge}
         />
       </SvgIconWrapper>
+      <MessageText>{text}</MessageText>
     </EmptyBlockContainer>
   );
 };

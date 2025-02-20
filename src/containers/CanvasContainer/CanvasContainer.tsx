@@ -39,8 +39,7 @@ const TrashIconWrapper = styled.div`
 
 const TableWrapper = styled.table<TableWrapperProps>`
   margin: 0 auto;
-  width: 600px;
-  max-width: 600px;
+  width: 100%;
   background-color: ${({ canvasColor }) => canvasColor};
   font-family: ${({ canvasFont }) => canvasFont};
   color: ${({ canvasFontColor }) => canvasFontColor};
@@ -99,17 +98,20 @@ const Canvas: React.FC = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      {rootBlockOrder.length > 0 ? (
-        <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
-          <tbody>
-            <tr>
-              <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>
-            </tr>
-          </tbody>
-        </TableWrapper>
-      ) : (
-        <EmptyBlock />
-      )}
+      <div style={{ padding: "1rem", background: "#FFFFFF", margin: "1rem" }}>
+        {rootBlockOrder.length > 0 ? (
+          <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
+            <tbody>
+              <tr>
+                <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>
+              </tr>
+            </tbody>
+            <EmptyBlock text="Drag & drop more elements to add." />
+          </TableWrapper>
+        ) : (
+          <EmptyBlock text="Drag & drop elements here to start building " />
+        )}
+      </div>
     </Droppable>
   );
 };
