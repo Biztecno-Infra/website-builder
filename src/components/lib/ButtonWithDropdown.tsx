@@ -12,23 +12,26 @@ const DropdownContainer = styled.div`
   min-width: 7.5rem;
 `;
 
-const DropdownList = styled.ul<{ open: any }>`
+const DropdownList = styled.div<{ open: any }>`
   position: absolute;
   background-color: white;
   border: 1px solid #ddd;
-  top: 35px;
+  top: 2.75rem;
   list-style: none;
   z-index: 999;
   border-radius: 10px;
-  padding: 0.95rem;
+  min-width: 7.3rem;
+  padding: 0.25rem;
   display: ${(props) => (props.open ? "block" : "none")};
 `;
 
-const DropdownListItem = styled.li`
-  padding: 10px;
+const DropdownListItem = styled.div`
+  padding: 0.5rem;
   cursor: pointer;
+  border-radius: 10px;
   &:hover {
-    background-color: #f1f1f1;
+    background-color: #0B978E;
+    color : #FFFFFF;
   }
 `;
 

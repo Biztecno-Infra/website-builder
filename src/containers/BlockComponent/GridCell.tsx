@@ -4,6 +4,7 @@ import { GridCellProps, IGridCellProps } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import GridEmptyCell from "./GridEmptyCell";
 import styled from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Styled component for the delete button container
 const DeleteButton = styled.div`
@@ -18,11 +19,11 @@ const DeleteButton = styled.div`
 
 // Styled component for the grid cell
 const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number }>`
-  border: ${(props) => (props.selected ? "2px solid blue" : "2px solid transparent")};
-  padding-top: ${(props) => props.padding?.top};
-  padding-bottom: ${(props) => props.padding?.bottom};
-  padding-right: ${(props) => props.padding?.right};
-  padding-left: ${(props) => props.padding?.left};
+  border: ${({ selected }) => (selected ? "1px dashed #006E75" : "none")};
+  padding-top: ${(props) => props.padding?.top}px;
+  padding-bottom: ${(props) => props.padding?.bottom}px;
+  padding-right: ${(props) => props.padding?.right}px;
+  padding-left: ${(props) => props.padding?.left}px;
   text-align: center;
   vertical-align: ${(props) => (props as any).verticalAlignment || "middle"};
   cursor: pointer;
@@ -34,6 +35,13 @@ const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['paddi
 
 const GridCellContainer = styled.div`
 position:relative `;
+
+const DeleteWrapper = styled.div`
+  position: absolute;
+  cursor: pointer;
+  right: -13px;
+  top: -14px;
+`;
 
 const GridCell: React.FC<GridCellProps> = ({
   cellWidth,
@@ -49,7 +57,7 @@ const GridCell: React.FC<GridCellProps> = ({
   }
 
   const isSelected = useMemo(() => {
-    return selectedBlock ? blockId === selectedBlock.id : false
+    return selectedBlock ? blockId === (selectedBlock as any).id : false
   }, [selectedBlock, block])
   
   const handleCellBlockClick = useCallback(
@@ -74,18 +82,17 @@ const GridCell: React.FC<GridCellProps> = ({
     return (
       <GridCellContainer key={cellBlockId}>
         <BlockComponent blockId={cellBlockId} />
-  
-        {hasMultipleChildBlocks && cellBlockId === selectedBlock?.id && (
-          <DeleteButton onClick={(e) => handleDeleteClick(e, cellBlockId)}>
-            delete
-            {/* <Icon name="trash" /> */}
-          </DeleteButton>
-        )}
+
+        {hasMultipleChildBlocks &&
+          cellBlockId === (selectedBlock as any)?.id && (
+            <DeleteWrapper onClick={(e) => handleDeleteClick(e, cellBlockId)}>
+              <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+            </DeleteWrapper>
+          )}
       </GridCellContainer>
     );
   };
   
-
   return (
     <StyledCell 
       selected={isSelected} 

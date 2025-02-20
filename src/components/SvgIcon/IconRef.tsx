@@ -5,16 +5,22 @@ import AddLine from "./Icons/AddLine";
 import AddSpacer from "./Icons/AddSpacer";
 import AddText from "./Icons/AddText";
 import ArrowDown from "./Icons/ArrowDown";
+import CenterAlign from "./Icons/CenterAlign";
 import CheckSVG from "./Icons/Check";
 import ClearEmail from "./Icons/ClearEmail";
 import Close from "./Icons/Close";
 import DeleteSVG from "./Icons/Delete";
 import DeleteBlock from "./Icons/DeleteBlock";
 import DragIcon from "./Icons/DragIcon";
+import EmptyCanvasSVG from "./Icons/EmptyCanvas";
 import ExpandIcon from "./Icons/ExpandIcon";
 import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
+import JustifyAlign from "./Icons/JustifyAlign";
+import LeftAlign from "./Icons/LeftAlign";
+import PaddingExpand from "./Icons/PaddingExpand";
 import PlusSVG from "./Icons/Plus";
+import RightAlign from "./Icons/RightAlign";
 import SectionIcon from "./Icons/SectionIcon";
 import TreeIcon from "./Icons/TreeIcon";
 import Upload from "./Icons/Upload";
@@ -39,7 +45,13 @@ export enum CUSTOM_SVG_ICON {
   UploadIcon = "Upload",
   ClearEmail = "ClearEmail",
   ExpandIcon = "ExpandIcon",
-  DeleteBlock = "DeleteBlock"
+  DeleteBlock = "DeleteBlock",
+  EmptyCanvas = "EmptyCanvasSVG",
+  LeftAlign = "LeftAlign" , 
+  RightAlign = "RightAlign", 
+  CenterAlign = "CenterAlign",
+  JustifyAlign = "JustifyAlign",
+  PaddingExpand = "PaddingExpand"
 }
 
 export const CustomIconRef: any = {
@@ -63,5 +75,11 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.UploadIcon]: Upload,
   [CUSTOM_SVG_ICON.ClearEmail]: ClearEmail,
   [CUSTOM_SVG_ICON.ExpandIcon]: ExpandIcon,
-  [CUSTOM_SVG_ICON.DeleteBlock]: DeleteBlock
+  [CUSTOM_SVG_ICON.DeleteBlock]: DeleteBlock,
+  [CUSTOM_SVG_ICON.EmptyCanvas] : EmptyCanvasSVG,
+  [CUSTOM_SVG_ICON.LeftAlign] : LeftAlign,
+  [CUSTOM_SVG_ICON.RightAlign] : RightAlign,
+  [CUSTOM_SVG_ICON.CenterAlign] : CenterAlign,
+  [CUSTOM_SVG_ICON.JustifyAlign] : JustifyAlign,
+  [CUSTOM_SVG_ICON.PaddingExpand] : PaddingExpand
 };
