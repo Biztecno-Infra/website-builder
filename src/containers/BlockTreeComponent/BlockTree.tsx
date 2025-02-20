@@ -41,9 +41,18 @@ align-items: center;
 justify-content: space-between;
 color:#006E75 ;
 width: 100%;
+padding: 0% 1rem 0% 0%;
 &:hover {
     background-color: #F5F5F5;
   }
+`;
+
+const BlockTextIcon = styled.div`
+  display: flex;
+  align-items: center;
+`
+const BlockText = styled.div`
+padding: 0% 0.25rem 0% 1rem;
 `;
 
 const EmptyTreeNodeContainer = styled.div`
@@ -148,10 +157,10 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
           </ChevronIcon>
         )}
         <BlockContentText>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            {blockTypeIcons[block?.type]}
+          <BlockTextIcon>
+            <BlockText>{blockTypeIcons[block?.type]}</BlockText>
             {block?.type}
-          </div>
+          </BlockTextIcon>
           {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />}
         </BlockContentText>
       </BlockContent>

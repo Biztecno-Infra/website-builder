@@ -33,8 +33,8 @@ const SvgIconContainer = styled.div<Props>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: ${(props) => sizeMapping[props.size || SizeEnum.Medium]};
-  height: ${(props) => sizeMapping[props.size || SizeEnum.Medium]};
+  width: ${(props) => (props.size ? sizeMapping[props.size] : 'unset')};
+  height: ${(props) => (props.size ? sizeMapping[props.size] : 'unset')};
   color: ${(props) => props.color || 'currentColor'}; 
   background-color: ${(props) => props.bgColor || 'transparent'};
 
@@ -63,7 +63,7 @@ const SvgIconContainer = styled.div<Props>`
 const SvgIcon: React.FC<Props> = ({
   name,
   circular,
-  size = SizeEnum.Medium,
+  size,
   inverted,
   onClick,
   hover,
