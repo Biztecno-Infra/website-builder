@@ -6,6 +6,12 @@ import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidt
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
 import { Input } from "@components/lib";
+import styled from "styled-components";
+
+const FormWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -77,7 +83,8 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   };
 
   return (
-    <BasePropertyWrapper name="Grid Block">
+    <FormWrapper>
+      <BasePropertyWrapper name="Edit Columns">
       <ReactColorPicker
         onColorChange={(field, value) => handleChange("backgroundColor", value)}
         label="Select background color"
@@ -129,5 +136,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       />
       {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} /> */}
     </BasePropertyWrapper>
+    </FormWrapper>
   );
 };

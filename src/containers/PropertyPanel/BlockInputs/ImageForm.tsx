@@ -1,35 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { Jimp } from "jimp";
 import { BlockFormProps } from "../types";
-import { AlignmentDropdown, PaddingInput } from "@components/StyleComponents";
+import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import CustomCSSRenderer from "./CustomCssRenderer";
 import { ImageProps } from "../../../types";
-import { Input } from "@components/lib";
+import { Input, TextArea } from "@components/lib";
+import styled from "styled-components";
+
+const FormWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
 export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { 
-    imageUrl, 
-    altText, 
-    width, 
-    height, 
-    backgroundColor, 
-    padding, 
-    alignment, 
-    borderWidth, 
-    borderStyle, 
-    borderColor, 
-    borderRadius, 
+  const {
+    imageUrl,
+    altText,
+    width,
+    height,
+    backgroundColor,
+    padding,
+    alignment,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
     navigateToUrl,
-    customCss = {} ,
+    customCss = {},
   } = selectedBlock as ImageProps;
-  
+
   const [formData, setFormData] = useState({
     imageUrl,
     altText,
@@ -43,7 +49,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     customCss,
-    navigateToUrl 
+    navigateToUrl,
   });
 
   useEffect(() => {
@@ -60,7 +66,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       borderColor,
       borderRadius,
       customCss,
-      navigateToUrl
+      navigateToUrl,
     });
   }, [selectedBlock]);
 
@@ -76,10 +82,10 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       const { width, height } = image.bitmap;
 
       setFormData((prev) => {
-        const updatedFormData = { 
-          ...prev, 
-          width, 
-          height 
+        const updatedFormData = {
+          ...prev,
+          width,
+          height,
         };
         updateBlock(selectedBlock.id, "width", width);
         updateBlock(selectedBlock.id, "height", height);
@@ -93,7 +99,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
       const updatedFormData = { ...prev, [field]: value };
-      updateBlock(selectedBlock.id , field , value);
+      updateBlock(selectedBlock.id, field, value);
       return updatedFormData;
     });
   };
@@ -105,7 +111,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         [property]: value,
       };
       const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , property , value);
+      updateBlock(selectedBlock.id, property, value);
       return updatedFormData;
     });
   };
@@ -115,7 +121,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       const updatedCustomCss = { ...prev.customCss };
       delete updatedCustomCss[property];
       const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , customCss , updatedCustomCss);
+      updateBlock(selectedBlock.id, customCss, updatedCustomCss);
       return updatedFormData;
     });
   };
@@ -127,91 +133,111 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         [property]: value,
       };
       const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , property , value);
+      updateBlock(selectedBlock.id, property, value);
       return updatedFormData;
     });
   };
 
   return (
-    <BasePropertyWrapper name="Image Block">
-      <Input
-        name="imageUrl"
-        label="Image URL"
-        placeholder="Enter Image URL"
-        value={formData.imageUrl}
-        onChange={(name: string, value: string) => handleImageUrlChange(value)} 
-      />
-      
-      <Input
-        name="altText"
-        label="Alt Text"
-        placeholder="Enter Alt Text"
-        value={formData.altText}
-        onChange={(name: string, value: string) => handleChange("altText", value)}
-      />
-      
-      <Input
-        name="navigateToUrl"
-        label="Image Navigation URL"
-        placeholder="Enter Image Navigation URL"
-        value={formData.navigateToUrl}
-        onChange={handleChange}
-      />
-      
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("backgroundColor", value)}
-        label={"Select Background color"}
-        selectedColor={formData.backgroundColor}
-      />
-      <Input
-        type="number"
-        name="width"
-        label="Width"
-        placeholder="Enter Width"
-        value={formData.width || ""}
-        onChange={(name: string, value: string) => handleChange("width", value)}
-      />
-      <Input
-        type="number"
-        name="height"
-        label="Height"
-        placeholder="Enter Height"
-        value={formData.height || ""}
-        onChange={(name: string, value: string) => handleChange("height", value)}
-      />
-      <AlignmentDropdown onChange={handleChange} value={formData.alignment} />
-      <PaddingInput
-        padding={formData.padding}
-        onChange={(padding: any) => handleChange("padding", padding)}
-      />
-      <Input
-        name="borderWidth"
-        placeholder="Border Width"
-        type="number"
-        label="Border Width"
-        value={formData.borderWidth}
-        onChange={handleChange}
-      />
-      <BorderStyleDropdown value={formData.borderStyle || ""} onChange={handleChange} />
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("borderColor", value)}
-        label="Select Border Color"
-        selectedColor={formData.borderColor || ""}
-      />
-      <Input
-        name="borderRadius"
-        placeholder="Border Radius"
-        type="number"
-        label="Border Radius"
-        value={formData.borderRadius}
-        onChange={handleChange}
-      />
-      <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
-      <CustomCSSRenderer
-        customCss={formData.customCss}
-        handleDeleteCSS={handleDeleteCSS}
-        handleEditCSS={handleEditCSS}
-      />
-    </BasePropertyWrapper>
+    <FormWrapper>
+      <BasePropertyWrapper name="Edit Image">
+        <Input
+          name="imageUrl"
+          label="Image URL"
+          placeholder="Enter Image URL"
+          value={formData.imageUrl}
+          onChange={(name: string, value: string) =>
+            handleImageUrlChange(value)
+          }
+        />
+
+        <Input
+          name="altText"
+          label="Alt Text"
+          placeholder="Enter Alt Text"
+          value={formData.altText}
+          onChange={(name: string, value: string) =>
+            handleChange("altText", value)
+          }
+        />
+
+        <Input
+          name="navigateToUrl"
+          label="Image Navigation URL"
+          placeholder="Enter Image Navigation URL"
+          value={formData.navigateToUrl}
+          onChange={handleChange}
+        />
+
+        <Input
+          type="number"
+          name="width"
+          label="Width"
+          placeholder="Enter Width"
+          value={formData.width || ""}
+          onChange={(name: string, value: string) =>
+            handleChange("width", value)
+          }
+        />
+        <Input
+          type="number"
+          name="height"
+          label="Height"
+          placeholder="Enter Height"
+          value={formData.height || ""}
+          onChange={(name: string, value: string) =>
+            handleChange("height", value)
+          }
+        />
+        <AlignmentSelector onChange={handleChange} value={formData.alignment} />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Edit Container">
+        <ReactColorPicker
+          onColorChange={(field, value) =>
+            handleChange("backgroundColor", value)
+          }
+          label={"Select Background color"}
+          selectedColor={formData.backgroundColor}
+        />
+        <PaddingInput
+          padding={formData.padding}
+          onChange={(padding: any) => handleChange("padding", padding)}
+        />
+        <Input
+          name="borderWidth"
+          placeholder="Border Width"
+          type="number"
+          label="Border Width"
+          value={formData.borderWidth}
+          onChange={handleChange}
+        />
+        <BorderStyleDropdown
+          value={formData.borderStyle || ""}
+          onChange={handleChange}
+        />
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("borderColor", value)}
+          label="Select Border Color"
+          selectedColor={formData.borderColor || ""}
+        />
+        <Input
+          name="borderRadius"
+          placeholder="Border Radius"
+          type="number"
+          label="Border Radius"
+          value={formData.borderRadius}
+          onChange={handleChange}
+        />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={JSON.stringify(formData.customCss) || ""}
+          rows={6}
+          onChange={(name: string, value: string) => console.log(value)}
+        />
+      </BasePropertyWrapper>
+    </FormWrapper>
   );
 };

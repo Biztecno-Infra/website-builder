@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  AlignmentDropdown,
+  AlignmentSelector,
   FontFamilyDropdown,
   FontSizeInput,
   FontWeightDropdown,
@@ -12,28 +12,34 @@ import { BlockFormProps } from "../types";
 import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import { TextProps } from "../../../types";
 import CustomCSSRenderer from "./CustomCssRenderer";
-import { TextArea , Input } from "@components/lib";
+import { TextArea, Input } from "@components/lib";
+import styled from "styled-components";
+
+const FormWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
 
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { 
-    text, 
-    fontFamily, 
-    fontSize = 16, 
-    fontWeight = "400", 
-    padding , 
-    textColor , 
-    backgroundColor, 
-    alignment, 
-    customCss = {}, 
+  const {
+    text,
+    fontFamily,
+    fontSize = 16,
+    fontWeight = "400",
+    padding,
+    textColor,
+    backgroundColor,
+    alignment,
+    customCss = {},
     backgroundImage,
     navigateToUrl,
-    lineHeight ,  
-    id: blockId 
+    lineHeight,
+    id: blockId,
   } = selectedBlock as TextProps;
-  
+
   const [formData, setFormData] = useState({
     text,
     fontFamily,
@@ -46,9 +52,9 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundImage,
     customCss,
     navigateToUrl,
-    lineHeight
+    lineHeight,
   });
-  
+
   useEffect(() => {
     setFormData({
       text,
@@ -62,10 +68,9 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       backgroundImage,
       customCss,
       navigateToUrl,
-      lineHeight
+      lineHeight,
     });
-  }, [selectedBlock]); 
-  
+  }, [selectedBlock]);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
@@ -79,109 +84,130 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       return updatedFormData;
     });
   };
+  const parseCSS = (cssString: string) => {
+    const cssObject: { [key: string]: string } = {};
 
-  const addCustomCSS = (property: string, value: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = {
-        ...prev.customCss,
-        [property]: value,
-      };
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , property , value);
-      return updatedFormData;
+    // Split the string by semicolons to separate different CSS rules
+    const properties = cssString.split(";");
+
+    properties.forEach((property) => {
+      // Trim whitespace and check if the property is not empty
+      const trimmedProperty = property.trim();
+      if (trimmedProperty) {
+        // Split the property into key and value
+        const [key, value] = trimmedProperty
+          .split(":")
+          .map((item) => item.trim());
+        if (key && value) {
+          // Add to the object
+          cssObject[key] = value;
+        }
+      }
     });
+
+    return cssObject;
   };
 
-  const handleDeleteCSS = (property: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = { ...prev.customCss };
-      delete updatedCustomCss[property];
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , customCss , updatedCustomCss);
-      return updatedFormData;
-    });
-  };
+  const handleCustomCssChange = (value: string) => {
+    // Parse the CSS string into an object
+    const parsedCss = parseCSS(value);
+    // console.log(parce)
 
-  const handleEditCSS = (property: string, value: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = {
-        ...prev.customCss,
-        [property]: value,
-      };
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id , property , value);
-      return updatedFormData;
+    // Update the form data with the parsed CSS
+    setFormData({
+      ...formData,
+      customCss: parsedCss, // Save the parsed CSS object
     });
   };
 
   return (
-    <BasePropertyWrapper name="Edit Text">
-      <TextArea
-        name="content"
-        placeholder="Enter Content"
-        value={formData.text || ""}
-        rows={6}
-        onChange={(name: string, value: string) => handleChange("text", value)}
-      />
-      <Input
-        name="navigateToUrl"
-        label="Text Navigation URL"
-        placeholder="Enter Text Navigation URL"
-        value={formData.navigateToUrl}
-        onChange={handleChange}
-      />
+    <FormWrapper>
+      <BasePropertyWrapper name="Edit Text">
+        <TextArea
+          name="content"
+          placeholder="Enter Content"
+          value={formData.text || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("text", value)
+          }
+        />
+        <FontFamilyDropdown
+          onChange={handleChange}
+          value={formData.fontFamily}
+        />
 
-      <Input
-        name="backgroundImage"
-        placeholder="Enter Background Image Url"
-        value={formData.backgroundImage}
-        onChange={(name, value) => handleChange(name, value)}
-        label="Background Image"
-      />
+        <FontSizeInput
+          fontSize={formData.fontSize}
+          onChange={(value: number) => handleChange("fontSize", value)}
+        />
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("textColor", value)}
+          label={"Select Text color"}
+          selectedColor={formData.textColor || ""}
+        />
+        <FontWeightDropdown
+          onChange={(field, value) => handleChange(field, value)}
+          value={formData.fontWeight}
+        />
+        <AlignmentSelector onChange={handleChange} value={formData.alignment} />
 
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("textColor", value)}
-        label={"Select Text color"}
-        selectedColor={formData.textColor || ""}
-      />
+        <Input
+          name="lineHeight"
+          label="Line Height"
+          placeholder="Enter Line Height"
+          value={formData.lineHeight}
+          type="number"
+          onChange={handleChange}
+        />
 
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("backgroundColor", value)}
-        label={"Select Background color"}
-        selectedColor={formData.backgroundColor}
-      />
+        <Input
+          name="navigateToUrl"
+          label="Text Navigation URL"
+          placeholder="Enter Text Navigation URL"
+          value={formData.navigateToUrl}
+          onChange={handleChange}
+        />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Edit Container">
+        <ReactColorPicker
+          onColorChange={(field, value) =>
+            handleChange("backgroundColor", value)
+          }
+          label={"Select Background color"}
+          selectedColor={formData.backgroundColor}
+        />
 
-      <FontFamilyDropdown onChange={handleChange} value={formData.fontFamily} />
-
-      <AlignmentDropdown onChange={handleChange} value={formData.alignment} />
-
-      <FontSizeInput
-        fontSize={formData.fontSize}
-        onChange={(value: number) => handleChange("fontSize", value)}
-      />
-      <Input
-        name="lineHeight"
-        label="Line Height"
-        placeholder="Enter Line Height"
-        value={formData.lineHeight}
-        type="number"
-        onChange={handleChange}
-      />
-      <FontWeightDropdown
-        onChange={(field, value) => handleChange(field, value)}
-        value={formData.fontWeight}
-      />
-
-      <PaddingInput
-        padding={formData.padding}
-        onChange={(padding: any) => handleChange("padding", padding)}
-      />
+        <PaddingInput
+          padding={formData.padding}
+          onChange={(padding: any) => handleChange("padding", padding)}
+        />
+        <Input
+          name="backgroundImage"
+          placeholder="Enter Background Image Url"
+          value={formData.backgroundImage}
+          onChange={(name, value) => handleChange(name, value)}
+          label="Background Image"
+        />
+      </BasePropertyWrapper>
       {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
       <CustomCSSRenderer
         customCss={formData.customCss}
         handleDeleteCSS={handleDeleteCSS}
         handleEditCSS={handleEditCSS}
       /> */}
-    </BasePropertyWrapper>
+
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={JSON.stringify(formData.customCss) || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleCustomCssChange(value)
+          }
+        />
+      </BasePropertyWrapper>
+    </FormWrapper>
   );
 };

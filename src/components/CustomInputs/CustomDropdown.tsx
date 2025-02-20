@@ -247,12 +247,12 @@ export function CustomDropdown({ name, options, onChange }: DropdownProps) {
 
 //   return (
 //     <DropdownContainer>
-//       {label &&
+//       {/* {label &&
 //         <Label
 //           color={theme.colors.primary}
 //           fontSize={theme.fontSize.labelHeader}>
 //           {label}
-//         </Label>}
+//         </Label>} */}
 //       <StyledSelect theme={theme}
 //         name={name} value={initialValue} onChange={handleDropdownChange} disabled={disabled}>
 //         {placeholder && <Option value="">{placeholder}</Option>}

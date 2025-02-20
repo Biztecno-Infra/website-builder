@@ -92,11 +92,6 @@ export function Input({
 
   return (
     <InputContainer>
-      {label && (
-        <Label color={theme.colors.primary} fontSize={theme.fontSize.labelHeader}>
-          {label}
-        </Label>
-      )}
 
       <StyledInput
         theme={theme}
