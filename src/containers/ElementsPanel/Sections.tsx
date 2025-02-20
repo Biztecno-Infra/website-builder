@@ -40,10 +40,17 @@ const BlockName = styled.div<{ isHovered: boolean, colors: any }>`
   transition: color 0.3s ease;
 `;
 
+const BlockIconText = styled.div`
+   display: flex;
+  align-Items: center;
+  justify-Content: center;
+`;
+
 const IconContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  padding-right: 0.75rem;
 `;
 
 const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }) => {
@@ -69,17 +76,10 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        style={
-          {
-            display: "flex",
-            alignItems: "center",
-            justifyContent: 'center'
-          }
-        }>
+      <BlockIconText>
         <SvgIcon {...svgProps} color={isHovered ? colors.secondary : colors.primary} />
         <BlockName isHovered={isHovered} colors={colors}>{name}</BlockName>
-      </div>
+      </BlockIconText>
       {isHovered && <IconContainer>{icon(isHovered, colors)}</IconContainer>}
     </BlockItemContainer>
   );

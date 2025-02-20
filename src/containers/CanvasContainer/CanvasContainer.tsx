@@ -23,8 +23,14 @@ const BlockWrapper = styled.div<{ isSelected: boolean }>`
 const DeleteWrapper = styled.div`
    position: absolute;
    cursor: pointer;
-   right: 19px; 
-   bottom: -5px;
+   right: 28px; 
+   bottom: 3px;
+`;
+
+const BaseComponet = styled.div`
+   padding: 1rem;
+    background: #FFFFFF;
+     margin: 1rem;
 `;
 
 const TrashIconWrapper = styled.div`
@@ -93,12 +99,12 @@ const Canvas: React.FC = () => {
         backgroundColor: theme.canvas.backgroundColor,
         height: "100%",
         fontSize: "1rem",
-        width: "calc(100% - 20.4rem)",
+ width: "calc(100% - 20.4rem)",
         overflowX: "hidden" , overflowY: "auto"
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <div style={{ padding: "1rem", background: "#FFFFFF", margin: "1rem"  }}>
+      <BaseComponet>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
             <tbody>
@@ -111,7 +117,7 @@ const Canvas: React.FC = () => {
         ) : (
           <EmptyBlock text="Drag & drop elements here to start building " />
         )}
-      </div>
+      </BaseComponet>
     </Droppable>
   );
 };

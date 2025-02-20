@@ -19,7 +19,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     alignment,
     backgroundImage,
     lineHeight,
-    navigateToUrl , 
+    navigateToUrl,
     ...rest
   } = block;
 
@@ -54,7 +54,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
-        border: `2px solid ${isSelected && block.parentId ? "blue" : "transparent"}`,
+        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         ...rest,
       }}
       onClick={handleBlockClick}

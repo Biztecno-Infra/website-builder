@@ -13,6 +13,7 @@ const EmptyBlockContainer = styled.div`
   font-size: 2rem;
   border: 1px dashed #DDDDDD;
   border-radius: 10px;
+  margin-top: 0.5rem;
 `;
 
 const MessageText = styled.div`
@@ -20,11 +21,11 @@ const MessageText = styled.div`
   font-size: 11px;
   font-weight:400;
   color: #0B978E;
-  padding: 1rem;
+  padding-bottom: 1rem;
 `;
 
 const SvgIconWrapper = styled.div`
-  margin-top: 1rem;
+padding: 1rem;
 `;
 
 const EmptyBlock = ({ text }: any) => {
@@ -33,7 +34,6 @@ const EmptyBlock = ({ text }: any) => {
       <SvgIconWrapper>
         <SvgIcon
           name={CUSTOM_SVG_ICON.EmptyCanvas}
-          size={SizeEnum.Huge}
         />
       </SvgIconWrapper>
       <MessageText>{text}</MessageText>
