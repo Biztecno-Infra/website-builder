@@ -37,6 +37,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         style={{
           height: thickness,
           backgroundColor: dividerColor,
+          margin: 0
         }}
       />
     </Droppable>

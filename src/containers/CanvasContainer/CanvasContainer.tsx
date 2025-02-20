@@ -93,12 +93,12 @@ const Canvas: React.FC = () => {
         backgroundColor: theme.canvas.backgroundColor,
         height: "100%",
         fontSize: "1rem",
-        width: "calc(100% - 22rem)",
-        overflow: "auto",
+        width: "calc(100% - 20.4rem)",
+        overflowX: "hidden" , overflowY: "auto"
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <div style={{ padding: "1rem", background: "#FFFFFF", margin: "1rem" }}>
+      <div style={{ padding: "1rem", background: "#FFFFFF", margin: "1rem"  }}>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
             <tbody>

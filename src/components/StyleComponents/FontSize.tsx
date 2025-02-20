@@ -11,7 +11,9 @@ interface FontSizeProps {
 // Styled container
 const FontSizeContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+    background-color: #F1F1F1;
+    justify-content: space-between;
 `;
 
 export const FontSizeInput: React.FC<FontSizeProps> = ({ fontSize, onChange }) => {
@@ -19,12 +21,12 @@ export const FontSizeInput: React.FC<FontSizeProps> = ({ fontSize, onChange }) =
     <FontSizeContainer>
       <Input
         name="fontSize"
-        label="Font Size"
         placeholder="Enter font size"
         value={fontSize}
         onChange={(name, value) => onChange(parseInt(value as any, 10))}
-        type="number"
+        // type="number"
       />
+      <div>px</div>
     </FontSizeContainer>
   );
 };

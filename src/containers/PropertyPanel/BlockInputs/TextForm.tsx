@@ -115,14 +115,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
   };
 
   return (
-    <BasePropertyWrapper name="Text Block">
+    <BasePropertyWrapper name="Edit Text">
       <TextArea
         name="content"
-        label="Content"
         placeholder="Enter Content"
         value={formData.text || ""}
+        rows={6}
         onChange={(name: string, value: string) => handleChange("text", value)}
-        // numberOfrows={5}
       />
       <Input
         name="navigateToUrl"
@@ -177,12 +176,12 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         padding={formData.padding}
         onChange={(padding: any) => handleChange("padding", padding)}
       />
-      <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
+      {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
       <CustomCSSRenderer
         customCss={formData.customCss}
         handleDeleteCSS={handleDeleteCSS}
         handleEditCSS={handleEditCSS}
-      />
+      /> */}
     </BasePropertyWrapper>
   );
 };

@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 
 interface LayoutProps {
   name: string;
@@ -9,21 +9,27 @@ interface LayoutProps {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  // height: 100%;
-  padding: 1rem;
+  width: 100%;  
 `;
 
-const Header = styled.div`
-  font-size: 1.25rem;
-  font-weight: bold;
-  padding-bottom: 1rem;
+const Label = styled.label<{ color: string; fontSize: string }>`
+  line-height: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: ${({ color }) => color};
+  font-size: ${({ fontSize }) => fontSize};
+
+  @media screen and (min-width: 1919px) {
+    font-size: 1rem;
+    line-height: 1.25rem;
+  }
 `;
 
 function BasePropertyWrapper({ name, children }: LayoutProps) {
+  const theme = useTheme();
   return (
     <Wrapper>
-      <Header>{name} Settings</Header>
+      <Label color={theme.colors.primary} fontSize={theme.fontSize.labelHeader}>{name}</Label>
       {children}
     </Wrapper>
   );

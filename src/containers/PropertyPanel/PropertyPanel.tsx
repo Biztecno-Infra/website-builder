@@ -27,16 +27,17 @@ const blockFormMapping: any = {
 };
 
 const PropertyPanelWrapper = styled.div`
-  width: 23rem;
+  width: 20.4rem;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  overflow-y: auto;
   height: 100%;
   box-shadow: 4px 4px 0 5px rgba(0, 0, 0, 0.15);
   position: relative;
   z-index: 100;
   border-bottom: none;
-`;
+  padding: 1rem;
+  `;
 
 function PropertyPanel() {
   const {
@@ -64,22 +65,6 @@ function PropertyPanel() {
     }
     return null;
   }, [selectedBlock, tabView]);
-
-  const panes = [
-    // {
-    //   menuItem: PropertyTabView.Global,
-    //   render: () => (
-    //     <GlobalStylesForm
-    //       globalStyles={globalStyles}
-    //       updateGlobalStyles={updateGlobalStyles}
-    //     />
-    //   ),
-    // },
-    {
-      menuItem: PropertyTabView.Inspect,
-      render: () => renderBlockForm,
-    },
-  ];
 
   useEffect(() => {
     if (selectedBlock) {

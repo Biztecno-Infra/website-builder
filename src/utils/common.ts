@@ -1,16 +1,3 @@
-export const getDroppableStyles = (globalStyles: any) => {
-  return {
-    fontFamily: globalStyles.fontFamily,
-    backgroundColor: globalStyles.backdropColor,
-    height: "100%",
-    padding: "1.5rem 0",
-    fontSize: "1rem",
-    color: "rgb(38, 38, 38)",
-    width: "100%",
-    overflow: "auto",
-  };
-};
-
 export const getTableStyles = (globalStyles: any) => {
   return {
     margin: "0 auto",

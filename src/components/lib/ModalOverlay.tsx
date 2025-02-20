@@ -44,7 +44,7 @@ const ModalOverlay: React.FC<{
     <Overlay>
       <ModalContainer>
         <CloseButton onClick={onClose}>
-          <SvgIcon name={CUSTOM_SVG_ICON.Close} size={SizeEnum.Medium} />
+          <SvgIcon name={CUSTOM_SVG_ICON.Close} size={SizeEnum.Mini} />
         </CloseButton>
         {children}
       </ModalContainer>

@@ -1,6 +1,5 @@
 import { CustomDropdown } from "@components/CustomInputs";
 
-// Define the options for the font family dropdown
 const fontOptions = [
   { key: "arial", text: "Arial", value: "Arial" },
   { key: "times", text: "Times New Roman", value: "Times New Roman" },
@@ -41,9 +40,7 @@ export const FontFamilyDropdown: React.FC<FontFamilyDropdownProps> = ({
 }) => {
   return (
     <CustomDropdown
-      id="fontFamily"
       name="fontFamily"
-      label="Font Family"
       options={fontOptions}
       placeholder="Select Font Family"
       onChange={(name, value) => onChange("fontFamily", value)}
