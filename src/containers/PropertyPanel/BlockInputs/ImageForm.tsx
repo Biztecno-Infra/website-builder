@@ -203,7 +203,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           padding={formData.padding}
           onChange={(padding: any) => handleChange("padding", padding)}
         />
-        <Input
+        {/* <Input
           name="borderWidth"
           placeholder="Border Width"
           type="number"
@@ -226,8 +226,18 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           type="number"
           label="Border Radius"
           value={formData.borderRadius}
-          onChange={handleChange}
-        />
+          onChange={handleChange} */}
+        {/* /> */}
+        <BasePropertyWrapper name="Border Properties">
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+          />
+        </BasePropertyWrapper>
+
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea

@@ -64,7 +64,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
 
       if (field === "columns") {
         const newCellWidths = Array.from({ length: value }, () => Math.round(100 / value));
-        updatedData.cellWidths = newCellWidths;  
+        updatedData.cellWidths = newCellWidths;
 
         updateBlock(selectedBlock.id, "columns", value);
         updateBlock(selectedBlock.id, "cellWidths", newCellWidths);
@@ -72,10 +72,10 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         updateBlock(selectedBlock.id, field, value);
       }
 
-      return updatedData; 
+      return updatedData;
     });
   };
-  
+
   const addCustomCSS = (property: string, value: string) => {
     const updatedCustomCss = { ...formData.customCss, [property]: value };
     setFormData((prevData) => ({ ...prevData, customCss: updatedCustomCss }));
@@ -85,57 +85,44 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Columns">
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("backgroundColor", value)}
-        label="Select background color"
-        selectedColor={formData.backgroundColor}
-      />
-      <Input
-        name="columns"
-        placeholder="Cols"
-        label="Columns"
-        value={formData.columns}
-        onChange={handleChange}
-        type="number"
-      />
-      <Input
-        name="columnGap"
-        placeholder="Column Gap"
-        type="number"
-        label="Column Gap"
-        value={formData.columnGap}
-        onChange={handleChange}
-      />
-      <ColumnCellWidthComponent
-        rows={formData.rows}
-        columns={formData.columns}
-        cellWidths={formData.cellWidths}
-        updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
-      />
-      <Input
-        name="borderWidth"
-        placeholder="Table Border Width"
-        type="number"
-        label="Border Width"
-        value={formData.borderWidth}
-        onChange={handleChange}
-      />
-      <BorderStyleDropdown value={formData.borderStyle || ""} onChange={handleChange} />
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("borderColor", value)}
-        label="Select Border Color"
-        selectedColor={formData.borderColor || ""}
-      />
-      <Input
-        name="borderRadius"
-        placeholder="Border Radius"
-        type="number"
-        label="Border Radius"
-        value={formData.borderRadius}
-        onChange={handleChange}
-      />
-      {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} /> */}
-    </BasePropertyWrapper>
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("backgroundColor", value)}
+          label="Select background color"
+          selectedColor={formData.backgroundColor}
+        />
+        <Input
+          name="columns"
+          placeholder="Cols"
+          label="Columns"
+          value={formData.columns}
+          onChange={handleChange}
+          type="number"
+        />
+        <Input
+          name="columnGap"
+          placeholder="Column Gap"
+          type="number"
+          label="Column Gap"
+          value={formData.columnGap}
+          onChange={handleChange}
+        />
+        <ColumnCellWidthComponent
+          rows={formData.rows}
+          columns={formData.columns}
+          cellWidths={formData.cellWidths}
+          updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
+        />
+        <BasePropertyWrapper name="Border Properties">
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+          />
+        </BasePropertyWrapper>
+        {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} /> */}
+      </BasePropertyWrapper>
     </FormWrapper>
   );
 };

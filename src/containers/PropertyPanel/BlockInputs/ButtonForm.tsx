@@ -188,31 +188,15 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           padding={formData.padding}
           onChange={(value) => handleChange("padding", value)}
         />
-        <BorderStyleDropdown
-          onChange={handleChange}
-          value={formData.borderStyle || ""}
-        />
-        <Input
-          name="borderWidth"
-          label="Border Width"
-          placeholder="Enter Border Width (px)"
-          value={formData.borderWidth}
-          type="number"
-          onChange={handleChange}
-        />
-        <ReactColorPicker
-          onColorChange={(field, value) => handleChange("borderColor", value)}
-          label="Select Border Color"
-          selectedColor={formData.borderColor || ""}
-        />
-        <Input
-          name="borderRadius"
-          label="Border Radius"
-          placeholder="Enter Border Radius (px)"
-          value={formData.borderRadius}
-          type="number"
-          onChange={handleChange}
-        />
+        <BasePropertyWrapper name="Border Properties">
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+          />
+        </BasePropertyWrapper>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
