@@ -271,7 +271,7 @@ export const defaultTheme: Theme = {
     borderRadius: "10px",
     marginBottom: "10px",
     cursor: "pointer",
-    width: "80%",
+    width: "85%",
   },
   fontSize: {
     labelHeader: "0.875rem",

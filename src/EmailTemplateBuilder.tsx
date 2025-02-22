@@ -40,6 +40,7 @@ const Header = styled.div`
   justify-content: flex-end;
   align-items: center;
   border: 1px solid #dddddd;
+  border-top: none;
 `;
 
 const ContentWrapper = styled.div`

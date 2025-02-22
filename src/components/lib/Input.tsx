@@ -1,32 +1,20 @@
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import React, { useState } from "react";
 import styled, { useTheme } from "styled-components";
 
-
 const InputContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: relative;
-  margin: 10px 0;
+  background-color: #f1f1f1;
+  align-items: center;
 `;
 
-const Label = styled.label<{ color: string; fontSize: string }>`
-  line-height: 1rem;
-  font-weight: 600;
-  padding-bottom: 0.5rem;
-  color: ${({ color }) => color};
-  font-size: ${({ fontSize }) => fontSize};
-
-  @media screen and (min-width: 1919px) {
-    font-size: 1rem;
-    line-height: 1.25rem;
-  }
-`;
-
-const StyledInput = styled.input<{ theme: any }>`
-  width: 100%;
+const StyledInput = styled.input<{ theme: any; width: string | number }>`
+  width: ${({ width }) => width || "100%"};
   height: 1.5rem;
-  padding: 5px;
-  background-color: #F1F1F1;
+  // padding: 5px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
   font-family: Arial, sans-serif;
@@ -48,8 +36,10 @@ const ErrorText = styled.div`
   margin-top: 4px;
 `;
 
+const UnitsLabel = styled.div`padding-left: 5px;`;
+
 interface InputProps {
-  label?: string;
+  unitsLabel?: string;
   name: string;
   value: any;
   placeholder?: string;
@@ -59,10 +49,15 @@ interface InputProps {
   type?: string;
   disabled?: boolean;
   elements?: any;
+  containerStyle?: React.CSSProperties; 
+  iconProps?: {
+    name: CUSTOM_SVG_ICON;
+    size?: SizeEnum;
+  }
 }
 
 export function Input({
-  label,
+  unitsLabel,
   name,
   value,
   placeholder,
@@ -71,6 +66,8 @@ export function Input({
   onKeyDown,
   type = "text",
   disabled = false,
+  containerStyle, 
+  iconProps
 }: InputProps) {
   const [error, setError] = useState<string>("");
   const theme = useTheme();
@@ -91,8 +88,8 @@ export function Input({
   };
 
   return (
-    <InputContainer>
-
+    <InputContainer style={containerStyle}>
+      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} /> }
       <StyledInput
         theme={theme}
         type={type}
@@ -103,8 +100,10 @@ export function Input({
         onBlur={onBlur}
         disabled={disabled}
         onKeyDown={onKeyDown}
+        width={unitsLabel ? "50%" : "100%"}
       />
 
+      {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       {error && <ErrorText>{error}</ErrorText>}
     </InputContainer>
   );

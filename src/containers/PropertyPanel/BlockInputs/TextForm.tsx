@@ -14,6 +14,7 @@ import { TextProps } from "../../../types";
 import CustomCSSRenderer from "./CustomCssRenderer";
 import { TextArea, Input } from "@components/lib";
 import styled from "styled-components";
+import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -132,42 +133,92 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             handleChange("text", value)
           }
         />
-        <FontFamilyDropdown
-          onChange={handleChange}
-          value={formData.fontFamily}
-        />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            marginTop: "5px",
+            marginBottom: "5px",
+          }}
+        >
+          <FontFamilyDropdown
+            onChange={handleChange}
+            value={formData.fontFamily}
+            style={{ width: "70%" }}
+          />
 
-        <FontSizeInput
-          fontSize={formData.fontSize}
-          onChange={(value: number) => handleChange("fontSize", value)}
-        />
-        <ReactColorPicker
-          onColorChange={(field, value) => handleChange("textColor", value)}
-          label={"Select Text color"}
-          selectedColor={formData.textColor || ""}
-        />
-        <FontWeightDropdown
-          onChange={(field, value) => handleChange(field, value)}
-          value={formData.fontWeight}
-        />
-        <AlignmentSelector onChange={handleChange} value={formData.alignment} />
+          <Input
+            name="fontSize"
+            placeholder="Enter font size"
+            value={fontSize}
+            onChange={handleChange}
+            // type="number"
+            containerStyle={{ width: "26%", padding: 3, borderRadius: "5px" , alignItems:"center" }}
+            unitsLabel="px"
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            marginTop: "5px",
+            marginBottom: "5px",
+          }}
+        >
+          <ReactColorPicker
+            onColorChange={(field, value) => handleChange("textColor", value)}
+            label={"Select Text color"}
+            selectedColor={formData.textColor || ""}
+          />
+          <FontWeightDropdown
+            onChange={(field, value) => handleChange(field, value)}
+            value={formData.fontWeight}
+          />
+        </div>
+        <div style={{ width: "60%" }}>
+          <AlignmentSelector
+            onChange={handleChange}
+            value={formData.alignment}
+          />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            marginTop: "5px",
+            marginBottom: "5px",
+          }}
+        >
+          <Input
+            name="lineHeight"
+            placeholder="Enter Line Height"
+            value={formData.lineHeight}
+            type="number"
+            onChange={handleChange}
+            iconProps={{
+              name: CUSTOM_SVG_ICON.LineHeight,
+            }}
+            containerStyle={{
+              width: "35%",
+            }}
+          />
 
-        <Input
-          name="lineHeight"
-          label="Line Height"
-          placeholder="Enter Line Height"
-          value={formData.lineHeight}
-          type="number"
-          onChange={handleChange}
-        />
-
-        <Input
-          name="navigateToUrl"
-          label="Text Navigation URL"
-          placeholder="Enter Text Navigation URL"
-          value={formData.navigateToUrl}
-          onChange={handleChange}
-        />
+          <Input
+            name="navigateToUrl"
+            placeholder="Enter Text Navigation URL"
+            value={formData.navigateToUrl}
+            onChange={handleChange}
+            containerStyle={{
+              width: "60%",
+            }}
+          />
+        </div>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
         <ReactColorPicker
@@ -187,7 +238,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter Background Image Url"
           value={formData.backgroundImage}
           onChange={(name, value) => handleChange(name, value)}
-          label="Background Image"
         />
       </BasePropertyWrapper>
       {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />

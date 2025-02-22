@@ -39,17 +39,19 @@ const Container = styled.div`
   background: #f5f5f5;
   padding: 4px;
   border-radius: 6px;
+  justify-content: space-between;
 `;
 
 const AlignmentButton = styled.button<{ active: boolean }>`
   background: ${(props) => (props.active ? "#d3d3d3" : "transparent")};
   border: none;
-  padding: 6px 10px;
+  // padding: 6px 10px;
   cursor: pointer;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   
   &:hover {
     background: #e0e0e0;

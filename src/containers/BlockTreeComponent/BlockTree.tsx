@@ -41,7 +41,7 @@ align-items: center;
 justify-content: space-between;
 color:#006E75 ;
 width: 100%;
-padding: 0% 1rem 0% 0%;
+padding: 0.5rem;
 &:hover {
     background-color: #F5F5F5;
   }
@@ -50,9 +50,10 @@ padding: 0% 1rem 0% 0%;
 const BlockTextIcon = styled.div`
   display: flex;
   align-items: center;
-`
+`;
+
 const BlockText = styled.div`
-padding: 0% 0.25rem 0% 1rem;
+padding-right: 0.25rem;
 `;
 
 const EmptyTreeNodeContainer = styled.div`
@@ -74,6 +75,7 @@ const ChevronIcon = styled.span<{ isExpanded: boolean }>`
   margin-right: 10px;
   cursor: pointer;
   font-size: 16px;
+  padding-left: 8px;
 `;
 
 const BlockNode = ({ blockId }: BlockNodeProps) => {
@@ -159,7 +161,7 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
         <BlockContentText>
           <BlockTextIcon>
             <BlockText>{blockTypeIcons[block?.type]}</BlockText>
-            {block?.type}
+            <div style={{fontSize: "12px" , lineHeight: "13.4px"}}>{block?.type}</div>
           </BlockTextIcon>
           {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />}
         </BlockContentText>
@@ -193,8 +195,12 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
 
 const DroppableContainer = styled(Droppable)`
   height: 100%;
-  width: 100%;
-  margin-left: 0.25rem;
+  width: calc(100% - 4rem);
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const RootBlockContainer = styled.div`

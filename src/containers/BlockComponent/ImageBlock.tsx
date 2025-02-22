@@ -74,10 +74,10 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         borderRadius: borderRadius ? `${borderRadius}px` : "",
         border:
           isSelected && block.parentId
-            ? "2px solid blue"
+            ? "1px dashed #006E75"
             : borderWidth
             ? `${borderWidth}px ${borderStyle} ${borderColor}`
-            : "2px solid transparent",
+            : "1px solid transparent",
         ...block.customCss,
       }}
       onClick={handleBlockClick}
