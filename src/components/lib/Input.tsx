@@ -9,12 +9,13 @@ const InputContainer = styled.div`
   position: relative;
   background-color: #f1f1f1;
   align-items: center;
+  border-radius: 5px;
 `;
 
 const StyledInput = styled.input<{ theme: any; width: string | number }>`
   width: ${({ width }) => width || "100%"};
   height: 1.5rem;
-  // padding: 5px;
+  padding: 3px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
   font-family: Arial, sans-serif;

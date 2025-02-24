@@ -45,7 +45,7 @@ const Container = styled.div`
 const AlignmentButton = styled.button<{ active: boolean }>`
   background: ${(props) => (props.active ? "#d3d3d3" : "transparent")};
   border: none;
-  // padding: 6px 10px;
+  padding: 3px;
   cursor: pointer;
   border-radius: 4px;
   display: flex;

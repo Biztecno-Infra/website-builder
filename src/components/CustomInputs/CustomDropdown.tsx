@@ -72,12 +72,13 @@ interface DropdownProps {
   name: string;
   options: DropdownOption[];
   onChange?: (name: string, value: string | number) => void;
-  containerStyle?: React.CSSProperties; 
+  containerStyle?: React.CSSProperties;
+  initialValue?: string;
 }
 
-export function CustomDropdown({ name, options, onChange , containerStyle }: DropdownProps) {
-  const [showOptions, setShowOptions] = useState(false);
-  const [selectedValue, setSelectedValue] = useState("");
+export function CustomDropdown({ name, options, onChange , containerStyle , initialValue }: DropdownProps) {
+  const [showOptions, setShowOptions] = useState<boolean>(false);
+  const [selectedValue, setSelectedValue] = useState<string>(initialValue || "");
 
   const handleSelect = (value: string) => {
     setSelectedValue(value);

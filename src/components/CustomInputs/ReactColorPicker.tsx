@@ -5,8 +5,8 @@ import useClickOutside from "hoc/useClickOutside";
 
 interface ColorPickerProps {
   onColorChange: (field: string, value: string) => void;
-  label: string;
   selectedColor: string;
+  style?: React.CSSProperties;
 }
 
 const ColorPickerContainer = styled.div`
@@ -22,7 +22,7 @@ const PickerRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding:5px;
+  padding:3px;
 
 `;
 
@@ -37,8 +37,9 @@ const ColorBox = styled.div<{ selectedColor: string }>`
 
 const ColorHexInput = styled.input`
   font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: none;
+  padding: 5px;
+  background: transparent;
   width: 90px;
   text-transform: uppercase;
   text-align: center;
@@ -71,8 +72,8 @@ const rgbToHex = (color: string) => {
 
 export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
-  label,
   selectedColor,
+  style
 }) => {
   const [color, setColor] = useState(selectedColor || "#000000");
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -85,7 +86,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   return (
-    <ColorPickerContainer>
+    <ColorPickerContainer style={style}>
       <PickerRow>
 
         <ColorBox selectedColor={color} onClick={() => setPickerVisible(!isPickerVisible)} />

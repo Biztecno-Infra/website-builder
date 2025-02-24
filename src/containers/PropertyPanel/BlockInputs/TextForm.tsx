@@ -171,15 +171,16 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         >
           <ReactColorPicker
             onColorChange={(field, value) => handleChange("textColor", value)}
-            label={"Select Text color"}
             selectedColor={formData.textColor || ""}
+            style={{width: "70%"}}
           />
           <FontWeightDropdown
             onChange={(field, value) => handleChange(field, value)}
             value={formData.fontWeight}
+            style={{ width:"28%" }}
           />
         </div>
-        <div style={{ width: "60%" }}>
+        <div style={{ width: "60%" ,  marginTop: "5px", marginBottom: "5px" }}>
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
@@ -215,7 +216,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             value={formData.navigateToUrl}
             onChange={handleChange}
             containerStyle={{
-              width: "60%",
+              width: "60%" 
             }}
           />
         </div>
@@ -225,7 +226,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) =>
             handleChange("backgroundColor", value)
           }
-          label={"Select Background color"}
           selectedColor={formData.backgroundColor}
         />
 

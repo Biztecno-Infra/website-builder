@@ -143,7 +143,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Image">
         <Input
           name="imageUrl"
-          label="Image URL"
           placeholder="Enter Image URL"
           value={formData.imageUrl}
           onChange={(name: string, value: string) =>
@@ -153,7 +152,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
         <Input
           name="altText"
-          label="Alt Text"
           placeholder="Enter Alt Text"
           value={formData.altText}
           onChange={(name: string, value: string) =>
@@ -163,7 +161,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
         <Input
           name="navigateToUrl"
-          label="Image Navigation URL"
           placeholder="Enter Image Navigation URL"
           value={formData.navigateToUrl}
           onChange={handleChange}
@@ -172,7 +169,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         <Input
           type="number"
           name="width"
-          label="Width"
           placeholder="Enter Width"
           value={formData.width || ""}
           onChange={(name: string, value: string) =>
@@ -182,7 +178,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         <Input
           type="number"
           name="height"
-          label="Height"
           placeholder="Enter Height"
           value={formData.height || ""}
           onChange={(name: string, value: string) =>
@@ -196,7 +191,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) =>
             handleChange("backgroundColor", value)
           }
-          label={"Select Background color"}
           selectedColor={formData.backgroundColor}
         />
         <PaddingInput
