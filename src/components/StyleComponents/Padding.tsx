@@ -9,6 +9,7 @@ interface PaddingProps {
   padding: Padding;
   onChange: (padding: Padding) => void;
   mainLabel?: string;
+  containerStylePopUp?: React.CSSProperties;
 }
 
 const PaddingWrapper = styled.div`
@@ -65,7 +66,7 @@ const Popup = styled.div`
   justify-content: space-around;
 `;
 
-export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
+export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel, containerStylePopUp }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handlePaddingChange = (side: string, value: number) => {
@@ -76,7 +77,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
   };
 
   return (
-    <PaddingWrapper>
+    <PaddingWrapper style={containerStylePopUp}>
       {mainLabel && <label>{mainLabel}</label>}
 
       <InputPxBlock>

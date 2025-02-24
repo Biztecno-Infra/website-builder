@@ -10,12 +10,27 @@ import CustomCSSRenderer from "./CustomCssRenderer";
 import { ImageProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import styled from "styled-components";
+import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const FormWrapper = styled.div`
   display: flex;
   flex-direction: column;
 `;
 
+const WidthHeightContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 0.5rem;
+`
+const Divider = styled.div`
+  width: 100%;
+  height: 1px;
+  background:#DDDDDD ;
+`
+const PaddingContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
 export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -140,88 +155,91 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <FormWrapper>
-      <BasePropertyWrapper name="Edit Image">
+
+      <BasePropertyWrapper name="Edit Image" containerStyle={{ padding: "1rem" }}>
+
         <Input
           name="imageUrl"
-          placeholder="Enter Image URL"
+          placeholder="Add Image URL"
           value={formData.imageUrl}
           onChange={(name: string, value: string) =>
             handleImageUrlChange(value)
           }
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
 
         <Input
           name="altText"
-          placeholder="Enter Alt Text"
+          placeholder="Add Alt Text"
           value={formData.altText}
           onChange={(name: string, value: string) =>
             handleChange("altText", value)
           }
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
 
         <Input
           name="navigateToUrl"
-          placeholder="Enter Image Navigation URL"
+          placeholder="Add URL to link image"
           value={formData.navigateToUrl}
           onChange={handleChange}
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
-
-        <Input
-          type="number"
-          name="width"
-          placeholder="Enter Width"
-          value={formData.width || ""}
-          onChange={(name: string, value: string) =>
-            handleChange("width", value)
-          }
-        />
-        <Input
-          type="number"
-          name="height"
-          placeholder="Enter Height"
-          value={formData.height || ""}
-          onChange={(name: string, value: string) =>
-            handleChange("height", value)
-          }
-        />
-        <AlignmentSelector onChange={handleChange} value={formData.alignment} />
+        <WidthHeightContainer>
+          <Input
+            type="text"
+            name="width"
+            // placeholder="Enter Width"
+            value={formData.width || ""}
+            onChange={(name: string, value: string) =>
+              handleChange("width", value)
+            }
+            unitsLabel="px"
+            iconProps={{
+              name: CUSTOM_SVG_ICON.ImageHeight,
+            }}
+            containerStyle={{
+              width: "30%",
+            }}
+          />
+          <Input
+            type="text"
+            name="height"
+            // placeholder="Enter Height"
+            value={formData.height || ""}
+            onChange={(name: string, value: string) =>
+              handleChange("height", value)
+            }
+            unitsLabel="px"
+            iconProps={{
+              name: CUSTOM_SVG_ICON.ImageWidth,
+            }}
+            containerStyle={{
+              width: "30%",
+              marginLeft: "1rem"
+            }}
+          />
+        </WidthHeightContainer>
+        <AlignmentSelector onChange={handleChange} value={formData.alignment} containerStyle={{ width: "60%", }} />
       </BasePropertyWrapper>
-      <BasePropertyWrapper name="Edit Container">
-        <ReactColorPicker
-          onColorChange={(field, value) =>
-            handleChange("backgroundColor", value)
-          }
-          selectedColor={formData.backgroundColor}
-        />
-        <PaddingInput
-          padding={formData.padding}
-          onChange={(padding: any) => handleChange("padding", padding)}
-        />
-        {/* <Input
-          name="borderWidth"
-          placeholder="Border Width"
-          type="number"
-          label="Border Width"
-          value={formData.borderWidth}
-          onChange={handleChange}
-        />
-        <BorderStyleDropdown
-          value={formData.borderStyle || ""}
-          onChange={handleChange}
-        />
-        <ReactColorPicker
-          onColorChange={(field, value) => handleChange("borderColor", value)}
-          label="Select Border Color"
-          selectedColor={formData.borderColor || ""}
-        />
-        <Input
-          name="borderRadius"
-          placeholder="Border Radius"
-          type="number"
-          label="Border Radius"
-          value={formData.borderRadius}
-          onChange={handleChange} */}
-        {/* /> */}
+      <Divider />
+      <BasePropertyWrapper name="Edit Container" containerStyle={{ padding: "1rem" }}>
+        <PaddingContainer>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
+            // label={"Select Background color"}
+            selectedColor={formData.backgroundColor}
+            containerStyle={{ width: "50%" }}
+          />
+
+          <PaddingInput
+            padding={formData.padding}
+            onChange={(padding: any) => handleChange("padding", padding)}
+            containerStylePopUp={{ width: '40%', paddingLeft: '1rem' }}
+          />
+        </PaddingContainer>
         <BasePropertyWrapper name="Border Properties">
           <BorderStyleDropdown
             onChange={handleChange}
@@ -233,7 +251,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
 
       </BasePropertyWrapper>
-      <BasePropertyWrapper name="Additional Properties">
+      <Divider />
+      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem" }}>
         <TextArea
           name="customCss"
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"

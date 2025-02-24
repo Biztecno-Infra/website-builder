@@ -36,14 +36,13 @@ const PropertyPanelWrapper = styled.div`
   position: relative;
   z-index: 100;
   border-bottom: none;
-  padding: 1rem;
   `;
 
 function PropertyPanel() {
   const {
     updateBlock,
     selectedBlock,
-    globalStyles , 
+    globalStyles,
     updateGlobalStyles
   } = useBlockHook();
 
@@ -52,7 +51,7 @@ function PropertyPanel() {
   const renderBlockForm = useMemo(() => {
     if (!selectedBlock) return <div>Select a block to edit</div>;
 
-    if(selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles}/>;
+    if (selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles} />;
 
     const BlockFormComponent = blockFormMapping[selectedBlock.type];
     if (BlockFormComponent) {
@@ -82,7 +81,7 @@ function PropertyPanel() {
 
   return (
     <PropertyPanelWrapper>
-     {renderBlockForm}
+      {renderBlockForm}
     </PropertyPanelWrapper>
   );
 }

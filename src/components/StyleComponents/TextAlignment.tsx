@@ -1,34 +1,3 @@
-// import { CustomDropdown } from "@components/CustomInputs";
-// import React from "react";
-
-// const alignmentOptions = [
-//   { key: "left", text: "Left", value: "left" },
-//   { key: "center", text: "Center", value: "center" },
-//   { key: "right", text: "Right", value: "right" },
-//   { key: "justify", text: "Justify", value: "justify" },
-// ];
-
-// interface AlignmentDropdownProps {
-//   onChange: (field: string, value: string) => void;
-//   value: any;
-// }
-
-// export const AlignmentDropdown: React.FC<AlignmentDropdownProps> = ({
-//   onChange,
-//   value
-// }) => {
-//   return (
-//     <CustomDropdown
-//       name="alignment"
-//       label="Alignment"
-//       options={alignmentOptions}
-//       placeholder="Select Text Alignment"
-//       onChange={(name, value) => onChange("alignment", value as string)}
-//       initialValue={value}
-//     />
-//   );
-// };
-
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import React from "react";
@@ -66,25 +35,24 @@ const AlignmentButton = styled.button<{ active: boolean }>`
 interface AlignmentSelectorProps {
   value: string;
   onChange: (field: string, value: string) => void;
+  containerStyle?: React.CSSProperties;
 }
 
-export const AlignmentSelector: React.FC<AlignmentSelectorProps> = ({ value, onChange }) => {
+export const AlignmentSelector: React.FC<AlignmentSelectorProps> = ({ value, onChange, containerStyle }) => {
   return (
-    <Container>
+    <Container style={containerStyle}>
       <AlignmentButton active={value === "left"} onClick={() => onChange("alignment", "left")}>
         <SvgIcon name={CUSTOM_SVG_ICON.LeftAlign} size={SizeEnum.Small} />
       </AlignmentButton>
       <AlignmentButton active={value === "center"} onClick={() => onChange("alignment", "center")}>
-      <SvgIcon name={CUSTOM_SVG_ICON.CenterAlign} size={SizeEnum.Small} />
+        <SvgIcon name={CUSTOM_SVG_ICON.CenterAlign} size={SizeEnum.Small} />
       </AlignmentButton>
       <AlignmentButton active={value === "right"} onClick={() => onChange("alignment", "right")}>
-      <SvgIcon name={CUSTOM_SVG_ICON.RightAlign} size={SizeEnum.Small} />
+        <SvgIcon name={CUSTOM_SVG_ICON.RightAlign} size={SizeEnum.Small} />
       </AlignmentButton>
       <AlignmentButton active={value === "justify"} onClick={() => onChange("alignment", "justify")}>
-      <SvgIcon name={CUSTOM_SVG_ICON.JustifyAlign} size={SizeEnum.Small} />
+        <SvgIcon name={CUSTOM_SVG_ICON.JustifyAlign} size={SizeEnum.Small} />
       </AlignmentButton>
     </Container>
   );
 };
-
-// // export default AlignmentSelector;
