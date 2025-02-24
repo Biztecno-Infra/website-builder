@@ -184,7 +184,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         <FontColorContainer>
           <ReactColorPicker
             onColorChange={(field, value) => handleChange("textColor", value)}
-            label={"Select Text color"}
             selectedColor={formData.textColor || ""}
             containerStyle={{ width: "65%" }}
           />
@@ -230,7 +229,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             value={formData.navigateToUrl}
             onChange={handleChange}
             containerStyle={{
-              width: "60%",
+              width: "60%"
             }}
           />
         </div>

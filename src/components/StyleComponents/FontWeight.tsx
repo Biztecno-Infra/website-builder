@@ -19,12 +19,10 @@ export const FontWeightDropdown = ({ onChange, value, fontWeightStyle }: FontWei
   // Handle dropdown change
   return (
     <CustomDropdown
-      id="fontWeight"
       name="fontWeight"
-      label="Font Weight"
       options={fontWeightOptions}
-      placeholder="Select Font Weight"
-      onChange={(name, value) => onChange("fontWeight", value)}
+      // placeholder="Select Font Weight"
+      onChange={(name, value) => onChange("fontWeight", value as string)}
       initialValue={value}
       containerStyle={fontWeightStyle}
     />

@@ -23,7 +23,7 @@ const PickerRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding:5px;
+  padding:3px;
 
 `;
 
@@ -74,7 +74,6 @@ const rgbToHex = (color: string) => {
 
 export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
-  label,
   selectedColor,
   containerStyle
 }) => {
