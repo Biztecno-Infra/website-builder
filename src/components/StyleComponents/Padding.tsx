@@ -9,14 +9,15 @@ interface PaddingProps {
   padding: Padding;
   onChange: (padding: Padding) => void;
   mainLabel?: string;
+  containerStyle?: React.CSSProperties;
 }
 
 const PaddingWrapper = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
   position: relative;
+  justify-content: space-between;
 `;
 
 const ToggleButton = styled.button`
@@ -25,6 +26,7 @@ const ToggleButton = styled.button`
   border: none;
   border-radius: 5px;
   padding: 9px;
+
 `;
 
 const PxBlock = styled.div`
@@ -40,15 +42,12 @@ const InputPxBlock = styled.div`
   flex-direction: row;
   background-color: #f1f1f1;
   align-items: center;
-  justify-content : center ;
+  justify-content: center;
   padding: 4px;
-  border-radius:5px;
+  border-radius: 5px;
   position: relative;
 `;
 
-const InputPadding = styled.div`
-  width: 50%;
-`
 
 const Popup = styled.div`
   position: absolute;
@@ -58,14 +57,19 @@ const Popup = styled.div`
   border: 1px solid #ccc;
   border-radius: 6px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding:  0.25rem 0%;
+  padding: 0.25rem 0%;
   width: 11rem;
   z-index: 10;
   display: flex;
   justify-content: space-around;
 `;
 
-export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
+export const PaddingInput: React.FC<PaddingProps> = ({
+  padding,
+  onChange,
+  mainLabel,
+  containerStyle,
+}) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handlePaddingChange = (side: string, value: number) => {
@@ -76,58 +80,76 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
   };
 
   return (
-    <PaddingWrapper>
+    <PaddingWrapper style={containerStyle}>
       {mainLabel && <label>{mainLabel}</label>}
 
-      <InputPxBlock>
-        <InputPadding>
-          <Input
-            name="paddingAll"
-            value={padding.top}
-            onChange={(name, value) => {
-              const newPadding = parseInt(value, 10);
-              onChange({ top: newPadding, right: newPadding, bottom: newPadding, left: newPadding });
-            }}
-            type="text"
-          />
-        </InputPadding>
-        <PxBlock>px</PxBlock>
-      </InputPxBlock>
+      <Input
+        name="paddingAll"
+        value={padding.top}
+        onChange={(name, value) => {
+          const newPadding = parseInt(value, 10);
+          onChange({
+            top: newPadding,
+            right: newPadding,
+            bottom: newPadding,
+            left: newPadding,
+          });
+        }}
+        type="text"
+        unitsLabel="px"
+        containerStyle={{
+          borderRadius: "5px",
+          alignItems: "center",
+          background: "#F1F1F1",
+          width: "55%",
+          padding: 3
+        }}
+      />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
-        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small} />
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small}/>
       </ToggleButton>
 
       {isPopupOpen && (
-
         <Popup>
           <Input
             name="paddingTop"
             value={padding.top}
-            onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
+            onChange={(name, value) =>
+              handlePaddingChange("top", parseInt(value, 10))
+            }
             type="text"
             containerStyle={{ borderTop: "1px solid #0B978E", width: "20%" }}
           />
           <Input
             name="paddingLeft"
             value={padding.left}
-            onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
+            onChange={(name, value) =>
+              handlePaddingChange("left", parseInt(value, 10))
+            }
             type="text"
             containerStyle={{ borderLeft: "1px solid #0B978E ", width: "20%" }}
           />
           <Input
             name="paddingRight"
             value={padding.right}
-            onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
+            onChange={(name, value) =>
+              handlePaddingChange("right", parseInt(value, 10))
+            }
             type="text"
             containerStyle={{ borderRight: "1px solid #0B978E ", width: "20%" }}
           />
           <Input
             name="paddingBottom"
             value={padding.bottom}
-            onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
+            onChange={(name, value) =>
+              handlePaddingChange("bottom", parseInt(value, 10))
+            }
             type="text"
-            containerStyle={{ borderBottom: "1px solid #0B978E ", width: "20%" }}
+            containerStyle={{
+              borderBottom: "1px solid #0B978E ",
+              width: "20%",
+            }}
           />
         </Popup>
       )}

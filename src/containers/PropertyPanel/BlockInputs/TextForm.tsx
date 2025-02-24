@@ -15,6 +15,7 @@ import CustomCSSRenderer from "./CustomCssRenderer";
 import { TextArea, Input } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -39,15 +40,15 @@ const FontSizeContainer = styled.div`
   align-Items: center;
   justify-Content: space-between;
   width: 100%;
-  padding-Top: 15px;
-  padding-Bottom:15px;
+  padding-top: 15px;
+  padding-bottom:15px;
 `
 const FontColorContainer = styled.div`
   display: flex;
   align-Items: center;
   justify-Content: space-between;
   width: 100%;
-  padding-Bottom: 15px;
+  padding-bottom: 15px;
 `
 
 export const TextBlockForm: React.FC<BlockFormProps> = ({
@@ -166,7 +167,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <FontFamilyDropdown
             onChange={handleChange}
             value={formData.fontFamily}
-            style={{ width: "65%" }}
+            style={{ width: "65%"  }}
           />
 
           <Input
@@ -190,10 +191,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <FontWeightDropdown
             onChange={(field, value) => handleChange(field, value)}
             value={formData.fontWeight}
-            fontWeightStyle={{ width: "28%", }}
+            fontWeightStyle={{ width: "28%",}}
           />
         </FontColorContainer>
-        <div style={{ width: "60%" }}>
+        <div style={{ width: "60%" ,   paddingBottom: 15 }}>
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
@@ -205,8 +206,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             alignItems: "center",
             justifyContent: "space-between",
             width: "100%",
-            marginTop: "5px",
-            marginBottom: "5px",
+           paddingBottom: "10px"
           }}
         >
           <Input
@@ -217,9 +217,11 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             onChange={handleChange}
             iconProps={{
               name: CUSTOM_SVG_ICON.LineHeight,
+              size: SizeEnum.Small
             }}
             containerStyle={{
-              width: "35%",
+              width: "25%",
+              padding: 3
             }}
           />
 
@@ -229,36 +231,39 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             value={formData.navigateToUrl}
             onChange={handleChange}
             containerStyle={{
-              width: "60%"
+              width: "68%",
+              padding: 3
+
             }}
           />
         </div>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
-        <PaddingContainer>
+        <FontColorContainer>
 
-          <ColorPickerContainer>
             <ReactColorPicker
               onColorChange={(field, value) =>
                 handleChange("backgroundColor", value)
               }
-              // label={"Select Background color"}
               selectedColor={formData.backgroundColor}
+              containerStyle={{width: "60%"}}
             />
-          </ColorPickerContainer>
 
-          <PaddingInputContainer >
             <PaddingInput
               padding={formData.padding}
               onChange={(padding: any) => handleChange("padding", padding)}
+              containerStyle={{width:"35%" }}
             />
-          </PaddingInputContainer>
-        </PaddingContainer>
+        </FontColorContainer>
         <Input
           name="backgroundImage"
           placeholder="Enter Background Image Url"
           value={formData.backgroundImage}
           onChange={(name, value) => handleChange(name, value)}
+          containerStyle={{
+            padding: 3, 
+            marginBottom: 10
+          }}
         />
       </BasePropertyWrapper>
       {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
