@@ -20,6 +20,7 @@ import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 const FormWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  padding: 1rem;
 `;
 
 const FlexRow = styled.div`
@@ -185,7 +186,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStyle={{ width: "35%" }}
+            containerStylePopUp={{ width: "35%" }}
           />
         </FlexRow>
         <Input
