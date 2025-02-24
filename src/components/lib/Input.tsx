@@ -1,12 +1,19 @@
 import React, { useState } from "react";
-import styled, { useTheme } from "styled-components";
+import styled, { css, useTheme } from "styled-components";
 
 
+interface StyledInputProps {
+  theme: any;
+  borderTop?: boolean;
+  borderBottom?: boolean;
+  borderLeft?: boolean;
+  borderRight?: boolean;
+}
 const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
-  margin: 10px 0;
+  width: 100%;
 `;
 
 const Label = styled.label<{ color: string; fontSize: string }>`
@@ -22,11 +29,11 @@ const Label = styled.label<{ color: string; fontSize: string }>`
   }
 `;
 
-const StyledInput = styled.input<{ theme: any }>`
+const StyledInput = styled.input<StyledInputProps>`
   width: 100%;
   height: 1.5rem;
-  padding: 5px;
-  background-color: #F1F1F1;
+ 
+  background-color: #FFFFFF;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
   font-family: Arial, sans-serif;
@@ -40,6 +47,26 @@ const StyledInput = styled.input<{ theme: any }>`
     color: ${({ theme }) => theme.colors.disabledText};
     cursor: not-allowed;
   }
+  ${({ borderTop, theme }) =>
+    borderTop &&
+    css`
+      border-top: 1px solid #0B978E;
+    `}
+  ${({ borderBottom, theme }) =>
+    borderBottom &&
+    css`
+      border-bottom:  1px solid #0B978E;
+    `}
+  ${({ borderLeft, theme }) =>
+    borderLeft &&
+    css`
+      border-left:  1px solid #0B978E;
+    `}
+  ${({ borderRight, theme }) =>
+    borderRight &&
+    css`
+      border-right:  1px solid #0B978E;
+    `}
 `;
 
 const ErrorText = styled.div`
@@ -59,6 +86,10 @@ interface InputProps {
   type?: string;
   disabled?: boolean;
   elements?: any;
+  borderTop?: boolean;
+  borderBottom?: boolean;
+  borderLeft?: boolean;
+  borderRight?: boolean;
 }
 
 export function Input({
@@ -71,6 +102,10 @@ export function Input({
   onKeyDown,
   type = "text",
   disabled = false,
+  borderTop,
+  borderBottom,
+  borderLeft,
+  borderRight,
 }: InputProps) {
   const [error, setError] = useState<string>("");
   const theme = useTheme();
@@ -103,6 +138,10 @@ export function Input({
         onBlur={onBlur}
         disabled={disabled}
         onKeyDown={onKeyDown}
+        borderTop={borderTop}
+        borderBottom={borderBottom}
+        borderLeft={borderLeft}
+        borderRight={borderRight}
       />
 
       {error && <ErrorText>{error}</ErrorText>}

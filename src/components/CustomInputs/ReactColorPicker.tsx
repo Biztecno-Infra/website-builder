@@ -8,7 +8,7 @@ import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 interface ColorPickerProps {
   onColorChange: (field: string, value: string) => void;
-  label: string;
+  label?: string;
   selectedColor: string;
   defaultColor?: string;
 }
@@ -70,7 +70,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   label,
   selectedColor,
-  defaultColor, 
+  defaultColor,
 }) => {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));

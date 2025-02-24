@@ -6,7 +6,7 @@ const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
   position: relative;
-  margin: 10px 0;
+  /* margin: 10px 0; */
 `;
 
 const Label = styled.label`

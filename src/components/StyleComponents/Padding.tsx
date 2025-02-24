@@ -1,7 +1,9 @@
-import React from "react";
-import { Padding } from "types";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Input } from "@components/lib";
+import { Padding } from "types";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 interface PaddingProps {
   padding: Padding;
@@ -11,15 +13,64 @@ interface PaddingProps {
 
 const PaddingWrapper = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  position: relative;
 `;
 
-const PaddingLabel = styled.label`
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+const ToggleButton = styled.button`
+  background: #f1f1f1;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  padding: 9px;
 `;
 
+const PxBlock = styled.div`
+  color: #111111;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 0% 0.25rem 0% 0.5rem;
+  border-radius: 5px;
+`;
+
+const InputPxBlock = styled.div`
+  display: flex;
+  flex-direction: row;
+  background-color: #f1f1f1;
+  align-items: center;
+  justify-content : center ;
+  padding: 4px;
+  border-radius:5px;
+  position: relative;
+`;
+
+const InputPadding = styled.div`
+  width: 50%;
+`
+
+const Popup = styled.div`
+  position: absolute;
+  top: 120%;
+  right: 0%;
+  background: #f1f1f1;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding:  0.25rem 0%;
+  width: 11rem;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+`;
+const InputContainer = styled.div`
+  width: 12%;
+  /* display: flex; */
+`
 export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+
   const handlePaddingChange = (side: string, value: number) => {
     onChange({
       ...padding,
@@ -29,168 +80,70 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
 
   return (
     <PaddingWrapper>
-      {mainLabel && <PaddingLabel>Button Padding</PaddingLabel>}
-      
-      <Input
-        name="paddingTop"
-        label="Padding Top"
-        placeholder="Enter padding top"
-        value={padding.top}
-        onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
-        type="number"
-        // baseClassName="margin-b-2"
-      />
-      <Input
-        name="paddingRight"
-        label="Padding Right"
-        placeholder="Enter padding right"
-        value={padding.right}
-        onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
-        type="number"
-        // baseClassName="margin-b-2"
-      />
-      <Input
-        name="paddingBottom"
-        label="Padding Bottom"
-        placeholder="Enter padding bottom"
-        value={padding.bottom}
-        onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
-        type="number"
-        // baseClassName="margin-b-2"
-      />
-      <Input
-        name="paddingLeft"
-        label="Padding Left"
-        placeholder="Enter padding left"
-        value={padding.left}
-        onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
-        type="number"
-        // baseClassName="margin-b-2"
-      />
+      {mainLabel && <label>{mainLabel}</label>}
+
+      <InputPxBlock>
+        <InputPadding>
+          <Input
+            name="paddingAll"
+            value={padding.top}
+            onChange={(name, value) => {
+              const newPadding = parseInt(value, 10);
+              onChange({ top: newPadding, right: newPadding, bottom: newPadding, left: newPadding });
+            }}
+            type="text"
+          />
+        </InputPadding>
+        <PxBlock>px</PxBlock>
+      </InputPxBlock>
+
+      <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small} />
+      </ToggleButton>
+
+      {isPopupOpen && (
+
+        <Popup>
+
+          <InputContainer>
+
+            <Input
+              name="paddingTop"
+              value={padding.top}
+              onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
+              type="text"
+              borderTop
+            />
+          </InputContainer>
+          <InputContainer>
+            <Input
+              name="paddingLeft"
+              value={padding.left}
+              onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
+              type="text"
+              borderBottom
+            />
+          </InputContainer>
+          <InputContainer>
+            <Input
+              name="paddingRight"
+              value={padding.right}
+              onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
+              type="text"
+              borderLeft
+            />
+          </InputContainer>
+          <InputContainer>
+            <Input
+              name="paddingBottom"
+              value={padding.bottom}
+              onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
+              type="text"
+              borderRight
+            />
+          </InputContainer>
+        </Popup>
+      )}
     </PaddingWrapper>
   );
 };
-
-
-
-// import React, { useState } from "react";
-// import styled from "styled-components";
-// import { Input } from "@components/lib";
-// import { Padding } from "types";
-// import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-// import { SizeEnum } from "@components/SvgIcon/SvgIcon";
-
-// interface PaddingProps {
-//   padding: Padding;
-//   onChange: (padding: Padding) => void;
-//   mainLabel?: string;
-// }
-
-// const PaddingWrapper = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   gap: 8px;
-// `;
-
-// const ToggleButton = styled.button`
-//   background: #f5f5f5;
-//   border: none;
-//   cursor: pointer;
-//   padding: 6px;
-//   border-radius: 50%;
-//   display: flex;
-//   align-items: center;
-//   justify-content: center;
-
-//   &:hover {
-//     background: #ddd;
-//   }
-
-//   svg {
-//     font-size: 14px;
-//   }
-// `;
-
-// const PaddingBox = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   position: relative;
-//   border: 2px dashed #888;
-//   padding: 16px;
-//   border-radius: 6px;
-// `;
-
-// const Row = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   width: 100%;
-// `;
-
-// const SideInput = styled(Input)`
-//   width: 40px;
-//   text-align: center;
-// `;
-
-// export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
-//   const [expanded, setExpanded] = useState(false);
-  
-//   const handlePaddingChange = (side: string, value: number) => {
-//     onChange({
-//       ...padding,
-//       [side]: value,
-//     });
-//   };
-
-//   return (
-//     <PaddingWrapper>
-//       {mainLabel && <label>{mainLabel}</label>}
-//       <ToggleButton onClick={() => setExpanded(!expanded)}>
-//                 <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small} />
-//               </ToggleButton>
-//       <PaddingBox>
-//         {expanded ? (
-//           <>
-//             <SideInput
-//               name="paddingTop"
-//               value={padding.top}
-//               onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
-//               type="number"
-//             />
-//             <Row>
-//               <SideInput
-//                 name="paddingLeft"
-//                 value={padding.left}
-//                 onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
-//                 type="number"
-//               />
-//               <SideInput
-//                 name="paddingRight"
-//                 value={padding.right}
-//                 onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
-//                 type="number"
-//               />
-//             </Row>
-//             <SideInput
-//               name="paddingBottom"
-//               value={padding.bottom}
-//               onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
-//               type="number"
-//             />
-//           </>
-//         ) : (
-//           <Input
-//             name="paddingAll"
-//             value={padding.top} // Assume uniform padding for collapsed view
-//             onChange={(name, value) => {
-//               const newPadding = parseInt(value, 10);
-//               onChange({ top: newPadding, right: newPadding, bottom: newPadding, left: newPadding });
-//             }}
-//             type="number"
-//           />
-//         )}
-//       </PaddingBox>
-//     </PaddingWrapper>
-//   );
-// };

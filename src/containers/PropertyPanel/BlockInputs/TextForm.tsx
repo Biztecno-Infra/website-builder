@@ -20,6 +20,19 @@ const FormWrapper = styled.div`
   flex-direction: column;
 `;
 
+const PaddingContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+`;
+
+const ColorPickerContainer = styled.div`
+  width: 60%;
+`;
+
+const PaddingInputContainer = styled.div`
+  width: 40%;
+`;
+
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -170,18 +183,25 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
-        <ReactColorPicker
-          onColorChange={(field, value) =>
-            handleChange("backgroundColor", value)
-          }
-          label={"Select Background color"}
-          selectedColor={formData.backgroundColor}
-        />
+        <PaddingContainer>
 
-        <PaddingInput
-          padding={formData.padding}
-          onChange={(padding: any) => handleChange("padding", padding)}
-        />
+          <ColorPickerContainer>
+            <ReactColorPicker
+              onColorChange={(field, value) =>
+                handleChange("backgroundColor", value)
+              }
+              // label={"Select Background color"}
+              selectedColor={formData.backgroundColor}
+            />
+          </ColorPickerContainer>
+
+          <PaddingInputContainer >
+            <PaddingInput
+              padding={formData.padding}
+              onChange={(padding: any) => handleChange("padding", padding)}
+            />
+          </PaddingInputContainer>
+        </PaddingContainer>
         <Input
           name="backgroundImage"
           placeholder="Enter Background Image Url"
