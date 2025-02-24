@@ -27,7 +27,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
         paddingBottom: `${padding.bottom}px`,
         paddingLeft: `${padding.left}px`,      
         backgroundColor,
-        border: `2px solid ${isSelected && block.parentId ? "blue" : "transparent"}`,
+        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
     }}
       onClick={handleBlockClick}
     />

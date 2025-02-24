@@ -99,7 +99,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         paddingLeft: padding?.left,
         backgroundColor: backgroundColor,
         textAlign: alignment as TextAlign,
-        border: `2px solid ${isSelected && block.parentId ? "blue" : "transparent"}`,
+        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         ...customCss,
       }}
       onClick={handleBlockClick}

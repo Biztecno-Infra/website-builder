@@ -28,7 +28,7 @@ const GridBlock: React.FC<GridBlockProps> = ({ block , isSelected }) => {
         backgroundColor,
         maxWidth: "100%",
         tableLayout: "fixed",
-        border: `2px solid ${isSelected && block.parentId ? "blue" : "transparent"}`,
+        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
       }}
     >
       <tbody>

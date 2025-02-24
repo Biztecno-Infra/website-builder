@@ -18,6 +18,7 @@ import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
 import JustifyAlign from "./Icons/JustifyAlign";
 import LeftAlign from "./Icons/LeftAlign";
+import LineHeight from "./Icons/LineHeight";
 import PaddingExpand from "./Icons/PaddingExpand";
 import PlusSVG from "./Icons/Plus";
 import RightAlign from "./Icons/RightAlign";
@@ -51,7 +52,8 @@ export enum CUSTOM_SVG_ICON {
   RightAlign = "RightAlign", 
   CenterAlign = "CenterAlign",
   JustifyAlign = "JustifyAlign",
-  PaddingExpand = "PaddingExpand"
+  PaddingExpand = "PaddingExpand",
+  LineHeight = "LineHeight"
 }
 
 export const CustomIconRef: any = {
@@ -81,5 +83,6 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.RightAlign] : RightAlign,
   [CUSTOM_SVG_ICON.CenterAlign] : CenterAlign,
   [CUSTOM_SVG_ICON.JustifyAlign] : JustifyAlign,
-  [CUSTOM_SVG_ICON.PaddingExpand] : PaddingExpand
+  [CUSTOM_SVG_ICON.PaddingExpand] : PaddingExpand,
+  [CUSTOM_SVG_ICON.LineHeight] : LineHeight
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 import { FontFamilyDropdown } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { ReactColorPicker } from "@components/CustomInputs";
@@ -9,15 +10,20 @@ interface GlobalStylesFormProps {
   updateGlobalStyles: (updatedStyles: any) => void;
 }
 
+const FormWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
 export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   globalStyles,
   updateGlobalStyles,
 }) => {
   // Destructure the initial global styles and set up the state
   const {
-    canvasColor: initialCanvasColor ,
+    canvasColor: initialCanvasColor,
     textColor: initialTextColor,
-    fontFamily: initialFontFamily , 
+    fontFamily: initialFontFamily,
   } = globalStyles;
 
   const [styles, setStyles] = useState({
@@ -41,25 +47,28 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   };
 
   return (
-    <BasePropertyWrapper name="Global Styles">
-      <ReactColorPicker
-        label={"Select Canvas color"}
-        onColorChange={(field, value) => handleChange("canvasColor", value)}
-        selectedColor={styles.canvasColor}
-        defaultColor={globalStyles.canvasColor}
-      />
+    <FormWrapper>
+      <BasePropertyWrapper name="Edit Global Text Settings">
+        <ReactColorPicker
+          label={"Select Text color"}
+          onColorChange={(field, value) => handleChange("textColor", value)}
+          selectedColor={styles.textColor}
+          // defaultColor={globalStyles.textColor}
+        />
 
-      <ReactColorPicker
-        label={"Select Text color"}
-        onColorChange={(field, value) => handleChange("textColor", value)}
-        selectedColor={styles.textColor}
-        defaultColor={globalStyles.textColor}
-      />
-
-      <FontFamilyDropdown
-        onChange={(field, value) => handleChange("fontFamily", value)}
-        value={styles.fontFamily}
-      />
-    </BasePropertyWrapper>
+        <FontFamilyDropdown
+          onChange={(field, value) => handleChange("fontFamily", value)}
+          value={styles.fontFamily}
+        />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Edit Background">
+        <ReactColorPicker
+          label={"Select Canvas color"}
+          onColorChange={(field, value) => handleChange("canvasColor", value)}
+          selectedColor={styles.canvasColor}
+          // defaultColor={globalStyles.canvasColor}
+        />
+      </BasePropertyWrapper>
+    </FormWrapper>
   );
 };

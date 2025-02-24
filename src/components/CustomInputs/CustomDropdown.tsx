@@ -5,7 +5,6 @@ import styled from "styled-components";
 const DropdownWrapper = styled.div`
   position: relative;
   width: 100%;
-  margin-bottom: 0.5rem;
 `;
 
 const InputContainer = styled.div`
@@ -73,9 +72,10 @@ interface DropdownProps {
   name: string;
   options: DropdownOption[];
   onChange?: (name: string, value: string | number) => void;
+  containerStyle?: React.CSSProperties; 
 }
 
-export function CustomDropdown({ name, options, onChange }: DropdownProps) {
+export function CustomDropdown({ name, options, onChange , containerStyle }: DropdownProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [selectedValue, setSelectedValue] = useState("");
 
@@ -86,7 +86,7 @@ export function CustomDropdown({ name, options, onChange }: DropdownProps) {
   };
 
   return (
-    <DropdownWrapper>
+    <DropdownWrapper style={containerStyle}>
       <InputContainer>
         <StyledInput
           value={selectedValue}

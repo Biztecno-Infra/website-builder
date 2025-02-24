@@ -1,3 +1,5 @@
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import React, { useState } from "react";
 import styled, { css, useTheme } from "styled-components";
 
@@ -11,7 +13,7 @@ interface StyledInputProps {
 }
 const InputContainer = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   position: relative;
   width: 100%;
 `;
@@ -34,6 +36,14 @@ const StyledInput = styled.input<StyledInputProps>`
   height: 1.5rem;
  
   background-color: #FFFFFF;
+  background-color: #f1f1f1;
+  align-items: center;
+`;
+
+const StyledInput = styled.input<{ theme: any; width: string | number }>`
+  width: ${({ width }) => width || "100%"};
+  height: 1.5rem;
+  // padding: 5px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
   font-family: Arial, sans-serif;
@@ -75,8 +85,10 @@ const ErrorText = styled.div`
   margin-top: 4px;
 `;
 
+const UnitsLabel = styled.div`padding-left: 5px;`;
+
 interface InputProps {
-  label?: string;
+  unitsLabel?: string;
   name: string;
   value: any;
   placeholder?: string;
@@ -90,10 +102,15 @@ interface InputProps {
   borderBottom?: boolean;
   borderLeft?: boolean;
   borderRight?: boolean;
+  containerStyle?: React.CSSProperties;
+  iconProps?: {
+    name: CUSTOM_SVG_ICON;
+    size?: SizeEnum;
+  }
 }
 
 export function Input({
-  label,
+  unitsLabel,
   name,
   value,
   placeholder,
@@ -106,6 +123,8 @@ export function Input({
   borderBottom,
   borderLeft,
   borderRight,
+  containerStyle,
+  iconProps
 }: InputProps) {
   const [error, setError] = useState<string>("");
   const theme = useTheme();
@@ -126,8 +145,8 @@ export function Input({
   };
 
   return (
-    <InputContainer>
-
+    <InputContainer style={containerStyle}>
+      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} />}
       <StyledInput
         theme={theme}
         type={type}
@@ -142,8 +161,10 @@ export function Input({
         borderBottom={borderBottom}
         borderLeft={borderLeft}
         borderRight={borderRight}
+        width={unitsLabel ? "50%" : "100%"}
       />
 
+      {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       {error && <ErrorText>{error}</ErrorText>}
     </InputContainer>
   );

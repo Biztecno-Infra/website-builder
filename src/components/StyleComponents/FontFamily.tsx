@@ -32,19 +32,20 @@ const fontOptions = [
 interface FontFamilyDropdownProps {
   onChange: (field: string, value: string) => void;
   value: any;
+  style?: React.CSSProperties;
 }
 
 export const FontFamilyDropdown: React.FC<FontFamilyDropdownProps> = ({
   onChange,
-  value
+  value,
+  style
 }) => {
   return (
     <CustomDropdown
       name="fontFamily"
       options={fontOptions}
-      placeholder="Select Font Family"
-      onChange={(name, value) => onChange("fontFamily", value)}
-      initialValue={value}
+      onChange={(name, value) => onChange("fontFamily", value as any)}
+      containerStyle={style}
     />
   );
 };

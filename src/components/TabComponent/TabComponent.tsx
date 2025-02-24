@@ -8,7 +8,7 @@ const TabMenu = styled.div`
   flex-direction: column;
   border-right: 2px solid #ddd;
   height: 100%;
-  width: 25%;
+  width: 4rem;
 `;
 
 const TabMenuItem = styled.div<{ active: boolean }>`
@@ -20,7 +20,7 @@ const TabMenuItem = styled.div<{ active: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-width: 100%;
+width: 97%;
   &:hover {
     background-color: #f0f0f0;
   }
@@ -45,7 +45,7 @@ const TabComponent: React.FC<TabProps> = ({
           active={activeIndex === index}
           onClick={() => onTabChange(index)}
         >
-          <SvgIcon name={tab.label} size={SizeEnum.Small} />
+          <SvgIcon name={tab.label} size={SizeEnum.Medium} />
         </TabMenuItem>
       ))}
     </TabMenu>

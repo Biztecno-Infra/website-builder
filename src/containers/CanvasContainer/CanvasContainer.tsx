@@ -99,17 +99,26 @@ const Canvas: React.FC = () => {
         backgroundColor: theme.canvas.backgroundColor,
         height: "100%",
         fontSize: "1rem",
- width: "calc(100% - 20.4rem)",
-        overflowX: "hidden" , overflowY: "auto"
+        width: "calc(100% - 20.4rem)",
+        overflowX: "hidden",
+        overflowY: "auto",
+        scrollbarWidth: "none" ,
+        msOverflowStyle: "none",
       }}
       onClick={() => setSelectedBlock(null)}
     >
       <BaseComponet>
         {rootBlockOrder.length > 0 ? (
-          <TableWrapper canvasColor={globalStyles.canvasColor} canvasFont={globalStyles.fontFamily} canvasFontColor={globalStyles.textColor}>
+          <TableWrapper
+            canvasColor={globalStyles.canvasColor}
+            canvasFont={globalStyles.fontFamily}
+            canvasFontColor={globalStyles.textColor}
+          >
             <tbody>
               <tr>
-                <td style={{ padding: 0 }}>{rootBlockOrder.map(renderBlock)}</td>
+                <td style={{ padding: 0 }}>
+                  {rootBlockOrder.map(renderBlock)}
+                </td>
               </tr>
             </tbody>
             <EmptyBlock text="Drag & drop more elements to add." />

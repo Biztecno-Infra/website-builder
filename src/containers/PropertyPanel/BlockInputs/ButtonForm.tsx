@@ -164,10 +164,15 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           onChange={handleChange}
           value={formData.fontFamily}
         />
-        <FontSizeInput
-          fontSize={formData.fontSize}
-          onChange={(value) => handleChange("fontSize", value)}
-        />
+         <Input
+            name="fontSize"
+            placeholder="Enter font size"
+            value={fontSize}
+            onChange={handleChange}
+            // type="number"
+            containerStyle={{ width: "26%", padding: 3, borderRadius: "5px" , alignItems:"center" }}
+            unitsLabel="px"
+          />
         <FontWeightDropdown
           onChange={handleChange}
           value={formData.fontWeight}

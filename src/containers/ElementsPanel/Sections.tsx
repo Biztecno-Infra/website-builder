@@ -91,9 +91,8 @@ const Container = styled.div`
   background-color: #fff;
   position: relative;
   z-index: 1000;
-  width: 100%;
+  width: calc(100% - 4rem);
   height: 100%;
-  margin-left: 0.25rem;
 `;
 
 const Header = styled.div`
