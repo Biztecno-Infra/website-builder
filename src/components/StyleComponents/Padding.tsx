@@ -9,7 +9,7 @@ interface PaddingProps {
   padding: Padding;
   onChange: (padding: Padding) => void;
   mainLabel?: string;
-  containerStyle?: React.CSSProperties;
+  containerStylePopUp?: React.CSSProperties;
 }
 
 const PaddingWrapper = styled.div`
@@ -64,12 +64,7 @@ const Popup = styled.div`
   justify-content: space-around;
 `;
 
-export const PaddingInput: React.FC<PaddingProps> = ({
-  padding,
-  onChange,
-  mainLabel,
-  containerStyle,
-}) => {
+export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel, containerStylePopUp }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handlePaddingChange = (side: string, value: number) => {
@@ -80,7 +75,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
   };
 
   return (
-    <PaddingWrapper style={containerStyle}>
+    <PaddingWrapper style={containerStylePopUp}>
       {mainLabel && <label>{mainLabel}</label>}
 
       <Input
@@ -107,7 +102,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
-        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small}/>
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small} />
       </ToggleButton>
 
       {isPopupOpen && (

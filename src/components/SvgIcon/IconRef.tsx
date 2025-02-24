@@ -16,6 +16,8 @@ import EmptyCanvasSVG from "./Icons/EmptyCanvas";
 import ExpandIcon from "./Icons/ExpandIcon";
 import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
+import ImageHeight from "./Icons/ImageHeight";
+import ImageWidth from "./Icons/ImageWidth";
 import JustifyAlign from "./Icons/JustifyAlign";
 import LeftAlign from "./Icons/LeftAlign";
 import LineHeight from "./Icons/LineHeight";
@@ -48,12 +50,14 @@ export enum CUSTOM_SVG_ICON {
   ExpandIcon = "ExpandIcon",
   DeleteBlock = "DeleteBlock",
   EmptyCanvas = "EmptyCanvasSVG",
-  LeftAlign = "LeftAlign" , 
-  RightAlign = "RightAlign", 
+  LeftAlign = "LeftAlign",
+  RightAlign = "RightAlign",
   CenterAlign = "CenterAlign",
   JustifyAlign = "JustifyAlign",
   PaddingExpand = "PaddingExpand",
-  LineHeight = "LineHeight"
+  LineHeight = "LineHeight",
+  ImageHeight = "ImageHeight",
+  ImageWidth = "ImageWidth"
 }
 
 export const CustomIconRef: any = {
@@ -78,11 +82,13 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ClearEmail]: ClearEmail,
   [CUSTOM_SVG_ICON.ExpandIcon]: ExpandIcon,
   [CUSTOM_SVG_ICON.DeleteBlock]: DeleteBlock,
-  [CUSTOM_SVG_ICON.EmptyCanvas] : EmptyCanvasSVG,
-  [CUSTOM_SVG_ICON.LeftAlign] : LeftAlign,
-  [CUSTOM_SVG_ICON.RightAlign] : RightAlign,
-  [CUSTOM_SVG_ICON.CenterAlign] : CenterAlign,
-  [CUSTOM_SVG_ICON.JustifyAlign] : JustifyAlign,
-  [CUSTOM_SVG_ICON.PaddingExpand] : PaddingExpand,
-  [CUSTOM_SVG_ICON.LineHeight] : LineHeight
+  [CUSTOM_SVG_ICON.EmptyCanvas]: EmptyCanvasSVG,
+  [CUSTOM_SVG_ICON.LeftAlign]: LeftAlign,
+  [CUSTOM_SVG_ICON.RightAlign]: RightAlign,
+  [CUSTOM_SVG_ICON.CenterAlign]: CenterAlign,
+  [CUSTOM_SVG_ICON.JustifyAlign]: JustifyAlign,
+  [CUSTOM_SVG_ICON.PaddingExpand]: PaddingExpand,
+  [CUSTOM_SVG_ICON.LineHeight]: LineHeight,
+  [CUSTOM_SVG_ICON.ImageHeight]: ImageHeight,
+  [CUSTOM_SVG_ICON.ImageWidth]: ImageWidth,
 };

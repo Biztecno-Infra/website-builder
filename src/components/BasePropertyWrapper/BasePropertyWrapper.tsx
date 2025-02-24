@@ -4,6 +4,7 @@ import styled, { useTheme } from "styled-components";
 interface LayoutProps {
   name: string;
   children: React.ReactNode;
+  containerStyle?: React.CSSProperties;
 }
 
 const Wrapper = styled.div`
@@ -25,10 +26,10 @@ const Label = styled.label<{ color: string; fontSize: string }>`
   }
 `;
 
-function BasePropertyWrapper({ name, children }: LayoutProps) {
+function BasePropertyWrapper({ name, children, containerStyle }: LayoutProps) {
   const theme = useTheme();
   return (
-    <Wrapper>
+    <Wrapper style={containerStyle}>
       <Label color={theme.colors.primary} fontSize={theme.fontSize.labelHeader}>{name}</Label>
       {children}
     </Wrapper>

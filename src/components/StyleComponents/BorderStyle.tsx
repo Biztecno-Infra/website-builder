@@ -3,11 +3,17 @@ import { CustomDropdown } from "@components/CustomInputs";
 import { Input } from "@components/lib";
 import { ReactColorPicker } from "@components/CustomInputs";
 import styled from "styled-components";
+import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 10px;
+`;
+
+const BorderContainer = styled.div`
+  display: flex;
+  flex-direction: row;
 `;
 
 const borderStyleOptions = [
@@ -41,14 +47,6 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
 }) => {
   return (
     <Wrapper>
-      <Input
-        name="borderWidth"
-        placeholder="Border Width"
-        type="number"
-        label="Border Width"
-        value={borderWidth}
-        onChange={(name, value) => onChange("borderWidth", value)}
-      />
       <CustomDropdown
         id="borderStyle"
         name="borderStyle"
@@ -57,20 +55,43 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         placeholder="Select Border Style"
         onChange={(name, value) => onChange("borderStyle", value)}
         initialValue={borderStyle}
+        containerStyle={{ width: '70%' }}
       />
-      <ReactColorPicker
-        onColorChange={(field, value) => onChange("borderColor", value)}
-        label="Select Border Color"
-        selectedColor={borderColor || ""}
-      />
+      <BorderContainer>
+        <ReactColorPicker
+          onColorChange={(field, value) => onChange("borderColor", value)}
+          label="Select Border Color"
+          selectedColor={borderColor || ""}
+          containerStyle={{ width: "55%" }}
+        />
+        <Input
+          name="borderRadius"
+          type="text"
+          label="Border Radius"
+          value={borderRadius}
+          onChange={(name, value) => onChange("borderRadius", value)}
+          iconProps={{
+            name: CUSTOM_SVG_ICON.LineHeight,
+          }}
+          unitsLabel="px"
+          containerStyle={{ width: "40%" }}
+        />
+      </BorderContainer>
+
+
       <Input
-        name="borderRadius"
-        placeholder="Border Radius"
-        type="number"
-        label="Border Radius"
-        value={borderRadius}
-        onChange={(name, value) => onChange("borderRadius", value)}
+        name="borderWidth"
+        type="text"
+        label="Border Width"
+        value={borderWidth}
+        onChange={(name, value) => onChange("borderWidth", value)}
+        iconProps={{
+          name: CUSTOM_SVG_ICON.LineHeight,
+        }}
+        unitsLabel="px"
+        containerStyle={{ width: "40%" }}
       />
+
     </Wrapper>
   );
 };
