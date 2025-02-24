@@ -22,34 +22,20 @@ const FormWrapper = styled.div`
   flex-direction: column;
 `;
 
-const PaddingContainer = styled.div`
+const FlexRow = styled.div`
   display: flex;
-  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 10px;
 `;
 
 const ColorPickerContainer = styled.div`
-  width: 60%;
+  width: 65%;
+    margin-top: 5px;
+  margin-bottom: 10px;
 `;
-
-const PaddingInputContainer = styled.div`
-  width: 40%;
-`;
-
-const FontSizeContainer = styled.div`
-  display: flex;
-  align-Items: center;
-  justify-Content: space-between;
-  width: 100%;
-  padding-top: 15px;
-  padding-bottom:15px;
-`
-const FontColorContainer = styled.div`
-  display: flex;
-  align-Items: center;
-  justify-Content: space-between;
-  width: 100%;
-  padding-bottom: 15px;
-`
 
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -109,45 +95,8 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         ...prev,
         [field]: value,
       };
-
       updateBlock(blockId, field, value);
-
       return updatedFormData;
-    });
-  };
-  const parseCSS = (cssString: string) => {
-    const cssObject: { [key: string]: string } = {};
-
-    // Split the string by semicolons to separate different CSS rules
-    const properties = cssString.split(";");
-
-    properties.forEach((property) => {
-      // Trim whitespace and check if the property is not empty
-      const trimmedProperty = property.trim();
-      if (trimmedProperty) {
-        // Split the property into key and value
-        const [key, value] = trimmedProperty
-          .split(":")
-          .map((item) => item.trim());
-        if (key && value) {
-          // Add to the object
-          cssObject[key] = value;
-        }
-      }
-    });
-
-    return cssObject;
-  };
-
-  const handleCustomCssChange = (value: string) => {
-    // Parse the CSS string into an object
-    const parsedCss = parseCSS(value);
-    // console.log(parce)
-
-    // Update the form data with the parsed CSS
-    setFormData({
-      ...formData,
-      customCss: parsedCss, // Save the parsed CSS object
     });
   };
 
@@ -163,26 +112,28 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             handleChange("text", value)
           }
         />
-        <FontSizeContainer>
+        <FlexRow>
           <FontFamilyDropdown
             onChange={handleChange}
             value={formData.fontFamily}
-            style={{ width: "65%"  }}
+            style={{ width: "65%" }}
           />
-
           <Input
             name="fontSize"
             placeholder="Enter font size"
             value={fontSize}
             onChange={handleChange}
-            // type="number"
-            containerStyle={{ width: "26%", padding: 3, borderRadius: "5px", alignItems: "center", background: '#F1F1F1' }}
+            containerStyle={{
+              width: "26%",
+              padding: 3,
+              borderRadius: "5px",
+              alignItems: "center",
+              background: "#F1F1F1",
+            }}
             unitsLabel="px"
           />
-        </FontSizeContainer>
-
-
-        <FontColorContainer>
+        </FlexRow>
+        <FlexRow>
           <ReactColorPicker
             onColorChange={(field, value) => handleChange("textColor", value)}
             selectedColor={formData.textColor || ""}
@@ -191,24 +142,16 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <FontWeightDropdown
             onChange={(field, value) => handleChange(field, value)}
             value={formData.fontWeight}
-            fontWeightStyle={{ width: "28%",}}
+            fontWeightStyle={{ width: "28%" }}
           />
-        </FontColorContainer>
-        <div style={{ width: "60%" ,   paddingBottom: 15 }}>
+        </FlexRow>
+        <ColorPickerContainer>
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
           />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-           paddingBottom: "10px"
-          }}
-        >
+        </ColorPickerContainer>
+        <FlexRow>
           <Input
             name="lineHeight"
             placeholder="Enter Line Height"
@@ -217,62 +160,42 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             onChange={handleChange}
             iconProps={{
               name: CUSTOM_SVG_ICON.LineHeight,
-              size: SizeEnum.Small
+              size: SizeEnum.Small,
             }}
-            containerStyle={{
-              width: "25%",
-              padding: 3
-            }}
+            containerStyle={{ width: "25%", padding: 3 }}
           />
-
           <Input
             name="navigateToUrl"
             placeholder="Enter Text Navigation URL"
             value={formData.navigateToUrl}
             onChange={handleChange}
-            containerStyle={{
-              width: "68%",
-              padding: 3
-
-            }}
+            containerStyle={{ width: "68%", padding: 3 }}
           />
-        </div>
+        </FlexRow>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
-        <FontColorContainer>
-
-            <ReactColorPicker
-              onColorChange={(field, value) =>
-                handleChange("backgroundColor", value)
-              }
-              selectedColor={formData.backgroundColor}
-              containerStyle={{width: "60%"}}
-            />
-
-            <PaddingInput
-              padding={formData.padding}
-              onChange={(padding: any) => handleChange("padding", padding)}
-              containerStyle={{width:"35%" }}
-            />
-        </FontColorContainer>
+        <FlexRow>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
+            selectedColor={formData.backgroundColor}
+            containerStyle={{ width: "60%" }}
+          />
+          <PaddingInput
+            padding={formData.padding}
+            onChange={(padding: any) => handleChange("padding", padding)}
+            containerStyle={{ width: "35%" }}
+          />
+        </FlexRow>
         <Input
           name="backgroundImage"
           placeholder="Enter Background Image Url"
           value={formData.backgroundImage}
           onChange={(name, value) => handleChange(name, value)}
-          containerStyle={{
-            padding: 3, 
-            marginBottom: 10
-          }}
+          containerStyle={{ padding: 3, marginBottom: 10 }}
         />
       </BasePropertyWrapper>
-      {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} />
-      <CustomCSSRenderer
-        customCss={formData.customCss}
-        handleDeleteCSS={handleDeleteCSS}
-        handleEditCSS={handleEditCSS}
-      /> */}
-
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"
@@ -280,7 +203,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           value={JSON.stringify(formData.customCss) || ""}
           rows={6}
           onChange={(name: string, value: string) =>
-            handleCustomCssChange(value)
+            handleChange("customCss", value)
           }
         />
       </BasePropertyWrapper>
