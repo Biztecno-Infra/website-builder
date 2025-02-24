@@ -34,6 +34,22 @@ const PaddingInputContainer = styled.div`
   width: 40%;
 `;
 
+const FontSizeContainer = styled.div`
+  display: flex;
+  align-Items: center;
+  justify-Content: space-between;
+  width: 100%;
+  padding-Top: 15px;
+  padding-Bottom:15px;
+`
+const FontColorContainer = styled.div`
+  display: flex;
+  align-Items: center;
+  justify-Content: space-between;
+  width: 100%;
+  padding-Bottom: 15px;
+`
+
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -146,20 +162,11 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             handleChange("text", value)
           }
         />
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            marginTop: "5px",
-            marginBottom: "5px",
-          }}
-        >
+        <FontSizeContainer>
           <FontFamilyDropdown
             onChange={handleChange}
             value={formData.fontFamily}
-            style={{ width: "70%" }}
+            style={{ width: "65%" }}
           />
 
           <Input
@@ -168,30 +175,25 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             value={fontSize}
             onChange={handleChange}
             // type="number"
-            containerStyle={{ width: "26%", padding: 3, borderRadius: "5px" , alignItems:"center" }}
+            containerStyle={{ width: "26%", padding: 3, borderRadius: "5px", alignItems: "center", background: '#F1F1F1' }}
             unitsLabel="px"
           />
-        </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            marginTop: "5px",
-            marginBottom: "5px",
-          }}
-        >
+        </FontSizeContainer>
+
+
+        <FontColorContainer>
           <ReactColorPicker
             onColorChange={(field, value) => handleChange("textColor", value)}
             label={"Select Text color"}
             selectedColor={formData.textColor || ""}
+            containerStyle={{ width: "65%" }}
           />
           <FontWeightDropdown
             onChange={(field, value) => handleChange(field, value)}
             value={formData.fontWeight}
+            fontWeightStyle={{ width: "28%", }}
           />
-        </div>
+        </FontColorContainer>
         <div style={{ width: "60%" }}>
           <AlignmentSelector
             onChange={handleChange}

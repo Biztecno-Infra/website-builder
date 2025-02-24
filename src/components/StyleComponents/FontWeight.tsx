@@ -4,6 +4,7 @@ import { CustomDropdown } from "@components/CustomInputs";
 interface FontWeightDropdownProps {
   onChange: (field: string, value: string) => void;
   value: string;
+  fontWeightStyle?: React.CSSProperties;
 }
 // Define font weight options for the dropdown
 const fontWeightOptions = [
@@ -14,7 +15,7 @@ const fontWeightOptions = [
   { key: "bolder", text: "Bolder (900)", value: "900" },
 ];
 
-export const FontWeightDropdown = ({ onChange , value }: FontWeightDropdownProps) => {
+export const FontWeightDropdown = ({ onChange, value, fontWeightStyle }: FontWeightDropdownProps) => {
   // Handle dropdown change
   return (
     <CustomDropdown
@@ -25,6 +26,7 @@ export const FontWeightDropdown = ({ onChange , value }: FontWeightDropdownProps
       placeholder="Select Font Weight"
       onChange={(name, value) => onChange("fontWeight", value)}
       initialValue={value}
+      containerStyle={fontWeightStyle}
     />
   );
 };

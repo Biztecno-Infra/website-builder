@@ -64,10 +64,7 @@ const Popup = styled.div`
   display: flex;
   justify-content: space-around;
 `;
-const InputContainer = styled.div`
-  width: 12%;
-  /* display: flex; */
-`
+
 export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLabel }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
@@ -104,44 +101,34 @@ export const PaddingInput: React.FC<PaddingProps> = ({ padding, onChange, mainLa
       {isPopupOpen && (
 
         <Popup>
-
-          <InputContainer>
-
-            <Input
-              name="paddingTop"
-              value={padding.top}
-              onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
-              type="text"
-              borderTop
-            />
-          </InputContainer>
-          <InputContainer>
-            <Input
-              name="paddingLeft"
-              value={padding.left}
-              onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
-              type="text"
-              borderBottom
-            />
-          </InputContainer>
-          <InputContainer>
-            <Input
-              name="paddingRight"
-              value={padding.right}
-              onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
-              type="text"
-              borderLeft
-            />
-          </InputContainer>
-          <InputContainer>
-            <Input
-              name="paddingBottom"
-              value={padding.bottom}
-              onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
-              type="text"
-              borderRight
-            />
-          </InputContainer>
+          <Input
+            name="paddingTop"
+            value={padding.top}
+            onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
+            type="text"
+            containerStyle={{ borderTop: "1px solid #0B978E", width: "20%" }}
+          />
+          <Input
+            name="paddingLeft"
+            value={padding.left}
+            onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
+            type="text"
+            containerStyle={{ borderLeft: "1px solid #0B978E ", width: "20%" }}
+          />
+          <Input
+            name="paddingRight"
+            value={padding.right}
+            onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
+            type="text"
+            containerStyle={{ borderRight: "1px solid #0B978E ", width: "20%" }}
+          />
+          <Input
+            name="paddingBottom"
+            value={padding.bottom}
+            onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
+            type="text"
+            containerStyle={{ borderBottom: "1px solid #0B978E ", width: "20%" }}
+          />
         </Popup>
       )}
     </PaddingWrapper>

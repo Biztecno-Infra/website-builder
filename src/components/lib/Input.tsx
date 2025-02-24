@@ -6,10 +6,7 @@ import styled, { css, useTheme } from "styled-components";
 
 interface StyledInputProps {
   theme: any;
-  borderTop?: boolean;
-  borderBottom?: boolean;
-  borderLeft?: boolean;
-  borderRight?: boolean;
+  width: string | number
 }
 const InputContainer = styled.div`
   display: flex;
@@ -32,15 +29,6 @@ const Label = styled.label<{ color: string; fontSize: string }>`
 `;
 
 const StyledInput = styled.input<StyledInputProps>`
-  width: 100%;
-  height: 1.5rem;
- 
-  background-color: #FFFFFF;
-  background-color: #f1f1f1;
-  align-items: center;
-`;
-
-const StyledInput = styled.input<{ theme: any; width: string | number }>`
   width: ${({ width }) => width || "100%"};
   height: 1.5rem;
   // padding: 5px;
@@ -57,26 +45,6 @@ const StyledInput = styled.input<{ theme: any; width: string | number }>`
     color: ${({ theme }) => theme.colors.disabledText};
     cursor: not-allowed;
   }
-  ${({ borderTop, theme }) =>
-    borderTop &&
-    css`
-      border-top: 1px solid #0B978E;
-    `}
-  ${({ borderBottom, theme }) =>
-    borderBottom &&
-    css`
-      border-bottom:  1px solid #0B978E;
-    `}
-  ${({ borderLeft, theme }) =>
-    borderLeft &&
-    css`
-      border-left:  1px solid #0B978E;
-    `}
-  ${({ borderRight, theme }) =>
-    borderRight &&
-    css`
-      border-right:  1px solid #0B978E;
-    `}
 `;
 
 const ErrorText = styled.div`
@@ -85,7 +53,12 @@ const ErrorText = styled.div`
   margin-top: 4px;
 `;
 
-const UnitsLabel = styled.div`padding-left: 5px;`;
+const UnitsLabel = styled.div`
+padding-left: 5px;
+font-size: 0.75rem;
+color: #111111;
+font-weight: 400;
+`;
 
 interface InputProps {
   unitsLabel?: string;
@@ -119,10 +92,6 @@ export function Input({
   onKeyDown,
   type = "text",
   disabled = false,
-  borderTop,
-  borderBottom,
-  borderLeft,
-  borderRight,
   containerStyle,
   iconProps
 }: InputProps) {
@@ -157,10 +126,6 @@ export function Input({
         onBlur={onBlur}
         disabled={disabled}
         onKeyDown={onKeyDown}
-        borderTop={borderTop}
-        borderBottom={borderBottom}
-        borderLeft={borderLeft}
-        borderRight={borderRight}
         width={unitsLabel ? "50%" : "100%"}
       />
 

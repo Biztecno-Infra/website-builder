@@ -7,6 +7,7 @@ interface ColorPickerProps {
   onColorChange: (field: string, value: string) => void;
   label?: string;
   selectedColor: string;
+  containerStyle?: React.CSSProperties;
 }
 
 const ColorPickerContainer = styled.div`
@@ -37,11 +38,13 @@ const ColorBox = styled.div<{ selectedColor: string }>`
 
 const ColorHexInput = styled.input`
   font-size: 14px;
-  border: 1px solid #ccc;
+  border: none;
+  background: #F1F1F1;
   border-radius: 4px;
   width: 90px;
   text-transform: uppercase;
-  text-align: center;
+  text-align: left;
+  margin-left: 0.5rem;
 `;
 
 const GradientPickerContainer = styled.div`
@@ -73,6 +76,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   label,
   selectedColor,
+  containerStyle
 }) => {
   const [color, setColor] = useState(selectedColor || "#000000");
   const [isPickerVisible, setPickerVisible] = useState(false);
@@ -85,7 +89,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   };
 
   return (
-    <ColorPickerContainer>
+    <ColorPickerContainer style={containerStyle}>
       <PickerRow>
 
         <ColorBox selectedColor={color} onClick={() => setPickerVisible(!isPickerVisible)} />

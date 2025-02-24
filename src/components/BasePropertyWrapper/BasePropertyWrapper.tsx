@@ -14,7 +14,7 @@ const Wrapper = styled.div`
 
 const Label = styled.label<{ color: string; fontSize: string }>`
   line-height: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 0.5rem;
   color: ${({ color }) => color};
   font-size: ${({ fontSize }) => fontSize};

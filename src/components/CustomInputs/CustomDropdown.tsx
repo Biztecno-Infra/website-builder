@@ -58,7 +58,8 @@ const Option = styled.div`
   cursor: pointer;
 
   &:hover {
-    background-color: #f0f0f0;
+    background-color: #0B978E;
+    color: #FFFFFF;
   }
 `;
 
@@ -72,10 +73,10 @@ interface DropdownProps {
   name: string;
   options: DropdownOption[];
   onChange?: (name: string, value: string | number) => void;
-  containerStyle?: React.CSSProperties; 
+  containerStyle?: React.CSSProperties;
 }
 
-export function CustomDropdown({ name, options, onChange , containerStyle }: DropdownProps) {
+export function CustomDropdown({ name, options, onChange, containerStyle }: DropdownProps) {
   const [showOptions, setShowOptions] = useState(false);
   const [selectedValue, setSelectedValue] = useState("");
 
