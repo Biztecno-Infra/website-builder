@@ -27,6 +27,7 @@ export interface Props {
   hover?: boolean;
   color?: string;
   bgColor?: string;
+  svgStyle?: React.CSSProperties;
 }
 
 const SvgIconContainer = styled.div<Props>`
@@ -69,6 +70,7 @@ const SvgIcon: React.FC<Props> = ({
   hover,
   color,
   bgColor,
+  svgStyle
 }) => {
   const CustomIcon = CustomIconRef[name];
 
@@ -86,8 +88,9 @@ const SvgIcon: React.FC<Props> = ({
       hover={hover}
       onClick={handleClick}
       color={color}
-      // bgColor={bgColor}
+      bgColor={bgColor}
       name={name}
+      style={svgStyle}
     >
       {CustomIcon && <CustomIcon />}
     </SvgIconContainer>

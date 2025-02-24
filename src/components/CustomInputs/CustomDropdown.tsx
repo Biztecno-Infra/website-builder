@@ -5,6 +5,7 @@ import styled from "styled-components";
 const DropdownWrapper = styled.div`
   position: relative;
   width: 100%;
+
 `;
 
 const InputContainer = styled.div`
@@ -17,7 +18,7 @@ const InputContainer = styled.div`
 const StyledInput = styled.input`
   width: 100%;
   height: 1.5rem;
-  padding: 5px;
+  padding: 7px;
   border-radius: 5px;
   font-family: Arial, sans-serif;
   font-size: 0.75rem;

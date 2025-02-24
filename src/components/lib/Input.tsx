@@ -118,7 +118,7 @@ export function Input({
 
   return (
     <InputContainer style={containerStyle}>
-      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} />}
+      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{padding: 3 , width: "50%"}}/>}
       <StyledInput
         theme={theme}
         type={type}
@@ -129,7 +129,7 @@ export function Input({
         onBlur={onBlur}
         disabled={disabled}
         onKeyDown={onKeyDown}
-        width={unitsLabel ? "50%" : "100%"}
+        width={(unitsLabel || iconProps?.name) ? "50%" : "100%"}
       />
 
       {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
