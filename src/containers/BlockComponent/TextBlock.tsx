@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from "react";
 import Droppable from "../Droppable";
 import { TextBlockProps, TextAlign } from "../../types";
+import { parseCssString } from "@utils/index";
+
 
 export const TextBlock: React.FC<TextBlockProps> = ({
   block,
@@ -20,8 +22,10 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     backgroundImage,
     lineHeight,
     navigateToUrl,
+    customCss,
     ...rest
   } = block;
+  console.log(block)
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -29,7 +33,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     },
     [handleDropper]
   );
-
+  const customStyles = useMemo(() => parseCssString(customCss || ""), [customCss]);
   return (
     <Droppable
       accept="BLOCK"
@@ -55,6 +59,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        ...customStyles,
         ...rest,
       }}
       onClick={handleBlockClick}

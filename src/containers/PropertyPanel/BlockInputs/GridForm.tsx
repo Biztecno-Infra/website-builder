@@ -5,7 +5,7 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
-import { Input } from "@components/lib";
+import { Input, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
@@ -22,7 +22,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderStyle,
     borderColor,
     borderRadius,
-    customCss = {},
+    customCss ,
   } = selectedBlock as GridProps;
 
   const [formData, setFormData] = useState({
@@ -144,6 +144,17 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </BasePropertyWrapper>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={formData.customCss || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("customCss", value)
+          }
+        />
       </BasePropertyWrapper>
     </FormWrapper>
   );

@@ -1,13 +1,15 @@
-import React from "react";
-import {  GridProps, GridBlockProps } from "../../types";
+import React, { useMemo } from "react";
+import { GridProps, GridBlockProps } from "../../types";
 import GridCell from "./GridCell";
+import { parseCssString } from "@utils/index";
 
-const GridBlock: React.FC<GridBlockProps> = ({ block , isSelected }) => {
+const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
   const {
     columnGap,
     columns,
     backgroundColor = "transparent",
     childBlocks,
+    customCss,
   } = block as GridProps;
 
   const renderCell = (childBlock: string, index: number) => {
@@ -20,6 +22,11 @@ const GridBlock: React.FC<GridBlockProps> = ({ block , isSelected }) => {
     );
   };
 
+  const customStyles = useMemo(
+    () => parseCssString(customCss || ""),
+    [customCss]
+  );
+
   return (
     <table
       cellSpacing={columnGap || 0}
@@ -28,7 +35,10 @@ const GridBlock: React.FC<GridBlockProps> = ({ block , isSelected }) => {
         backgroundColor,
         maxWidth: "100%",
         tableLayout: "fixed",
-        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        border: `1px dashed ${
+          isSelected && block.parentId ? "#006E75" : "transparent"
+        }`,
+        ...customStyles,
       }}
     >
       <tbody>

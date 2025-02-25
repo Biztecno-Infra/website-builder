@@ -184,7 +184,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         <TextArea
           name="customCss"
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
-          value={JSON.stringify(formData.customCss) || ""}
+          value={formData.customCss || ""}
           rows={6}
           onChange={(name: string, value: string) =>
             handleChange("customCss", value)

@@ -4,7 +4,7 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
-import { Input } from "@components/lib";
+import { Input, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 
@@ -19,6 +19,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     alignment = "center",
     padding,
     dividerColor,
+    customCss,
     id: blockId,
   } = selectedBlock as DividerProps;
 
@@ -28,6 +29,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     alignment,
     padding,
     dividerColor,
+    customCss
   });
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
       alignment,
       padding,
       dividerColor,
+      customCss
     });
   }, [selectedBlock]);
 
@@ -95,6 +98,17 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{width: "40%"}}
           />
         </FlexRow>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={formData.customCss || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("customCss", value)
+          }
+        />
       </BasePropertyWrapper>
     </FormWrapper>
   );

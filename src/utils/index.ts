@@ -245,6 +245,20 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
   return { blocks, rootBlock: emailLayoutJson.root };
 };
 
+export const parseCssString = (cssString: string) => {
+  const styleObject: { [key: string]: string } = {};
+  const properties = cssString.split(";");
+  properties.forEach((prop) => {
+    if (prop.trim()) {
+      const [key, value] = prop.split(":").map((item) => item.trim());
+      if (key && value) {
+        styleObject[key] = value;
+      }
+    }
+  });
+  return styleObject;
+};
+
 export const defaultTheme: Theme = {
   colors: {
     primary: "#006E75",
