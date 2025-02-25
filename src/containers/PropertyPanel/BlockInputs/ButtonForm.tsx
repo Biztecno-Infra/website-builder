@@ -198,7 +198,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }
             unitsLabel="px"
             iconProps={{
-              name: CUSTOM_SVG_ICON.ImageHeight,
+              name: CUSTOM_SVG_ICON.ImageWidth,
             }}
             containerStyle={{
               width: "40%",

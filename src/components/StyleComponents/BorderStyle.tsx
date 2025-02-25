@@ -76,7 +76,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           value={borderRadius}
           onChange={(name, value) => onChange("borderRadius", value)}
           iconProps={{
-            name: CUSTOM_SVG_ICON.LineHeight,
+            name: CUSTOM_SVG_ICON.BorderWidth,
           }}
           unitsLabel="px"
           containerStyle={{ width: "40%" }}
@@ -91,7 +91,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         value={borderWidth}
         onChange={(name, value) => onChange("borderWidth", value)}
         iconProps={{
-          name: CUSTOM_SVG_ICON.LineHeight,
+          name: CUSTOM_SVG_ICON.BorderRadius,
         }}
         unitsLabel="px"
         containerStyle={{ width: "40%" }}

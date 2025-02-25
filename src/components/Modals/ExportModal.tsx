@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import ModalOverlay from "@components/lib/ModalOverlay";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 
 const Title = styled.div`
   font-size: 1rem;
@@ -72,40 +73,40 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
 
   return (
     <ModalOverlay onClose={onClose}>
-        <Title>Export</Title>
-        <Subtitle>Select the format before exporting:</Subtitle>
+      <Title>Export</Title>
+      <Subtitle>Select the format before exporting:</Subtitle>
 
-        <OptionsContainer>
-          <Option selected={selectedFormat === "JSON"}>
-            <SvgIcon name={CUSTOM_SVG_ICON.JsonFile} />
-            <input
-              type="radio"
-              name="exportFormat"
-              value="JSON"
-              onChange={() => setSelectedFormat("JSON")}
-              checked={selectedFormat === "JSON"}
-            />
-          </Option>
-
-          <Option selected={selectedFormat === "HTML"}>
-          <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} />
+      <OptionsContainer>
+        <Option selected={selectedFormat === "JSON"}>
+          <SvgIcon name={CUSTOM_SVG_ICON.JsonFile} size={SizeEnum.Medium} />
           <input
-              type="radio"
-              name="exportFormat"
-              value="HTML"
-              onChange={() => setSelectedFormat("HTML")}
-              checked={selectedFormat === "HTML"}
-            />
-          </Option>
-        </OptionsContainer>
+            type="radio"
+            name="exportFormat"
+            value="JSON"
+            onChange={() => setSelectedFormat("JSON")}
+            checked={selectedFormat === "JSON"}
+          />
+        </Option>
 
-        <ButtonContainer>
-          <Button onClick={onClose}>Cancel</Button>
-          <Button primary disabled={!selectedFormat} onClick={() => selectedFormat && onExport(selectedFormat)}>
-            Export
-          </Button>
-        </ButtonContainer>
-        </ModalOverlay>
+        <Option selected={selectedFormat === "HTML"}>
+          <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} size={SizeEnum.Medium} />
+          <input
+            type="radio"
+            name="exportFormat"
+            value="HTML"
+            onChange={() => setSelectedFormat("HTML")}
+            checked={selectedFormat === "HTML"}
+          />
+        </Option>
+      </OptionsContainer>
+
+      <ButtonContainer>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button primary disabled={!selectedFormat} onClick={() => selectedFormat && onExport(selectedFormat)}>
+          Export
+        </Button>
+      </ButtonContainer>
+    </ModalOverlay>
   );
 };
 

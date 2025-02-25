@@ -5,6 +5,8 @@ import AddLine from "./Icons/AddLine";
 import AddSpacer from "./Icons/AddSpacer";
 import AddText from "./Icons/AddText";
 import ArrowDown from "./Icons/ArrowDown";
+import BorderRadius from "./Icons/BorderRadius";
+import BorderWidth from "./Icons/BorderWidth";
 import CenterAlign from "./Icons/CenterAlign";
 import CheckSVG from "./Icons/Check";
 import ClearEmail from "./Icons/ClearEmail";
@@ -57,7 +59,9 @@ export enum CUSTOM_SVG_ICON {
   PaddingExpand = "PaddingExpand",
   LineHeight = "LineHeight",
   ImageHeight = "ImageHeight",
-  ImageWidth = "ImageWidth"
+  ImageWidth = "ImageWidth",
+  BorderWidth = "BorderWidth",
+  BorderRadius = "BorderRadius"
 }
 
 export const CustomIconRef: any = {
@@ -91,4 +95,6 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.LineHeight]: LineHeight,
   [CUSTOM_SVG_ICON.ImageHeight]: ImageHeight,
   [CUSTOM_SVG_ICON.ImageWidth]: ImageWidth,
+  [CUSTOM_SVG_ICON.BorderWidth]: BorderWidth,
+  [CUSTOM_SVG_ICON.BorderRadius]: BorderRadius,
 };
