@@ -16,7 +16,6 @@ const BorderContainer = styled.div`
   padding: 0.5rem 0%;
   align-items: center;
   justify-content: space-between;
-  width: 90%;
 `;
 
 const borderStyleOptions = [
@@ -79,7 +78,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
             name: CUSTOM_SVG_ICON.BorderWidth,
           }}
           unitsLabel="px"
-          containerStyle={{ width: "40%" }}
+          containerStyle={{ width: "40%", paddingRight: "0.5rem" }}
         />
       </BorderContainer>
 
@@ -94,7 +93,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           name: CUSTOM_SVG_ICON.BorderRadius,
         }}
         unitsLabel="px"
-        containerStyle={{ width: "40%" }}
+        containerStyle={{ width: "40%", paddingRight: "0.5rem" }}
       />
 
     </Wrapper>
