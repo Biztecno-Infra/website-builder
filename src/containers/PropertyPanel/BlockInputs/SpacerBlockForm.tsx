@@ -4,16 +4,8 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
-import styled from "styled-components";
+import { FlexRow } from "../style";
 
-const FlexRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 5px;
-  margin-bottom: 10px;
-`;
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,

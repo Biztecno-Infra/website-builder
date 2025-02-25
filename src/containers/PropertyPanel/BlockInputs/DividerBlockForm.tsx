@@ -5,22 +5,9 @@ import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { Input } from "@components/lib";
-import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { FlexRow, FormWrapper } from "../style";
 
-const FormWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const FlexRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 5px;
-  margin-bottom: 10px;
-`;
 
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,

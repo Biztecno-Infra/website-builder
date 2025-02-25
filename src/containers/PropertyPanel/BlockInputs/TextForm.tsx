@@ -2,39 +2,22 @@ import React, { useEffect, useState } from "react";
 import {
   AlignmentSelector,
   FontFamilyDropdown,
-  FontSizeInput,
   FontWeightDropdown,
   PaddingInput,
 } from "@components/StyleComponents";
 import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
-import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
 import { TextProps } from "../../../types";
-import CustomCSSRenderer from "./CustomCssRenderer";
 import { TextArea, Input } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
-
-const FormWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width:100%;
-`;
-
-const FlexRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  margin-top: 5px;
-  margin-bottom: 10px;
-`;
+import { FlexRow, FormWrapper } from "../style";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
-    margin-top: 5px;
+  margin-top: 5px;
   margin-bottom: 10px;
 `;
 
@@ -51,7 +34,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     textColor,
     backgroundColor,
     alignment,
-    customCss = {},
+    customCss ,
     backgroundImage,
     navigateToUrl,
     lineHeight,
@@ -113,7 +96,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             handleChange("text", value)
           }
         />
-        <FlexRow>
+        <FlexRow style={{marginTop: "10px"}}>
           <FontFamilyDropdown
             onChange={handleChange}
             value={formData.fontFamily}
