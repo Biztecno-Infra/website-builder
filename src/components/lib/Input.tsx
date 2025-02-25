@@ -61,7 +61,6 @@ padding-left:4px;
 font-size: 0.75rem;
 color: #111111;
 font-weight: 400;
-width: 15%;
 `;
 
 interface InputProps {
@@ -84,6 +83,7 @@ interface InputProps {
     name: CUSTOM_SVG_ICON;
     size?: SizeEnum;
   }
+  inputStyle?: React.CSSProperties;
 }
 
 export function Input({
@@ -97,7 +97,8 @@ export function Input({
   type = "text",
   disabled = false,
   containerStyle,
-  iconProps
+  iconProps,
+  inputStyle
 }: InputProps) {
   const [error, setError] = useState<string>("");
   const theme = useTheme();
@@ -131,6 +132,7 @@ export function Input({
         disabled={disabled}
         onKeyDown={onKeyDown}
         width={(unitsLabel || iconProps?.name) ? "40%" : "100%"}
+        style={inputStyle}
       />
 
       {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}

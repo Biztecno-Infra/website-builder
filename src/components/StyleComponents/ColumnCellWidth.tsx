@@ -11,13 +11,14 @@ interface ColumnCellWidthProps {
 
 const ColumnCellWidthContainer = styled.div`
   display: flex;
-  flex-direction: column;
-`;
-
-const Label = styled.label`
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  width: 95%;
+  border: 1px solid #DDDDDD;
+  border-radius: 10px;
+  padding: 0.5rem;
 `;
 
 const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
@@ -58,16 +59,17 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
 
   return (
     <ColumnCellWidthContainer>
-      <Label>Column Cell Widths</Label>
       {localWidths.map((width, index) => (
         <Input
           key={index}
           name={`cell-width-${index}`}
           type="number"
-          label={`Width (Column ${index + 1})`}
+          // label={`Width (Column ${index + 1})`}
           value={width}
           onChange={(name, value) => handleWidthChange(Number(value), index)}
           placeholder="Enter width in percentage"
+          unitsLabel="%"
+          containerStyle={{width:"30%" , padding: 4 , marginBottom: 5}}
         />
       ))}
     </ColumnCellWidthContainer>
