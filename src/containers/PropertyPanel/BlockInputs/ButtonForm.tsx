@@ -7,31 +7,20 @@ import {
   PaddingInput,
   AlignmentSelector,
 } from "@components/StyleComponents";
+import styled from "styled-components";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
-import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
-import CustomCSSRenderer from "./CustomCssRenderer";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
 import { Input, TextArea } from "@components/lib";
 import { ReactColorPicker } from "@components/CustomInputs";
-import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-
-const FormWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
+import { FlexRow, FormWrapper } from "../style";
 
 const Divider = styled.div`
   width: 100%;
   height: 1px;
   background:#DDDDDD ;
-`
-const FlexRow = styled.div`
-  display: flex;
-  margin-top: 5px;
-  margin-bottom: 10px;
 `
 const WidthHeightContainer = styled.div`
   display: flex;
@@ -61,7 +50,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     buttonPadding,
     width,
     height,
-    customCss = {},
+    customCss ,
   } = selectedBlock as ButtonProps;
 
   const [formData, setFormData] = useState({
@@ -127,7 +116,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Button Text" containerStyle={{ padding: "1rem" }}>
         <Input
           name="buttonText"
-          label="Button Text"
           placeholder="Enter button text here"
           value={formData.buttonText}
           onChange={handleChange}
@@ -173,7 +161,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <Input
             type="number"
             name="width"
-            label="Width"
             placeholder="Enter Button Width"
             value={formData.width || ""}
             onChange={(name: string, value: string) =>
@@ -190,7 +177,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <Input
             type="number"
             name="height"
-            label="Height"
             placeholder="Enter Button Height"
             value={formData.height || ""}
             onChange={(name: string, value: string) =>
@@ -208,7 +194,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         </WidthHeightContainer>
         <Input
           name="navigateToUrl"
-          label="Button Navigation URL"
           placeholder="Enter Button Navigation URL"
           value={formData.navigateToUrl}
           onChange={handleChange}
@@ -262,6 +247,17 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             // handleCustomCssChange(value)
             console.log(value)
+          }
+        />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={formData.customCss || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("customCss", value)
           }
         />
       </BasePropertyWrapper>

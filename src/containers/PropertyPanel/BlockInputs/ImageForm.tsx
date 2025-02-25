@@ -5,8 +5,6 @@ import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
-import { CustomCSSInput } from "@components/StyleComponents/CustomCSS";
-import CustomCSSRenderer from "./CustomCssRenderer";
 import { ImageProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import styled from "styled-components";
@@ -245,13 +243,15 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
 
       </BasePropertyWrapper>
-      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem",  }}>
+      <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
-          value={JSON.stringify(formData.customCss) || ""}
+          value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) => console.log(value)}
+          onChange={(name: string, value: string) =>
+            handleChange("customCss", value)
+          }
         />
       </BasePropertyWrapper>
     </FormWrapper>

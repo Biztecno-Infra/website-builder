@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { TextAlign, ImageBlockProps } from "../../types";
 import Droppable from "../Droppable";
+import { parseCssString } from "@utils/index";
 
 interface CustomImageProps {
   imageUrl?: string;
@@ -51,6 +52,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
     borderStyle,
     borderWidth,
     navigateToUrl,
+    customCss
   } = block;
 
   const handleDrop = useCallback(
@@ -58,6 +60,11 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
       handleDropper(item, block.id);
     },
     [handleDropper]
+  );
+
+  const customStyles = useMemo(
+    () => parseCssString(customCss || ""),
+    [customCss]
   );
 
   return (
@@ -70,7 +77,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         paddingBottom: padding.bottom,
         paddingLeft: padding.left,
         backgroundColor: backgroundColor,
-        textAlign: alignment || "left",
+        textAlign: (alignment as TextAlign) || "left",
         borderRadius: borderRadius ? `${borderRadius}px` : "",
         border:
           isSelected && block.parentId
@@ -78,7 +85,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
             : borderWidth
             ? `${borderWidth}px ${borderStyle} ${borderColor}`
             : "1px solid transparent",
-        ...block.customCss,
+        ...customStyles
       }}
       onClick={handleBlockClick}
     >

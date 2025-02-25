@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BlockFormProps } from "../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { ReactColorPicker } from "@components/CustomInputs";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
