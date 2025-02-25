@@ -13,6 +13,16 @@ const FormWrapper = styled.div`
   flex-direction: column;
 `;
 
+
+const FlexRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 10px;
+`;
+
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -84,44 +94,51 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <FormWrapper>
-      <BasePropertyWrapper name="Edit Columns">
-        <ReactColorPicker
-          onColorChange={(field, value) => handleChange("backgroundColor", value)}
-          label="Select background color"
-          selectedColor={formData.backgroundColor}
-        />
+    <BasePropertyWrapper name="Edit Spacer">
+    <FlexRow>
+       
         <Input
           name="columns"
           placeholder="Cols"
-          label="Columns"
+          unitsLabel="Columns"
           value={formData.columns}
           onChange={handleChange}
           type="number"
+          containerStyle={{width: "45%" , padding: 4}}
+          inputStyle={{width: "30%"}}
         />
         <Input
           name="columnGap"
           placeholder="Column Gap"
           type="number"
-          label="Column Gap"
+          unitsLabel="Column Gap"
           value={formData.columnGap}
           onChange={handleChange}
+          containerStyle={{width: "45%" , padding: 4}}
+          inputStyle={{width: "30%"}}
         />
-        <ColumnCellWidthComponent
+        </FlexRow>
+        <BasePropertyWrapper name="Column Width" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' , fontSize:"11px"  }} containerStyle={{padding: 0 , border: "none" ,width: '100%'}}>
+         <ColumnCellWidthComponent
           rows={formData.rows}
           columns={formData.columns}
           cellWidths={formData.cellWidths}
           updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
         />
-        <BasePropertyWrapper name="Border Properties">
+        </BasePropertyWrapper>
+        </BasePropertyWrapper>
+
+        <BasePropertyWrapper name="Edit Container">
+        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }} containerStyle={{padding: 0 , width: "95%"}}>
           <BorderStyleDropdown
             onChange={handleChange}
             borderWidth={formData.borderWidth}
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
+            containerStyle={{ border: "1px solid #DDDDDD", borderRadius: "10px", padding: "0.5rem" }}
           />
         </BasePropertyWrapper>
-        {/* <CustomCSSInput label="Additional CSS" onAddProperty={addCustomCSS} /> */}
       </BasePropertyWrapper>
     </FormWrapper>
   );

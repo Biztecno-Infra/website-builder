@@ -110,6 +110,12 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
             hideGradientControls
             hideGradientStop
             hideAdvancedSliders
+            height={150}
+            width={220}
+            hideColorGuide
+            hideGradientAngle
+            hideEyeDrop
+            hideControls
           />
         </GradientPickerContainer>
       )}
