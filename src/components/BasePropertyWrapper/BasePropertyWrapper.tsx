@@ -5,6 +5,7 @@ interface LayoutProps {
   name: string;
   children: React.ReactNode;
   containerStyle?: React.CSSProperties;
+  labelColor?: React.CSSProperties;
 }
 
 const Wrapper = styled.div`
@@ -26,11 +27,11 @@ const Label = styled.label<{ color: string; fontSize: string }>`
   }
 `;
 
-function BasePropertyWrapper({ name, children, containerStyle }: LayoutProps) {
+function BasePropertyWrapper({ name, children, containerStyle, labelColor }: LayoutProps) {
   const theme = useTheme();
   return (
     <Wrapper style={containerStyle}>
-      <Label color={theme.colors.primary} fontSize={theme.fontSize.labelHeader}>{name}</Label>
+      <Label color={labelColor || theme.colors.primary}>{name}</Label>
       {children}
     </Wrapper>
   );

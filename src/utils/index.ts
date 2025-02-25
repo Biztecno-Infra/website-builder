@@ -256,7 +256,7 @@ export const defaultTheme: Theme = {
     buttonPrimary: "#0B978E",
     buttonSecondary: "",
     inputColor: "#F1F1F1",
-    inputPlaceholderColor: "#8D8D8D"
+    inputPlaceholderColor: "#8D8D8D",
   },
   spacing: {
     small: 8,

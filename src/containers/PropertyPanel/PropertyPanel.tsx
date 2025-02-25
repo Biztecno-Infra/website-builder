@@ -31,6 +31,7 @@ const PropertyPanelWrapper = styled.div`
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   box-shadow: 4px 4px 0 5px rgba(0, 0, 0, 0.15);
   position: relative;

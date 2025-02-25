@@ -8,12 +8,15 @@ import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
 `;
 
 const BorderContainer = styled.div`
   display: flex;
   flex-direction: row;
+  padding: 0.5rem 0%;
+  align-items: center;
+  justify-content: space-between;
+  width: 90%;
 `;
 
 const borderStyleOptions = [
@@ -36,6 +39,7 @@ interface BorderStyleDropdownProps {
   borderStyle: any;
   borderColor: any;
   borderRadius: any;
+  containerStyle?: React.CSSProperties;
 }
 
 export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
@@ -44,9 +48,10 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   borderStyle,
   borderColor,
   borderRadius,
+  containerStyle
 }) => {
   return (
-    <Wrapper>
+    <Wrapper style={containerStyle}>
       <CustomDropdown
         id="borderStyle"
         name="borderStyle"
@@ -55,7 +60,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         placeholder="Select Border Style"
         onChange={(name, value) => onChange("borderStyle", value)}
         initialValue={borderStyle}
-        containerStyle={{ width: '70%' }}
+      // containerStyle={{ width: '%' }}
       />
       <BorderContainer>
         <ReactColorPicker
