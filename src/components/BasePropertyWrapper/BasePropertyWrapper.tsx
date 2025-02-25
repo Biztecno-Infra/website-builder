@@ -11,7 +11,9 @@ interface LayoutProps {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 100%;  
+  width: 90%;
+  border-bottom: 1px solid #dddddd;
+  padding: 1rem;
 `;
 
 const Label = styled.label<{ color: string; fontSize: string }>`
@@ -27,7 +29,12 @@ const Label = styled.label<{ color: string; fontSize: string }>`
   }
 `;
 
-function BasePropertyWrapper({ name, children, containerStyle, labelColor }: LayoutProps) {
+function BasePropertyWrapper({
+  name,
+  children,
+  containerStyle,
+  labelColor,
+}: LayoutProps) {
   const theme = useTheme();
   return (
     <Wrapper style={containerStyle}>

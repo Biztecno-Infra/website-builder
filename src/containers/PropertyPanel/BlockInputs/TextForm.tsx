@@ -20,7 +20,7 @@ import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 const FormWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  width:100%;
 `;
 
 const FlexRow = styled.div`

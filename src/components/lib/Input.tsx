@@ -57,10 +57,11 @@ const ErrorText = styled.div`
 `;
 
 const UnitsLabel = styled.div`
-padding-left: 5px;
+padding-left:4px;
 font-size: 0.75rem;
 color: #111111;
 font-weight: 400;
+width: 15%;
 `;
 
 interface InputProps {
@@ -118,7 +119,7 @@ export function Input({
 
   return (
     <InputContainer style={containerStyle}>
-      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{padding: 3 , width: "50%"}}/>}
+      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{padding: 3 , width: "35%"}}/>}
       <StyledInput
         theme={theme}
         type={type}
@@ -129,7 +130,7 @@ export function Input({
         onBlur={onBlur}
         disabled={disabled}
         onKeyDown={onKeyDown}
-        width={(unitsLabel || iconProps?.name) ? "50%" : "100%"}
+        width={(unitsLabel || iconProps?.name) ? "40%" : "100%"}
       />
 
       {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}

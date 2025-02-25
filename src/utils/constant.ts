@@ -110,7 +110,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultPadding,
       backgroundColor: "",
       alignment: "left",
-      dividerColor: "gray",
+      dividerColor: "#808080",
     };
   } else if (blockType === BlockType.SPACER) {
     return {

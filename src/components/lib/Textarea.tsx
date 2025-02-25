@@ -9,7 +9,6 @@ const StyledTextArea = styled.textarea`
   font-size: 0.875rem;
   resize: vertical;
   min-height: 4rem;
-  // background-color: #F1F1F1;
   &::placeholder {
     color: ${({ theme }) => theme.colors.inputPlaceholderColor};
   }

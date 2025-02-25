@@ -41,7 +41,7 @@ const ColorHexInput = styled.input`
   border: none;
   background: #F1F1F1;
   border-radius: 4px;
-  width: 90px;
+  width: calc(100% - 2rem);
   text-transform: uppercase;
   text-align: left;
   margin-left: 0.5rem;

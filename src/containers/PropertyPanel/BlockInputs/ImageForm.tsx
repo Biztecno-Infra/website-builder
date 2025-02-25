@@ -21,11 +21,7 @@ const WidthHeightContainer = styled.div`
   display: flex;
   flex-direction: row;
   padding-bottom: 0.5rem;
-`
-const Divider = styled.div`
   width: 100%;
-  height: 1px;
-  background:#DDDDDD ;
 `
 const PaddingContainer = styled.div`
   display: flex;
@@ -156,7 +152,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
 
-      <BasePropertyWrapper name="Edit Image" containerStyle={{ padding: "1rem" }}>
+      <BasePropertyWrapper name="Edit Image">
         <Input
           name="imageUrl"
           placeholder="Add Image URL"
@@ -164,7 +160,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleImageUrlChange(value)
           }
-          containerStyle={{ marginBottom: "0.75rem", width: '90%' }}
+          containerStyle={{ marginBottom: "0.75rem"}}
         />
 
         <Input
@@ -174,14 +170,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("altText", value)
           }
-          containerStyle={{ marginBottom: "0.75rem", width: '90%' }}
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
         <Input
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem", width: '90%' }}
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
         <WidthHeightContainer>
           <Input
@@ -197,7 +193,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             containerStyle={{
-              width: "40%",
+              width: "45%"
             }}
           />
           <Input
@@ -213,15 +209,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageWidth,
             }}
             containerStyle={{
-              width: "40%",
+              width: "45%",
               marginLeft: "1rem"
             }}
           />
         </WidthHeightContainer>
         <AlignmentSelector onChange={handleChange} value={formData.alignment} containerStyle={{ width: "60%", }} />
       </BasePropertyWrapper>
-      <Divider />
-      <BasePropertyWrapper name="Edit Container" containerStyle={{ padding: "1rem", width: '95%' }}>
+      <BasePropertyWrapper name="Edit Container">
         <PaddingContainer>
           <ReactColorPicker
             onColorChange={(field, value) =>
@@ -238,7 +233,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{ width: '40%', paddingLeft: '1rem' }}
           />
         </PaddingContainer>
-        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }}>
+        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }} containerStyle={{padding: 0 , width: "95%"}}>
           <BorderStyleDropdown
             onChange={handleChange}
             borderWidth={formData.borderWidth}
@@ -250,8 +245,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
 
       </BasePropertyWrapper>
-      <Divider />
-      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem", width: '90%' }}>
+      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem",  }}>
         <TextArea
           name="customCss"
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
