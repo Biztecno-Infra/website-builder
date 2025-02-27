@@ -27,7 +27,7 @@ const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHo
   width: ${({ elements }) => elements.width};
   padding: ${({ elements }) => elements.padding};
   text-align: ${({ elements }) => elements.textAlign};
-  background-color: ${({ isHovered, colors }) => isHovered ? colors.primary : colors.secondary};
+  background-color: ${({ isHovered, colors }) => isHovered ? colors.buttonPrimary : colors.secondary};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -36,7 +36,7 @@ const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHo
 
 const BlockName = styled.div<{ isHovered: boolean, colors: any }>`
   font-size: 11px;
-  color: ${({ isHovered, colors }) => isHovered ? colors.secondary : colors.primary};
+  color: ${({ isHovered, colors }) => isHovered ? colors.secondary : colors.buttonPrimary};
   transition: color 0.3s ease;
 `;
 

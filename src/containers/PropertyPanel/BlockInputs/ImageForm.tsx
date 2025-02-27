@@ -160,7 +160,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleImageUrlChange(value)
           }
-          containerStyle={{ marginBottom: "0.75rem"}}
+          containerStyle={{ marginBottom: "0.75rem" }}
         />
 
         <Input
@@ -193,7 +193,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             containerStyle={{
-              width: "45%"
+              width: "45%",
+              paddingRight: "0.5rem"
             }}
           />
           <Input
@@ -210,7 +211,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               width: "45%",
-              marginLeft: "1rem"
+              marginLeft: "1rem",
+              paddingRight: "0.5rem"
             }}
           />
         </WidthHeightContainer>
@@ -233,7 +235,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{ width: '40%', paddingLeft: '1rem' }}
           />
         </PaddingContainer>
-        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }} containerStyle={{padding: 0 , width: "95%"}}>
+        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }} containerStyle={{ border: "none", padding: 0, width: "95%" }}>
           <BorderStyleDropdown
             onChange={handleChange}
             borderWidth={formData.borderWidth}
@@ -245,7 +247,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
 
       </BasePropertyWrapper>
-      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem",  }}>
+      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem", }}>
         <TextArea
           name="customCss"
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"

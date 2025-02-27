@@ -185,6 +185,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               width: "40%",
+              paddingRight: "0.5rem"
             }}
           />
           <Input
@@ -202,7 +203,8 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               width: "40%",
-              marginLeft: "1rem"
+              marginLeft: "1rem",
+              paddingRight: "0.5rem"
             }}
           />
         </WidthHeightContainer>
@@ -232,7 +234,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
 
       </BasePropertyWrapper>
       <Divider />
-      <BasePropertyWrapper name="Edit Container" containerStyle={{ padding: "1rem", width: '95%' }}>
+      <BasePropertyWrapper name="Edit Container">
         <ReactColorPicker
           onColorChange={(field, value) =>
             handleChange("backgroundColor", value)
@@ -241,7 +243,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "50%" }}
         />
-        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }}>
+        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", width: '100%' }} containerStyle={{ border: "none", padding: "1rem 0% 0% 0%", width: "95%" }}>
           <BorderStyleDropdown
             onChange={handleChange}
             borderWidth={formData.borderWidth}
