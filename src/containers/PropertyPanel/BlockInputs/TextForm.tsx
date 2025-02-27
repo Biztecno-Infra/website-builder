@@ -105,8 +105,8 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <Input
             name="fontSize"
             placeholder="Enter font size"
-            value={fontSize}
-            onChange={handleChange}
+            value={formData.fontSize}
+            onChange={(name , value )=> handleChange("fontSize" , value)}
             containerStyle={{
               width: "26%",
               padding: 3,
@@ -115,6 +115,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               background: "#F1F1F1",
             }}
             unitsLabel="px"
+            type="number"
           />
         </FlexRow>
         <FlexRow>
