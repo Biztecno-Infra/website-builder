@@ -34,7 +34,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     textColor,
     backgroundColor,
     alignment,
-    customCss ,
+    customCss,
     backgroundImage,
     navigateToUrl,
     lineHeight,
@@ -96,7 +96,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             handleChange("text", value)
           }
         />
-        <FlexRow style={{marginTop: "10px"}}>
+        <FlexRow style={{ marginTop: "10px" }}>
           <FontFamilyDropdown
             onChange={handleChange}
             value={formData.fontFamily}
@@ -106,7 +106,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize}
-            onChange={(name , value )=> handleChange("fontSize" , value)}
+            onChange={(name, value) => handleChange("fontSize", value)}
             containerStyle={{
               width: "26%",
               padding: 3,
@@ -151,7 +151,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           />
           <Input
             name="navigateToUrl"
-            placeholder="Enter Text Navigation URL"
+            placeholder="Add URL to link text"
             value={formData.navigateToUrl}
             onChange={handleChange}
             containerStyle={{ width: "68%", padding: 3 }}
@@ -175,7 +175,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         </FlexRow>
         <Input
           name="backgroundImage"
-          placeholder="Enter Background Image Url"
+          placeholder="Add background image URL"
           value={formData.backgroundImage}
           onChange={(name, value) => handleChange(name, value)}
           containerStyle={{ padding: 3, marginBottom: 10 }}

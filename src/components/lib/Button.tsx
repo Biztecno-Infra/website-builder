@@ -7,13 +7,14 @@ interface ButtonProps {
   primary?: boolean;
   secondary?: boolean;
   transparent?: boolean;
+  buttonPrimary?: boolean;
   outline?: boolean;
   text?: string;
   handleClick?: () => void;
   iconProps?: {
-    iconName?: CUSTOM_SVG_ICON; 
+    iconName?: CUSTOM_SVG_ICON;
     iconPosition?: "left" | "right";
-    iconSize?: SizeEnum; 
+    iconSize?: SizeEnum;
   };
 }
 
@@ -24,15 +25,16 @@ const Button = styled.button<ButtonProps>`
   cursor: pointer;
   min-width: 7.5rem;
   height: 1.875rem;
-  background-color: ${({ theme, primary, secondary, transparent, outline }) => {
+  background-color: ${({ theme, primary, secondary, buttonPrimary, transparent, outline }) => {
     if (primary) return theme.colors.primary;
     if (secondary) return theme.colors.secondary;
+    if (buttonPrimary) return theme.colors.buttonPrimary;
     if (transparent) return "transparent";
     if (outline) return "transparent";
     return theme.colors.primary;
   }};
-  color: ${({ theme, primary, secondary, transparent }) => {
-    if (primary || secondary) return theme.colors.textPrimary;
+  color: ${({ theme, primary, secondary, buttonPrimary, transparent }) => {
+    if (primary || secondary || buttonPrimary) return theme.colors.textPrimary;
     if (transparent) return theme.colors.textPrimary;
     return theme.colors.textDefault;
   }};
@@ -46,9 +48,9 @@ const Button = styled.button<ButtonProps>`
 
   & > svg {
     width: ${({ iconProps }) =>
-      iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
+    iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
     height: ${({ iconProps }) =>
-      iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
+    iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
     display: inline-block;
   }
 
@@ -60,6 +62,7 @@ const ButtonComponent: React.FC<ButtonProps> = ({
   secondary,
   transparent,
   outline,
+  buttonPrimary,
   text,
   handleClick,
   iconProps,
@@ -69,6 +72,7 @@ const ButtonComponent: React.FC<ButtonProps> = ({
       primary={primary}
       secondary={secondary}
       transparent={transparent}
+      buttonPrimary={buttonPrimary}
       outline={outline}
       onClick={handleClick}
       iconProps={iconProps}

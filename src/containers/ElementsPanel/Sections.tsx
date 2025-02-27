@@ -36,6 +36,7 @@ const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHo
 
 const BlockName = styled.div<{ isHovered: boolean, colors: any }>`
   font-size: 11px;
+  padding-left: 1rem;
   color: ${({ isHovered, colors }) => isHovered ? colors.secondary : colors.buttonPrimary};
   transition: color 0.3s ease;
 `;

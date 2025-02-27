@@ -59,11 +59,11 @@ const CustomDropdownButton: React.FC<CustomDropdownProps> = ({
   return (
     <DropdownContainer ref={dropdownRef}>
       <ButtonComponent
-        primary
+        buttonPrimary
         text={buttonText}
         handleClick={() => setIsOpen((prev) => !prev)}
         iconProps={{
-          iconName: CUSTOM_SVG_ICON.ArrowDown, 
+          iconName: CUSTOM_SVG_ICON.ArrowDown,
           iconPosition: "right",
           iconSize: SizeEnum.Small
         }}

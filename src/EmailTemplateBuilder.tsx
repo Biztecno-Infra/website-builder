@@ -70,7 +70,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
               <ElementsPanel />
               <MiddleContainer>
                 <Header>
-                  <ButtonComponent primary text="Send" />
+                  <ButtonComponent buttonPrimary text="Send" />
                   <CustomDropdownButton
                     options={["Export", "Upload", "Send Test"]}
                     onSelect={handleOptionSelect}

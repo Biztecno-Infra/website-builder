@@ -19,7 +19,7 @@ const BorderContainer = styled.div`
 `;
 
 const borderStyleOptions = [
-  { key: "", text: "Select", value: "" },
+  { key: "", text: "Border Style", value: "" },
   { key: "solid", text: "Solid", value: "solid" },
   { key: "dashed", text: "Dashed", value: "dashed" },
   { key: "dotted", text: "Dotted", value: "dotted" },
