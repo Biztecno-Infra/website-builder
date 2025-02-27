@@ -1,13 +1,13 @@
+import React, { useState } from "react";
+import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
-import React, { useState } from "react";
-import styled, { css, useTheme } from "styled-components";
-
 
 interface StyledInputProps {
   theme: any;
-  width: string | number
+  width: string | number;
 }
+
 const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -43,6 +43,18 @@ const StyledInput = styled.input<StyledInputProps>`
     color: ${({ theme }) => theme.colors.inputPlaceholderColor};
   }
 
+  /* Hiding the number input arrows */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* For Firefox */
+  &[type="number"] {
+    -moz-appearance: textfield;
+  }
+
   &:disabled {
     background-color: ${({ theme }) => theme.colors.disabledBg};
     color: ${({ theme }) => theme.colors.disabledText};
@@ -57,10 +69,10 @@ const ErrorText = styled.div`
 `;
 
 const UnitsLabel = styled.div`
-padding-left:4px;
-font-size: 0.75rem;
-color: #111111;
-font-weight: 400;
+  padding-left: 4px;
+  font-size: 0.75rem;
+  color: #111111;
+  font-weight: 400;
 `;
 
 interface InputProps {
@@ -82,7 +94,7 @@ interface InputProps {
   iconProps?: {
     name: CUSTOM_SVG_ICON;
     size?: SizeEnum;
-  }
+  };
   inputStyle?: React.CSSProperties;
 }
 
@@ -105,22 +117,38 @@ export function Input({
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    const numericValue = Number(value);
 
-    if (type === "number" && numericValue < 0) {
-      setError("Value must be greater than or equal to 0");
-      return;
+    let newValue = value;
+
+    if (type === "number" || type === "text") {
+      const numericValue = Number(value);
+
+      // Check if value is numeric and validate it's not less than 0
+      if (!isNaN(numericValue) && numericValue < 0) {
+        setError("Value must be greater than or equal to 0");
+        return;
+      }
+
+      if (isNaN(numericValue)) {
+        setError("Please enter a valid number");
+      } else {
+        setError("");
+      }
+
+      // If the type is "text" but a numeric value is entered, treat it as a valid number
+      newValue = type === "text" && !isNaN(numericValue) ? numericValue.toString() : value;
     }
 
-    setError("");
     if (onChange) {
-      onChange(name, type === "number" ? numericValue : value);
+      onChange(name, newValue);
     }
   };
 
   return (
     <InputContainer style={containerStyle}>
-      {iconProps && iconProps.name && <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{padding: 3 , width: "35%"}}/>}
+      {iconProps && iconProps.name && (
+        <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{ padding: 3, width: "35%" }} />
+      )}
       <StyledInput
         theme={theme}
         type={type}
@@ -134,7 +162,6 @@ export function Input({
         width={(unitsLabel || iconProps?.name) ? "40%" : "100%"}
         style={inputStyle}
       />
-
       {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       {error && <ErrorText>{error}</ErrorText>}
     </InputContainer>
