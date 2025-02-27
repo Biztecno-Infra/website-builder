@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { Fragment, useState } from "react";
 import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
@@ -110,7 +110,7 @@ export function Input({
   disabled = false,
   containerStyle,
   iconProps,
-  inputStyle
+  inputStyle,
 }: InputProps) {
   const [error, setError] = useState<string>("");
   const theme = useTheme();
@@ -118,9 +118,9 @@ export function Input({
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
 
-    let newValue = value;
+    let newValue = type === "number" ? Number(value) : value;
 
-    if (type === "number" || type === "text") {
+    if (type === "number") {
       const numericValue = Number(value);
 
       // Check if value is numeric and validate it's not less than 0
@@ -134,9 +134,6 @@ export function Input({
       } else {
         setError("");
       }
-
-      // If the type is "text" but a numeric value is entered, treat it as a valid number
-      newValue = type === "text" && !isNaN(numericValue) ? numericValue.toString() : value;
     }
 
     if (onChange) {
@@ -145,25 +142,31 @@ export function Input({
   };
 
   return (
-    <InputContainer style={containerStyle}>
-      {iconProps && iconProps.name && (
-        <SvgIcon name={iconProps.name} size={iconProps.size || SizeEnum.Medium} svgStyle={{ padding: 3, width: "35%" }} />
-      )}
-      <StyledInput
-        theme={theme}
-        type={type}
-        value={value}
-        name={name}
-        placeholder={placeholder}
-        onChange={handleInputChange}
-        onBlur={onBlur}
-        disabled={disabled}
-        onKeyDown={onKeyDown}
-        width={(unitsLabel || iconProps?.name) ? "40%" : "100%"}
-        style={inputStyle}
-      />
-      {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
+    <Fragment>
+      <InputContainer style={containerStyle}>
+        {iconProps && iconProps.name && (
+          <SvgIcon
+            name={iconProps.name}
+            size={iconProps.size || SizeEnum.Medium}
+            svgStyle={{ padding: 3, width: "35%" }}
+          />
+        )}
+        <StyledInput
+          theme={theme}
+          type={type}
+          value={value}
+          name={name}
+          placeholder={placeholder}
+          onChange={handleInputChange}
+          onBlur={onBlur}
+          disabled={disabled}
+          onKeyDown={onKeyDown}
+          width={unitsLabel || iconProps?.name ? "40%" : "100%"}
+          style={inputStyle}
+        />
+        {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
+      </InputContainer>
       {error && <ErrorText>{error}</ErrorText>}
-    </InputContainer>
+    </Fragment>
   );
 }

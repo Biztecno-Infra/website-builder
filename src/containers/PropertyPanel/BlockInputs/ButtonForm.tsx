@@ -105,11 +105,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     });
   };
 
-  const addCustomCSS = (property: string, value: string) => {
-    const updatedCustomCss = { ...formData.customCss, [property]: value };
-    setFormData((prevData) => ({ ...prevData, customCss: updatedCustomCss }));
-    updateBlock(id, "customCss", updatedCustomCss);
-  };
 
   return (
     <FormWrapper>
@@ -134,7 +129,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             value={fontSize}
             onChange={handleChange}
             type="text"
-            containerStyle={{ width: "26%", marginLeft: "0.5rem" }}
+            containerStyle={{ width: "26%", marginLeft: "0.5rem" , padding: 3 }}
             unitsLabel="px"
           />
         </FlexRow>
@@ -240,18 +235,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
       </BasePropertyWrapper>
       <Divider />
-      <BasePropertyWrapper name="Additional Properties" containerStyle={{ padding: "1rem" }}>
-        <TextArea
-          name="customCss"
-          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
-          value={JSON.stringify(formData.customCss) || ""}
-          rows={6}
-          onChange={(name: string, value: string) =>
-            // handleCustomCssChange(value)
-            console.log(value)
-          }
-        />
-      </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"

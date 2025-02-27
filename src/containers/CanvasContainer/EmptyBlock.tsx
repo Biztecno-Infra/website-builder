@@ -17,11 +17,11 @@ const EmptyBlockContainer = styled.div`
 `;
 
 const MessageText = styled.div`
-  font-size: inherit;
   font-size: 11px;
   font-weight:400;
   color: #0B978E;
   padding-bottom: 1rem;
+  font: Montserrat;
 `;
 
 const SvgIconWrapper = styled.div`

@@ -27,6 +27,7 @@ const fontOptions = [
   { key: "oswald", text: "Oswald", value: "Oswald" },
   { key: "playfair", text: "Playfair Display", value: "Playfair Display" },
   { key: "merriweather", text: "Merriweather", value: "Merriweather" },
+  { key: "modern_sans", text: "Modern Sans", value: "MODERN_SANS" }, // Added default font
 ];
 
 interface FontFamilyDropdownProps {

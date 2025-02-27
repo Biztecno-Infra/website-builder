@@ -18,7 +18,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     },
     [handleDropper]
   );
-
+console.log(thickness)
   const customStyles = useMemo(() => parseCssString(customCss || ""), [customCss]);
 
   return (
