@@ -72,6 +72,7 @@ export const RootBlockContainer = styled.div<{ isExpanded: boolean }>`
   justify-content: space-between;
   color: #006e75;
   width: 100%;
+  font-size: 12px;
   &:hover {
     background-color: #f5f5f5;
   }

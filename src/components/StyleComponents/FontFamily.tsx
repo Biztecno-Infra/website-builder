@@ -27,7 +27,7 @@ const fontOptions = [
   { key: "oswald", text: "Oswald", value: "Oswald" },
   { key: "playfair", text: "Playfair Display", value: "Playfair Display" },
   { key: "merriweather", text: "Merriweather", value: "Merriweather" },
-  { key: "modern_sans", text: "Modern Sans", value: "MODERN_SANS" }, // Added default font
+  { key: "modern_sans", text: "Modern Sans", value: "Modern Sans" }
 ];
 
 interface FontFamilyDropdownProps {
@@ -47,6 +47,7 @@ export const FontFamilyDropdown: React.FC<FontFamilyDropdownProps> = ({
       options={fontOptions}
       onChange={(name, value) => onChange("fontFamily", value as any)}
       containerStyle={style}
+      initialValue={value}
     />
   );
 };

@@ -123,7 +123,6 @@ export function Input({
     if (type === "number") {
       const numericValue = Number(value);
 
-      // Check if value is numeric and validate it's not less than 0
       if (!isNaN(numericValue) && numericValue < 0) {
         setError("Value must be greater than or equal to 0");
         return;
@@ -166,7 +165,7 @@ export function Input({
         />
         {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       </InputContainer>
-      {error && <ErrorText>{error}</ErrorText>}
+      {/* {error && <ErrorText>{error}</ErrorText>} */}
     </Fragment>
   );
 }
