@@ -14,7 +14,6 @@ const ColumnCellWidthContainer = styled.div`
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   width: 95%;
   border: 1px solid #DDDDDD;
   border-radius: 10px;
@@ -69,7 +68,8 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
           onChange={(name, value) => handleWidthChange(Number(value), index)}
           placeholder="Enter width in percentage"
           unitsLabel="%"
-          containerStyle={{width:"30%" , padding: 4 , marginBottom: 5}}
+          containerStyle={{width:"25%" , padding: 4 , marginBottom: 5 , marginRight: 3}}
+          inputStyle={{width:"50%"}}
         />
       ))}
     </ColumnCellWidthContainer>
