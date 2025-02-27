@@ -42,7 +42,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     navigateToUrl,
-    customCss = {},
+    customCss ,
   } = selectedBlock as ImageProps;
 
   const [formData, setFormData] = useState({

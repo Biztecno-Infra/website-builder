@@ -5,78 +5,42 @@ import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import {
+  BlockContainer,
+  BlockContent,
+  BlockContentText,
+  BlockText,
+  BlockTextIcon,
+  ChevronIcon,
+  ChildNodesContainer,
+  EmptyTreeNodeContainer,
+  ExpandIcon,
+  HeaderContainer,
+  RootBlockContainer,
+} from "./style";
 
 interface BlockNodeProps {
   blockId: string;
 }
+
 const blockTypeIcons: Record<BlockType, any> = {
   [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color="#006E75" />,
-  [BlockType.IMAGE]: <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#006E75" />,
-  [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#006E75" />,
-  [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#006E75" />,
-  [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#006E75" />,
+  [BlockType.IMAGE]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#006E75" />
+  ),
+  [BlockType.BUTTON]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#006E75" />
+  ),
+  [BlockType.GRID]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#006E75" />
+  ),
+  [BlockType.SPACER]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#006E75" />
+  ),
   [BlockType.GRIDCELL]: null,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
 };
-const BlockContainer = styled.div<{ isDragging: boolean; cursor: string }>`
-  opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
-  cursor: ${({ cursor }) => cursor};
-`;
-
-const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
-  cursor: ${({ hasChildBlocks }) => (hasChildBlocks ? "pointer" : "default")};
-  display: flex;
-  align-items: center;
-`;
-
-const ChildNodesContainer = styled.div`
-  padding-left: 8px;
-`;
-
-const BlockContentText = styled.div`
-display: flex;
-flex-direction: row;
-align-items: center;
-justify-content: space-between;
-color:#006E75 ;
-width: 100%;
-padding: 0.5rem;
-&:hover {
-    background-color: #F5F5F5;
-  }
-`;
-
-const BlockTextIcon = styled.div`
-  display: flex;
-  align-items: center;
-`;
-
-const BlockText = styled.div`
-padding-right: 0.25rem;
-`;
-
-const EmptyTreeNodeContainer = styled.div`
-  padding-bottom: 50px;
-  padding-left: 16px;
-  background-color: #f4f4f4;
-  border: 1px dashed #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  cursor: pointer;
-`;
-
-const ExpandIcon = styled.div`
-    transform: rotate(270deg);
-`;
-const ChevronIcon = styled.span<{ isExpanded: boolean }>`
-  margin-right: 10px;
-  cursor: pointer;
-  font-size: 16px;
-  padding-left: 8px;
-`;
 
 const BlockNode = ({ blockId }: BlockNodeProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -155,13 +119,21 @@ const BlockNode = ({ blockId }: BlockNodeProps) => {
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
           <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion}>
-            {isExpanded ? <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /> : <ExpandIcon><SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /></ExpandIcon>}
+            {isExpanded ? (
+              <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+            ) : (
+              <ExpandIcon>
+                <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+              </ExpandIcon>
+            )}
           </ChevronIcon>
         )}
         <BlockContentText>
           <BlockTextIcon>
             <BlockText>{blockTypeIcons[block?.type]}</BlockText>
-            <div style={{fontSize: "12px" , lineHeight: "13.4px"}}>{block?.type}</div>
+            <div style={{ fontSize: "12px", lineHeight: "13.4px" }}>
+              {block?.type}
+            </div>
           </BlockTextIcon>
           {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />}
         </BlockContentText>
@@ -203,25 +175,11 @@ const DroppableContainer = styled(Droppable)`
   }
 `;
 
-const RootBlockContainer = styled.div`
-  cursor: pointer;
-  background: #f0f0f0;
-`;
-
-const HeaderContainer = styled.div`
-  font-size: ${({ theme }) => theme.fontSize.labelHeader};
-  border-bottom: 1px solid #dddddd;
-  width: 97%;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  font-weight: 500;
-  padding-left: 0.5rem;
-`;
-
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } = useBlockHook();
+  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } =
+    useBlockHook();
 
+  const [isRootExpanded, setIsRootExpanded] = useState(true);
 
   const renderBlockNode = (blockId: string) => {
     return <BlockNode key={blockId} blockId={blockId} />;
@@ -246,17 +204,31 @@ const NodeTree = () => {
     setSelectedBlock(rootBlock);
   };
 
+  const toggleRootExpansion = () => {
+    setIsRootExpanded((prev) => !prev);
+  };
+
   return (
     <DroppableContainer
       accept="TREE_BLOCK"
       onDrop={handleDrop}
-      onClick={() => { }}
+      onClick={() => {}}
     >
       <HeaderContainer>Layers</HeaderContainer>
-      <RootBlockContainer onClick={handleRootClick}>
-        Root Block
+      <RootBlockContainer isExpanded={isRootExpanded} onClick={handleRootClick}>
+        <ChevronIcon isExpanded={isRootExpanded} onClick={toggleRootExpansion}>
+          {isRootExpanded ? (
+            <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+          ) : (
+            <ExpandIcon>
+              <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+            </ExpandIcon>
+          )}
+        </ChevronIcon>
+        <BlockContentText>Root Block</BlockContentText>
       </RootBlockContainer>
-      {rootBlockOrder.map(renderBlockNode)}
+      {isRootExpanded &&
+        rootBlockOrder.map((blockId) => renderBlockNode(blockId))}
     </DroppableContainer>
   );
 };

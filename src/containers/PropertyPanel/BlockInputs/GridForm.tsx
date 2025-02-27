@@ -105,12 +105,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         </FlexRow>
         <BasePropertyWrapper
           name="Column Width"
-          labelColor={{
-            color: "#111111",
-            paddingTop: "1rem",
-            width: "100%",
-            fontSize: "11px",
-          }}
           containerStyle={{ padding: 0, border: "none", width: "100%" }}
         >
           <ColumnCellWidthComponent
