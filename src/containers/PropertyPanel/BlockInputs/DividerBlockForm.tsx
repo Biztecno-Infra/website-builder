@@ -73,7 +73,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             placeholder="Enter Divider Thickness"
             value={formData.thickness}
             type="number"
-            onChange={(name, value) => handleChange("thickness", value)}
+            onChange={(name, value) => handleChange("thickness", Number(value))}
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight
             }}

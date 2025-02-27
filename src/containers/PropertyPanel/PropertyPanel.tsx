@@ -50,7 +50,7 @@ function PropertyPanel() {
   const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global);
 
   const renderBlockForm = useMemo(() => {
-    if (!selectedBlock) return <div>Select a block to edit</div>;
+    if (!selectedBlock) return ;
 
     if (selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles} />;
 

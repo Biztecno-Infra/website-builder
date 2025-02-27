@@ -25,7 +25,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  padding: 9px;
+  padding: 3px 0px;
 `;
 
 const Popup = styled.div`
@@ -113,7 +113,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
-        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Small} />
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Medium} />
       </ToggleButton>
 
       {isPopupOpen && (
