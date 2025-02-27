@@ -7,6 +7,7 @@ export const BlockContainer = styled.div<{
 }>`
   opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
+  padding-left: 8px;
 `;
 
 export const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
