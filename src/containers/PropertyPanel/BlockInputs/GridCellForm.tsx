@@ -31,6 +31,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
       ...prevData,
       [field]: value,
     }));
+    console.log("testinggg")
     updateBlock(selectedBlock.id, field, value);
   };
 
