@@ -18,7 +18,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     },
     [handleDropper]
   );
-console.log(thickness)
+
   const customStyles = useMemo(() => parseCssString(customCss || ""), [customCss]);
 
   return (
@@ -33,6 +33,7 @@ console.log(thickness)
         backgroundColor,
         textAlign: alignment as TextAlign,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        borderRadius: 10,
         ...customStyles
       }}
       onClick={handleBlockClick}

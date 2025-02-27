@@ -6,16 +6,6 @@ import GridEmptyCell from "./GridEmptyCell";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
-// Styled component for the delete button container
-const DeleteButton = styled.div`
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  cursor: pointer;
-  background: white;
-  border-radius: 50%;
-  padding: 5px;
-`;
 
 // Styled component for the grid cell
 const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number }>`
@@ -31,6 +21,7 @@ const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['paddi
   width: ${(props) => `${Math.round(props.cellWidth)}px`};
   max-width: ${(props) => `${Math.round(props.cellWidth)}px`};
   background-color: ${(props) => (props as any).backgroundColor || ""};
+    border-radius: 10px;
 `;
 
 const GridCellContainer = styled.div`
@@ -41,6 +32,7 @@ const DeleteWrapper = styled.div`
   cursor: pointer;
   right: -13px;
   top: -14px;
+  z-index: 100;
 `;
 
 const GridCell: React.FC<GridCellProps> = ({

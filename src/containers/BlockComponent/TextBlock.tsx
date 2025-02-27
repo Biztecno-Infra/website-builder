@@ -59,6 +59,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        borderRadius: 10,
         ...customStyles,
         ...rest,
       }}
