@@ -14,6 +14,7 @@ import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
 import ExportModal from "@components/Modals/ExportModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SendTestModal from "@components/Modals/SendFileModal";
+import "./index.css";
 
 interface Props {
   theme?: Theme;
