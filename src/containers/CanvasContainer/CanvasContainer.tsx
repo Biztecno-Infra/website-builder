@@ -30,7 +30,7 @@ const DeleteWrapper = styled.div`
 const BaseComponet = styled.div`
    padding: 1rem;
     background: #FFFFFF;
-     margin: 1rem;
+     margin: 3rem;
 `;
 
 const TrashIconWrapper = styled.div`
@@ -44,6 +44,7 @@ const TrashIconWrapper = styled.div`
 `;
 
 const TableWrapper = styled.table<TableWrapperProps>`
+&.ebr-tableWrapper{
   margin: 0 auto;
   width: 100%;
   background-color: ${({ canvasColor }) => canvasColor};
@@ -52,6 +53,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   border-collapse: collapse;
   table-layout: fixed;
   padding: 10px;
+}
 `;
 
 const Canvas: React.FC = () => {
@@ -102,7 +104,7 @@ const Canvas: React.FC = () => {
         width: "calc(100% - 20.4rem)",
         overflowX: "hidden",
         overflowY: "auto",
-        scrollbarWidth: "none" ,
+        scrollbarWidth: "none",
         msOverflowStyle: "none",
       }}
       onClick={() => setSelectedBlock(null)}
@@ -110,6 +112,7 @@ const Canvas: React.FC = () => {
       <BaseComponet>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper
+            className="ebr-tableWrapper"
             canvasColor={globalStyles.canvasColor}
             canvasFont={globalStyles.fontFamily}
             canvasFontColor={globalStyles.textColor}
