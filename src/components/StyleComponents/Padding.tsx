@@ -4,6 +4,7 @@ import { Input } from "@components/lib";
 import { Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import useClickOutside from "@hoc/useClickOutside";
 
 interface PaddingProps {
   padding: Padding;
@@ -51,12 +52,11 @@ export const PaddingInput: React.FC<PaddingProps> = ({
 }) => {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
-  // This effect ensures paddingAll is updated only when all paddings are the same
+  const popupRef = useClickOutside(() => setIsPopupOpen(false));
+
   useEffect(() => {
     const { top, right, bottom, left } = padding;
     if (top === right && right === bottom && bottom === left) {
-      // If all padding values are the same, set the common padding
-      // Only update the common padding if the sides have changed
       if (padding.top !== padding.right || padding.right !== padding.bottom || padding.bottom !== padding.left) {
         onChange({
           top,
@@ -76,7 +76,6 @@ export const PaddingInput: React.FC<PaddingProps> = ({
   };
 
   const handlePaddingAllChange = (value: number) => {
-    // Update all sides with the common value
     onChange({
       top: value,
       right: value,
@@ -91,17 +90,16 @@ export const PaddingInput: React.FC<PaddingProps> = ({
     <PaddingWrapper style={containerStylePopUp}>
       {mainLabel && <label>{mainLabel}</label>}
 
-      {/* Common Padding Input */}
       <Input
         name="paddingAll"
         value={isCommonPadding ? padding.top : ""}
         onChange={(name, value) => {
           const newPadding = parseInt(value, 10);
           if (!isNaN(newPadding)) {
-            handlePaddingAllChange(newPadding); // Apply the common value to all sides
+            handlePaddingAllChange(newPadding); 
           }
         }}
-        type="text"
+        type="number"
         unitsLabel="px"
         containerStyle={{
           borderRadius: "5px",
@@ -117,8 +115,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       </ToggleButton>
 
       {isPopupOpen && (
-        <Popup>
-          {/* Individual padding inputs */}
+        <Popup ref={popupRef}>
           <Input
             name="paddingTop"
             value={padding.top}
