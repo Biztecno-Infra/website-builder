@@ -17,6 +17,7 @@ const Wrapper = styled.div`
 `;
 
 const Label = styled.label<{ color: string; fontSize: string }>`
+&.ebr-BasePropertyWrapperLabel{
   line-height: 1rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
@@ -27,6 +28,7 @@ const Label = styled.label<{ color: string; fontSize: string }>`
     font-size: 1rem;
     line-height: 1.25rem;
   }
+}
 `;
 
 function BasePropertyWrapper({
@@ -38,7 +40,7 @@ function BasePropertyWrapper({
   const theme = useTheme();
   return (
     <Wrapper style={containerStyle}>
-      <Label color={labelColor || theme.colors.primary}>{name}</Label>
+      <Label className="ebr-BasePropertyWrapperLabel" color={labelColor || theme.colors.primary}>{name}</Label>
       {children}
     </Wrapper>
   );

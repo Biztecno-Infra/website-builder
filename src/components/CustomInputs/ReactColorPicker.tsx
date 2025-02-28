@@ -37,6 +37,7 @@ const ColorBox = styled.div<{ selectedColor: string }>`
 `;
 
 const ColorHexInput = styled.input`
+&.ebr-colorHexInput{
   font-size: 14px;
   border: none;
   background: #F1F1F1;
@@ -45,6 +46,7 @@ const ColorHexInput = styled.input`
   text-transform: uppercase;
   text-align: left;
   margin-left: 0.5rem;
+}
 `;
 
 const GradientPickerContainer = styled.div`
@@ -94,6 +96,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
         <ColorBox selectedColor={color} onClick={() => setPickerVisible(!isPickerVisible)} />
 
         <ColorHexInput
+          className="ebr-colorHexInput"
           type="text"
           value={color}
           onChange={(e) => handleColorChange(e.target.value.toUpperCase())}

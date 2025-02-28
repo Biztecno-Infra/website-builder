@@ -177,9 +177,9 @@ export function Input({
             svgStyle={{ padding: 3, width: "35%" }}
           />
         )}
-        <input 
-        className="email-custom-input"
-        type={type}
+        <input
+          className="email-custom-input"
+          type={type}
           value={value}
           name={name}
           placeholder={placeholder}
@@ -189,7 +189,7 @@ export function Input({
           onKeyDown={onKeyDown}
           width={unitsLabel || iconProps?.name ? "40%" : "100%"}
           style={inputStyle}
-          />
+        />
         {/* <StyledInput
           theme={theme}
           type={type}

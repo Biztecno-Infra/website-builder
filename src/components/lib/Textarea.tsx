@@ -2,6 +2,7 @@ import React from "react";
 import styled, { useTheme } from "styled-components";
 
 const StyledTextArea = styled.textarea`
+&.ebr-styledTextArea{
   padding: 0.75rem;
   border: 1px solid #dddddd;
   border-radius: 5px;
@@ -18,6 +19,7 @@ const StyledTextArea = styled.textarea`
     border-color: ${({ theme }) => theme.colors.inputDisabledBorder};
     cursor: not-allowed;
   }
+}
 `;
 
 interface TextAreaProps {
@@ -49,6 +51,7 @@ export function TextArea({
 
   return (
     <StyledTextArea
+      className="ebr-styledTextArea"
       theme={theme}
       name={name}
       value={value}

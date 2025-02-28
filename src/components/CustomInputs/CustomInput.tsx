@@ -10,6 +10,7 @@ const InputContainer = styled.div`
 `;
 
 const Label = styled.label`
+&.ebr-inputLabel{
   line-height: 1rem;
   font-weight: 600;
   padding-left: 0.25rem;
@@ -20,9 +21,11 @@ const Label = styled.label`
     font-size: 1rem;
     line-height: 1.25rem;
   }
+}
 `;
 
 const StyledInput = styled.input`
+&.ebr-input{
   width: 100%;
   height: 2.375rem;
   padding: 0.5rem;
@@ -34,6 +37,7 @@ const StyledInput = styled.input`
   &::placeholder {
     color: ${(props) => props.theme.colors.inputPlaceholderColor}; 
   }
+}
 `;
 
 const ErrorText = styled.div`
@@ -85,11 +89,13 @@ export function CustomInput({
     <InputContainer>
       {label &&
         <Label
+          className="ebr-inputLabel"
           color={theme.colors.primary}
           fontSize={theme.fontSize.labelHeader}>
           {label}
         </Label>}
       <StyledInput
+        className="ebr-input"
         theme={theme}
         type={type}
         value={value}

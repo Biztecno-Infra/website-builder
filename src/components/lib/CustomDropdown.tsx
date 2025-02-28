@@ -16,6 +16,7 @@ const InputContainer = styled.div`
 `;
 
 const StyledInput = styled.input`
+&.ebr-styledInputDropdown{
   width: 100%;
   height: 1.5rem;
   padding: 7px;
@@ -30,6 +31,7 @@ const StyledInput = styled.input`
     outline: none;
     border-color: #666;
   }
+}
 `;
 
 const IconWrapper = styled.div`
@@ -92,6 +94,7 @@ export function CustomDropdown({ name, options, onChange, containerStyle, initia
     <DropdownWrapper style={containerStyle}>
       <InputContainer>
         <StyledInput
+          className="ebr-styledInputDropdown"
           value={selectedValue}
           readOnly
           onClick={() => setShowOptions(!showOptions)}
