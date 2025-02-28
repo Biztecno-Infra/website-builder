@@ -21,7 +21,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderStyle,
     borderColor,
     borderRadius,
-    customCss ,
+    customCss,
   } = selectedBlock as GridProps;
 
   const [formData, setFormData] = useState({
@@ -106,6 +106,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Column Width"
           containerStyle={{ padding: 0, border: "none", width: "100%" }}
+          labelColor={{ color: "#111111" }}
         >
           <ColumnCellWidthComponent
             rows={formData.rows}

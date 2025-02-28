@@ -53,11 +53,6 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
     return { hasChildBlocks: false, isEnableDrop: false };
   }, [block]);
 
-  const toggleExpansion = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded((prev) => !prev);
-  }, []);
-
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "TREE_BLOCK",
     item: { id: block?.id },
@@ -78,6 +73,7 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
   const handleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedBlock(block);
+    setIsExpanded((prev) => !prev);
   }, [block, setSelectedBlock]);
 
   const handleDragStart = useCallback((e: React.DragEvent) => {
@@ -104,7 +100,7 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
     >
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
-          <ChevronIcon isExpanded={isExpanded} onClick={toggleExpansion}>
+          <ChevronIcon isExpanded={isExpanded} >
             <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
           </ChevronIcon>
         )}
@@ -194,8 +190,8 @@ const NodeTree = () => {
       <RootBlockContainer isExpanded={isRootExpanded} onClick={handleRootClick}>
         <ChevronIcon isExpanded={isRootExpanded} onClick={toggleRootExpansion}>
           <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+          <BlockContentText>Root Block</BlockContentText>
         </ChevronIcon>
-        <BlockContentText>Root Block</BlockContentText>
       </RootBlockContainer>
       {isRootExpanded &&
         rootBlockOrder.map(renderBlockNode)}

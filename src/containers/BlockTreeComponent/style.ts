@@ -14,6 +14,8 @@ export const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
   cursor: ${({ hasChildBlocks }) => (hasChildBlocks ? "pointer" : "default")};
   display: flex;
   align-items: center;
+  width: 100%;
+  
 `;
 
 export const ChildNodesContainer = styled.div`
@@ -46,7 +48,9 @@ export const ExpandIcon = styled.div`
   transform: rotate(270deg);
 `;
 
-export const ChevronIcon = styled.span<{ isExpanded: boolean }>`
+export const ChevronIcon = styled.samp<{ isExpanded: boolean }>`
+display: flex;
+flex-direction: row;
   margin-right: 10px;
   cursor: pointer;
   font-size: 16px;
