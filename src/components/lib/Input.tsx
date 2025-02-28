@@ -8,7 +8,11 @@ interface StyledInputProps {
   width: string | number;
 }
 
-const InputContainer = styled.div`
+
+const InputContainer = styled.div.withConfig({
+  displayName: 'InputContainer',
+  componentId: 'sc-input-container', // This ensures a unique class name
+})`
   display: flex;
   flex-direction: row;
   position: relative;
@@ -16,23 +20,9 @@ const InputContainer = styled.div`
   background-color: #f1f1f1;
   align-items: center;
   border-radius: 5px;
-`;
 
-const Label = styled.label<{ color: string; fontSize: string }>`
-  line-height: 1rem;
-  font-weight: 600;
-  padding-bottom: 0.5rem;
-  color: ${({ color }) => color};
-  font-size: ${({ fontSize }) => fontSize};
-
-  @media screen and (min-width: 1919px) {
-    font-size: 1rem;
-    line-height: 1.25rem;
-  }
-`;
-
-const StyledInput = styled.input<StyledInputProps>`
-  width: ${({ width }) => width || "100%"};
+  .email-custom-input {
+  width: ${({ width }: any) => width || '100%'};
   height: 1.5rem;
   padding: 3px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
@@ -51,7 +41,42 @@ const StyledInput = styled.input<StyledInputProps>`
   }
 
   /* For Firefox */
-  &[type="number"] {
+  &[type='number'] {
+    -moz-appearance: textfield;
+  }
+
+  &:disabled {
+    background-color: ${({ theme }) => theme.colors.disabledBg};
+    color: ${({ theme }) => theme.colors.disabledText};
+    cursor: not-allowed;
+  }
+  }
+`;
+
+const StyledInput = styled.input.withConfig({
+  displayName: 'StyledInput',
+  componentId: 'sc-styled-input',
+})`
+  width: ${({ width }) => width || '100%'};
+  height: 1.5rem;
+  padding: 3px;
+  border: 1px solid ${({ theme }) => theme.colors.inputColor};
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.inputPlaceholderColor};
+  }
+
+  /* Hiding the number input arrows */
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* For Firefox */
+  &[type='number'] {
     -moz-appearance: textfield;
   }
 
@@ -61,6 +86,8 @@ const StyledInput = styled.input<StyledInputProps>`
     cursor: not-allowed;
   }
 `;
+
+
 
 const ErrorText = styled.div`
   color: red;
@@ -150,7 +177,20 @@ export function Input({
             svgStyle={{ padding: 3, width: "35%" }}
           />
         )}
-        <StyledInput
+        <input 
+        className="email-custom-input"
+        type={type}
+          value={value}
+          name={name}
+          placeholder={placeholder}
+          onChange={handleInputChange}
+          onBlur={onBlur}
+          disabled={disabled}
+          onKeyDown={onKeyDown}
+          width={unitsLabel || iconProps?.name ? "40%" : "100%"}
+          style={inputStyle}
+          />
+        {/* <StyledInput
           theme={theme}
           type={type}
           value={value}
@@ -162,7 +202,7 @@ export function Input({
           onKeyDown={onKeyDown}
           width={unitsLabel || iconProps?.name ? "40%" : "100%"}
           style={inputStyle}
-        />
+        /> */}
         {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       </InputContainer>
       {/* {error && <ErrorText>{error}</ErrorText>} */}
