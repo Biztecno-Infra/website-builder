@@ -19,6 +19,7 @@ interface ButtonProps {
 }
 
 const Button = styled.button<ButtonProps>`
+&.ebr-button{
   padding: 0.5rem;
   border-radius: ${({ theme }) => theme.borderRadius}px;
   border: none;
@@ -53,9 +54,7 @@ const Button = styled.button<ButtonProps>`
     iconProps?.iconSize ? sizeMapping[iconProps.iconSize] : "1rem"};
     display: inline-block;
   }
-
- 
-`;
+}`;
 
 const ButtonComponent: React.FC<ButtonProps> = ({
   primary,
@@ -69,6 +68,7 @@ const ButtonComponent: React.FC<ButtonProps> = ({
 }) => {
   return (
     <Button
+      className="ebr-button"
       primary={primary}
       secondary={secondary}
       transparent={transparent}
