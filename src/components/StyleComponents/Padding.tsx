@@ -96,7 +96,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
         onChange={(name, value) => {
           const newPadding = parseInt(value, 10);
           if (!isNaN(newPadding)) {
-            handlePaddingAllChange(newPadding); 
+            handlePaddingAllChange(newPadding);
           }
         }}
         type="number"
@@ -116,33 +116,35 @@ export const PaddingInput: React.FC<PaddingProps> = ({
 
       {isPopupOpen && (
         <Popup ref={popupRef}>
+
           <Input
             name="paddingTop"
             value={padding.top}
             onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderTop: "1px solid #0B978E", width: "20%" }}
+            containerStyle={{ borderTop: "1px solid #0B978E", width: "20%", paddingTop: '2px' }}
           />
+
           <Input
             name="paddingLeft"
             value={padding.left}
             onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderLeft: "1px solid #0B978E", width: "20%" }}
+            containerStyle={{ borderLeft: "1px solid #0B978E", width: "20%", paddingLeft: '2px' }}
           />
           <Input
             name="paddingRight"
             value={padding.right}
             onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderRight: "1px solid #0B978E", width: "20%" }}
+            containerStyle={{ borderRight: "1px solid #0B978E", width: "20%", paddingRight: "2px" }}
           />
           <Input
             name="paddingBottom"
             value={padding.bottom}
             onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderBottom: "1px solid #0B978E", width: "20%" }}
+            containerStyle={{ borderBottom: "1px solid #0B978E", width: "20%", paddingBottom: "2px" }}
           />
         </Popup>
       )}

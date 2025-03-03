@@ -107,7 +107,7 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
         <BlockContentText>
           <BlockTextIcon>
             <BlockText>{blockTypeIcons[block?.type]}</BlockText>
-            <div style={{ fontSize: "12px", lineHeight: "13.4px" }}>
+            <div style={{ fontSize: "12px" }}>
               {block?.type}
             </div>
           </BlockTextIcon>
