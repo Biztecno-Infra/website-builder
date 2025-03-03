@@ -12,7 +12,7 @@ const EmptyBlockContainer = styled.div`
   height: 100%;
   font-size: 2rem;
   border: 1px dashed #DDDDDD;
-  border-radius: 10px;
+  // border-radius: 10px;
   margin-top: 0.5rem;
 `;
 

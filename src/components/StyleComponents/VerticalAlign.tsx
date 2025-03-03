@@ -1,4 +1,4 @@
-import { CustomDropdown } from "@components/CustomInputs";
+import { Dropdown } from "@components/lib";
 import React from "react";
 
 // Define the options for vertical alignment dropdown
@@ -18,11 +18,9 @@ export const VerticalAlignmentDropdown: React.FC<VerticalAlignmentDropdownProps>
   onChange,
 }) => {
   return (
-      <CustomDropdown
+      <Dropdown
         name="verticalAlignment"
-        label="Vertical Alignment"
         options={verticalAlignmentOptions}
-        placeholder="Select Vertical Alignment"
         onChange={(name, value) => onChange("verticalAlignment", value as string)}
         initialValue={value}
       />

@@ -21,7 +21,7 @@ const InputContainer = styled.div.withConfig({
   align-items: center;
   border-radius: 5px;
 
-  .email-custom-input {
+  .ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};
   height: 1.5rem;
   padding: 3px;
@@ -52,41 +52,6 @@ const InputContainer = styled.div.withConfig({
   }
   }
 `;
-
-const StyledInput = styled.input.withConfig({
-  displayName: 'StyledInput',
-  componentId: 'sc-styled-input',
-})`
-  width: ${({ width }) => width || '100%'};
-  height: 1.5rem;
-  padding: 3px;
-  border: 1px solid ${({ theme }) => theme.colors.inputColor};
-  border-radius: 5px;
-  font-family: Arial, sans-serif;
-  font-size: 0.75rem;
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.inputPlaceholderColor};
-  }
-
-  /* Hiding the number input arrows */
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  /* For Firefox */
-  &[type='number'] {
-    -moz-appearance: textfield;
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.disabledBg};
-    color: ${({ theme }) => theme.colors.disabledText};
-    cursor: not-allowed;
-  }
-`;
-
 
 
 const ErrorText = styled.div`
@@ -140,7 +105,6 @@ export function Input({
   inputStyle,
 }: InputProps) {
   const [error, setError] = useState<string>("");
-  const theme = useTheme();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -178,7 +142,7 @@ export function Input({
           />
         )}
         <input
-          className="email-custom-input"
+          className="ebr-styledInput"
           type={type}
           value={value}
           name={name}

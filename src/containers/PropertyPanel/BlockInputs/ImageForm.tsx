@@ -20,7 +20,7 @@ const WidthHeightContainer = styled.div`
   flex-direction: row;
   padding-bottom: 0.5rem;
   width: 100%;
-`
+`;
 const PaddingContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -42,7 +42,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     navigateToUrl,
-    customCss ,
+    customCss,
   } = selectedBlock as ImageProps;
 
   const [formData, setFormData] = useState({
@@ -149,7 +149,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <FormWrapper>
-
       <BasePropertyWrapper name="Edit Image">
         <Input
           name="imageUrl"
@@ -192,7 +191,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               width: "45%",
-              paddingRight: "0.5rem"
+              paddingRight: "0.5rem",
             }}
           />
           <Input
@@ -210,11 +209,15 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "45%",
               marginLeft: "1rem",
-              paddingRight: "0.5rem"
+              paddingRight: "0.5rem",
             }}
           />
         </WidthHeightContainer>
-        <AlignmentSelector onChange={handleChange} value={formData.alignment} containerStyle={{ width: "60%", }} />
+        <AlignmentSelector
+          onChange={handleChange}
+          value={formData.alignment}
+          containerStyle={{ width: "60%" }}
+        />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
         <PaddingContainer>
@@ -222,7 +225,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             onColorChange={(field, value) =>
               handleChange("backgroundColor", value)
             }
-            // label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "50%" }}
           />
@@ -230,20 +232,27 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: '40%', paddingLeft: '1rem' }}
+            containerStylePopUp={{ width: "40%", paddingLeft: "1rem" }}
           />
         </PaddingContainer>
-        <BasePropertyWrapper name="Border Properties" labelColor={{ color: "#111111", paddingTop: "1rem", width: '100%' }} containerStyle={{ border: "none", padding: 0, width: "95%" }}>
+        <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{ border: "none", padding: 0, width: "95%" }}
+        >
           <BorderStyleDropdown
             onChange={handleChange}
             borderWidth={formData.borderWidth}
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
-            containerStyle={{ border: "1px solid #DDDDDD", borderRadius: "10px", padding: "0.5rem" }}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
           />
         </BasePropertyWrapper>
-
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea

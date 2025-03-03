@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { FontFamilyDropdown } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { ReactColorPicker } from "@components/CustomInputs";
 import { GlobalStyles } from "types";
+import { Dropdown } from "@components/lib";
+import { fontOptions } from "../constant";
 
 interface GlobalStylesFormProps {
   globalStyles: GlobalStyles;
@@ -53,13 +54,14 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
           label={"Select Text color"}
           onColorChange={(field, value) => handleChange("textColor", value)}
           selectedColor={styles.textColor}
-          containerStyle={{width: "80%" , marginBottom: 10}}
+          containerStyle={{ width: "80%", marginBottom: 10 }}
         />
-
-        <FontFamilyDropdown
-          onChange={(field, value) => handleChange("fontFamily", value)}
-          value={styles.fontFamily}
-          style={{width: "80%" , marginBottom: 10}}
+        <Dropdown
+          name="fontFamily"
+          onChange={handleChange}
+          options={fontOptions}
+          initialValue={styles.fontFamily}
+          containerStyle={{ width: "80%", marginBottom: 10 }}
         />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Background">
@@ -67,7 +69,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
           label={"Select Canvas color"}
           onColorChange={(field, value) => handleChange("canvasColor", value)}
           selectedColor={styles.canvasColor}
-          containerStyle={{width: "80%"}}
+          containerStyle={{ width: "80%" }}
           // defaultColor={globalStyles.canvasColor}
         />
       </BasePropertyWrapper>

@@ -1,8 +1,7 @@
 import React from "react";
-import { CustomDropdown } from "@components/CustomInputs";
-import { Input } from "@components/lib";
-import { ReactColorPicker } from "@components/CustomInputs";
 import styled from "styled-components";
+import { Input, Dropdown } from "@components/lib";
+import { ReactColorPicker } from "@components/CustomInputs";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const Wrapper = styled.div`
@@ -18,18 +17,12 @@ const BorderContainer = styled.div`
   justify-content: space-between;
 `;
 
-const borderStyleOptions = [
-  { key: "", text: "Border Style", value: "" },
+export const borderStyleOptions = [
+  { key: "", text: "None", value: "" },
   { key: "solid", text: "Solid", value: "solid" },
   { key: "dashed", text: "Dashed", value: "dashed" },
   { key: "dotted", text: "Dotted", value: "dotted" },
-  { key: "double", text: "Double", value: "double" },
-  { key: "groove", text: "Groove", value: "groove" },
-  { key: "ridge", text: "Ridge", value: "ridge" },
-  { key: "inset", text: "Inset", value: "inset" },
-  { key: "outset", text: "Outset", value: "outset" },
-  { key: "none", text: "None", value: "none" },
-  { key: "hidden", text: "Hidden", value: "hidden" },
+  { key: "double", text: "Double", value: "double" }
 ];
 
 interface BorderStyleDropdownProps {
@@ -47,19 +40,15 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   borderStyle,
   borderColor,
   borderRadius,
-  containerStyle
+  containerStyle,
 }) => {
   return (
     <Wrapper style={containerStyle}>
-      <CustomDropdown
-        id="borderStyle"
+      <Dropdown
         name="borderStyle"
-        label="Border Style"
         options={borderStyleOptions}
-        placeholder="Select Border Style"
-        onChange={(name, value) => onChange("borderStyle", value)}
+        onChange={(name, value) => onChange("borderStyle", value as string)}
         initialValue={borderStyle}
-      // containerStyle={{ width: '%' }}
       />
       <BorderContainer>
         <ReactColorPicker
@@ -71,7 +60,6 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         <Input
           name="borderRadius"
           type="text"
-          label="Border Radius"
           value={borderRadius}
           onChange={(name, value) => onChange("borderRadius", value)}
           iconProps={{
@@ -82,11 +70,9 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         />
       </BorderContainer>
 
-
       <Input
         name="borderWidth"
         type="text"
-        label="Border Width"
         value={borderWidth}
         onChange={(name, value) => onChange("borderWidth", value)}
         iconProps={{
@@ -95,7 +81,6 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         unitsLabel="px"
         containerStyle={{ width: "40%", paddingRight: "0.5rem" }}
       />
-
     </Wrapper>
   );
 };

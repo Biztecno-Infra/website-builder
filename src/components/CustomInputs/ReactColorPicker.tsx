@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import GradientColorPicker from "react-best-gradient-color-picker";
 import useClickOutside from "hoc/useClickOutside";
@@ -24,7 +24,6 @@ const PickerRow = styled.div`
   align-items: center;
   justify-content: space-between;
   padding: 5px;
-
 `;
 
 const ColorBox = styled.div<{ selectedColor: string }>`
@@ -37,16 +36,16 @@ const ColorBox = styled.div<{ selectedColor: string }>`
 `;
 
 const ColorHexInput = styled.input`
-&.ebr-colorHexInput{
-  font-size: 14px;
-  border: none;
-  background: #F1F1F1;
-  border-radius: 4px;
-  width: calc(100% - 2rem);
-  text-transform: uppercase;
-  text-align: left;
-  margin-left: 0.5rem;
-}
+  &.ebr-colorHexInput {
+    font-size: 14px;
+    border: none;
+    background: #f1f1f1;
+    border-radius: 4px;
+    width: calc(100% - 2rem);
+    text-transform: uppercase;
+    text-align: left;
+    margin-left: 0.5rem;
+  }
 `;
 
 const GradientPickerContainer = styled.div`
@@ -71,17 +70,23 @@ const rgbToHex = (color: string) => {
         .join("")}`.toUpperCase();
     }
   }
-  return color.toUpperCase(); // If already HEX, return as is
+  return color.toUpperCase(); 
 };
 
 export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   selectedColor,
-  containerStyle
+  containerStyle,
 }) => {
-  const [color, setColor] = useState(selectedColor || "#000000");
-  const [isPickerVisible, setPickerVisible] = useState(false);
+  const [color, setColor] = useState<string>("#000000");
+  const [isPickerVisible, setPickerVisible] = useState<boolean>(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
+
+  useEffect(() => {
+    if (selectedColor && selectedColor !== color) {
+      setColor(selectedColor);
+    }
+  }, [selectedColor, color]);
 
   const handleColorChange = (newColor: string) => {
     const hexColor = rgbToHex(newColor);
@@ -92,8 +97,10 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <ColorPickerContainer style={containerStyle}>
       <PickerRow>
-
-        <ColorBox selectedColor={color} onClick={() => setPickerVisible(!isPickerVisible)} />
+        <ColorBox
+          selectedColor={color}
+          onClick={() => setPickerVisible(!isPickerVisible)}
+        />
 
         <ColorHexInput
           className="ebr-colorHexInput"

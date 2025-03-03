@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from "react";
 import {
   AlignmentSelector,
-  FontFamilyDropdown,
-  FontWeightDropdown,
   PaddingInput,
 } from "@components/StyleComponents";
-import { ReactColorPicker } from "@components/CustomInputs";
+import {  ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { TextProps } from "../../../types";
-import { TextArea, Input } from "@components/lib";
+import { TextArea, Input ,Dropdown } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
+import { fontOptions, fontWeightOptions } from "../constant";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -31,7 +30,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     fontSize = 16,
     fontWeight = "400",
     padding,
-    textColor,
+    textColor = "",
     backgroundColor,
     alignment,
     customCss,
@@ -73,6 +72,8 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
+  console.log(selectedBlock, "textForm", formData);
+
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
       const updatedFormData = {
@@ -80,6 +81,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         [field]: value,
       };
       updateBlock(blockId, field, value);
+      console.log(updatedFormData, "textForm");
       return updatedFormData;
     });
   };
@@ -97,10 +99,14 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           }
         />
         <FlexRow style={{ marginTop: "10px" }}>
-          <FontFamilyDropdown
-            onChange={handleChange}
-            value={formData.fontFamily}
-            style={{ width: "65%" }}
+          <Dropdown
+            name="fontFamily"
+            options={fontOptions}
+            onChange={(name, value) =>
+              handleChange("fontFamily", value as string)
+            }
+            containerStyle={{ width: "65%" }}
+            initialValue={formData.fontFamily}
           />
           <Input
             name="fontSize"
@@ -124,10 +130,12 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             selectedColor={formData.textColor || ""}
             containerStyle={{ width: "65%" }}
           />
-          <FontWeightDropdown
-            onChange={(field, value) => handleChange(field, value)}
-            value={formData.fontWeight}
-            fontWeightStyle={{ width: "28%" }}
+          <Dropdown
+            name="fontWeight"
+            options={fontWeightOptions}
+            onChange={handleChange}
+            initialValue={formData.fontWeight}
+            containerStyle={{ width: "28%" }}
           />
         </FlexRow>
         <ColorPickerContainer>

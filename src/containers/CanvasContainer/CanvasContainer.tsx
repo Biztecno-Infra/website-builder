@@ -16,7 +16,7 @@ interface TableWrapperProps {
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
   cursor: pointer;
   border: ${({ isSelected }) => (isSelected ? "1px dashed #006E75" : "none")};
-  border-radius: 10px;
+  // border-radius: 10px;
   position: relative;
 `;
 

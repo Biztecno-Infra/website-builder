@@ -47,7 +47,6 @@ const getDistributtedLength = (length: number): Array<number> => {
 
 
 export const useBlocks = (): IBlockContext => {
-  const theme = useTheme();
   const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(null);
   const [globalStyles, setGlobalStyles] = useState<GlobalStyles>(initialGlobalStyle);
 

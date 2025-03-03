@@ -6,6 +6,7 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
+import { ReactColorPicker } from "@components/CustomInputs";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -80,7 +81,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
 
   return (
     <FormWrapper>
-      <BasePropertyWrapper name="Edit Spacer">
+      <BasePropertyWrapper name="Edit Columns">
         <FlexRow>
           <Input
             name="columns"
@@ -106,7 +107,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Column Width"
           containerStyle={{ padding: 0, border: "none", width: "100%" }}
-          labelColor={{ color: "#111111" }}
+          subLabel
         >
           <ColumnCellWidthComponent
             rows={formData.rows}
@@ -120,9 +121,16 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       </BasePropertyWrapper>
 
       <BasePropertyWrapper name="Edit Container">
+        <ReactColorPicker
+          onColorChange={(field, value) =>
+            handleChange("backgroundColor", value)
+          }
+          selectedColor={formData.backgroundColor}
+          containerStyle={{ width: "80%", marginBottom: 10 }}
+        />
         <BasePropertyWrapper
           name="Border Properties"
-          labelColor={{ color: "#111111", paddingTop: "1rem", width: "100%" }}
+          subLabel
           containerStyle={{ padding: 0, width: "95%", border: "none" }}
         >
           <BorderStyleDropdown

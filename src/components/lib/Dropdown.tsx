@@ -1,11 +1,11 @@
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import useClickOutside from "hoc/useClickOutside";
 
 const DropdownWrapper = styled.div`
   position: relative;
   width: 100%;
-
 `;
 
 const InputContainer = styled.div`
@@ -16,28 +16,28 @@ const InputContainer = styled.div`
 `;
 
 const StyledInput = styled.input`
-&.ebr-styledInputDropdown{
-  width: 100%;
-  height: 1.5rem;
-  padding: 7px;
-  border-radius: 5px;
-  font-family: Arial, sans-serif;
-  font-size: 0.75rem;
-  background-color: #f1f1f1;
-  cursor: pointer;
-  border: none;
+  &.ebr-styledInputDropdown {
+    width: 100%;
+    height: 1.5rem;
+    padding: 7px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 0.75rem;
+    background-color: #f1f1f1;
+    cursor: pointer;
+    border: none;
 
-  &:focus {
-    outline: none;
-    border-color: #666;
+    &:focus {
+      outline: none;
+      border-color: #666;
+    }
   }
-}
 `;
 
 const IconWrapper = styled.div`
   position: absolute;
   right: 5px;
-  pointer-events: none; 
+  pointer-events: none;
 `;
 
 const OptionsContainer = styled.div<{ show: boolean }>`
@@ -61,8 +61,8 @@ const Option = styled.div`
   cursor: pointer;
 
   &:hover {
-    background-color: #0B978E;
-    color: #FFFFFF;
+    background-color: #0b978e;
+    color: #ffffff;
   }
 `;
 
@@ -80,9 +80,17 @@ interface DropdownProps {
   initialValue?: string;
 }
 
-export function CustomDropdown({ name, options, onChange, containerStyle, initialValue }: DropdownProps) {
+export function Dropdown({
+  name,
+  options,
+  onChange,
+  containerStyle,
+  initialValue,
+}: DropdownProps) {
   const [showOptions, setShowOptions] = useState<boolean>(false);
-  const [selectedValue, setSelectedValue] = useState<string>(initialValue || "");
+  const [selectedValue, setSelectedValue] = useState<string>("");
+
+  const dropdownRef = useClickOutside(() => setShowOptions(false));
 
   const handleSelect = (value: string) => {
     setSelectedValue(value);
@@ -90,8 +98,15 @@ export function CustomDropdown({ name, options, onChange, containerStyle, initia
     if (onChange) onChange(name, value);
   };
 
+  useEffect(() => {
+    if (initialValue) {
+      setSelectedValue(initialValue);
+    }
+  }, [initialValue]);
+  console.log(initialValue , "Dropdown")
+
   return (
-    <DropdownWrapper style={containerStyle}>
+    <DropdownWrapper ref={dropdownRef} style={containerStyle}>
       <InputContainer>
         <StyledInput
           className="ebr-styledInputDropdown"
@@ -106,7 +121,10 @@ export function CustomDropdown({ name, options, onChange, containerStyle, initia
       </InputContainer>
       <OptionsContainer show={showOptions}>
         {options.map((option) => (
-          <Option key={option.key} onClick={() => handleSelect(option.value.toString())}>
+          <Option
+            key={option.key}
+            onClick={() => handleSelect(option.value.toString())}
+          >
             {option.text}
           </Option>
         ))}

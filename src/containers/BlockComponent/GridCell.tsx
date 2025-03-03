@@ -21,7 +21,7 @@ const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['paddi
   width: ${(props) => `${Math.round(props.cellWidth)}px`};
   max-width: ${(props) => `${Math.round(props.cellWidth)}px`};
   background-color: ${(props) => (props as any).backgroundColor || ""};
-    border-radius: 10px;
+    // border-radius: 10px;
 `;
 
 const GridCellContainer = styled.div`

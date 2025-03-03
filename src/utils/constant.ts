@@ -10,10 +10,10 @@ import {
   TextProps,
 } from "../types";
 
-
+export const defaultTextColor : string = "#000000";
 export const initialGlobalStyle : GlobalStyles = {
   canvasColor: "#FFFFFF",
-  textColor: "#262626",
+  textColor: defaultTextColor,
   fontFamily: "MODERN_SANS",
 };
 
@@ -50,6 +50,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "", 
       borderColor: "", 
       borderRadius : "",
+      backgroundColor: ""
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -68,7 +69,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
   } else if (blockType === BlockType.TEXT) {
     return {
       text: "Text Block",
-      textColor: "",
+      textColor: defaultTextColor,
       fontSize: 16,
       fontWeight: "400",
       padding: defaultPadding,
@@ -103,6 +104,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       childBlocks: [],
       padding: defaultGridPadding,
       verticalAlignment: "middle",
+      backgroundColor: ""
     };
   } else if (blockType === BlockType.DIVIDER) {
     return {
