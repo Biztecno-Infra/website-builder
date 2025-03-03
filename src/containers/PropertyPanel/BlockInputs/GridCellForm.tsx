@@ -5,28 +5,29 @@ import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { defaultGridPadding } from "@utils/constant";
 import { ReactColorPicker } from "@components/CustomInputs";
+import { FlexRow } from "../style";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { padding: initialPadding , backgroundColor , verticalAlignment } = selectedBlock as IGridCellProps;
+  const { padding: initialPadding, backgroundColor, verticalAlignment } = selectedBlock as IGridCellProps;
 
   const [formData, setFormData] = useState({
     padding: initialPadding || defaultGridPadding,
     backgroundColor,
-    verticalAlignment 
+    verticalAlignment
   });
 
   useEffect(() => {
     setFormData(({
       padding: initialPadding || defaultGridPadding,
-      backgroundColor, 
+      backgroundColor,
       verticalAlignment
     }));
   }, [selectedBlock]);
 
-  const handleChange = (field : string , value: any) => {
+  const handleChange = (field: string, value: any) => {
     setFormData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -35,16 +36,20 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
   };
 
   return (
-    <BasePropertyWrapper name="Grid Cell Form">
-      <PaddingInput
-        padding={formData.padding}
-        onChange={(padding) => handleChange("padding", padding)}
-      />
-      <ReactColorPicker
-        onColorChange={(field, value) => handleChange("backgroundColor", value)}
-        label={"Select Background color"}
-        selectedColor={formData.backgroundColor}
-      />
+    <BasePropertyWrapper name="Edit Column" containerStyle={{ border: 'none' }}>
+      <FlexRow>
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("backgroundColor", value)}
+          label={"Select Background color"}
+          selectedColor={formData.backgroundColor}
+          containerStyle={{ width: "60%" }}
+        />
+        <PaddingInput
+          padding={formData.padding}
+          onChange={(padding) => handleChange("padding", padding)}
+          containerStylePopUp={{ width: "35%" }}
+        />
+      </FlexRow>
       <VerticalAlignmentDropdown
         value={formData.verticalAlignment}
         onChange={handleChange}
