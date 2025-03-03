@@ -8,7 +8,7 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 
 // Styled component for the grid cell
-const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number }>`
+const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number ; backgroundColor: string; }>`
   border: ${({ selected }) => (selected ? "1px dashed #006E75" : "none")};
   padding-top: ${(props) => props.padding?.top}px;
   padding-bottom: ${(props) => props.padding?.bottom}px;
@@ -84,12 +84,13 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
-  
+  console.log(block)
   return (
     <StyledCell 
       selected={isSelected} 
       padding={(block as any)?.padding || {}} 
       cellWidth={cellWidth}
+      backgroundColor={block.backgroundColor}
       onClick={handleCellBlockClick}
     >
       {
