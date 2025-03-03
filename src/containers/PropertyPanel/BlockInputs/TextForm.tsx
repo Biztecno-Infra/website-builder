@@ -72,7 +72,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  console.log(selectedBlock, "textForm", formData);
 
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => {
@@ -81,7 +80,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         [field]: value,
       };
       updateBlock(blockId, field, value);
-      console.log(updatedFormData, "textForm");
       return updatedFormData;
     });
   };
@@ -120,6 +118,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               alignItems: "center",
               background: "#F1F1F1",
             }}
+            inputStyle={{width: "40%"}}
             unitsLabel="px"
             type="number"
           />
@@ -156,6 +155,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               size: SizeEnum.Small,
             }}
             containerStyle={{ width: "25%", padding: 3 }}
+            inputStyle={{width: "50%"}}
           />
           <Input
             name="navigateToUrl"

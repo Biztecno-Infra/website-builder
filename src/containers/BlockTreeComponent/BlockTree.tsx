@@ -5,6 +5,7 @@ import { useBlockHook } from "context/BlockContext";
 import styled from "styled-components";
 import Droppable from "@containers/Droppable";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import {
   BlockContainer,
   BlockContent,
@@ -23,12 +24,21 @@ interface BlockNodeProps {
   blockId: string;
 }
 
+//TOdo -> What if its color changes according to theme ??
 const blockTypeIcons: Record<BlockType, JSX.Element | null> = {
-  [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color="#006E75" />,
-  [BlockType.IMAGE]: <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#006E75" />,
-  [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#006E75" />,
-  [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#006E75" />,
-  [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#006E75" />,
+  [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color="#0B978E" />,
+  [BlockType.IMAGE]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#0B978E" />
+  ),
+  [BlockType.BUTTON]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#0B978E" />
+  ),
+  [BlockType.GRID]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#0B978E" />
+  ),
+  [BlockType.SPACER]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#0B978E" />
+  ),
   [BlockType.GRIDCELL]: null,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
@@ -53,39 +63,54 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
     return { hasChildBlocks: false, isEnableDrop: false };
   }, [block]);
 
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "TREE_BLOCK",
-    item: { id: block?.id },
-    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
-    canDrag: isEnableDrop,
-  }), [block, isEnableDrop]);
-
-  const [, drop] = useDrop(() => ({
-    accept: "TREE_BLOCK",
-    canDrop: (item, monitor) => monitor.isOver({ shallow: true }),
-    collect: (monitor) => ({
-      isOver: monitor.isOver({ shallow: true }),
-      canDrop: isEnableDrop || monitor.canDrop(),
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: "TREE_BLOCK",
+      item: { id: block?.id },
+      collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+      canDrag: isEnableDrop,
     }),
-    drop: (item: { id: string }) => handleDropper(item, block.id),
-  }), [block, isEnableDrop]);
+    [block, isEnableDrop]
+  );
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedBlock(block);
-    setIsExpanded((prev) => !prev);
-  }, [block, setSelectedBlock]);
+  const [, drop] = useDrop(
+    () => ({
+      accept: "TREE_BLOCK",
+      canDrop: (item, monitor) => monitor.isOver({ shallow: true }),
+      collect: (monitor) => ({
+        isOver: monitor.isOver({ shallow: true }),
+        canDrop: isEnableDrop || monitor.canDrop(),
+      }),
+      drop: (item: { id: string }) => handleDropper(item, block.id),
+    }),
+    [block, isEnableDrop]
+  );
 
-  const handleDragStart = useCallback((e: React.DragEvent) => {
-    if (block.type === BlockType.EMPTY) {
-      alert("Empty blocks cannot be dragged.");
-      e.preventDefault();
-    }
-  }, [block]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSelectedBlock(block);
+      setIsExpanded((prev) => !prev);
+    },
+    [block, setSelectedBlock]
+  );
 
-  const renderChildNodes = useCallback((gridChildId: string, index: number) => (
-    <BlockNode key={gridChildId} blockId={gridChildId} />
-  ), []);
+  const handleDragStart = useCallback(
+    (e: React.DragEvent) => {
+      if (block.type === BlockType.EMPTY) {
+        alert("Empty blocks cannot be dragged.");
+        e.preventDefault();
+      }
+    },
+    [block]
+  );
+
+  const renderChildNodes = useCallback(
+    (gridChildId: string, index: number) => (
+      <BlockNode key={gridChildId} blockId={gridChildId} />
+    ),
+    []
+  );
 
   return (
     <BlockContainer
@@ -100,18 +125,16 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
     >
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
-          <ChevronIcon isExpanded={isExpanded} >
+          <ChevronIcon isExpanded={isExpanded}>
             <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
           </ChevronIcon>
         )}
         <BlockContentText>
-          <BlockTextIcon>
-            <BlockText>{blockTypeIcons[block?.type]}</BlockText>
-            <div style={{ fontSize: "12px", lineHeight: "13.4px" }}>
-              {block?.type}
-            </div>
+          <BlockTextIcon style={{width: "80%"}}>
+            <BlockText style={{width: "20%"}}>{blockTypeIcons[block?.type]}</BlockText>
+            <div style={{ fontSize: "12px" , width:"80%" }}>{block?.type}</div>
           </BlockTextIcon>
-          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} />}
+          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{width:"20%"}}/>}
         </BlockContentText>
       </BlockContent>
 
@@ -130,9 +153,12 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
 const EmptyTreeNode = ({ id }: { id: string }) => {
   const { handleDropper } = useBlockHook();
 
-  const handleDrop = useCallback((item: any) => {
-    handleDropper(item, id);
-  }, [handleDropper, id]);
+  const handleDrop = useCallback(
+    (item: any) => {
+      handleDropper(item, id);
+    },
+    [handleDropper, id]
+  );
 
   return (
     <EmptyTreeNodeContainer onDrop={handleDrop}>
@@ -151,16 +177,21 @@ const DroppableContainer = styled(Droppable)`
 `;
 
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } = useBlockHook();
+  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } =
+    useBlockHook();
   const [isRootExpanded, setIsRootExpanded] = useState(true);
 
-  const renderBlockNode = useCallback((blockId: string) => (
-    <BlockNode key={blockId} blockId={blockId} />
-  ), []);
+  const renderBlockNode = useCallback(
+    (blockId: string) => <BlockNode key={blockId} blockId={blockId} />,
+    []
+  );
 
-  const handleDrop = useCallback((item: any) => {
-    handleDropper(item, undefined!);
-  }, [handleDropper]);
+  const handleDrop = useCallback(
+    (item: any) => {
+      handleDropper(item, undefined!);
+    },
+    [handleDropper]
+  );
 
   const handleRootClick = useCallback(() => {
     const rootBlock: RootLayout = {
@@ -177,24 +208,14 @@ const NodeTree = () => {
     setSelectedBlock(rootBlock);
   }, [rootBlockOrder, globalStyles, setSelectedBlock]);
 
-  const toggleRootExpansion = useCallback(() => {
-    setIsRootExpanded((prev) => !prev);
-  }, []);
-
   return (
-    <DroppableContainer
-      accept="TREE_BLOCK"
-      onDrop={handleDrop}
-    >
+    <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
-      <RootBlockContainer isExpanded={isRootExpanded} onClick={handleRootClick}>
-        <ChevronIcon isExpanded={isRootExpanded} onClick={toggleRootExpansion}>
-          <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
-          <BlockContentText>Root Block</BlockContentText>
-        </ChevronIcon>
+      <RootBlockContainer onClick={handleRootClick}>
+        <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{width: "20%"}}/>
+        <BlockContentText style={{width: "80%"}}>Global Settings</BlockContentText>
       </RootBlockContainer>
-      {isRootExpanded &&
-        rootBlockOrder.map(renderBlockNode)}
+      {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>
   );
 };

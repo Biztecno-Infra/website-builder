@@ -6,9 +6,8 @@ import GridEmptyCell from "./GridEmptyCell";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
-
-// Styled component for the grid cell
-const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number ; backgroundColor: string; }>`
+// Extend the `StyledCell` with `shouldForwardProp`
+const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number; backgroundColor: string; }>`
   border: ${({ selected }) => (selected ? "1px dashed #006E75" : "none")};
   padding-top: ${(props) => props.padding?.top}px;
   padding-bottom: ${(props) => props.padding?.bottom}px;
@@ -21,11 +20,19 @@ const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['paddi
   width: ${(props) => `${Math.round(props.cellWidth)}px`};
   max-width: ${(props) => `${Math.round(props.cellWidth)}px`};
   background-color: ${(props) => (props as any).backgroundColor || ""};
-    // border-radius: 10px;
+  
+  /* Prevent passing unknown props to the DOM */
+  &:not([data-is-selected]) {
+    /* Additional custom styles here if necessary */
+  }
 `;
 
+// Define which props should be forwarded to the DOM element
+StyledCell.shouldForwardProp = (prop) => !['selected', 'backgroundColor', 'cellWidth'].includes(prop);
+
 const GridCellContainer = styled.div`
-position:relative `;
+  position:relative;
+`;
 
 const DeleteWrapper = styled.div`
   position: absolute;
@@ -84,7 +91,7 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
-  console.log(block)
+
   return (
     <StyledCell 
       selected={isSelected} 

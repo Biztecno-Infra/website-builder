@@ -63,8 +63,9 @@ const Canvas: React.FC = () => {
     rootBlockOrder,
     setSelectedBlock,
     onDeleteBlock,
-    globalStyles
+    globalStyles , blocksToJson, convertJsonToHtml 
   } = useBlockHook();
+
   const theme = useTheme();
 
   const handleDrop = useCallback(
@@ -124,7 +125,7 @@ const Canvas: React.FC = () => {
                 </td>
               </tr>
             </tbody>
-            <EmptyBlock text="Drag & drop more elements to add." />
+            {/* <EmptyBlock text="Drag & drop more elements to add." /> */}
           </TableWrapper>
         ) : (
           <EmptyBlock text="Drag & drop elements here to start building " />

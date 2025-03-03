@@ -178,29 +178,28 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         />
         <WidthHeightContainer>
           <Input
-            type="text"
-            name="width"
-            // placeholder="Enter Width"
-            value={formData.width || ""}
+            type="number"
+            name="height"
+            value={formData.height || ""}
             onChange={(name: string, value: string) =>
-              handleChange("width", value)
+              handleChange("height", value)
             }
             unitsLabel="px"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             containerStyle={{
-              width: "45%",
               paddingRight: "0.5rem",
+              width: "45%" 
             }}
+            inputStyle={{width: "35%"}}
           />
           <Input
-            type="text"
-            name="height"
-            // placeholder="Enter Height"
-            value={formData.height || ""}
+            type="number"
+            name="width"
+            value={formData.width || ""}
             onChange={(name: string, value: string) =>
-              handleChange("height", value)
+              handleChange("width", value)
             }
             unitsLabel="px"
             iconProps={{
@@ -209,8 +208,9 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "45%",
               marginLeft: "1rem",
-              paddingRight: "0.5rem",
+              paddingRight: "0.5rem"
             }}
+            inputStyle={{width: "35%"}}
           />
         </WidthHeightContainer>
         <AlignmentSelector

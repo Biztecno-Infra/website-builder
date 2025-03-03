@@ -18,6 +18,7 @@ import EmptyCanvasSVG from "./Icons/EmptyCanvas";
 import ExpandIcon from "./Icons/ExpandIcon";
 import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
+import GlobalSettings from "./Icons/GlobalSettings";
 import ImageHeight from "./Icons/ImageHeight";
 import ImageWidth from "./Icons/ImageWidth";
 import JustifyAlign from "./Icons/JustifyAlign";
@@ -61,7 +62,8 @@ export enum CUSTOM_SVG_ICON {
   ImageHeight = "ImageHeight",
   ImageWidth = "ImageWidth",
   BorderWidth = "BorderWidth",
-  BorderRadius = "BorderRadius"
+  BorderRadius = "BorderRadius",
+  GlobalSettings = "GlobalSettings"
 }
 
 export const CustomIconRef: any = {
@@ -97,4 +99,5 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ImageWidth]: ImageWidth,
   [CUSTOM_SVG_ICON.BorderWidth]: BorderWidth,
   [CUSTOM_SVG_ICON.BorderRadius]: BorderRadius,
+  [CUSTOM_SVG_ICON.GlobalSettings] : GlobalSettings
 };

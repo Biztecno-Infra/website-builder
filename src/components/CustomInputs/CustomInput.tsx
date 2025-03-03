@@ -1,43 +1,37 @@
 import React, { useState } from "react";
 import styled, { useTheme } from "styled-components";
 
-// Define the InputContainer with dynamic styles based on props
-const InputContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  /* margin: 10px 0; */
-`;
+// Extending the LabelHTMLAttributes to include custom props
+interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
+  color: string;
+  fontSize: string;
+}
 
-const Label = styled.label`
-&.ebr-inputLabel{
+const Label = styled.label<LabelProps>`
   line-height: 1rem;
   font-weight: 600;
   padding-left: 0.25rem;
-  color:  ${(props) => props.color};
-  font-size: ${(props: any) => props.fontSize};
+  color: ${(props) => props.color};
+  font-size: ${(props) => props.fontSize};
 
   @media screen and (min-width: 1919px) {
     font-size: 1rem;
     line-height: 1.25rem;
   }
-}
 `;
 
 const StyledInput = styled.input`
-&.ebr-input{
   width: 100%;
   height: 2.375rem;
   padding: 0.5rem;
-  border: 1px solid ${(props: any) => props.theme.colors.inputColor}; 
-  border-radius:  ${(props) => props.theme.borderRadius};
+  border: 1px solid ${(props: any) => props.theme.colors.inputColor};
+  border-radius: ${(props) => props.theme.borderRadius};
   font-family: Arial, sans-serif;
   font-size: 0.75rem;
 
   &::placeholder {
-    color: ${(props) => props.theme.colors.inputPlaceholderColor}; 
+    color: ${(props) => props.theme.colors.inputPlaceholderColor};
   }
-}
 `;
 
 const ErrorText = styled.div`
@@ -72,6 +66,11 @@ export function CustomInput({
   const [error, setError] = useState<string>("");
   const theme = useTheme();
 
+  const labelProps = {
+    color: theme.colors.primary,
+    fontSize: theme.fontSize.labelHeader,
+  };
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     const numericValue = Number(value);
@@ -86,17 +85,9 @@ export function CustomInput({
   };
 
   return (
-    <InputContainer>
-      {label &&
-        <Label
-          className="ebr-inputLabel"
-          color={theme.colors.primary}
-          fontSize={theme.fontSize.labelHeader}>
-          {label}
-        </Label>}
+    <div>
+      {label && <Label {...labelProps}>{label}</Label>}
       <StyledInput
-        className="ebr-input"
-        theme={theme}
         type={type}
         value={value}
         name={name}
@@ -106,6 +97,6 @@ export function CustomInput({
         disabled={disabled}
       />
       {error && <ErrorText>{error}</ErrorText>}
-    </InputContainer>
+    </div>
   );
 }

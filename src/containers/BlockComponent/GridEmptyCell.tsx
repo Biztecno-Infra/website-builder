@@ -17,10 +17,16 @@ const GridEmptyCell: React.FC<any> = ({
     <Droppable
       accept="BLOCK"
       onDrop={handleDrop}
-      style={{ height: "100%", padding: "10px", backgroundColor: "#f0f8ff" }}
+      style={{
+        height: "100%",
+        padding: "10px",
+        // backgroundColor: "#F5F5F5",
+        color: "#8D8D8D",
+      }}
+      backgroundColor="#F5F5F5"
       onClick={() => {}}
     >
-      Drop Here
+      Drag & drop an element here to add.
     </Droppable>
   );
 };

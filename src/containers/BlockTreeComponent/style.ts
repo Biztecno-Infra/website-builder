@@ -1,4 +1,3 @@
-import Droppable from "@containers/Droppable";
 import styled from "styled-components";
 
 export const BlockContainer = styled.div<{
@@ -27,12 +26,13 @@ export const BlockContentText = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: #006e75;
+  color: #0B978E;
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.75rem 0.5rem;
   &:hover {
     background-color: #f5f5f5;
   }
+    font-family: Montserrat;
 `;
 
 export const BlockTextIcon = styled.div`
@@ -69,12 +69,12 @@ export const EmptyTreeNodeContainer = styled.div`
   cursor: pointer;
 `;
 
-export const RootBlockContainer = styled.div<{ isExpanded: boolean }>`
+export const RootBlockContainer = styled.div`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: #006e75;
+  color: #0B978E;
   width: 100%;
   font-size: 12px;
   &:hover {

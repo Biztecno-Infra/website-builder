@@ -25,7 +25,6 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     customCss,
     ...rest
   } = block;
-  console.log(block)
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {

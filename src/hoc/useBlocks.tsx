@@ -532,6 +532,8 @@ export const useBlocks = (): IBlockContext => {
     return beautifyHtml(rawHtml, { indent_size: 2 });
   }
 
+  const json = blocksToJson(blocks , rootBlockOrder)
+  console.log(convertJsonToHtml(json) , json)
   return {
     setSelectedBlock,
     selectedBlock,

@@ -21,7 +21,7 @@ const AlignmentButton = styled.button<{ active: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 25%;
+  width: 23%;
   
   &:hover {
     background: #e0e0e0;

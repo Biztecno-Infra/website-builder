@@ -103,7 +103,6 @@ export function Dropdown({
       setSelectedValue(initialValue);
     }
   }, [initialValue]);
-  console.log(initialValue , "Dropdown")
 
   return (
     <DropdownWrapper ref={dropdownRef} style={containerStyle}>
