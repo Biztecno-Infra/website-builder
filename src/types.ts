@@ -2,7 +2,7 @@ export enum BlockType {
   TEXT = "Text",
   IMAGE = "Image",
   BUTTON = "Button",
-  GRID = "Grid",
+  GRID = "Columns",
   EMPTY = "EMPTY",
   GRIDCELL = "GridCell",
   SPACER = "Spacer",
@@ -193,9 +193,9 @@ export interface RootLayout {
   type: string;
   data: {
     style: {
-    canvasColor: string;
-    textColor: string;
-    fontFamily: string;
+      canvasColor: string;
+      textColor: string;
+      fontFamily: string;
     };
     childrenIds: string[];
   };
@@ -310,7 +310,7 @@ export interface Theme {
   canvas: {
     backgroundColor: string;
     canvasColor: string;
-    canvasFont : string;
+    canvasFont: string;
     canvasTextColor: string;
     canvasPadding: string;
     canvasFontSize: string;
