@@ -31,6 +31,9 @@ export const BlockContentText = styled.div`
   padding: 0.75rem 0.5rem;
   &:hover {
     background-color: #f5f5f5;
+    display: flex;
+  flex-direction: row;
+  align-items: center;
   }
     font-family: Montserrat;
 `;
@@ -41,7 +44,7 @@ export const BlockTextIcon = styled.div`
 `;
 
 export const BlockText = styled.div`
-  padding-right: 0.25rem;
+  padding-right: 0.5rem;
 `;
 
 export const ExpandIcon = styled.div`
