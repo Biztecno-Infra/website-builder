@@ -79,6 +79,39 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
+  // useEffect(() => {
+  //   const loadImageDimensions = async () => {
+  //     if (imageUrl) {
+  //       try {
+  //         const image = await Jimp.read(imageUrl);
+  //         const { width, height } = image.bitmap;
+  //         setFormData((prev) => {
+  //           const updatedFormData = {
+  //             ...prev,
+  //             width,
+  //             height,
+  //           };
+  //           updateBlock(selectedBlock.id, "width", width);
+  //           updateBlock(selectedBlock.id, "height", height);
+  //           return updatedFormData;
+  //         });
+  //       } catch (error) {
+  //         console.error("Error loading image:", error);
+  //         // Reset width and height in case of an error
+  //       setFormData((prev) => {
+  //         const updatedFormData = {
+  //           ...prev,
+  //           width : 0,
+  //           height: 0,
+  //         };
+  //         return updatedFormData
+  //       });
+  //       }
+  //     }
+  //   };
+  //   loadImageDimensions();
+  // }, []); 
+
   const handleImageUrlChange = async (value: string) => {
     setFormData((prev) => {
       const updatedFormData = { ...prev, imageUrl: value };
@@ -89,7 +122,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     try {
       const image = await Jimp.read(value);
       const { width, height } = image.bitmap;
-
+console.log(width , height , "ImageForm")
       setFormData((prev) => {
         const updatedFormData = {
           ...prev,
@@ -109,40 +142,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     setFormData((prev) => {
       const updatedFormData = { ...prev, [field]: value };
       updateBlock(selectedBlock.id, field, value);
-      return updatedFormData;
-    });
-  };
-
-  const addCustomCSS = (property: string, value: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = {
-        ...prev.customCss,
-        [property]: value,
-      };
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id, property, value);
-      return updatedFormData;
-    });
-  };
-
-  const handleDeleteCSS = (property: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = { ...prev.customCss };
-      delete updatedCustomCss[property];
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id, customCss, updatedCustomCss);
-      return updatedFormData;
-    });
-  };
-
-  const handleEditCSS = (property: string, value: string) => {
-    setFormData((prev) => {
-      const updatedCustomCss = {
-        ...prev.customCss,
-        [property]: value,
-      };
-      const updatedFormData = { ...prev, customCss: updatedCustomCss };
-      updateBlock(selectedBlock.id, property, value);
       return updatedFormData;
     });
   };

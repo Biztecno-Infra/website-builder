@@ -30,7 +30,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     fontSize = 16,
     fontWeight = "400",
     padding,
-    textColor = "",
+    textColor , 
     backgroundColor,
     alignment,
     customCss,
