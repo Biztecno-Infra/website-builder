@@ -19,7 +19,7 @@ const InputContainer = styled.div.withConfig({
   width: 100%;
   background-color: #f1f1f1;
   align-items: center;
-  /* border-radius: 5px; */
+  border-radius: 5px;
 
   .ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};

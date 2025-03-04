@@ -82,9 +82,9 @@ export const processBlock = (
   }
 };
 
-
-
-export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, rootBlock: any } => {
+export const jsonToBlocks = (
+  emailLayoutJson: any
+): { blocks: IBlocksState; rootBlock: any } => {
   const blocks: IBlocksState = {};
 
   const reconstructBlock = (layoutId: string, parentId?: string): Block => {
@@ -245,17 +245,39 @@ export const jsonToBlocks = (emailLayoutJson: any): { blocks: IBlocksState, root
   return { blocks, rootBlock: emailLayoutJson.root };
 };
 
-export const parseCssString = (cssString: string) => {
-  const styleObject: { [key: string]: string } = {};
-  const properties = cssString.split(";");
-  properties.forEach((prop) => {
-    if (prop.trim()) {
-      const [key, value] = prop.split(":").map((item) => item.trim());
-      if (key && value) {
-        styleObject[key] = value;
+export const parseCssString = (cssString: string): Record<string, string> => {
+  const styleObject: Record<string, string> = {};
+
+  // Clean up the input string: Replace multiple spaces and newlines with a single space
+  const cleanedCssString = cssString
+    .replace(/(\r\n|\n|\r|\s{2,})+/g, " ") // Replace multiple spaces or newlines with a single space
+    .trim();
+
+  // Process the CSS string rule by rule
+  cleanedCssString.split(";").forEach((rule) => {
+    // First, check if the rule is background-image and if it contains a URL
+    if (rule.includes("background-image")) {
+      const backgroundImageMatch = rule.match(
+        /background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^\s)]+)['"]?\s*\)/
+      );
+
+      if (backgroundImageMatch) {
+        console.log("Background Image URL Matched:", backgroundImageMatch[1]);
+        styleObject["background-image"] = `url("${backgroundImageMatch[1]}")`; // Set the background-image URL
+        return; // Skip further parsing for this rule
       }
     }
+
+    // Split the rule into key and value (after checking for background-image)
+    const [key, value] = rule.split(":").map((item) => item.trim());
+
+    if (key && value) {
+      // For other properties, store them in the styleObject normally
+      styleObject[key] = value;
+    }
   });
+  console.log("Cleaned CSS String:", styleObject);
+
   return styleObject;
 };
 
@@ -289,7 +311,7 @@ export const defaultTheme: Theme = {
   },
   fontSize: {
     labelHeader: "0.875rem",
-    subHeader: "1rem"
+    subHeader: "1rem",
   },
   canvas: {
     canvasColor: "#FFFFFF",
@@ -297,7 +319,7 @@ export const defaultTheme: Theme = {
     canvasFont: "Montserrat",
     canvasFontSize: "1rem",
     canvasPadding: "0px",
-    canvasTextColor: "#000000"
+    canvasTextColor: "#000000",
   },
   borderRadius: 10,
-}
+};
