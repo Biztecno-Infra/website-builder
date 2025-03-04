@@ -120,16 +120,29 @@ export const useBlocks = (): IBlockContext => {
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
     setBlocks((prevBlocks) => {
-      const updatedBlocks = update(prevBlocks, { $unset: [blockId] });
+      let updatedBlocks = update(prevBlocks, { $unset: [blockId] }); 
+  
+      if (deleteBlock.parentId) {
+        updatedBlocks = update(updatedBlocks, {
+          [deleteBlock.parentId]: {
+            childBlocks: {
+              $apply: (childBlocks: string[]) =>
+                childBlocks.filter((id) => id !== blockId),
+            },
+          },
+        });
+      }
+  
       return updatedBlocks;
     });
-
+  
     if (!deleteBlock.parentId) {
       setRootBlockOrder((prevOrder) =>
         prevOrder.filter((id) => id !== blockId)
       );
     }
   };
+  
 
   const handleJsonUpload = (jsonData: any) => {
     const { blocks, rootBlock } = jsonToBlocks(jsonData);

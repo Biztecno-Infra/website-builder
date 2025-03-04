@@ -82,12 +82,11 @@ const GridCell: React.FC<GridCellProps> = ({
       <GridCellContainer key={cellBlockId}>
         <BlockComponent blockId={cellBlockId} />
 
-        {hasMultipleChildBlocks &&
-          cellBlockId === (selectedBlock as any)?.id && (
-            <DeleteWrapper onClick={(e) => handleDeleteClick(e, cellBlockId)}>
-              <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
-            </DeleteWrapper>
-          )}
+        {hasMultipleChildBlocks && cellBlockId === (selectedBlock as any)?.id && (
+        <DeleteWrapper onClick={(e) => handleDeleteClick(e, cellBlockId)}>
+          <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+        </DeleteWrapper>
+      )}
       </GridCellContainer>
     );
   };

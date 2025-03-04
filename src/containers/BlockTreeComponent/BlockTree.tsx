@@ -179,7 +179,6 @@ const DroppableContainer = styled(Droppable)`
 const NodeTree = () => {
   const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } =
     useBlockHook();
-  const [isRootExpanded, setIsRootExpanded] = useState(true);
 
   const renderBlockNode = useCallback(
     (blockId: string) => <BlockNode key={blockId} blockId={blockId} />,
@@ -213,7 +212,7 @@ const NodeTree = () => {
       <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>
         <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{width: "20%"}}/>
-        <BlockContentText style={{width: "80%"}}>Global Settings</BlockContentText>
+        <BlockContentText style={{width: "80%" , cursor: "pointer"}}>Global Settings</BlockContentText>
       </RootBlockContainer>
       {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>

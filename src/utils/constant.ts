@@ -11,6 +11,8 @@ import {
 } from "../types";
 
 export const defaultTextColor : string = "#000000";
+const defaultPlaceholderImage : string = "";
+
 export const initialGlobalStyle : GlobalStyles = {
   canvasColor: "#FFFFFF",
   textColor: defaultTextColor,
@@ -54,7 +56,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
-      imageUrl: "",
+      imageUrl: defaultPlaceholderImage,
       altText: "Block Image",
       alignment: "left",
       padding: defaultPadding,
@@ -69,7 +71,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
   } else if (blockType === BlockType.TEXT) {
     return {
       text: "Text Block",
-      textColor: defaultTextColor,
+      textColor: "",
       fontSize: 16,
       fontWeight: "400",
       padding: defaultPadding,
