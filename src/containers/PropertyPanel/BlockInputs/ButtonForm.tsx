@@ -130,7 +130,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <Input
             name="fontSize"
             placeholder="Enter font size"
-            value={fontSize}
+            value={formData.fontSize || ""}
             onChange={handleChange}
             type="text"
             containerStyle={{ width: "26%", marginLeft: "0.5rem", padding: 3 }}
