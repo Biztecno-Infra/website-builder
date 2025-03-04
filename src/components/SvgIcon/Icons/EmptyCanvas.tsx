@@ -14,8 +14,8 @@ export default () => {
         <rect x="15" y="31" width="15" height="15" rx="2" fill="#D9D9D9" />
       </g>
       <defs>
-        <filter id="filter0_d_247_640" x="40" y="68" width="213" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <filter id="filter0_d_247_640" x="40" y="68" width="213" height="54" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
           <feOffset dy="3" />
           <feGaussianBlur stdDeviation="3.5" />
@@ -24,8 +24,8 @@ export default () => {
           <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_247_640" />
           <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_247_640" result="shape" />
         </filter>
-        <filter id="filter1_d_247_640" x="0" y="14" width="213" height="54" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-          <feFlood flood-opacity="0" result="BackgroundImageFix" />
+        <filter id="filter1_d_247_640" x="0" y="14" width="213" height="54" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
           <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
           <feOffset dy="3" />
           <feGaussianBlur stdDeviation="3.5" />

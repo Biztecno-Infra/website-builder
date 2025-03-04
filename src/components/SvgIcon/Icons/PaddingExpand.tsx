@@ -18,7 +18,7 @@ export default () => {
         height="8"
         rx="1"
         stroke="#0B978E"
-        stroke-width="8"
+        strokeWidth="8"
         mask="url(#path-2-inside-1_321_32)"
       />
       <path
