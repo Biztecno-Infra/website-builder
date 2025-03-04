@@ -27,7 +27,8 @@ const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHo
   width: ${({ elements }) => elements.width};
   padding: ${({ elements }) => elements.padding};
   text-align: ${({ elements }) => elements.textAlign};
-  background-color: ${({ isHovered, colors }) => isHovered ? colors.buttonPrimary : colors.secondary};
+  background-color: ${({ isDragging, isHovered, colors }) =>
+    isDragging ? 'transparent' : (isHovered ? colors.buttonPrimary : colors.secondary)};
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -76,6 +77,10 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       colors={colors}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      style={{
+        borderRadius: elements.borderRadius,
+        border: isDragging ? 'none' : elements.border, // Remove border during drag
+      }}
     >
       <BlockIconText>
         <SvgIcon {...svgProps} color={isHovered ? colors.secondary : colors.primary} />
@@ -89,7 +94,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #fff;
+  /* background-color: #fff; */
   position: relative;
   z-index: 1000;
   width: calc(100% - 4rem);
