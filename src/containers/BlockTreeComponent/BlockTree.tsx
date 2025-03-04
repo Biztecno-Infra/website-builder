@@ -2,7 +2,7 @@ import React, { JSX, useCallback, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { Block, BlockType, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "@components/SvgIcon/SvgIcon";
@@ -24,27 +24,18 @@ interface BlockNodeProps {
   blockId: string;
 }
 
-//TOdo -> What if its color changes according to theme ??
-const blockTypeIcons: Record<BlockType, JSX.Element | null> = {
-  [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color="#0B978E" />,
-  [BlockType.IMAGE]: (
-    <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color="#0B978E" />
-  ),
-  [BlockType.BUTTON]: (
-    <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color="#0B978E" />
-  ),
-  [BlockType.GRID]: (
-    <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color="#0B978E" />
-  ),
-  [BlockType.SPACER]: (
-    <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color="#0B978E" />
-  ),
+const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null> => ({
+  [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color={color} />,
+  [BlockType.IMAGE]: <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color={color} />,
+  [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color={color} />,
+  [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color={color} />,
+  [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color={color} />,
   [BlockType.GRIDCELL]: null,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
-};
-
+});
 const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
+  const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -112,6 +103,8 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
     []
   );
 
+  const blockTypeIcons = getBlockTypeIcons(theme?.color?.buttonPrimary);
+
   return (
     <BlockContainer
       ref={(node) => {
@@ -130,11 +123,11 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
           </ChevronIcon>
         )}
         <BlockContentText>
-          <BlockTextIcon style={{width: "80%"}}>
-            <BlockText style={{width: "20%"}}>{blockTypeIcons[block?.type]}</BlockText>
-            <div style={{ fontSize: "12px" , width:"80%" }}>{block?.type}</div>
+          <BlockTextIcon style={{ width: "80%" }}>
+            <BlockText style={{ width: "20%" }}>{blockTypeIcons[block?.type]}</BlockText>
+            <div style={{ fontSize: "12px", width: "80%" }}>{block?.type}</div>
           </BlockTextIcon>
-          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{width:"20%"}}/>}
+          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />}
         </BlockContentText>
       </BlockContent>
 
@@ -212,8 +205,8 @@ const NodeTree = () => {
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>
-        <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{width: "20%"}}/>
-        <BlockContentText style={{width: "80%"}}>Global Settings</BlockContentText>
+        <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{ width: "20%" }} />
+        <BlockContentText style={{ width: "80%" }}>Global Settings</BlockContentText>
       </RootBlockContainer>
       {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>
