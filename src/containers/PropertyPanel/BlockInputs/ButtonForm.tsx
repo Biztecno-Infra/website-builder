@@ -9,7 +9,7 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
-import { Input, TextArea , Dropdown } from "@components/lib";
+import { Input, TextArea, Dropdown } from "@components/lib";
 import { ReactColorPicker } from "@components/CustomInputs";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
@@ -48,7 +48,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     buttonPadding,
     width,
     height,
-    customCss ,
+    customCss,
   } = selectedBlock as ButtonProps;
 
   const [formData, setFormData] = useState({
@@ -132,8 +132,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             placeholder="Enter font size"
             value={formData.fontSize || ""}
             onChange={handleChange}
-            type="text"
+            type="number"
             containerStyle={{ width: "26%", marginLeft: "0.5rem", padding: 3 }}
+            inputStyle={{ width: "40%" }}
             unitsLabel="px"
           />
         </FlexRow>
@@ -224,22 +225,29 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{ width: "50%" }}
           />
           <PaddingInput
-            padding={formData.padding}
-            onChange={(value) => handleChange("padding", value)}
+            padding={formData.buttonPadding}
+            onChange={(value) => handleChange("buttonPadding", value)}
             containerStylePopUp={{ width: "35%", paddingLeft: "0.5rem" }}
           />
         </FlexRow>
       </BasePropertyWrapper>
       <Divider />
       <BasePropertyWrapper name="Edit Container">
-        <ReactColorPicker
-          onColorChange={(field, value) =>
-            handleChange("backgroundColor", value)
-          }
-          label="Select Background Color"
-          selectedColor={formData.backgroundColor}
-          containerStyle={{ width: "50%" }}
-        />
+        <FlexRow>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
+            label="Select Background Color"
+            selectedColor={formData.backgroundColor}
+            containerStyle={{ width: "50%" }}
+          />
+          <PaddingInput
+            padding={formData.padding}
+            onChange={(value) => handleChange("padding", value)}
+            containerStylePopUp={{ width: "35%", paddingLeft: "0.5rem" }}
+          />
+        </FlexRow>
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
