@@ -29,32 +29,33 @@ const CustomButton: React.FC<{
   borderWidth,
   borderStyle = "",
   buttonPadding,
-  width , height
+  width, height
 }) => {
-  const buttonStyle = {
-    color: textColor,
-    backgroundColor: buttonColor,
-    fontFamily: fontFamily,
-    fontSize: fontSize ? `${fontSize}px` : "14px",
-    fontWeight: fontWeight,
-    cursor: "pointer",
-    // wordBreak: "break-word", 
-    border: borderWidth
-      ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
-      : "none",
-    borderRadius: borderRadius ? `${borderRadius}px` : "",
-    paddingTop: buttonPadding?.top,
-    paddingRight: buttonPadding?.right,
-    paddingBottom: buttonPadding?.bottom,
-    paddingLeft: buttonPadding?.left,
-    width ,
-    height 
-  } as React.CSSProperties;
+    const buttonStyle = {
+      color: textColor || "inherit",
+      backgroundColor: buttonColor,
+      fontFamily: fontFamily,
+      fontSize: fontSize ? `${fontSize}px` : "14px",
+      fontWeight: fontWeight,
+      cursor: "pointer",
+      // wordBreak: "break-word", 
+      border: borderWidth
+        ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
+        : "none",
+      borderRadius: borderRadius ? `${borderRadius}px` : "",
+      paddingTop: buttonPadding?.top,
+      paddingRight: buttonPadding?.right,
+      paddingBottom: buttonPadding?.bottom,
+      paddingLeft: buttonPadding?.left,
+      width,
+      height,
+      font: "inherit",
+    } as React.CSSProperties;
 
-  const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
+    const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
 
-  return buttonContent;
-};
+    return buttonContent;
+  };
 
 export const ButtonBlock: React.FC<ButtonBlockProps> = ({
   block,
@@ -78,12 +79,12 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     borderStyle,
     customCss,
     buttonPadding,
-    width , 
+    width,
     height
   } = block;
 
   const handleDrop = useCallback(
-    (item: { type: string; name: string; id: number}) => {
+    (item: { type: string; name: string; id: number }) => {
       handleDropper(item, block.id);
     },
     [handleDropper]

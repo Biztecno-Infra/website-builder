@@ -59,7 +59,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         />
         <Input
           name="borderRadius"
-          type="text"
+          type="number"
           value={borderRadius || ''}
           onChange={(name, value) => onChange("borderRadius", value)}
           iconProps={{

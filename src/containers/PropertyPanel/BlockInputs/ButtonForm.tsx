@@ -215,37 +215,19 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         <ReactColorPicker
           onColorChange={(field, value) => handleChange("buttonColor", value)}
           selectedColor={formData.buttonColor || ""}
-          containerStyle={{ width: "60%" }}
+          containerStyle={{ width: "60%", marginBottom: 10 }}
         />
 
         <FlexRow>
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
-            containerStyle={{ width: "50%" }}
+            containerStyle={{ width: "60%" }}
           />
           <PaddingInput
             padding={formData.buttonPadding}
             onChange={(value) => handleChange("buttonPadding", value)}
-            containerStylePopUp={{ width: "35%", paddingLeft: "0.5rem" }}
-          />
-        </FlexRow>
-      </BasePropertyWrapper>
-      <Divider />
-      <BasePropertyWrapper name="Edit Container">
-        <FlexRow>
-          <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
-            label="Select Background Color"
-            selectedColor={formData.backgroundColor}
-            containerStyle={{ width: "50%" }}
-          />
-          <PaddingInput
-            padding={formData.padding}
-            onChange={(value) => handleChange("padding", value)}
-            containerStylePopUp={{ width: "35%", paddingLeft: "0.5rem" }}
+            containerStylePopUp={{ width: "40%", paddingLeft: "0.5rem" }}
           />
         </FlexRow>
         <BasePropertyWrapper
@@ -253,7 +235,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           subLabel
           containerStyle={{
             border: "none",
-            padding: "1rem 0% 0% 0%",
+            padding: "0% 0% 0% 0%",
             width: "95%",
           }}
         >
@@ -270,6 +252,24 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </BasePropertyWrapper>
+      </BasePropertyWrapper>
+      <Divider />
+      <BasePropertyWrapper name="Edit Container">
+        <FlexRow>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
+            label="Select Background Color"
+            selectedColor={formData.backgroundColor}
+            containerStyle={{ width: "60%" }}
+          />
+          <PaddingInput
+            padding={formData.padding}
+            onChange={(value) => handleChange("padding", value)}
+            containerStylePopUp={{ width: "40%", paddingLeft: "0.5rem" }}
+          />
+        </FlexRow>
       </BasePropertyWrapper>
       <Divider />
       <BasePropertyWrapper name="Additional Properties">
