@@ -7,8 +7,8 @@ import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
-const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number; backgroundColor: string; }>`
-  border: ${({ selected }) => (selected ? "1px dashed #006E75" : "none")};
+const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number; backgroundColor: string; verticalAlignment: string;}>`
+  border: ${({ selected }) => (selected ? "1px dashed #006E75" : "1px solid transparent")};
   padding-top: ${(props) => props.padding?.top}px;
   padding-bottom: ${(props) => props.padding?.bottom}px;
   padding-right: ${(props) => props.padding?.right}px;
@@ -90,6 +90,7 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
+  console.log(block)
 
   return (
     <StyledCell 
@@ -97,6 +98,7 @@ const GridCell: React.FC<GridCellProps> = ({
       padding={(block as any)?.padding || {}} 
       cellWidth={cellWidth}
       backgroundColor={block.backgroundColor}
+      verticalAlignment={(block as IGridCellProps).verticalAlignment}
       onClick={handleCellBlockClick}
     >
       {
