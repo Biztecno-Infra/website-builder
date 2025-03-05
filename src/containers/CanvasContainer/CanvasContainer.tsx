@@ -4,13 +4,14 @@ import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
-import { Block } from "types";
+import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 interface TableWrapperProps {
   canvasColor: string;
   canvasFont: string;
   canvasFontColor: string;
+  canvasPadding: Padding;
 }
 
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
@@ -21,16 +22,15 @@ const BlockWrapper = styled.div<{ isSelected: boolean }>`
 `;
 
 const DeleteWrapper = styled.div`
-   position: absolute;
-   cursor: pointer;
-   right: 28px; 
-   bottom: 3px;
+  position: absolute;
+  cursor: pointer;
+  right: 28px;
+  bottom: 3px;
 `;
 
 const BaseComponet = styled.div`
-   padding: 1rem;
-    background: #FFFFFF;
-     margin: 3rem;
+  background: #ffffff;
+  margin: 3rem;
 `;
 
 const TrashIconWrapper = styled.div`
@@ -44,16 +44,15 @@ const TrashIconWrapper = styled.div`
 `;
 
 const TableWrapper = styled.table<TableWrapperProps>`
-&.ebr-tableWrapper{
-  margin: 0 auto;
-  width: 100%;
-  background-color: ${({ canvasColor }) => canvasColor};
-  font-family: ${({ canvasFont }) => canvasFont};
-  color: ${({ canvasFontColor }) => canvasFontColor};
-  border-collapse: collapse;
-  table-layout: fixed;
-  padding: 10px;
-}
+  &.ebr-tableWrapper {
+    margin: 0 auto;
+    width: 100%;
+    background-color: ${({ canvasColor }) => canvasColor};
+    font-family: ${({ canvasFont }) => canvasFont};
+    color: ${({ canvasFontColor }) => canvasFontColor};
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
 `;
 
 const Canvas: React.FC = () => {
@@ -63,7 +62,7 @@ const Canvas: React.FC = () => {
     rootBlockOrder,
     setSelectedBlock,
     onDeleteBlock,
-    globalStyles , blocksToJson, convertJsonToHtml 
+    globalStyles,
   } = useBlockHook();
 
   const theme = useTheme();
@@ -77,7 +76,10 @@ const Canvas: React.FC = () => {
 
   const renderBlock = (blockId: string, index: number) => {
     return (
-      <BlockWrapper key={blockId} isSelected={blockId === (selectedBlock as Block)?.id}>
+      <BlockWrapper
+        key={blockId}
+        isSelected={blockId === (selectedBlock as Block)?.id}
+      >
         <BlockComponent blockId={blockId} />
         {blockId === (selectedBlock as Block)?.id && (
           <TrashIconWrapper
@@ -87,7 +89,9 @@ const Canvas: React.FC = () => {
               setSelectedBlock(null);
             }}
           >
-            <DeleteWrapper><SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} /></DeleteWrapper>
+            <DeleteWrapper>
+              <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+            </DeleteWrapper>
           </TrashIconWrapper>
         )}
       </BlockWrapper>
@@ -117,10 +121,18 @@ const Canvas: React.FC = () => {
             canvasColor={globalStyles.canvasColor}
             canvasFont={globalStyles.fontFamily}
             canvasFontColor={globalStyles.textColor}
+            canvasPadding={globalStyles.padding}
           >
             <tbody>
               <tr>
-                <td style={{ padding: 0 }}>
+                <td
+                  style={{
+                    paddingTop: globalStyles.padding.top,
+                    paddingRight: globalStyles.padding.right,
+                    paddingBottom: globalStyles.padding.bottom,
+                    paddingLeft: globalStyles.padding.left,
+                  }}
+                >
                   {rootBlockOrder.map(renderBlock)}
                 </td>
               </tr>

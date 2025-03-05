@@ -5,6 +5,8 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import { GlobalStyles } from "types";
 import { Dropdown } from "@components/lib";
 import { fontOptions } from "../constant";
+import { PaddingInput } from "@components/StyleComponents";
+import { FlexRow } from "../style";
 
 interface GlobalStylesFormProps {
   globalStyles: GlobalStyles;
@@ -25,12 +27,14 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
+    padding: initialPadding
   } = globalStyles;
 
   const [styles, setStyles] = useState({
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
+    padding: initialPadding
   });
 
   // Effect to update the state when globalStyles changes
@@ -65,13 +69,20 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
         />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Background">
-        <ReactColorPicker
-          label={"Select Canvas color"}
-          onColorChange={(field, value) => handleChange("canvasColor", value)}
-          selectedColor={styles.canvasColor}
-          containerStyle={{ width: "80%" }}
-          // defaultColor={globalStyles.canvasColor}
-        />
+        <FlexRow>
+          <ReactColorPicker
+            label={"Select Canvas color"}
+            onColorChange={(field, value) => handleChange("canvasColor", value)}
+            selectedColor={styles.canvasColor}
+            containerStyle={{ width: "60%" }}
+            // defaultColor={globalStyles.canvasColor}
+          />
+          <PaddingInput
+            padding={styles.padding}
+            onChange={(padding: any) => handleChange("padding", padding)}
+            containerStylePopUp={{ width: "40%", paddingLeft: "1rem" }}
+          />
+        </FlexRow>
       </BasePropertyWrapper>
     </FormWrapper>
   );

@@ -108,6 +108,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
           width: "55%",
           padding: 3,
         }}
+        inputStyle={{ width: "45%"}}
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>

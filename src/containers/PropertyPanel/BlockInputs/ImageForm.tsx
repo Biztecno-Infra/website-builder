@@ -79,38 +79,38 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  // useEffect(() => {
-  //   const loadImageDimensions = async () => {
-  //     if (imageUrl) {
-  //       try {
-  //         const image = await Jimp.read(imageUrl);
-  //         const { width, height } = image.bitmap;
-  //         setFormData((prev) => {
-  //           const updatedFormData = {
-  //             ...prev,
-  //             width,
-  //             height,
-  //           };
-  //           updateBlock(selectedBlock.id, "width", width);
-  //           updateBlock(selectedBlock.id, "height", height);
-  //           return updatedFormData;
-  //         });
-  //       } catch (error) {
-  //         console.error("Error loading image:", error);
-  //         // Reset width and height in case of an error
-  //       setFormData((prev) => {
-  //         const updatedFormData = {
-  //           ...prev,
-  //           width : 0,
-  //           height: 0,
-  //         };
-  //         return updatedFormData
-  //       });
-  //       }
-  //     }
-  //   };
-  //   loadImageDimensions();
-  // }, []); 
+  useEffect(() => {
+    const loadImageDimensions = async () => {
+      if (imageUrl) {
+        try {
+          const image = await Jimp.read(imageUrl);
+          const { width, height } = image.bitmap;
+          setFormData((prev) => {
+            const updatedFormData = {
+              ...prev,
+              width,
+              height,
+            };
+            updateBlock(selectedBlock.id, "width", width);
+            updateBlock(selectedBlock.id, "height", height);
+            return updatedFormData;
+          });
+        } catch (error) {
+          console.error("Error loading image:", error);
+          // Reset width and height in case of an error
+        setFormData((prev) => {
+          const updatedFormData = {
+            ...prev,
+            width : 0,
+            height: 0,
+          };
+          return updatedFormData
+        });
+        }
+      }
+    };
+    loadImageDimensions();
+  }, []); 
 
   const handleImageUrlChange = async (value: string) => {
     setFormData((prev) => {

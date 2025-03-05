@@ -187,6 +187,7 @@ export interface GlobalStyles {
   canvasColor: string;
   textColor: string;
   fontFamily: string;
+  padding: Padding;
 }
 
 export interface RootLayout {
