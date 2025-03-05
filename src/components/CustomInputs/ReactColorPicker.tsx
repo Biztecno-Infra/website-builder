@@ -70,7 +70,7 @@ const rgbToHex = (color: string) => {
         .join("")}`.toUpperCase();
     }
   }
-  return color.toUpperCase(); 
+  return color.toUpperCase();
 };
 
 export const ReactColorPicker: React.FC<ColorPickerProps> = ({
@@ -107,7 +107,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           type="text"
           value={color}
           onChange={(e) => handleColorChange(e.target.value.toUpperCase())}
-          maxLength={7}
+          maxLength={10}
         />
       </PickerRow>
 

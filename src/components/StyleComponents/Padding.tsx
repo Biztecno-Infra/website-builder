@@ -92,7 +92,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
 
       <Input
         name="paddingAll"
-        value={isCommonPadding ? padding.top : ""}
+        value={isCommonPadding ? (padding.top || '') : ''}
         onChange={(name, value) => {
           const newPadding = parseInt(value, 10);
           if (!isNaN(newPadding)) {
@@ -119,7 +119,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
 
           <Input
             name="paddingTop"
-            value={padding.top}
+            value={padding.top || ''}
             onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
             type="number"
             containerStyle={{ borderTop: "1px solid #0B978E", width: "20%", paddingTop: '2px' }}
@@ -127,21 +127,21 @@ export const PaddingInput: React.FC<PaddingProps> = ({
 
           <Input
             name="paddingLeft"
-            value={padding.left}
+            value={padding.left || ''}
             onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
             type="number"
             containerStyle={{ borderLeft: "1px solid #0B978E", width: "20%", paddingLeft: '2px' }}
           />
           <Input
             name="paddingRight"
-            value={padding.right}
+            value={padding.right || ''}
             onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
             type="number"
             containerStyle={{ borderRight: "1px solid #0B978E", width: "20%", paddingRight: "2px" }}
           />
           <Input
             name="paddingBottom"
-            value={padding.bottom}
+            value={padding.bottom || ''}
             onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
             type="number"
             containerStyle={{ borderBottom: "1px solid #0B978E", width: "20%", paddingBottom: "2px" }}
