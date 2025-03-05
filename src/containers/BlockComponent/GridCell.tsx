@@ -90,7 +90,6 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
-  console.log(block)
 
   return (
     <StyledCell 

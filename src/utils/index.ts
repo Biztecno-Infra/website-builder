@@ -248,35 +248,29 @@ export const jsonToBlocks = (
 export const parseCssString = (cssString: string): Record<string, string> => {
   const styleObject: Record<string, string> = {};
 
-  // Clean up the input string: Replace multiple spaces and newlines with a single space
   const cleanedCssString = cssString
-    .replace(/(\r\n|\n|\r|\s{2,})+/g, " ") // Replace multiple spaces or newlines with a single space
+    .replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
     .trim();
 
-  // Process the CSS string rule by rule
   cleanedCssString.split(";").forEach((rule) => {
-    // First, check if the rule is background-image and if it contains a URL
     if (rule.includes("background-image")) {
       const backgroundImageMatch = rule.match(
         /background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^\s)]+)['"]?\s*\)/
       );
 
       if (backgroundImageMatch) {
-        console.log("Background Image URL Matched:", backgroundImageMatch[1]);
-        styleObject["background-image"] = `url("${backgroundImageMatch[1]}")`; // Set the background-image URL
-        return; // Skip further parsing for this rule
+       
+        styleObject["background-image"] = `url("${backgroundImageMatch[1]}")`;
+        return; 
       }
     }
 
-    // Split the rule into key and value (after checking for background-image)
     const [key, value] = rule.split(":").map((item) => item.trim());
 
     if (key && value) {
-      // For other properties, store them in the styleObject normally
       styleObject[key] = value;
     }
   });
-  console.log("Cleaned CSS String:", styleObject);
 
   return styleObject;
 };

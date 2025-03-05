@@ -122,7 +122,6 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     try {
       const image = await Jimp.read(value);
       const { width, height } = image.bitmap;
-console.log(width , height , "ImageForm")
       setFormData((prev) => {
         const updatedFormData = {
           ...prev,
