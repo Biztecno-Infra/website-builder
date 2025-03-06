@@ -233,7 +233,7 @@ export interface IBlockContext {
   convertJsonToHtml: any;
 }
 export interface BlockHookRef {
-  getHTML: () => string;
+  getHTML: (json:any) => string;
   updateJSON: (data: any) => void;
   getJSON: () => any;
 }

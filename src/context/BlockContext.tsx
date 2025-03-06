@@ -11,11 +11,12 @@ interface BlockHookProviderProps {
 
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
+  const { convertJsonToHtml, handleJsonUpload, blocksToJson , blocks, rootBlockOrder} = customFunction;
 
   useImperativeHandle(ref, () => ({
-    getHTML: customFunction.convertJsonToHtml,
-    updateJSON: customFunction.handleJsonUpload,
-    getJSON: customFunction.blocksToJson,
+    getHTML: (jsonData:any) => convertJsonToHtml(jsonData), 
+    updateJSON: (newJson) => handleJsonUpload(newJson),
+    getJSON: () => blocksToJson(blocks, rootBlockOrder),
   }));
 
   return <BlockHookContext.Provider value={customFunction}>{children}</BlockHookContext.Provider>;

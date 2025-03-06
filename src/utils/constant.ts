@@ -157,7 +157,7 @@ export const generateTextBlock = (block: TextProps) => {
     fontSize,
     lineHeight,
     wordBreak: "break-word",
-    whiteSpace: "pre-wrap",
+    // whiteSpace: "pre-wrap",
     padding,
     backgroundColor,
     textAlign: alignment,
