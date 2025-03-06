@@ -14,6 +14,8 @@ import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
 import ExportModal from "@components/Modals/ExportModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SendTestModal from "@components/Modals/SendFileModal";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { ScreenViews } from "@utils/constant"; // Import enum for screen views
 import "./index.css";
 
 interface Props {
@@ -51,56 +53,67 @@ const ContentWrapper = styled.div`
   height: calc(100% - 3rem);
 `;
 
-const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme }, ref) => {
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
+const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(({ theme }, ref) => {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedView, setSelectedView] = useState<ScreenViews>(ScreenViews.DESKTOP); // Default to Desktop
 
-    const handleOptionSelect = (option: string) => {
-      setSelectedOption(option);
-    };
+  const handleOptionSelect = (option: string) => {
+    setSelectedOption(option);
+  };
 
-    const handleClose = () => {
-      setSelectedOption(null);
-    }
+  const handleClose = () => {
+    setSelectedOption(null);
+  };
 
-    return (
-      <DndProvider backend={HTML5Backend}>
-        <CustomThemeProvider theme={theme! || {}}>
-          <BlockHookProvider ref={ref}>
-            <Container>
-              <ElementsPanel />
-              <MiddleContainer>
-                <Header>
-                  <ButtonComponent buttonPrimary text="Send" />
-                  <CustomDropdownButton
-                    options={["Export", "Upload", "Send Test"]}
-                    onSelect={handleOptionSelect}
-                    buttonText="Actions"
+  // Handle view change when clicking icons
+  const handleViewChange = (view: ScreenViews) => {
+    setSelectedView(view); // Change the selected view (Desktop or Mobile)
+  };
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <CustomThemeProvider theme={theme! || {}}>
+        <BlockHookProvider ref={ref}>
+          <Container>
+            <ElementsPanel />
+            <MiddleContainer>
+              <Header>
+                <div style={{display: "flex"}}>
+                  {/* Desktop and Mobile icons */}
+                  <SvgIcon
+                    name={CUSTOM_SVG_ICON.DesktopIcon}
+                    onClick={() => handleViewChange(ScreenViews.DESKTOP)} // Set to Desktop view
+                    svgStyle={{ cursor: "pointer", marginRight: "10px" }}
                   />
-                </Header>
+                  <SvgIcon
+                    name={CUSTOM_SVG_ICON.MobileIcon}
+                    onClick={() => handleViewChange(ScreenViews.MOBILE)} // Set to Mobile view
+                    svgStyle={{ cursor: "pointer" }}
+                  />
+                </div>
+                <ButtonComponent buttonPrimary text="Send" />
+                <CustomDropdownButton
+                  options={["Export", "Upload", "Send Test"]}
+                  onSelect={handleOptionSelect}
+                  buttonText="Actions"
+                />
+              </Header>
 
-                <ContentWrapper>
-                  <CanvasContainer />
-                  <PropertyPanel />
-                </ContentWrapper>
-              </MiddleContainer>
-            </Container>
+              <ContentWrapper>
+                {/* Pass selectedView to CanvasContainer */}
+                <CanvasContainer selectedView={selectedView} />
+                <PropertyPanel />
+              </ContentWrapper>
+            </MiddleContainer>
+          </Container>
 
-            {selectedOption === "Export" && (
-              <ExportModal onClose={handleClose} onExport={() => { }} />
-            )}
-            {selectedOption === "Upload" && (
-              <UploadModal onClose={handleClose} onUpload={() => { }} />
-            )}
-            {selectedOption === "Send Test" && (
-              <SendTestModal onClose={handleClose} onSend={(file) => { }} />
-            )}
-          </BlockHookProvider>
-        </CustomThemeProvider>
-      </DndProvider>
-    );
-  }
-);
-
+          {selectedOption === "Export" && <ExportModal onClose={handleClose} onExport={() => { }} />}
+          {selectedOption === "Upload" && <UploadModal onClose={handleClose} onUpload={() => { }} />}
+          {selectedOption === "Send Test" && <SendTestModal onClose={handleClose} onSend={(file) => { }} />}
+        </BlockHookProvider>
+      </CustomThemeProvider>
+    </DndProvider>
+  );
+});
 
 export default EmailTemplateBuilder;

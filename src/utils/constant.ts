@@ -360,3 +360,9 @@ export const rgbToHex = (rgb: string): string => {
   }
   return rgb;
 };
+
+
+export enum ScreenViews {
+  DESKTOP = "Desktop", 
+  MOBILE = "Mobile"
+} 
