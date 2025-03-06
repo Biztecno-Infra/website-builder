@@ -27,3 +27,8 @@ export enum ExportType {
   JSON = "JSON",
   HTML = "HTML",
 }
+
+export enum ScreenViews {
+  DESKTOP = "Desktop",
+  MOBILE = "Mobile",
+}

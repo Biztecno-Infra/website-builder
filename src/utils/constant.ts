@@ -9,9 +9,11 @@ import {
   SpacerProps,
   TextProps,
 } from "../types";
+import { parseCssString } from ".";
 
-export const defaultTextColor : string = "#000000";
-const defaultPlaceholderImage : string = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s"
+export const defaultTextColor: string = "#000000";
+const defaultPlaceholderImage: string =
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s";
 // const defaultPlaceholderImage : string = "https://t4.ftcdn.net/jpg/05/17/53/57/360_F_517535712_q7f9QC9X6TQxWi6xYZZbMmw5cnLMr279.jpg";
 
 export const defaultPadding = {
@@ -35,11 +37,11 @@ export const defaultGridPadding = {
 
 export const defaultFont = "Modern Sans";
 
-export const initialGlobalStyle : GlobalStyles = {
+export const initialGlobalStyle: GlobalStyles = {
   canvasColor: "#FFFFFF",
   textColor: defaultTextColor,
   fontFamily: defaultFont,
-  padding: defaultPadding
+  padding: defaultPadding,
 };
 
 export const getDefaultBlockProperties = (blockType: BlockType) => {
@@ -50,11 +52,11 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       columnGap: 0,
       cellWidths: [50, 50],
       childBlocks: [],
-      borderWidth:  "", 
-      borderStyle: "", 
-      borderColor: "", 
-      borderRadius : "",
-      backgroundColor: ""
+      borderWidth: "",
+      borderStyle: "",
+      borderColor: "",
+      borderRadius: "",
+      backgroundColor: "",
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -65,10 +67,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       navigateToUrl: "",
       width: "",
       height: "",
-      borderWidth:  "", 
-      borderStyle: "", 
-      borderColor: "", 
-      borderRadius : "",
+      borderWidth: "",
+      borderStyle: "",
+      borderColor: "",
+      borderRadius: "",
     };
   } else if (blockType === BlockType.TEXT) {
     return {
@@ -82,7 +84,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       fontFamily: "",
       navigateToUrl: "",
       lineHeight: 16,
-      backgroundImage: "" 
+      backgroundImage: "",
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -98,17 +100,17 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       buttonPadding: defaultPadding,
       width: 150,
       height: 50,
-      borderWidth:  "", 
-      borderStyle: "", 
-      borderColor: "", 
-      borderRadius : "",
+      borderWidth: "",
+      borderStyle: "",
+      borderColor: "",
+      borderRadius: "",
     };
   } else if (blockType === BlockType.GRIDCELL) {
     return {
       childBlocks: [],
       padding: defaultGridPadding,
       verticalAlignment: "middle",
-      backgroundColor: ""
+      backgroundColor: "",
     };
   } else if (blockType === BlockType.DIVIDER) {
     return {
@@ -141,14 +143,15 @@ export const generateTextBlock = (block: TextProps) => {
     backgroundImage,
     text,
     navigateToUrl,
-    id , 
-    parentId, 
-    childBlocks, 
-    type , 
-    cellIndex, 
+    id,
+    parentId,
+    childBlocks,
+    type,
+    cellIndex,
     customCss,
     ...rest
   } = block;
+  const customStyles = parseCssString(customCss || "");
 
   const textStyle: any = {
     fontWeight,
@@ -161,6 +164,7 @@ export const generateTextBlock = (block: TextProps) => {
     padding,
     backgroundColor,
     textAlign: alignment,
+    ...customStyles,
     ...rest,
   };
 
@@ -193,14 +197,15 @@ export const generateImageBlock = (block: ImageProps) => {
     imageUrl,
     altText,
     navigateToUrl,
-    id , 
-    parentId, 
-    childBlocks, 
-    type , 
-    cellIndex, 
+    id,
+    parentId,
+    childBlocks,
+    type,
+    cellIndex,
     customCss,
     ...rest
   } = block || {};
+  const customStyles = parseCssString(customCss || "");
 
   const imageStyle = {
     padding,
@@ -209,6 +214,7 @@ export const generateImageBlock = (block: ImageProps) => {
     width,
     height,
     objectFit: "contain",
+    ...customStyles,
     ...rest,
   };
 
@@ -237,15 +243,15 @@ export const generateButtonBlock = (block: ButtonProps) => {
     buttonColor,
     buttonText,
     navigateToUrl,
-    id , 
-    parentId, 
-    childBlocks, 
-    type , 
-    cellIndex, 
+    id,
+    parentId,
+    childBlocks,
+    type,
+    cellIndex,
     customCss,
     ...rest
   } = block || {};
-
+  const customStyles = parseCssString(customCss || "");
   const buttonStyle = {
     backgroundColor,
     textAlign: alignment,
@@ -255,6 +261,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
     color: textColor,
     buttonColor,
     padding,
+    ...customStyles,
     ...rest,
   };
 
@@ -283,14 +290,16 @@ export const generateGridBlock = (block: GridProps) => {
     id,
     type,
     parentId,
-    customCss , 
+    customCss,
     borderWidth,
     ...rest
   } = block || {};
+  const customStyles = parseCssString(customCss || "");
 
   const gridStyle = {
     columnGap: columnGap || 0,
     backgroundColor,
+    ...customStyles,
     ...rest,
   };
 
@@ -321,7 +330,17 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
 };
 
 export const generateDividerBlock = (block: DividerProps) => {
-  const { alignment , backgroundColor , dividerColor , padding , thickness , type} = block || {};
+  const {
+    alignment,
+    backgroundColor,
+    dividerColor,
+    padding,
+    thickness,
+    type,
+    customCss,
+  } = block || {};
+  const customStyles = parseCssString(customCss || "");
+
   return {
     type: type,
     data: {
@@ -329,26 +348,30 @@ export const generateDividerBlock = (block: DividerProps) => {
         padding,
         backgroundColor,
         thickness,
-        dividerColor, 
-        alignment
-      }
-    }
-  }
-}
+        dividerColor,
+        alignment,
+        ...customStyles,
+      },
+    },
+  };
+};
 
 export const generateSpacerBlock = (block: SpacerProps) => {
-  const { alignment , backgroundColor , padding  , type} = block || {};
+  const { alignment, backgroundColor, padding, type, customCss } = block || {};
+  const customStyles = parseCssString(customCss || "");
+
   return {
     type: type,
     data: {
       style: {
         padding,
-        backgroundColor, 
-        alignment
-      }
-    }
-  }
-}
+        backgroundColor,
+        alignment,
+        ...customStyles,
+      },
+    },
+  };
+};
 
 export const rgbToHex = (rgb: string): string => {
   const result = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
@@ -360,9 +383,3 @@ export const rgbToHex = (rgb: string): string => {
   }
   return rgb;
 };
-
-
-export enum ScreenViews {
-  DESKTOP = "Desktop", 
-  MOBILE = "Mobile"
-} 

@@ -6,7 +6,7 @@ import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { ScreenViews } from "@utils/constant";
+import { ScreenViews } from "enum";
 
 interface TableWrapperProps {
   canvasColor: string;

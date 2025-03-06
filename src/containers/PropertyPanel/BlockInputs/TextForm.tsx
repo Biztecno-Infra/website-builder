@@ -78,7 +78,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       const updatedFormData = {
         ...prev,
         [field]: value,
-      };
+      };      
       updateBlock(blockId, field, value);
       return updatedFormData;
     });

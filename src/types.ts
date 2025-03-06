@@ -1,5 +1,4 @@
-import { ScreenViews } from "@utils/constant";
-import { BlockType } from "enum";
+import { BlockType, ScreenViews } from "enum";
 export interface Padding {
   top: number;
   right: number;

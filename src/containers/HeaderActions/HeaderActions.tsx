@@ -7,8 +7,7 @@ import SendTestModal from "@components/Modals/SendFileModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
-import { ScreenViews } from "@utils/constant";
-import { ExportType } from "enum";
+import { ExportType , ScreenViews } from "enum";
 
 // Create a styled component for the Header
 const StyledHeader = styled.div`

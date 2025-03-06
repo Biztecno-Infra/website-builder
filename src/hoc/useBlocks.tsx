@@ -5,7 +5,6 @@ import { html as beautifyHtml } from "js-beautify";
 import {
   getDefaultBlockProperties,
   initialGlobalStyle,
-  ScreenViews,
 } from "@utils/constant";
 import {
   Block,
@@ -18,7 +17,7 @@ import {
 import { generateUniqueId } from "@utils/common";
 import { jsonToBlocks, processBlock } from "utils";
 import { convertToHtml, tableCommonStyle } from "@utils/jsonToHtml";
-import { BlockType } from "enum";
+import { BlockType , ScreenViews } from "enum";
 
 const initializeBlock = (
   block: Block
