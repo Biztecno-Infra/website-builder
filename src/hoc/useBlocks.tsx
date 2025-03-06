@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import update from "immutability-helper";
 import { html as beautifyHtml } from "js-beautify";
 
-import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
+import { getDefaultBlockProperties, initialGlobalStyle, ScreenViews } from "@utils/constant";
 import {
   Block,
   BlockType,
@@ -15,7 +15,7 @@ import {
 import { generateUniqueId } from "@utils/common";
 import { jsonToBlocks, processBlock } from "utils";
 import { convertToHtml, tableCommonStyle } from "@utils/jsonToHtml";
-import { useTheme } from "styled-components";
+
 
 const initializeBlock = (
   block: Block
@@ -49,6 +49,7 @@ const getDistributtedLength = (length: number): Array<number> => {
 export const useBlocks = (): IBlockContext => {
   const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(null);
   const [globalStyles, setGlobalStyles] = useState<GlobalStyles>(initialGlobalStyle);
+  const [selectedView, setSelectedView] = useState<ScreenViews>(ScreenViews.DESKTOP); // Default to Desktop
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
@@ -523,7 +524,7 @@ export const useBlocks = (): IBlockContext => {
     const blocksHtml = rootData?.childrenIds
       .map((childId: string) => convertToHtml(jsonData[childId], jsonData))
       .join("");
-
+      const isMobile = selectedView === ScreenViews.MOBILE; 
     const rawHtml = `
     <!DOCTYPE html>
       <html lang="en">
@@ -533,7 +534,7 @@ export const useBlocks = (): IBlockContext => {
         <title>Email Layout</title>
       </head>
       <body>
-        <table style="font-family:${globalStyles?.fontFamily}; width:600px; max-width:600px; margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
+        <table style="font-family:${globalStyles?.fontFamily}; width:${isMobile ? "360px" : "600px"}; max-width:${isMobile ? "360px" : "600px"};  margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
           <tbody>
             <tr>
               <td style="padding:0;">${blocksHtml}</td>
@@ -559,6 +560,8 @@ export const useBlocks = (): IBlockContext => {
     updateGlobalStyles,
     blocksToJson,
     convertJsonToHtml,
-    globalStyles
+    globalStyles,
+    selectedView , 
+    setSelectedView
   };
 };

@@ -58,7 +58,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   }
 `;
 
-const Canvas = ({ selectedView }: { selectedView: ScreenViews }) => {
+const Canvas = () => {
   const {
     selectedBlock,
     handleDropper,
@@ -66,6 +66,7 @@ const Canvas = ({ selectedView }: { selectedView: ScreenViews }) => {
     setSelectedBlock,
     onDeleteBlock,
     globalStyles,
+    selectedView
   } = useBlockHook();
 
   const theme = useTheme();
