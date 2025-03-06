@@ -75,7 +75,7 @@ const SvgIcon: React.FC<Props> = ({
   const CustomIcon = CustomIconRef[name];
 
   const handleClick = () => {
-    if (onClick) {
+    if (typeof onClick === "function") {
       onClick();
     }
   };

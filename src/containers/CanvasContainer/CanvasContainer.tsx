@@ -6,12 +6,14 @@ import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { ScreenViews } from "@utils/constant";
 
 interface TableWrapperProps {
   canvasColor: string;
   canvasFont: string;
   canvasFontColor: string;
   canvasPadding: Padding;
+  isMobile: boolean;
 }
 
 const BlockWrapper = styled.div<{ isSelected: boolean }>`
@@ -46,16 +48,17 @@ const TrashIconWrapper = styled.div`
 const TableWrapper = styled.table<TableWrapperProps>`
   &.ebr-tableWrapper {
     margin: 0 auto;
-    width: 100%;
     background-color: ${({ canvasColor }) => canvasColor};
     font-family: ${({ canvasFont }) => canvasFont};
     color: ${({ canvasFontColor }) => canvasFontColor};
     border-collapse: collapse;
     table-layout: fixed;
+    width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
+    max-width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
   }
 `;
 
-const Canvas: React.FC = () => {
+const Canvas = () => {
   const {
     selectedBlock,
     handleDropper,
@@ -63,6 +66,7 @@ const Canvas: React.FC = () => {
     setSelectedBlock,
     onDeleteBlock,
     globalStyles,
+    selectedView
   } = useBlockHook();
 
   const theme = useTheme();
@@ -122,6 +126,7 @@ const Canvas: React.FC = () => {
             canvasFont={globalStyles.fontFamily}
             canvasFontColor={globalStyles.textColor}
             canvasPadding={globalStyles.padding}
+            isMobile={selectedView === ScreenViews.MOBILE}
           >
             <tbody>
               <tr>

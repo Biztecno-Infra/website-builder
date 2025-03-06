@@ -13,6 +13,7 @@ import ClearEmail from "./Icons/ClearEmail";
 import Close from "./Icons/Close";
 import DeleteSVG from "./Icons/Delete";
 import DeleteBlock from "./Icons/DeleteBlock";
+import DesktopIcon from "./Icons/DesktopIcon";
 import DragIcon from "./Icons/DragIcon";
 import EmptyCanvasSVG from "./Icons/EmptyCanvas";
 import ExpandIcon from "./Icons/ExpandIcon";
@@ -24,6 +25,7 @@ import ImageWidth from "./Icons/ImageWidth";
 import JustifyAlign from "./Icons/JustifyAlign";
 import LeftAlign from "./Icons/LeftAlign";
 import LineHeight from "./Icons/LineHeight";
+import MobileIcon from "./Icons/MobileIcon";
 import PaddingExpand from "./Icons/PaddingExpand";
 import PlusSVG from "./Icons/Plus";
 import RightAlign from "./Icons/RightAlign";
@@ -63,7 +65,9 @@ export enum CUSTOM_SVG_ICON {
   ImageWidth = "ImageWidth",
   BorderWidth = "BorderWidth",
   BorderRadius = "BorderRadius",
-  GlobalSettings = "GlobalSettings"
+  GlobalSettings = "GlobalSettings",
+  DesktopIcon = "DesktopIcon",
+  MobileIcon = "MobileIcon"
 }
 
 export const CustomIconRef: any = {
@@ -99,5 +103,7 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ImageWidth]: ImageWidth,
   [CUSTOM_SVG_ICON.BorderWidth]: BorderWidth,
   [CUSTOM_SVG_ICON.BorderRadius]: BorderRadius,
-  [CUSTOM_SVG_ICON.GlobalSettings] : GlobalSettings
+  [CUSTOM_SVG_ICON.GlobalSettings] : GlobalSettings,
+  [CUSTOM_SVG_ICON.DesktopIcon] : DesktopIcon,
+  [CUSTOM_SVG_ICON.MobileIcon] : MobileIcon
 };

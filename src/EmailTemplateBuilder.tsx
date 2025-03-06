@@ -1,4 +1,4 @@
-import { forwardRef, useState } from "react";
+import { forwardRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled from "styled-components";
@@ -8,12 +8,8 @@ import ElementsPanel from "@containers/ElementsPanel";
 import { BlockHookProvider } from "./context/BlockContext";
 import { BlockHookRef, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
-import { ButtonComponent } from "@components/lib";
 import CanvasContainer from "@containers/CanvasContainer";
-import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
-import ExportModal from "@components/Modals/ExportModal";
-import UploadModal from "@components/Modals/UploadJsonModal";
-import SendTestModal from "@components/Modals/SendFileModal";
+import HeaderActions from "@containers/HeaderActions";
 import "./index.css";
 
 interface Props {
@@ -34,16 +30,6 @@ const MiddleContainer = styled.div`
   height: 100%;
 `;
 
-const Header = styled.div`
-  width: 100%;
-  height: 3rem;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  border: 1px solid #dddddd;
-  border-top: none;
-`;
-
 const ContentWrapper = styled.div`
   display: flex;
   flex-direction: row;
@@ -53,16 +39,6 @@ const ContentWrapper = styled.div`
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
   ({ theme }, ref) => {
-    const [selectedOption, setSelectedOption] = useState<string | null>(null);
-
-    const handleOptionSelect = (option: string) => {
-      setSelectedOption(option);
-    };
-
-    const handleClose = () => {
-      setSelectedOption(null);
-    }
-
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>
@@ -70,37 +46,18 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
             <Container>
               <ElementsPanel />
               <MiddleContainer>
-                <Header>
-                  <ButtonComponent buttonPrimary text="Send" />
-                  <CustomDropdownButton
-                    options={["Export", "Upload", "Send Test"]}
-                    onSelect={handleOptionSelect}
-                    buttonText="Actions"
-                  />
-                </Header>
-
+                <HeaderActions />
                 <ContentWrapper>
                   <CanvasContainer />
                   <PropertyPanel />
                 </ContentWrapper>
               </MiddleContainer>
             </Container>
-
-            {selectedOption === "Export" && (
-              <ExportModal onClose={handleClose} onExport={() => { }} />
-            )}
-            {selectedOption === "Upload" && (
-              <UploadModal onClose={handleClose} onUpload={() => { }} />
-            )}
-            {selectedOption === "Send Test" && (
-              <SendTestModal onClose={handleClose} onSend={(file) => { }} />
-            )}
           </BlockHookProvider>
         </CustomThemeProvider>
       </DndProvider>
     );
   }
 );
-
 
 export default EmailTemplateBuilder;

@@ -1,3 +1,5 @@
+import { ScreenViews } from "@utils/constant";
+
 export enum BlockType {
   TEXT = "Text",
   IMAGE = "Image",
@@ -231,6 +233,8 @@ export interface IBlockContext {
   updateGlobalStyles: (styles: GlobalStyles) => void;
   blocksToJson: any;
   convertJsonToHtml: any;
+  selectedView: ScreenViews;
+  setSelectedView: any;
 }
 export interface BlockHookRef {
   getHTML: (json:any) => string;
