@@ -8,6 +8,7 @@ import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "@utils/constant";
+import { ExportType } from "enum";
 
 // Create a styled component for the Header
 const StyledHeader = styled.div`
@@ -35,7 +36,7 @@ const RightActions = styled.div`
 function HeaderActions() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const { selectedView, setSelectedView } = useBlockHook();
+  const { selectedView, setSelectedView , handleJsonUpload , blocksToJson , convertJsonToHtml } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
@@ -47,6 +48,16 @@ function HeaderActions() {
 
   const handleViewChange = (view: ScreenViews) => {
     setSelectedView(view);
+  };
+
+  const handleExport = (format: ExportType) => {
+    const convertedJson = blocksToJson();
+    if (format === ExportType.JSON) {
+      console.log(convertedJson, "convertedJson");
+    } else if (format === ExportType.HTML) {
+      const convertedHtml = convertJsonToHtml(convertedJson);
+      console.log(convertedHtml , "convertedHtml");
+    }
   };
 
   return (
@@ -74,10 +85,10 @@ function HeaderActions() {
         />
       </RightActions>
       {selectedOption === "Export" && (
-        <ExportModal onClose={handleClose} onExport={() => { }} />
+        <ExportModal onClose={handleClose} onExport={handleExport} />
       )}
       {selectedOption === "Upload" && (
-        <UploadModal onClose={handleClose} onUpload={() => { }} />
+        <UploadModal onClose={handleClose} onUpload={(json) => {handleJsonUpload(json)}} />
       )}
       {selectedOption === "Send Test" && (
         <SendTestModal onClose={handleClose} onSend={(file) => { }} />

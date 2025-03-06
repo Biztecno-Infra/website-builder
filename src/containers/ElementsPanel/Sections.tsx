@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useDrag } from "react-dnd";
 import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
-import { BlockType, Theme } from "types";
+import { BlockType, SizeEnum } from "enum";
+import { Theme } from "types";
 
 export interface IElements {
   type: string;
@@ -96,7 +96,7 @@ const Container = styled.div`
   align-items: center;
   /* background-color: #fff; */
   position: relative;
-  z-index: 1000;
+  z-index: 998;
   width: calc(100% - 4rem);
   height: 100%;
 `;

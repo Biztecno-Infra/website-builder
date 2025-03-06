@@ -1,6 +1,5 @@
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import styled from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Styled Components
 const EmptyBlockContainer = styled.div`
@@ -12,7 +11,6 @@ const EmptyBlockContainer = styled.div`
   height: 100%;
   font-size: 2rem;
   border: 1px dashed #DDDDDD;
-  // border-radius: 10px;
 `;
 
 const MessageText = styled.div`

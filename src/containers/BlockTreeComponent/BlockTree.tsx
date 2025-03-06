@@ -1,11 +1,10 @@
 import React, { JSX, useCallback, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Block, BlockType, GridProps, RootLayout } from "../../types";
+import { Block, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
 import {
   BlockContainer,
   BlockContent,
@@ -15,10 +14,10 @@ import {
   ChevronIcon,
   ChildNodesContainer,
   EmptyTreeNodeContainer,
-  ExpandIcon,
   HeaderContainer,
   RootBlockContainer,
 } from "./style";
+import { BlockType, SizeEnum } from "enum";
 
 interface BlockNodeProps {
   blockId: string;

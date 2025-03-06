@@ -4,12 +4,13 @@ import { TextBlockForm } from "./BlockInputs/TextForm";
 import { ImageBlockForm } from "./BlockInputs/ImageForm";
 import { ButtonBlockForm } from "./BlockInputs/ButtonForm";
 import { GridBlockForm } from "./BlockInputs/GridForm";
-import { Block, BlockType } from "../../types";
+import { Block } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import { GridCellForm } from "./BlockInputs/GridCellForm";
 import { DividerBlockForm } from "./BlockInputs/DividerBlockForm";
 import { SpacerBlockForm } from "./BlockInputs/SpacerBlockForm";
 import { RootStylesForm } from "./BlockInputs/RootStylesForm";
+import { BlockType } from "enum";
 
 export enum PropertyTabView {
   Global = "Global",

@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Input } from "@components/lib";
 import { Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 import useClickOutside from "@hoc/useClickOutside";
 
 interface PaddingProps {

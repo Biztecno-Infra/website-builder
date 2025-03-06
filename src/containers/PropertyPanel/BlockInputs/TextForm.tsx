@@ -10,7 +10,7 @@ import { TextProps } from "../../../types";
 import { TextArea, Input ,Dropdown } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 

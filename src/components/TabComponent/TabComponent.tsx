@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 
 const TabMenu = styled.div`
   display: flex;

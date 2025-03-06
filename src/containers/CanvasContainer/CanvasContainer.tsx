@@ -42,7 +42,7 @@ const TrashIconWrapper = styled.div`
   border-radius: 50%;
   padding: 5px;
   cursor: pointer;
-  z-index: 1000;
+  z-index: 998;
 `;
 
 const TableWrapper = styled.table<TableWrapperProps>`
@@ -55,6 +55,11 @@ const TableWrapper = styled.table<TableWrapperProps>`
     table-layout: fixed;
     width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
     max-width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
+
+     @media screen and (max-width: 600px) {
+      width: 360px !important;
+      max-width: 360px !important;
+    }
   }
 `;
 
@@ -115,6 +120,7 @@ const Canvas = () => {
         overflowY: "auto",
         scrollbarWidth: "none",
         msOverflowStyle: "none",
+        fontFamily: globalStyles.fontFamily
       }}
       onClick={() => setSelectedBlock(null)}
     >

@@ -1,22 +1,5 @@
 import { ScreenViews } from "@utils/constant";
-
-export enum BlockType {
-  TEXT = "Text",
-  IMAGE = "Image",
-  BUTTON = "Button",
-  GRID = "Columns",
-  EMPTY = "EMPTY",
-  GRIDCELL = "GridCell",
-  SPACER = "Spacer",
-  DIVIDER = "Divider"
-}
-
-export enum ViewMode {
-  Canvas = "canvas",
-  Html = "html",
-  Json = "json",
-}
-
+import { BlockType } from "enum";
 export interface Padding {
   top: number;
   right: number;
@@ -232,7 +215,7 @@ export interface IBlockContext {
   globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
   blocksToJson: any;
-  convertJsonToHtml: any;
+  convertJsonToHtml: (jsonData: any) => string;
   selectedView: ScreenViews;
   setSelectedView: any;
 }

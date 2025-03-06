@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { ButtonComponent } from "./Button";
 import useClickOutside from "hoc/useClickOutside";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 
 const DropdownContainer = styled.div`
   margin-left: 10px;

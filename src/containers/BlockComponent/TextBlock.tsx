@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import Droppable from "../Droppable";
-import { TextBlockProps, TextAlign } from "../../types";
+import { TextBlockProps, TextAlign } from "types";
 import { parseCssString } from "@utils/index";
 
 

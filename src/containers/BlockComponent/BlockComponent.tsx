@@ -1,12 +1,12 @@
 import React, { useMemo, useCallback } from "react";
 import {
-  BlockType,
   ButtonProps,
   DividerProps,
   ImageProps,
   SpacerProps,
   TextProps,
-  BlockComponentProps
+  BlockComponentProps,
+  Block
 } from "../../types";
 import { TextBlock } from "./TextBlock";
 import { ImageBlock } from "./ImageBlock";
@@ -15,6 +15,7 @@ import GridBlock from "./GridBlock";
 import { useBlockHook } from "context/BlockContext";
 import { DividerBlock } from "./DividerBlock";
 import { SpacerBlock } from "./SpacerBlock";
+import { BlockType } from "enum";
 
 const BlockComponent: React.FC<BlockComponentProps> = React.memo(
   ({ blockId }) => {
@@ -24,7 +25,7 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
     const block = useMemo(() => blocks[blockId], [blocks, blockId]);
 
     const isSelected = useMemo(() => {
-      return selectedBlock ? blockId === selectedBlock.id : false;
+      return selectedBlock ? blockId === (selectedBlock as Block).id : false;
     }, [selectedBlock, block]);
 
     const handleBlockClick = useCallback(

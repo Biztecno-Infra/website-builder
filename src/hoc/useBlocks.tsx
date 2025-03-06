@@ -2,10 +2,13 @@ import { useCallback, useState } from "react";
 import update from "immutability-helper";
 import { html as beautifyHtml } from "js-beautify";
 
-import { getDefaultBlockProperties, initialGlobalStyle, ScreenViews } from "@utils/constant";
+import {
+  getDefaultBlockProperties,
+  initialGlobalStyle,
+  ScreenViews,
+} from "@utils/constant";
 import {
   Block,
-  BlockType,
   IGridCellProps,
   IBlockContext,
   IBlocksState,
@@ -15,7 +18,7 @@ import {
 import { generateUniqueId } from "@utils/common";
 import { jsonToBlocks, processBlock } from "utils";
 import { convertToHtml, tableCommonStyle } from "@utils/jsonToHtml";
-
+import { BlockType } from "enum";
 
 const initializeBlock = (
   block: Block
@@ -45,11 +48,15 @@ const getDistributtedLength = (length: number): Array<number> => {
   return Array.from({ length }, () => 100 / length);
 };
 
-
 export const useBlocks = (): IBlockContext => {
-  const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(null);
-  const [globalStyles, setGlobalStyles] = useState<GlobalStyles>(initialGlobalStyle);
-  const [selectedView, setSelectedView] = useState<ScreenViews>(ScreenViews.DESKTOP); // Default to Desktop
+  const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
+    null
+  );
+  const [globalStyles, setGlobalStyles] =
+    useState<GlobalStyles>(initialGlobalStyle);
+  const [selectedView, setSelectedView] = useState<ScreenViews>(
+    ScreenViews.DESKTOP
+  ); // Default to Desktop
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
@@ -121,8 +128,8 @@ export const useBlocks = (): IBlockContext => {
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
     setBlocks((prevBlocks) => {
-      let updatedBlocks = update(prevBlocks, { $unset: [blockId] }); 
-  
+      let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
+
       if (deleteBlock.parentId) {
         updatedBlocks = update(updatedBlocks, {
           [deleteBlock.parentId]: {
@@ -133,17 +140,16 @@ export const useBlocks = (): IBlockContext => {
           },
         });
       }
-  
+
       return updatedBlocks;
     });
-  
+
     if (!deleteBlock.parentId) {
       setRootBlockOrder((prevOrder) =>
         prevOrder.filter((id) => id !== blockId)
       );
     }
   };
-  
 
   const handleJsonUpload = (jsonData: any) => {
     const { blocks, rootBlock } = jsonToBlocks(jsonData);
@@ -308,14 +314,14 @@ export const useBlocks = (): IBlockContext => {
 
           const newGridBlock = isGridCell
             ? {
-              type: BlockType.GRID,
-              id: generateUniqueId(),
-              parentId: undefined,
-              ...getDefaultBlockProperties(BlockType.GRID),
-              columns: 1,
-              cellWidths: [100],
-              childBlocks: [dragBlock.id],
-            }
+                type: BlockType.GRID,
+                id: generateUniqueId(),
+                parentId: undefined,
+                ...getDefaultBlockProperties(BlockType.GRID),
+                columns: 1,
+                cellWidths: [100],
+                childBlocks: [dragBlock.id],
+              }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -490,11 +496,7 @@ export const useBlocks = (): IBlockContext => {
     [blocks, rootBlockOrder]
   );
 
-
-  const blocksToJson = (
-    blocks: IBlocksState,
-    rootBlockOrder: string[]
-  ) => {
+  const blocksToJson = () => {
     const layout = {
       root: {
         type: "EmailLayout",
@@ -524,7 +526,7 @@ export const useBlocks = (): IBlockContext => {
     const blocksHtml = rootData?.childrenIds
       .map((childId: string) => convertToHtml(jsonData[childId], jsonData))
       .join("");
-      const isMobile = selectedView === ScreenViews.MOBILE; 
+    const isMobile = selectedView === ScreenViews.MOBILE;
     const rawHtml = `
     <!DOCTYPE html>
       <html lang="en">
@@ -532,9 +534,24 @@ export const useBlocks = (): IBlockContext => {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Email Layout</title>
+        <style>
+          @media screen and (max-width: 600px) {
+            .ebr-table-wrapper {
+              width: 360px !important;
+              max-width: 360px !important;
+            }
+          }
+
+          @media screen and (min-width: 601px) {
+            .ebr-table-wrapper {
+              width: 600px !important;
+              max-width: 600px !important;
+            }
+          }
+        </style>
       </head>
       <body>
-        <table style="font-family:${globalStyles?.fontFamily}; width:${isMobile ? "360px" : "600px"}; max-width:${isMobile ? "360px" : "600px"};  margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
+        <table class="ebr-table-wrapper" style="font-family:${globalStyles?.fontFamily}; width:600px; max-width:600px;  margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
           <tbody>
             <tr>
               <td style="padding:0;">${blocksHtml}</td>
@@ -546,8 +563,6 @@ export const useBlocks = (): IBlockContext => {
     return beautifyHtml(rawHtml, { indent_size: 2 });
   }
 
-  const json = blocksToJson(blocks , rootBlockOrder)
-  console.log(convertJsonToHtml(json) , json)
   return {
     setSelectedBlock,
     selectedBlock,
@@ -561,7 +576,7 @@ export const useBlocks = (): IBlockContext => {
     blocksToJson,
     convertJsonToHtml,
     globalStyles,
-    selectedView , 
-    setSelectedView
+    selectedView,
+    setSelectedView,
   };
 };

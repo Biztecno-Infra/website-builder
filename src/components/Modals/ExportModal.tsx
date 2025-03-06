@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import ModalOverlay from "@components/lib/ModalOverlay";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { ExportType, SizeEnum } from "enum";
 
 const Title = styled.div`
   font-size: 1rem;
@@ -65,11 +65,18 @@ const Button = styled.button<{ primary?: boolean }>`
 
 interface ExportModalProps {
   onClose: () => void;
-  onExport: (format: "JSON" | "HTML") => void;
+  onExport: (format: ExportType) => void;
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
-  const [selectedFormat, setSelectedFormat] = useState<"JSON" | "HTML" | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<ExportType | null>(null);
+
+  const handleExportFormat = () => {
+    if(selectedFormat) {
+      onExport(selectedFormat)
+      onClose()
+    }
+  }
 
   return (
     <ModalOverlay onClose={onClose}>
@@ -83,7 +90,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             type="radio"
             name="exportFormat"
             value="JSON"
-            onChange={() => setSelectedFormat("JSON")}
+            onChange={() => setSelectedFormat(ExportType.JSON)}
             checked={selectedFormat === "JSON"}
           />
         </Option>
@@ -94,7 +101,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             type="radio"
             name="exportFormat"
             value="HTML"
-            onChange={() => setSelectedFormat("HTML")}
+            onChange={() => setSelectedFormat(ExportType.HTML)}
             checked={selectedFormat === "HTML"}
           />
         </Option>
@@ -102,7 +109,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
 
       <ButtonContainer>
         <Button onClick={onClose}>Cancel</Button>
-        <Button primary disabled={!selectedFormat} onClick={() => selectedFormat && onExport(selectedFormat)}>
+        <Button primary disabled={!selectedFormat} onClick={handleExportFormat}>
           Export
         </Button>
       </ButtonContainer>

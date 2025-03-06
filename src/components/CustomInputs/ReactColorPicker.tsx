@@ -81,12 +81,14 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   const [color, setColor] = useState<string>("#000000");
   const [isPickerVisible, setPickerVisible] = useState<boolean>(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
-
+  
   useEffect(() => {
-    if (selectedColor && selectedColor !== color) {
+    if (selectedColor) {
       setColor(selectedColor);
+    } else {
+      setColor("#000000");
     }
-  }, [selectedColor, color]);
+  }, [selectedColor]);
 
   const handleColorChange = (newColor: string) => {
     const hexColor = rgbToHex(newColor);

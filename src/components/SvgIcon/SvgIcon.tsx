@@ -1,14 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import { CustomIconRef } from './IconRef';
-
-export enum SizeEnum {
-  Small = "small",
-  Medium = "medium",
-  Large = "large",
-  Huge = "huge",
-  Mini = "mini",
-}
+import { SizeEnum } from 'enum';
 
 export const sizeMapping: { [key in SizeEnum]: string } = {
   [SizeEnum.Small]: '1.2rem',

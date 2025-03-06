@@ -3,7 +3,7 @@ import styled from "styled-components";
 import TabComponent from "@components/TabComponent";
 import NodeTree from "../BlockTreeComponent";
 import Sections from "./Sections";
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import  { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 
 const ElementsContainer = styled.div`

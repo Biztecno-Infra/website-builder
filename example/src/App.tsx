@@ -1,4 +1,4 @@
-import React, { Fragment, useRef } from "react";
+import { Fragment, useRef } from "react";
 import { EmailBuilder, BlockHookRef, defaultTheme } from "email-builder-react";
 // import "./index.css";
 

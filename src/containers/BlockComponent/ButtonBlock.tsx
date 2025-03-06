@@ -34,7 +34,7 @@ const CustomButton: React.FC<{
     const buttonStyle = {
       color: textColor || "inherit",
       backgroundColor: buttonColor,
-      fontFamily: fontFamily,
+      fontFamily: fontFamily || "inherit",
       fontSize: fontSize ? `${fontSize}px` : "14px",
       fontWeight: fontWeight,
       cursor: "pointer",
@@ -49,7 +49,7 @@ const CustomButton: React.FC<{
       paddingLeft: buttonPadding?.left,
       width,
       height,
-      font: "inherit",
+      
     } as React.CSSProperties;
 
     const buttonContent = <button style={buttonStyle}>{buttonText}</button>;

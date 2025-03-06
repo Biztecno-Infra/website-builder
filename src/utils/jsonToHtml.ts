@@ -1,5 +1,5 @@
-import { BlockType, GlobalStyles, Padding } from "../types";
-import { html as beautifyHtml} from "js-beautify";
+import { BlockType } from "enum";
+import { Padding } from "../types";
 interface BlockJsonProps {
   columns: number;
   rows: number;

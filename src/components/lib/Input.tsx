@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from "react";
 import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 
 interface StyledInputProps {
   theme: any;
@@ -9,10 +9,7 @@ interface StyledInputProps {
 }
 
 
-const InputContainer = styled.div.withConfig({
-  displayName: 'InputContainer',
-  componentId: 'sc-input-container', // This ensures a unique class name
-})`
+const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
   position: relative;
@@ -33,14 +30,12 @@ const InputContainer = styled.div.withConfig({
     color: ${({ theme }) => theme.colors.inputPlaceholderColor};
   }
 
-  /* Hiding the number input arrows */
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
 
-  /* For Firefox */
   &[type='number'] {
     -moz-appearance: textfield;
   }

@@ -1,7 +1,8 @@
 import React from "react";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon"; // Ensure the import is correct
-import { SizeEnum, sizeMapping } from "@components/SvgIcon/SvgIcon";
+import { sizeMapping } from "@components/SvgIcon/SvgIcon";
+import { SizeEnum } from "enum";
 
 interface ButtonProps {
   primary?: boolean;

@@ -1,5 +1,5 @@
+import { BlockType } from "enum";
 import {
-  BlockType,
   ButtonProps,
   DividerProps,
   GlobalStyles,
@@ -33,12 +33,12 @@ export const defaultGridPadding = {
   left: 0,
 };
 
-export const defaultFont = "MODERN_SANS";
+export const defaultFont = "Modern Sans";
 
 export const initialGlobalStyle : GlobalStyles = {
   canvasColor: "#FFFFFF",
   textColor: defaultTextColor,
-  fontFamily: "MODERN_SANS",
+  fontFamily: defaultFont,
   padding: defaultPadding
 };
 
@@ -79,7 +79,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultPadding,
       backgroundColor: "",
       alignment: "left",
-      fontFamily: defaultFont,
+      fontFamily: "",
       navigateToUrl: "",
       lineHeight: 16,
       backgroundImage: "" 
@@ -91,7 +91,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       textColor: "",
       padding: defaultPadding,
       navigateToUrl: "",
-      fontFamily: defaultFont,
+      fontFamily: "",
       fontSize: 16,
       fontWeight: "400",
       alignment: "left",
