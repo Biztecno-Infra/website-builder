@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { ButtonComponent } from "./Button";
 import useClickOutside from "hoc/useClickOutside";
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import  { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 
 const DropdownContainer = styled.div`
@@ -59,10 +59,10 @@ const CustomDropdownButton: React.FC<CustomDropdownProps> = ({
   return (
     <DropdownContainer ref={dropdownRef}>
       <ButtonComponent
-        buttonPrimary
+        $buttonPrimary
         text={buttonText}
         handleClick={() => setIsOpen((prev) => !prev)}
-        iconProps={{
+        $iconProps={{
           iconName: CUSTOM_SVG_ICON.ArrowDown,
           iconPosition: "right",
           iconSize: SizeEnum.Small

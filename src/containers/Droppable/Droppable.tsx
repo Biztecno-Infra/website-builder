@@ -10,8 +10,8 @@ interface DroppableProps extends React.HTMLAttributes<HTMLElement> {
 }
 
 // Define a styled div that will be used for the droppable area
-const DroppableWrapper = styled.div<{ isOver: boolean  , backgroundColor: string}>`
-  background: ${({ isOver , backgroundColor }) => (isOver ? "#b3cee5" : backgroundColor)};
+const DroppableWrapper = styled.div<{ $isOver: boolean  , $backgroundColor: string}>`
+  background: ${({ $isOver , $backgroundColor }) => ($isOver ? "#b3cee5" : $backgroundColor)};
   ${({ style }) => style && { ...style }};
 `;
 
@@ -33,8 +33,8 @@ const Droppable = forwardRef<HTMLElement, DroppableProps>(
     return (
       <DroppableWrapper
         ref={node => { if (node) dropRef(node); }}
-        isOver={isOver}
-        backgroundColor={backgroundColor || ""}
+        $isOver={isOver}
+        $backgroundColor={backgroundColor || ""}
         style={style}
         {...props}
       >

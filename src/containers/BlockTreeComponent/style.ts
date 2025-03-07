@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
 export const BlockContainer = styled.div<{
-  isDragging: boolean;
+  $isDragging: boolean;
   cursor: string;
 }>`
-  opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
+  opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
   padding-left: 8px;
 `;

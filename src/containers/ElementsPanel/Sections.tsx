@@ -18,27 +18,27 @@ export interface IElements {
   icon: any;
 }
 
-const BlockItemContainer = styled.div<{ isDragging: boolean, elements: any, isHovered: boolean, colors: any }>`
-  opacity: ${({ isDragging }) => (isDragging ? 0.5 : 1)};
-  margin-bottom: ${({ elements }) => elements.marginBottom};
-  cursor: ${({ elements }) => elements.cursor};
-  border-radius: ${({ elements }) => elements.borderRadius};
-  border: ${({ elements }) => elements.border};
-  width: ${({ elements }) => elements.width};
-  padding: ${({ elements }) => elements.padding};
-  text-align: ${({ elements }) => elements.textAlign};
-  background-color: ${({ isDragging, isHovered, colors }) =>
-    isDragging ? 'transparent' : (isHovered ? colors.buttonPrimary : colors.secondary)};
+const BlockItemContainer = styled.div<{ $isDragging: boolean, $elements: any, $isHovered: boolean, $colors: any }>`
+  opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
+  margin-bottom: ${({ $elements }) => $elements.marginBottom};
+  cursor: ${({ $elements }) => $elements.cursor};
+  border-radius: ${({ $elements }) => $elements.borderRadius};
+  border: ${({ $elements }) => $elements.border};
+  width: ${({ $elements }) => $elements.width};
+  padding: ${({ $elements }) => $elements.padding};
+  text-align: ${({ $elements }) => $elements.textAlign};
+  background-color: ${({ $isDragging, $isHovered, $colors }) =>
+    $isDragging ? 'transparent' : ($isHovered ? $colors.buttonPrimary : $colors.secondary)};
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: background-color 0.3s ease, color 0.3s ease;
 `;
 
-const BlockName = styled.div<{ isHovered: boolean, colors: any }>`
+const BlockName = styled.div<{ $isHovered: boolean, $colors: any }>`
   font-size: 11px;
   padding-left: 1rem;
-  color: ${({ isHovered, colors }) => isHovered ? colors.secondary : colors.buttonPrimary};
+  color: ${({ $isHovered, $colors }) => $isHovered ? $colors.secondary : $colors.buttonPrimary};
   transition: color 0.3s ease;
 `;
 
@@ -71,10 +71,10 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
   return (
     <BlockItemContainer
       ref={drag as any}
-      isDragging={isDragging}
-      elements={elements}
-      isHovered={isHovered}
-      colors={colors}
+      $isDragging={isDragging}
+      $elements={elements}
+      $isHovered={isHovered}
+      $colors={colors}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{
@@ -84,7 +84,7 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
     >
       <BlockIconText>
         <SvgIcon {...svgProps} color={isHovered ? colors.secondary : colors.primary} />
-        <BlockName isHovered={isHovered} colors={colors}>{name}</BlockName>
+        <BlockName $isHovered={isHovered} $colors={colors}>{name}</BlockName>
       </BlockIconText>
       {isHovered && <IconContainer>{icon(isHovered, colors)}</IconContainer>}
     </BlockItemContainer>

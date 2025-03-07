@@ -109,7 +109,7 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
       ref={(node) => {
         if (node) drag(drop(node));
       }}
-      isDragging={isDragging}
+      $isDragging={isDragging}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}

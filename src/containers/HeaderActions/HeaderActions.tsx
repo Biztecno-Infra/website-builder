@@ -74,7 +74,7 @@ function HeaderActions() {
         />
       </LeftActions>
       <RightActions>
-        <ButtonComponent buttonPrimary text="Send" />
+        <ButtonComponent $buttonPrimary text="Send" />
         <CustomDropdownButton
           options={["Export", "Upload", "Send Test"]}
           onSelect={handleOptionSelect}
