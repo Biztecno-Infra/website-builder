@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { TextAlign , DividerBlockProps} from "../../types";
-import { parseCssString } from "@utils/index";
 
 export const DividerBlock: React.FC<DividerBlockProps> = ({
   block,
@@ -19,7 +18,6 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     [handleDropper]
   );
 
-  const customStyles = useMemo(() => parseCssString(customCss || ""), [customCss]);
 
   return (
     <Droppable
@@ -34,7 +32,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         textAlign: alignment as TextAlign,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         // borderRadius: 10,
-        ...customStyles
+        ...customCss
       }}
       onClick={handleBlockClick}
     >

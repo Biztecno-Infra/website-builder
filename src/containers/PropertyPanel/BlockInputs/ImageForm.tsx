@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Jimp } from "jimp";
+import styled from "styled-components";
 import { BlockFormProps } from "../types";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import { ReactColorPicker } from "@components/CustomInputs";
@@ -7,8 +8,8 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
-import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { parseCssString } from "@utils/index";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -43,6 +44,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderRadius,
     navigateToUrl,
     customCss,
+    id: blockId
   } = selectedBlock as ImageProps;
 
   const [formData, setFormData] = useState({
@@ -91,8 +93,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               width,
               height,
             };
-            updateBlock(selectedBlock.id, "width", width);
-            updateBlock(selectedBlock.id, "height", height);
+            updateBlock(blockId, "width", width);
+            updateBlock(blockId, "height", height);
             return updatedFormData;
           });
         } catch (error) {
@@ -115,7 +117,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   const handleImageUrlChange = async (value: string) => {
     setFormData((prev) => {
       const updatedFormData = { ...prev, imageUrl: value };
-      updateBlock(selectedBlock.id, "imageUrl", value);
+      updateBlock(blockId, "imageUrl", value);
       return updatedFormData;
     });
 
@@ -128,8 +130,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           width,
           height,
         };
-        updateBlock(selectedBlock.id, "width", width);
-        updateBlock(selectedBlock.id, "height", height);
+        updateBlock(blockId, "width", width);
+        updateBlock(blockId, "height", height);
         return updatedFormData;
       });
     } catch (error) {
@@ -137,11 +139,13 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     }
   };
 
-  const handleChange = (field: string, value: any) => {
-    setFormData((prev) => {
-      const updatedFormData = { ...prev, [field]: value };
-      updateBlock(selectedBlock.id, field, value);
-      return updatedFormData;
+ const handleChange = (property: string, value: any) => {
+    const updatedValue = property === "customCss" ? parseCssString(value) : value;
+  
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [property]: value };
+      updateBlock(blockId, property, updatedValue);  
+      return updatedData;
     });
   };
 

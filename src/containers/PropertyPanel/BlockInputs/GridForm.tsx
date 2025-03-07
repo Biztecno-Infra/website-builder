@@ -7,6 +7,7 @@ import { GridProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 import { ReactColorPicker } from "@components/CustomInputs";
+import { parseCssString } from "@utils/index";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -23,8 +24,9 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     customCss,
+    id: blockId
   } = selectedBlock as GridProps;
-
+console.log(selectedBlock , "GridProps")
   const [formData, setFormData] = useState({
     rows,
     columns,
@@ -53,31 +55,31 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  const handleChange = (field: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [field]: value };
+  const handleChange = (property: string, value: any) => {
+    const updatedValue = 
+    property === "customCss" && typeof value === "string" 
+      ? parseCssString(value) 
+      : value;
 
-      if (field === "columns") {
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [property]: value };
+
+      if (property === "columns") {
         const newCellWidths = Array.from({ length: value }, () =>
           Math.round(100 / value)
         );
         updatedData.cellWidths = newCellWidths;
 
-        updateBlock(selectedBlock.id, "columns", value);
-        updateBlock(selectedBlock.id, "cellWidths", newCellWidths);
+        updateBlock(blockId, "columns", value);
+        updateBlock(blockId, "cellWidths", newCellWidths);
       } else {
-        updateBlock(selectedBlock.id, field, value);
+        updateBlock(blockId, property, updatedValue);
       }
 
       return updatedData;
     });
   };
-
-  const addCustomCSS = (property: string, value: string) => {
-    const updatedCustomCss = { ...formData.customCss, [property]: value };
-    setFormData((prevData) => ({ ...prevData, customCss: updatedCustomCss }));
-    updateBlock(selectedBlock.id, "customCss", updatedCustomCss);
-  };
+  
 
   return (
     <FormWrapper>

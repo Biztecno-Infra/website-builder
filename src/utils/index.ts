@@ -247,9 +247,11 @@ export const jsonToBlocks = (
 
 export const parseCssString = (cssString: string): Record<string, string> => {
   const styleObject: Record<string, string> = {};
-
-  const cleanedCssString = cssString
-    .replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
+  if (typeof cssString !== "string" || !cssString.trim()) {
+    console.warn("Invalid CSS string provided:", cssString);
+    return styleObject; 
+  }
+  const cleanedCssString = cssString?.replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
     .trim();
 
   cleanedCssString.split(";").forEach((rule) => {

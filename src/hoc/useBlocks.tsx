@@ -102,7 +102,6 @@ export const useBlocks = (): IBlockContext => {
             ...newGridCells,
           });
         } else if (columnDiff < 0) {
-          // Remove extra grid cells from the end
           const updatedGridCells = childBlocks.slice(0, columnDiff);
           const removedGridCells = childBlocks.slice(columnDiff);
           const removeUpdates = Object.fromEntries(

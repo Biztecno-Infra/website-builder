@@ -1,7 +1,6 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { SpacerBlockProps } from "../../types";
-import { parseCssString } from "@utils/index";
 
 export const SpacerBlock: React.FC<SpacerBlockProps> = ({
   block,
@@ -9,7 +8,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
   handleBlockClick,
   isSelected
 }) => {
-  const { backgroundColor , padding ,customCss ,  ...rest } = block;
+  const { backgroundColor , padding ,customCss  } = block;
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -17,8 +16,6 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
     },
     [handleDropper]
   );
-
-  const customStyles = useMemo(() => parseCssString(customCss || ""), [customCss]);
 
   return (
     <Droppable

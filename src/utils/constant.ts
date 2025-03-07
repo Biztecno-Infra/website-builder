@@ -9,7 +9,6 @@ import {
   SpacerProps,
   TextProps,
 } from "../types";
-import { parseCssString } from ".";
 
 export const defaultTextColor: string = "#000000";
 const defaultPlaceholderImage: string =
@@ -151,7 +150,6 @@ export const generateTextBlock = (block: TextProps) => {
     customCss,
     ...rest
   } = block;
-  const customStyles = parseCssString(customCss || "");
 
   const textStyle: any = {
     fontWeight,
@@ -164,7 +162,7 @@ export const generateTextBlock = (block: TextProps) => {
     padding,
     backgroundColor,
     textAlign: alignment,
-    ...customStyles,
+    ...customCss,
     ...rest,
   };
 
@@ -205,7 +203,6 @@ export const generateImageBlock = (block: ImageProps) => {
     customCss,
     ...rest
   } = block || {};
-  const customStyles = parseCssString(customCss || "");
 
   const imageStyle = {
     padding,
@@ -214,7 +211,7 @@ export const generateImageBlock = (block: ImageProps) => {
     width,
     height,
     objectFit: "contain",
-    ...customStyles,
+    ...customCss,
     ...rest,
   };
 
@@ -251,7 +248,6 @@ export const generateButtonBlock = (block: ButtonProps) => {
     customCss,
     ...rest
   } = block || {};
-  const customStyles = parseCssString(customCss || "");
   const buttonStyle = {
     backgroundColor,
     textAlign: alignment,
@@ -261,7 +257,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
     color: textColor,
     buttonColor,
     padding,
-    ...customStyles,
+    ...customCss,
     ...rest,
   };
 
@@ -294,12 +290,11 @@ export const generateGridBlock = (block: GridProps) => {
     borderWidth,
     ...rest
   } = block || {};
-  const customStyles = parseCssString(customCss || "");
 
   const gridStyle = {
     columnGap: columnGap || 0,
     backgroundColor,
-    ...customStyles,
+    ...customCss,
     ...rest,
   };
 
@@ -339,7 +334,6 @@ export const generateDividerBlock = (block: DividerProps) => {
     type,
     customCss,
   } = block || {};
-  const customStyles = parseCssString(customCss || "");
 
   return {
     type: type,
@@ -350,7 +344,7 @@ export const generateDividerBlock = (block: DividerProps) => {
         thickness,
         dividerColor,
         alignment,
-        ...customStyles,
+        ...customCss
       },
     },
   };
@@ -358,7 +352,6 @@ export const generateDividerBlock = (block: DividerProps) => {
 
 export const generateSpacerBlock = (block: SpacerProps) => {
   const { alignment, backgroundColor, padding, type, customCss } = block || {};
-  const customStyles = parseCssString(customCss || "");
 
   return {
     type: type,
@@ -367,7 +360,7 @@ export const generateSpacerBlock = (block: SpacerProps) => {
         padding,
         backgroundColor,
         alignment,
-        ...customStyles,
+        ...customCss
       },
     },
   };
