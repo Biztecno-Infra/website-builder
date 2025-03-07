@@ -23,7 +23,9 @@ export interface Props {
   svgStyle?: React.CSSProperties;
 }
 
-const SvgIconContainer = styled.div<Props>`
+const SvgIconContainer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'circular'
+}) <Props>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,8 +34,8 @@ const SvgIconContainer = styled.div<Props>`
   color: ${(props) => props.color || 'currentColor'}; 
   background-color: ${(props) => props.bgColor || 'transparent'};
 
-  ${(props) =>
-    props.circular &&
+  ${({ circular }) =>
+    circular &&
     css`
       border-radius: 20%;
     `}
