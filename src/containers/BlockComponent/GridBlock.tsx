@@ -9,8 +9,9 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
     backgroundColor = "transparent",
     childBlocks,
     customCss,
+    ...rest
   } = block as GridProps;
-
+console.log(block)
   const renderCell = (childBlock: string, index: number) => {
     return (
       <GridCell
@@ -32,7 +33,8 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
         border: `1px dashed ${
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
-        ...customCss
+        ...customCss,
+        ...rest
       }}
     >
       <tbody>

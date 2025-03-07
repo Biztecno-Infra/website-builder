@@ -47,8 +47,7 @@ const CustomButton: React.FC<{
       paddingBottom: buttonPadding?.bottom,
       paddingLeft: buttonPadding?.left,
       width,
-      height,
-      
+      height
     } as React.CSSProperties;
 
     const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
@@ -79,7 +78,8 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     customCss,
     buttonPadding,
     width,
-    height
+    height,
+    ...rest
   } = block;
 
   const handleDrop = useCallback(
@@ -102,7 +102,8 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         textAlign: alignment as TextAlign,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         // borderRadius: 10,
-        ...customCss
+        ...customCss,
+        ...rest
       }}
       onClick={handleBlockClick}
     >

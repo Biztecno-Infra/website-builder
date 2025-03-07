@@ -8,8 +8,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
   handleBlockClick,
   isSelected,
 }) => {
-  const { backgroundColor, thickness, alignment, padding, dividerColor , customCss } =
-    block;
+  const { backgroundColor, thickness, alignment, padding, dividerColor , customCss , ...rest } = block;
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -32,7 +31,8 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         textAlign: alignment as TextAlign,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         // borderRadius: 10,
-        ...customCss
+        ...customCss,
+        ...rest
       }}
       onClick={handleBlockClick}
     >

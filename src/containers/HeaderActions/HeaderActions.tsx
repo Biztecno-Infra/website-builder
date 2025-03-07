@@ -9,7 +9,6 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
 import { ExportType , ScreenViews } from "enum";
 
-// Create a styled component for the Header
 const StyledHeader = styled.div`
   width: 100%;
   height: 3rem;
@@ -19,7 +18,6 @@ const StyledHeader = styled.div`
   border-top: none;
 `;
 
-// Create styled components for the inner divs
 const LeftActions = styled.div`
   display: flex;
   width: 70%;

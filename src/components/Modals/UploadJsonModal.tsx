@@ -48,19 +48,20 @@ const Title = styled.div`
 const FileName = styled.div`
   font-size: 1rem;
   font-weight: bold;
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   color: #0B978E;
 `;
 
 interface UploadModalProps {
   onClose: () => void;
-  onUpload: (jsonData: any) => void; // Accepts parsed JSON data
+  onUpload: (jsonData: any) => void; 
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>("");
-  const [jsonData, setJsonData] = useState<any>(null); // Store the parsed JSON data
+  const [jsonData, setJsonData] = useState<any>(null); 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -87,7 +88,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
   const handleUploadClick = () => {
     if (jsonData) {
       onUpload(jsonData);
-      onClose() 
+      onClose(); 
     }
   };
 

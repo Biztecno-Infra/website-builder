@@ -8,7 +8,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
   handleBlockClick,
   isSelected
 }) => {
-  const { backgroundColor , padding ,customCss  } = block;
+  const { backgroundColor , padding ,customCss , ...rest } = block;
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -29,7 +29,8 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
         backgroundColor,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         // borderRadius: 10,
-        ...customCss
+        ...customCss,
+        ...rest
     }}
       onClick={handleBlockClick}
     />

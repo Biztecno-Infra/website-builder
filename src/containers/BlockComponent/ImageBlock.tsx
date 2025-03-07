@@ -51,7 +51,8 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
     borderStyle,
     borderWidth,
     navigateToUrl,
-    customCss
+    customCss,
+    ...rest
   } = block;
 
   const handleDrop = useCallback(
@@ -79,7 +80,8 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
             : borderWidth
             ? `${borderWidth}px ${borderStyle} ${borderColor}`
             : "1px solid transparent",
-        ...customCss
+        ...customCss,
+        ...rest
       }}
       onClick={handleBlockClick}
     >

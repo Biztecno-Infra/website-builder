@@ -262,7 +262,7 @@ export const parseCssString = (cssString: string): Record<string, string> => {
 
       if (backgroundImageMatch) {
        
-        styleObject["background-image"] = `url("${backgroundImageMatch[1]}")`;
+        styleObject["background-image"] = `url(${backgroundImageMatch[1]})`;
         return; 
       }
     }

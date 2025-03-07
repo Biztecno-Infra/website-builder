@@ -297,7 +297,6 @@ export const generateGridBlock = (block: GridProps) => {
     ...customCss,
     ...rest,
   };
-
   return {
     type: block.type,
     data: {
