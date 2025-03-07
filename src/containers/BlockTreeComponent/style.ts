@@ -60,18 +60,6 @@ flex-direction: row;
   padding-left: 8px;
 `;
 
-export const EmptyTreeNodeContainer = styled.div`
-  padding-bottom: 50px;
-  padding-left: 16px;
-  background-color: #f4f4f4;
-  border: 1px dashed #ddd;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 50px;
-  cursor: pointer;
-`;
-
 export const RootBlockContainer = styled.div`
   display: flex;
   flex-direction: row;

@@ -11,7 +11,6 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
     customCss,
     ...rest
   } = block as GridProps;
-console.log(block)
   const renderCell = (childBlock: string, index: number) => {
     return (
       <GridCell

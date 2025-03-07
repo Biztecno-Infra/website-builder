@@ -13,7 +13,6 @@ import {
   BlockTextIcon,
   ChevronIcon,
   ChildNodesContainer,
-  EmptyTreeNodeContainer,
   HeaderContainer,
   RootBlockContainer,
 } from "./style";
@@ -142,6 +141,18 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
   );
 });
 
+const EmptyTreeNodeContainer = styled(Droppable)`
+  padding-bottom: 50px;
+  padding-left: 16px;
+  background-color: #f4f4f4;
+  border: 1px dashed #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  cursor: pointer;
+`;
+
 const EmptyTreeNode = ({ id }: { id: string }) => {
   const { handleDropper } = useBlockHook();
 
@@ -153,7 +164,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
   );
 
   return (
-    <EmptyTreeNodeContainer onDrop={handleDrop}>
+    <EmptyTreeNodeContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       DROP Nodes
     </EmptyTreeNodeContainer>
   );

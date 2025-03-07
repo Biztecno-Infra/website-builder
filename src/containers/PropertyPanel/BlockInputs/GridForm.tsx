@@ -26,7 +26,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     customCss,
     id: blockId
   } = selectedBlock as GridProps;
-console.log(selectedBlock , "GridProps")
   const [formData, setFormData] = useState({
     rows,
     columns,
