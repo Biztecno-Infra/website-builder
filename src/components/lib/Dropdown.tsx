@@ -101,6 +101,8 @@ export function Dropdown({
   useEffect(() => {
     if (initialValue) {
       setSelectedValue(initialValue);
+    } else {
+      setSelectedValue("")
     }
   }, [initialValue]);
 
