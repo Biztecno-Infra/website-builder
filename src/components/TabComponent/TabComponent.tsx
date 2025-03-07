@@ -11,16 +11,16 @@ const TabMenu = styled.div`
   width: 4rem;
 `;
 
-const TabMenuItem = styled.div<{ active: boolean }>`
+const TabMenuItem = styled.div<{ $active: boolean }>`
   cursor: pointer;
-  color: ${({ active }) => (active ? "#006E75" : "#8A8A8A")};
-  background-color: ${({ active }) => (active ? "#F5F5F5" : "transparent")};
-  border-right: ${({ active }) => (active ? "4px solid #006E75" : "none")};
+  color: ${({ $active }) => ($active ? "#006E75" : "#8A8A8A")};
+  background-color: ${({ $active }) => ($active ? "#F5F5F5" : "transparent")};
+  border-right: ${({ $active }) => ($active ? "4px solid #006E75" : "none")};
   height: 3rem;
   display: flex;
   justify-content: center;
   align-items: center;
-width: 97%;
+  width: 97%;
   &:hover {
     background-color: #f0f0f0;
   }
@@ -42,7 +42,7 @@ const TabComponent: React.FC<TabProps> = ({
       {tabs.map((tab, index) => (
         <TabMenuItem
           key={index}
-          active={activeIndex === index}
+          $active={activeIndex === index}
           onClick={() => onTabChange(index)}
         >
           <SvgIcon name={tab.label} size={SizeEnum.Medium} />
