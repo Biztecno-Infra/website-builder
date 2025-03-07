@@ -9,16 +9,16 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
 
 interface TableWrapperProps {
-  canvasColor: string;
-  canvasFont: string;
-  canvasFontColor: string;
-  canvasPadding: Padding;
-  isMobile: boolean;
+  $canvasColor: string;
+  $canvasFont: string;
+  $canvasFontColor: string;
+  $canvasPadding: Padding;
+  $isMobile: boolean;
 }
 
-const BlockWrapper = styled.div<{ isSelected: boolean }>`
+const BlockWrapper = styled.div<{ $isSelected: boolean }>`
   cursor: pointer;
-  border: ${({ isSelected }) => (isSelected ? "1px dashed #006E75" : "none")};
+  border: ${({ $isSelected }) => ($isSelected ? "1px dashed #006E75" : "none")};
   // border-radius: 10px;
   position: relative;
 `;
@@ -48,15 +48,15 @@ const TrashIconWrapper = styled.div`
 const TableWrapper = styled.table<TableWrapperProps>`
   &.ebr-tableWrapper {
     margin: 0 auto;
-    background-color: ${({ canvasColor }) => canvasColor};
-    font-family: ${({ canvasFont }) => canvasFont};
-    color: ${({ canvasFontColor }) => canvasFontColor};
+    background-color: ${({ $canvasColor }) => $canvasColor};
+    font-family: ${({ $canvasFont }) => $canvasFont};
+    color: ${({ $canvasFontColor }) => $canvasFontColor};
     border-collapse: collapse;
     table-layout: fixed;
-    width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
-    max-width: ${({ isMobile }) => (isMobile ? "360px" : "600px")};
+    width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
+    max-width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
 
-     @media screen and (max-width: 600px) {
+    @media screen and (max-width: 600px) {
       width: 360px !important;
       max-width: 360px !important;
     }
@@ -71,7 +71,7 @@ const Canvas = () => {
     setSelectedBlock,
     onDeleteBlock,
     globalStyles,
-    selectedView
+    selectedView,
   } = useBlockHook();
 
   const theme = useTheme();
@@ -87,7 +87,7 @@ const Canvas = () => {
     return (
       <BlockWrapper
         key={blockId}
-        isSelected={blockId === (selectedBlock as Block)?.id}
+        $isSelected={blockId === (selectedBlock as Block)?.id}
       >
         <BlockComponent blockId={blockId} />
         {blockId === (selectedBlock as Block)?.id && (
@@ -120,19 +120,19 @@ const Canvas = () => {
         overflowY: "auto",
         scrollbarWidth: "none",
         msOverflowStyle: "none",
-        fontFamily: globalStyles.fontFamily
+        fontFamily: globalStyles.fontFamily,
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15: 0}}>
+      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15 : 0 }}>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper
             className="ebr-tableWrapper"
-            canvasColor={globalStyles.canvasColor}
-            canvasFont={globalStyles.fontFamily}
-            canvasFontColor={globalStyles.textColor}
-            canvasPadding={globalStyles.padding}
-            isMobile={selectedView === ScreenViews.MOBILE}
+            $canvasColor={globalStyles.canvasColor}
+            $canvasFont={globalStyles.fontFamily}
+            $canvasFontColor={globalStyles.textColor}
+            $canvasPadding={globalStyles.padding}
+            $isMobile={selectedView === ScreenViews.MOBILE}
           >
             <tbody>
               <tr>

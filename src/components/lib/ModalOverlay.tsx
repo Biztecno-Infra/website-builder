@@ -16,9 +16,9 @@ const Overlay = styled.div`
   z-index: 1000;
 `;
 
-const ModalContainer = styled.div<{ isSmall: boolean }>`
+const ModalContainer = styled.div<{ $isSmall: boolean }>`
   background: white;
-  width: ${(props) => (props.isSmall ? '275px' : '400px')};
+  width: ${(props) => (props.$isSmall ? '275px' : '400px')};
   border-radius: 10px;
   padding: 20px;
   position: relative;
@@ -43,7 +43,7 @@ const ModalOverlay: React.FC<{
 }> = ({ onClose, children, isSmall }) => {
   return (
     <Overlay>
-      <ModalContainer isSmall={isSmall || false}>
+      <ModalContainer $isSmall={isSmall || false}>
         <CloseButton onClick={onClose}>
           <SvgIcon name={CUSTOM_SVG_ICON.Close} size={SizeEnum.Mini} />
         </CloseButton>

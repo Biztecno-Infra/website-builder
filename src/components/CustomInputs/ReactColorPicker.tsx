@@ -26,11 +26,11 @@ const PickerRow = styled.div`
   padding: 5px;
 `;
 
-const ColorBox = styled.div<{ selectedColor: string }>`
+const ColorBox = styled.div<{ $selectedColor: string }>`
   width: 1.6rem;
   height: 1.6rem;
   border-radius: 4px;
-  background-color: ${({ selectedColor }) => selectedColor || "#000000"};
+  background-color: ${({ $selectedColor }) => $selectedColor || "#000000"};
   cursor: pointer;
   border: 1px solid #ccc;
 `;
@@ -100,7 +100,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
     <ColorPickerContainer style={containerStyle}>
       <PickerRow>
         <ColorBox
-          selectedColor={color}
+          $selectedColor={color}
           onClick={() => setPickerVisible(!isPickerVisible)}
         />
 

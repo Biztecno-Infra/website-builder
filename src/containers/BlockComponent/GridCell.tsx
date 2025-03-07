@@ -1,24 +1,24 @@
 import React, { useCallback, useMemo } from "react";
+import styled from "styled-components";
 import BlockComponent from "./BlockComponent";
 import { GridCellProps, IGridCellProps } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import GridEmptyCell from "./GridEmptyCell";
-import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
-const StyledCell = styled.td<{ selected: boolean; padding: IGridCellProps['padding']; cellWidth: number; backgroundColor: string; verticalAlignment: string;}>`
-  border: ${({ selected }) => (selected ? "1px dashed #006E75" : "1px solid transparent")};
-  padding-top: ${(props) => props.padding?.top}px;
-  padding-bottom: ${(props) => props.padding?.bottom}px;
-  padding-right: ${(props) => props.padding?.right}px;
-  padding-left: ${(props) => props.padding?.left}px;
+const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlignment: string;}>`
+  border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "1px solid transparent")};
+  padding-top: ${(props) => props.$padding?.top}px;
+  padding-bottom: ${(props) => props.$padding?.bottom}px;
+  padding-right: ${(props) => props.$padding?.right}px;
+  padding-left: ${(props) => props.$padding?.left}px;
   text-align: center;
-  vertical-align: ${(props) => (props as any).verticalAlignment || "middle"};
+  vertical-align: ${(props) => (props as any).$verticalAlignment || "middle"};
   cursor: pointer;
   position: relative;
-  width: ${(props) => `${Math.round(props.cellWidth)}px`};
-  max-width: ${(props) => `${Math.round(props.cellWidth)}px`};
+  width: ${(props) => `${Math.round(props.$cellWidth)}px`};
+  max-width: ${(props) => `${Math.round(props.$cellWidth)}px`};
   background-color: ${(props) => (props as any).backgroundColor || ""};
   
   /* Prevent passing unknown props to the DOM */
@@ -93,11 +93,11 @@ const GridCell: React.FC<GridCellProps> = ({
 
   return (
     <StyledCell 
-      selected={isSelected} 
-      padding={(block as any)?.padding || {}} 
-      cellWidth={cellWidth}
+      $selected={isSelected} 
+      $padding={(block as any)?.padding || {}} 
+      $cellWidth={cellWidth}
       backgroundColor={block.backgroundColor}
-      verticalAlignment={(block as IGridCellProps).verticalAlignment}
+      $verticalAlignment={(block as IGridCellProps).verticalAlignment}
       onClick={handleCellBlockClick}
     >
       {

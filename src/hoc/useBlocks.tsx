@@ -524,7 +524,6 @@ export const useBlocks = (): IBlockContext => {
     const blocksHtml = rootData?.childrenIds
       .map((childId: string) => convertToHtml(jsonData[childId], jsonData))
       .join("");
-    const isMobile = selectedView === ScreenViews.MOBILE;
     const rawHtml = `
     <!DOCTYPE html>
       <html lang="en">

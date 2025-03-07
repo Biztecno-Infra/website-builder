@@ -16,14 +16,14 @@ const Wrapper = styled.div`
   padding: 1rem;
 `;
 
-const Label = styled.label<{ color: string; fontSize: string; paddingTop?: string; width?: string }>`
+const Label = styled.label<{ color: string; fontSize: string; $paddingTop?: string; width?: string }>`
   &.ebr-BasePropertyWrapperLabel {
     line-height: 1rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
     color: ${({ color }) => color};
     font-size: ${({ fontSize }) => fontSize};
-    padding-top: ${({ paddingTop }) => paddingTop || '0'};
+    padding-top: ${({ $paddingTop }) => $paddingTop || 0}px;
     width: ${({ width }) => width || 'auto'};
 
     @media screen and (min-width: 1919px) {
@@ -43,7 +43,7 @@ function BasePropertyWrapper({
 
   // Set default or custom styles for subLabel
   const labelStyles = subLabel
-    ? { color: "#111111", paddingTop: "1rem", width: "100%", fontSize: "11px" }
+    ? { color: "#111111", $paddingTop: "1rem", width: "100%", fontSize: "11px" }
     : { color: theme.colors.primary, fontSize: "14px" };  // default fontSize or theme-based color
   
   return (
