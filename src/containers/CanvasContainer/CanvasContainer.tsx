@@ -124,7 +124,7 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <BaseComponet>
+      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15: 0}}>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper
             className="ebr-tableWrapper"
