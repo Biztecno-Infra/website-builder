@@ -83,7 +83,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
 
   useEffect(() => {
     const loadImageDimensions = async () => {
-      if (imageUrl) {
+      if (imageUrl && !width && !height) {
         try {
           const image = await Jimp.read(imageUrl);
           const { width, height } = image.bitmap;
