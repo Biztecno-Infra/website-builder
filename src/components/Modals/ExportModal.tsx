@@ -79,7 +79,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
   }
 
   return (
-    <ModalOverlay onClose={onClose}>
+    <ModalOverlay onClose={onClose} isSmall>
       <Title>Export</Title>
       <Subtitle>Select the format before exporting:</Subtitle>
 

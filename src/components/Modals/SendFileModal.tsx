@@ -27,7 +27,7 @@ const EmailList = styled.div`
 const EmailTag = styled.div`
   background: #008080;
   color: white;
-  padding: 2px;
+  padding: 4px;
   border-radius: 5px;
   font-size: 12px;
   display: flex;
@@ -84,6 +84,7 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
         onKeyDown={handleKeyDown}
         onBlur={() => { }}
         type="email"
+        containerStyle={{marginBottom: 10}}
       />
 
       <EmailList>
@@ -94,6 +95,7 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
               name="ClearEmail"
               hover
               onClick={() => removeEmail(email)}
+              svgStyle={{marginLeft: 5}}
             />
           </EmailTag>
         ))}
