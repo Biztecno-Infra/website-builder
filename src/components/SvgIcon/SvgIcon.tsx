@@ -24,7 +24,7 @@ export interface Props {
 }
 
 const SvgIconContainer = styled.div.withConfig({
-  shouldForwardProp: (prop) => prop !== 'circular'
+  shouldForwardProp: (prop) => !['circular', 'bgColor'].includes(prop)
 }) <Props>`
   display: flex;
   align-items: center;
@@ -55,6 +55,7 @@ const SvgIconContainer = styled.div.withConfig({
       filter: invert(1);
     `}
 `;
+
 
 const SvgIcon: React.FC<Props> = ({
   name,
