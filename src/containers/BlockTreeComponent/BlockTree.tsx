@@ -28,7 +28,7 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color={color} />,
   [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color={color} />,
   [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color={color} />,
-  [BlockType.GRIDCELL]: null,
+  [BlockType.GRIDCELL]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumn} color={color} />,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
 });
@@ -215,7 +215,7 @@ const NodeTree = () => {
       <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>
         <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{ width: "20%" }} />
-        <BlockContentText style={{ width: "80%" , cursor: "pointer" }}>Global Settings</BlockContentText>
+        <BlockContentText style={{ width: "80%", cursor: "pointer" }}>Global Settings</BlockContentText>
       </RootBlockContainer>
       {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>

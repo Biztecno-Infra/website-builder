@@ -30,10 +30,6 @@ const DeleteWrapper = styled.div`
   bottom: 3px;
 `;
 
-const BaseComponet = styled.div`
-  margin: 3rem;
-`;
-
 const TrashIconWrapper = styled.div`
   position: absolute;
   top: 0;
@@ -120,10 +116,11 @@ const Canvas = () => {
         scrollbarWidth: "none",
         msOverflowStyle: "none",
         fontFamily: globalStyles.fontFamily,
+        padding: "3rem"
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
+      <div style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper
             className="ebr-tableWrapper"
@@ -152,7 +149,7 @@ const Canvas = () => {
         ) : (
           <EmptyBlock text="Drag & drop elements here to start building " />
         )}
-      </BaseComponet>
+      </div>
     </Droppable>
   );
 };

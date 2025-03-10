@@ -4,7 +4,7 @@ export enum BlockType {
   BUTTON = "Button",
   GRID = "Columns",
   EMPTY = "EMPTY",
-  GRIDCELL = "GridCell",
+  GRIDCELL = "Column",
   SPACER = "Spacer",
   DIVIDER = "Divider",
 }

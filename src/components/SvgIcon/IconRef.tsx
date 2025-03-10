@@ -1,4 +1,5 @@
 import AddButton from "./Icons/AddButton";
+import AddColumn from "./Icons/AddColumn";
 import AddColumns from "./Icons/AddColumns";
 import AddImage from "./Icons/AddImage";
 import AddLine from "./Icons/AddLine";
@@ -44,6 +45,7 @@ export enum CUSTOM_SVG_ICON {
   AddImage = "AddImage",
   AddButton = "AddButton",
   AddColumns = "AddColumns",
+  AddColumn = "AddColumn",
   AddLine = "AddLine",
   AddSpacer = "AddSpacer",
   HtmlFile = "FileTypeHtml",
@@ -67,7 +69,7 @@ export enum CUSTOM_SVG_ICON {
   BorderRadius = "BorderRadius",
   GlobalSettings = "GlobalSettings",
   DesktopIcon = "DesktopIcon",
-  MobileIcon = "MobileIcon"
+  MobileIcon = "MobileIcon",
 }
 
 export const CustomIconRef: any = {
@@ -103,7 +105,8 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ImageWidth]: ImageWidth,
   [CUSTOM_SVG_ICON.BorderWidth]: BorderWidth,
   [CUSTOM_SVG_ICON.BorderRadius]: BorderRadius,
-  [CUSTOM_SVG_ICON.GlobalSettings] : GlobalSettings,
-  [CUSTOM_SVG_ICON.DesktopIcon] : DesktopIcon,
-  [CUSTOM_SVG_ICON.MobileIcon] : MobileIcon
+  [CUSTOM_SVG_ICON.GlobalSettings]: GlobalSettings,
+  [CUSTOM_SVG_ICON.DesktopIcon]: DesktopIcon,
+  [CUSTOM_SVG_ICON.MobileIcon]: MobileIcon,
+  [CUSTOM_SVG_ICON.AddColumn]: AddColumn
 };
