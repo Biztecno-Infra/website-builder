@@ -117,7 +117,10 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
       <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
         {hasChildBlocks && (
           <ChevronIcon isExpanded={isExpanded}>
-            <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+            {
+              isExpanded ? <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /> : <SvgIcon name={CUSTOM_SVG_ICON.ArrowRight} />
+            }
+
           </ChevronIcon>
         )}
         <BlockContentText>

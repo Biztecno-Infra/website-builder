@@ -6,6 +6,7 @@ import AddLine from "./Icons/AddLine";
 import AddSpacer from "./Icons/AddSpacer";
 import AddText from "./Icons/AddText";
 import ArrowDown from "./Icons/ArrowDown";
+import ArrowRight from "./Icons/ArrowRight";
 import BorderRadius from "./Icons/BorderRadius";
 import BorderWidth from "./Icons/BorderWidth";
 import CenterAlign from "./Icons/CenterAlign";
@@ -70,6 +71,7 @@ export enum CUSTOM_SVG_ICON {
   GlobalSettings = "GlobalSettings",
   DesktopIcon = "DesktopIcon",
   MobileIcon = "MobileIcon",
+  ArrowRight = "ArrowRight",
 }
 
 export const CustomIconRef: any = {
@@ -108,5 +110,6 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.GlobalSettings]: GlobalSettings,
   [CUSTOM_SVG_ICON.DesktopIcon]: DesktopIcon,
   [CUSTOM_SVG_ICON.MobileIcon]: MobileIcon,
-  [CUSTOM_SVG_ICON.AddColumn]: AddColumn
+  [CUSTOM_SVG_ICON.AddColumn]: AddColumn,
+  [CUSTOM_SVG_ICON.ArrowRight]: ArrowRight,
 };
