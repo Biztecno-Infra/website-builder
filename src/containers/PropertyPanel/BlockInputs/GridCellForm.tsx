@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { PaddingInput, VerticalAlignmentDropdown } from "@components/StyleComponents";
+import { PaddingInput, VerticalAlignment } from "@components/StyleComponents";
 import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
@@ -50,9 +50,10 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
           containerStylePopUp={{ width: "35%" }}
         />
       </FlexRow>
-      <VerticalAlignmentDropdown
+      <VerticalAlignment
         value={formData.verticalAlignment}
         onChange={handleChange}
+        containerStyle={{ width: "60%" }}
       />
     </BasePropertyWrapper>
   );

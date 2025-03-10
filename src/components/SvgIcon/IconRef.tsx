@@ -9,6 +9,8 @@ import ArrowDown from "./Icons/ArrowDown";
 import ArrowRight from "./Icons/ArrowRight";
 import BorderRadius from "./Icons/BorderRadius";
 import BorderWidth from "./Icons/BorderWidth";
+import BottomAligment from "./Icons/BottomAligment";
+import CenterAligment from "./Icons/CenterAligment";
 import CenterAlign from "./Icons/CenterAlign";
 import CheckSVG from "./Icons/Check";
 import ClearEmail from "./Icons/ClearEmail";
@@ -32,6 +34,7 @@ import PaddingExpand from "./Icons/PaddingExpand";
 import PlusSVG from "./Icons/Plus";
 import RightAlign from "./Icons/RightAlign";
 import SectionIcon from "./Icons/SectionIcon";
+import TopAligment from "./Icons/TopAligment";
 import TreeIcon from "./Icons/TreeIcon";
 import Upload from "./Icons/Upload";
 
@@ -72,6 +75,9 @@ export enum CUSTOM_SVG_ICON {
   DesktopIcon = "DesktopIcon",
   MobileIcon = "MobileIcon",
   ArrowRight = "ArrowRight",
+  TopAligment = "TopAligment",
+  BottomAligment = "BottomAligment",
+  CenterAligment = "CenterAligment",
 }
 
 export const CustomIconRef: any = {
@@ -112,4 +118,7 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.MobileIcon]: MobileIcon,
   [CUSTOM_SVG_ICON.AddColumn]: AddColumn,
   [CUSTOM_SVG_ICON.ArrowRight]: ArrowRight,
+  [CUSTOM_SVG_ICON.TopAligment]: TopAligment,
+  [CUSTOM_SVG_ICON.BottomAligment]: BottomAligment,
+  [CUSTOM_SVG_ICON.CenterAligment]: CenterAligment
 };
