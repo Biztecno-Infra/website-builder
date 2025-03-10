@@ -1,13 +1,7 @@
 import React, { Fragment, useState } from "react";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "enum";
-
-interface StyledInputProps {
-  theme: any;
-  width: string | number;
-}
-
+import { SizeEnum } from "enum"
 
 const InputContainer = styled.div`
   display: flex;
@@ -46,13 +40,6 @@ const InputContainer = styled.div`
     cursor: not-allowed;
   }
   }
-`;
-
-
-const ErrorText = styled.div`
-  color: red;
-  font-size: 0.75rem;
-  margin-top: 4px;
 `;
 
 const UnitsLabel = styled.div`
@@ -141,7 +128,7 @@ export function Input({
           type={type}
           value={value}
           name={name}
-          placeholder={placeholder}
+          placeholder={!value ? "0" : placeholder}
           onChange={handleInputChange}
           onBlur={onBlur}
           disabled={disabled}

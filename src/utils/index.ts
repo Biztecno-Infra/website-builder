@@ -209,17 +209,20 @@ export const jsonToBlocks = (
           backgroundColor: dividerbg,
           dividerColor,
           thickness,
+          customCss
         } = layoutBlock.data.style || {};
         dividerProps.alignment = alignment;
         dividerProps.backgroundColor = dividerbg;
         dividerProps.dividerColor = dividerColor;
         dividerProps.thickness = thickness;
         dividerProps.padding = dividerPadding;
+        dividerProps.customCss = customCss || "";
         break;
       case BlockType.SPACER:
         const spacerProps = block as SpacerProps;
         spacerProps.backgroundColor = layoutBlock.data.style.backgroundColor;
         spacerProps.padding = layoutBlock.data.style.padding;
+        spacerProps.customCss = layoutBlock.data.style.customCss
         break;
       default:
         console.error(`Unknown block type: ${block.type}`);
@@ -247,7 +250,6 @@ export const jsonToBlocks = (
 };
 
 export const convertStringtoStyle = (cssString: string): React.CSSProperties => {
-  console.log(cssString)
   const styleObject: Record<string, string | number> = {};  
 
   // Check if the input string is valid

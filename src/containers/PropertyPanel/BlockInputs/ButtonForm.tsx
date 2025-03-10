@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BlockFormProps } from "../types";
-import {
-  PaddingInput,
-  AlignmentSelector,
-} from "@components/StyleComponents";
+import { PaddingInput, AlignmentSelector } from "@components/StyleComponents";
 import styled from "styled-components";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
@@ -18,13 +15,13 @@ import { fontOptions, fontWeightOptions } from "../constant";
 const Divider = styled.div`
   width: 100%;
   height: 1px;
-  background:#DDDDDD ;
-`
+  background: #dddddd;
+`;
 const WidthHeightContainer = styled.div`
   display: flex;
   flex-direction: row;
   padding-bottom: 0.5rem;
-`
+`;
 export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -95,15 +92,13 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
- const handleChange = (property: string, value: any) => {  
+  const handleChange = (property: string, value: any) => {
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(id, property, value);  
+      updateBlock(id, property, value);
       return updatedData;
     });
   };
-  
-
 
   return (
     <FormWrapper>
@@ -180,7 +175,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }
             unitsLabel="px"
             iconProps={{
-              name: CUSTOM_SVG_ICON.ImageHeight,
+              name: CUSTOM_SVG_ICON.ImageWidth,
             }}
             containerStyle={{
               width: "40%",
@@ -197,7 +192,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }
             unitsLabel="px"
             iconProps={{
-              name: CUSTOM_SVG_ICON.ImageWidth,
+              name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             containerStyle={{
               width: "40%",
