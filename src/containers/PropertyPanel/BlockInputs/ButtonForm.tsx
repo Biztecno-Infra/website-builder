@@ -14,7 +14,6 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
-import { parseCssString } from "@utils/index";
 
 const Divider = styled.div`
   width: 100%;
@@ -96,12 +95,10 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
- const handleChange = (property: string, value: any) => {
-    const updatedValue = property === "customCss" ? parseCssString(value) : value;
-  
+ const handleChange = (property: string, value: any) => {  
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(id, property, updatedValue);  
+      updateBlock(id, property, value);  
       return updatedData;
     });
   };

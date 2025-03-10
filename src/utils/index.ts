@@ -186,6 +186,7 @@ export const jsonToBlocks = (
         gridProps.columns = layoutBlock.data.props.columns;
         gridProps.columnGap = columnGap;
         gridProps.cellWidths = layoutBlock.data.props.cellWidths;
+        gridProps.customCss = layoutBlock.data.props.customCss
         Object.assign(gridProps, gridStyleRest);
         break;
 
@@ -245,37 +246,87 @@ export const jsonToBlocks = (
   return { blocks, rootBlock: emailLayoutJson.root };
 };
 
-export const parseCssString = (cssString: string): Record<string, string> => {
-  const styleObject: Record<string, string> = {};
-  if (typeof cssString !== "string" || !cssString.trim()) {
-    console.warn("Invalid CSS string provided:", cssString);
-    return styleObject; 
-  }
-  const cleanedCssString = cssString?.replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
-    .trim();
+export const convertStringtoStyle = (cssString: string): React.CSSProperties => {
+  console.log(cssString)
+  const styleObject: Record<string, string | number> = {};  
 
+  // Check if the input string is valid
+  if (typeof cssString !== "string" || !cssString.trim()) {
+    // console.warn("Invalid CSS string provided:", cssString);
+    return styleObject;
+  }
+
+  // Clean the CSS string by removing excessive whitespaces and trimming
+  const cleanedCssString = cssString.replace(/(\r\n|\n|\r|\s{2,})+/g, " ").trim();
+
+  // Helper function to convert hyphenated CSS property names to camelCase
+  const toCamelCase = (str: string) => {
+    return str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
+  };
+
+  // Split the cleaned CSS string by semicolon to extract individual rules
   cleanedCssString.split(";").forEach((rule) => {
+    // Skip empty rules (e.g., leading or trailing semicolons)
+    if (!rule.trim()) return;
+
+    // Handle background-image URLs separately (React uses 'backgroundImage' for camelCase)
     if (rule.includes("background-image")) {
       const backgroundImageMatch = rule.match(
         /background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^\s)]+)['"]?\s*\)/
       );
 
       if (backgroundImageMatch) {
-       
-        styleObject["background-image"] = `url(${backgroundImageMatch[1]})`;
-        return; 
+        styleObject["backgroundImage"] = `url(${backgroundImageMatch[1]})`;
+        return; // Skip further processing for this rule
       }
     }
 
+    // Split the rule into key and value, trimming any whitespace
     const [key, value] = rule.split(":").map((item) => item.trim());
 
+    // Only add valid key-value pairs to the styleObject
     if (key && value) {
-      styleObject[key] = value;
+      // Convert hyphenated CSS property names to camelCase for React
+      const camelCaseKey  = toCamelCase(key);
+      styleObject[camelCaseKey] = value;
     }
   });
 
   return styleObject;
 };
+
+
+// export const parseCssString = (cssString: string): Record<string, string> => {
+//   const styleObject: Record<string, string> = {};
+//   if (typeof cssString !== "string" || !cssString.trim()) {
+//     console.warn("Invalid CSS string provided:", cssString);
+//     return styleObject; 
+//   }
+//   const cleanedCssString = cssString?.replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
+//     .trim();
+
+//   cleanedCssString.split(";").forEach((rule) => {
+//     if (rule.includes("background-image")) {
+//       const backgroundImageMatch = rule.match(
+//         /background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^\s)]+)['"]?\s*\)/
+//       );
+
+//       if (backgroundImageMatch) {
+       
+//         styleObject["background-image"] = `url(${backgroundImageMatch[1]})`;
+//         return; 
+//       }
+//     }
+
+//     const [key, value] = rule.split(":").map((item) => item.trim());
+
+//     if (key && value) {
+//       styleObject[key] = value;
+//     }
+//   });
+
+//   return styleObject;
+// };
 
 export const defaultTheme: Theme = {
   colors: {

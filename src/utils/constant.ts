@@ -162,7 +162,7 @@ export const generateTextBlock = (block: TextProps) => {
     padding,
     backgroundColor,
     textAlign: alignment,
-    ...customCss,
+    customCss,
     ...rest,
   };
 
@@ -211,7 +211,7 @@ export const generateImageBlock = (block: ImageProps) => {
     width,
     height,
     objectFit: "contain",
-    ...customCss,
+    customCss,
     ...rest,
   };
 
@@ -257,7 +257,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
     color: textColor,
     buttonColor,
     padding,
-    ...customCss,
+    customCss,
     ...rest,
   };
 
@@ -294,9 +294,10 @@ export const generateGridBlock = (block: GridProps) => {
   const gridStyle = {
     columnGap: columnGap || 0,
     backgroundColor,
-    ...customCss,
+    customCss,
     ...rest,
   };
+
   return {
     type: block.type,
     data: {
@@ -343,7 +344,7 @@ export const generateDividerBlock = (block: DividerProps) => {
         thickness,
         dividerColor,
         alignment,
-        ...customCss
+        customCss
       },
     },
   };
@@ -351,7 +352,6 @@ export const generateDividerBlock = (block: DividerProps) => {
 
 export const generateSpacerBlock = (block: SpacerProps) => {
   const { alignment, backgroundColor, padding, type, customCss } = block || {};
-
   return {
     type: type,
     data: {
@@ -359,7 +359,7 @@ export const generateSpacerBlock = (block: SpacerProps) => {
         padding,
         backgroundColor,
         alignment,
-        ...customCss
+        customCss,
       },
     },
   };

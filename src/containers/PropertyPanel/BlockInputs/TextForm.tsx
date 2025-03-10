@@ -13,7 +13,6 @@ import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
-import { parseCssString } from "@utils/index";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -73,12 +72,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  const handleChange = (property: string, value: any) => {
-    const updatedValue = property === "customCss" ? parseCssString(value) : value;
-  
+  const handleChange = (property: string, value: any) => {  
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, updatedValue);  
+      updateBlock(blockId, property, value);  
       return updatedData;
     });
   };

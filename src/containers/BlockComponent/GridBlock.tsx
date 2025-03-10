@@ -1,6 +1,7 @@
 import React from "react";
 import { GridProps, GridBlockProps } from "../../types";
 import GridCell from "./GridCell";
+import { convertStringtoStyle } from "@utils/index";
 
 const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
   const {
@@ -11,6 +12,9 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
     customCss,
     ...rest
   } = block as GridProps;
+
+  const convertedStyle = convertStringtoStyle(customCss);
+
   const renderCell = (childBlock: string, index: number) => {
     return (
       <GridCell
@@ -32,8 +36,8 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
         border: `1px dashed ${
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
-        ...customCss,
-        ...rest
+        ...convertedStyle,
+        ...rest,
       }}
     >
       <tbody>

@@ -11,6 +11,7 @@ const EmptyBlockContainer = styled.div`
   height: 100%;
   font-size: 2rem;
   border: 1px dashed #DDDDDD;
+  background: #ffffff;
 `;
 
 const MessageText = styled.div`
@@ -23,6 +24,7 @@ const MessageText = styled.div`
 
 const SvgIconWrapper = styled.div`
 padding: 1rem;
+
 `;
 
 const EmptyBlock = ({ text }: any) => {

@@ -7,7 +7,6 @@ import { PaddingInput } from "@components/StyleComponents";
 import { Input, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
-import { parseCssString } from "@utils/index";
 
 
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
@@ -45,11 +44,9 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
  const handleChange = (property: string, value: any) => {
-    const updatedValue = property === "customCss" ? parseCssString(value) : value;
-  
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, updatedValue);  
+      updateBlock(blockId, property, value);  
       return updatedData;
     });
   };

@@ -6,7 +6,6 @@ import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow, FormWrapper } from "../style";
 import { TextArea } from "@components/lib";
-import { parseCssString } from "@utils/index";
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -34,11 +33,10 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
  const handleChange = (property: string, value: any) => {
-    const updatedValue = property === "customCss" ? parseCssString(value) : value;
   
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, updatedValue);  
+      updateBlock(blockId, property, value);  
       return updatedData;
     });
   };

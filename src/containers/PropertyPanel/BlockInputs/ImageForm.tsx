@@ -9,7 +9,6 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { parseCssString } from "@utils/index";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -140,11 +139,10 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   };
 
  const handleChange = (property: string, value: any) => {
-    const updatedValue = property === "customCss" ? parseCssString(value) : value;
   
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, updatedValue);  
+      updateBlock(blockId, property, value);  
       return updatedData;
     });
   };

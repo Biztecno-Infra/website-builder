@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { TextBlockProps, TextAlign } from "types";
+import { convertStringtoStyle } from "@utils/index";
 
 export const TextBlock: React.FC<TextBlockProps> = ({
   block,
@@ -30,6 +31,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     },
     [handleDropper]
   );
+  const convertedStyle = convertStringtoStyle(customCss);
   return (
     <Droppable
       accept="BLOCK"
@@ -57,7 +59,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         border: `1px dashed ${
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
-        ...customCss,
+        ...convertedStyle,
         ...rest,
       }}
       onClick={handleBlockClick}

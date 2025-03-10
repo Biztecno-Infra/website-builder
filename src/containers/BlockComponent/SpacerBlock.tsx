@@ -1,14 +1,15 @@
 import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { SpacerBlockProps } from "../../types";
+import { convertStringtoStyle } from "@utils/index";
 
 export const SpacerBlock: React.FC<SpacerBlockProps> = ({
   block,
   handleDropper,
   handleBlockClick,
-  isSelected
+  isSelected,
 }) => {
-  const { backgroundColor , padding ,customCss , ...rest } = block;
+  const { backgroundColor, padding, customCss, ...rest } = block;
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -16,6 +17,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
     },
     [handleDropper]
   );
+  const convertedStyle = convertStringtoStyle(customCss);
 
   return (
     <Droppable
@@ -25,13 +27,15 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
         paddingTop: `${padding.top}px`,
         paddingRight: `${padding.right}px`,
         paddingBottom: `${padding.bottom}px`,
-        paddingLeft: `${padding.left}px`,      
+        paddingLeft: `${padding.left}px`,
         backgroundColor,
-        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        border: `1px dashed ${
+          isSelected && block.parentId ? "#006E75" : "transparent"
+        }`,
         // borderRadius: 10,
-        ...customCss,
-        ...rest
-    }}
+        ...convertedStyle,
+        ...rest,
+      }}
       onClick={handleBlockClick}
     />
   );

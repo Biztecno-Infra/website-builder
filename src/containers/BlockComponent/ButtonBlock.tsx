@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { TextAlign, ButtonBlockProps } from "../../types";
 import Droppable from "../Droppable";
+import { convertStringtoStyle } from "@utils/index";
 
 const CustomButton: React.FC<{
   buttonText?: string;
@@ -89,6 +90,8 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     [handleDropper]
   );
 
+  const convertedStyle = convertStringtoStyle(customCss)
+
   return (
     <Droppable
       accept="BLOCK"
@@ -102,7 +105,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         textAlign: alignment as TextAlign,
         border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
         // borderRadius: 10,
-        ...customCss,
+        ...convertedStyle,
         ...rest
       }}
       onClick={handleBlockClick}

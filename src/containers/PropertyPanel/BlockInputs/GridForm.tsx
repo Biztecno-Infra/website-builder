@@ -7,7 +7,6 @@ import { GridProps } from "../../../types";
 import { Input, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 import { ReactColorPicker } from "@components/CustomInputs";
-import { parseCssString } from "@utils/index";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -55,10 +54,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {
-    const updatedValue = 
-    property === "customCss" && typeof value === "string" 
-      ? parseCssString(value) 
-      : value;
 
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
@@ -72,7 +67,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         updateBlock(blockId, "columns", value);
         updateBlock(blockId, "cellWidths", newCellWidths);
       } else {
-        updateBlock(blockId, property, updatedValue);
+        updateBlock(blockId, property, value);
       }
 
       return updatedData;

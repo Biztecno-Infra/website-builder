@@ -5,10 +5,10 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 
 const DropArea = styled.div`
-  border: 2px dashed #0B978E;
+  border: 2px dashed #0b978e;
   height: 12rem;
   border-radius: 10px;
-  background: #F5F5F5;
+  background: #f5f5f5;
   cursor: pointer;
   text-align: center;
   margin-bottom: 20px;
@@ -17,12 +17,21 @@ const DropArea = styled.div`
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  transition: background 0.3s;
+
+  &:hover {
+    background: #eaeaea;
+  }
+
+  &.dragging {
+    background: #d1f7f4;
+  }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
   justify-content: space-between;
-  border-top: 1px solid #DDDDDD;
+  border-top: 1px solid #dddddd;
   padding-top: 1rem;
 `;
 
@@ -34,7 +43,7 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#0B978E" : "#ddd")};
+  background: ${(props) => (props.primary ? "#0b978e" : "#ddd")};
   color: ${(props) => (props.primary ? "white" : "black")};
 `;
 
@@ -50,18 +59,19 @@ const FileName = styled.div`
   font-weight: bold;
   margin-top: 10px;
   margin-bottom: 10px;
-  color: #0B978E;
+  color: #0b978e;
 `;
 
 interface UploadModalProps {
   onClose: () => void;
-  onUpload: (jsonData: any) => void; 
+  onUpload: (jsonData: any) => void;
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
   const [file, setFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>("");
-  const [jsonData, setJsonData] = useState<any>(null); 
+  const [jsonData, setJsonData] = useState<any>(null);
+  const [dragging, setDragging] = useState<boolean>(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -74,28 +84,69 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
         if (e.target?.result) {
           try {
             const parsedJson = JSON.parse(e.target.result as string);
-            setJsonData(parsedJson); 
+            setJsonData(parsedJson);
           } catch (error) {
             console.error("Failed to parse JSON:", error);
             alert("Invalid JSON file. Please upload a valid JSON.");
           }
         }
       };
-      reader.readAsText(selectedFile); 
+      reader.readAsText(selectedFile);
     }
+  };
+
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragging(false);
+
+    const droppedFiles = event.dataTransfer.files;
+    if (droppedFiles && droppedFiles.length > 0) {
+      const selectedFile = droppedFiles[0];
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          try {
+            const parsedJson = JSON.parse(e.target.result as string);
+            setJsonData(parsedJson);
+          } catch (error) {
+            console.error("Failed to parse JSON:", error);
+            alert("Invalid JSON file. Please upload a valid JSON.");
+          }
+        }
+      };
+      reader.readAsText(selectedFile);
+    }
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
   };
 
   const handleUploadClick = () => {
     if (jsonData) {
       onUpload(jsonData);
-      onClose(); 
+      onClose();
     }
   };
 
   return (
     <ModalOverlay onClose={onClose}>
       <Title>Upload JSON</Title>
-      <DropArea>
+      <DropArea
+        className={dragging ? "dragging" : ""}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <input
           type="file"
           accept=".json"

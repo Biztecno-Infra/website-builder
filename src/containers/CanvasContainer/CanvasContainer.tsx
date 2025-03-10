@@ -31,7 +31,6 @@ const DeleteWrapper = styled.div`
 `;
 
 const BaseComponet = styled.div`
-  background: #ffffff;
   margin: 3rem;
 `;
 
@@ -124,7 +123,7 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15 : 0 }}>
+      <BaseComponet style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
         {rootBlockOrder.length > 0 ? (
           <TableWrapper
             className="ebr-tableWrapper"
