@@ -48,7 +48,7 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#008080" : "#ddd")};
+  background: ${(props) => (props.primary ? "#0B978E" : "#ddd")};
   color: ${(props) => (props.primary ? "white" : "black")};
 `;
 
@@ -84,7 +84,7 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
         onKeyDown={handleKeyDown}
         onBlur={() => { }}
         type="email"
-        containerStyle={{marginBottom: 10}}
+        containerStyle={{ marginBottom: 10 }}
       />
 
       <EmailList>
@@ -95,7 +95,7 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
               name="ClearEmail"
               hover
               onClick={() => removeEmail(email)}
-              svgStyle={{marginLeft: 5}}
+              svgStyle={{ marginLeft: 5 }}
             />
           </EmailTag>
         ))}
