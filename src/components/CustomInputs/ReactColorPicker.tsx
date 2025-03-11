@@ -8,6 +8,7 @@ interface ColorPickerProps {
   label?: string;
   selectedColor: string;
   containerStyle?: React.CSSProperties;
+  defaultColor?: any
 }
 
 const ColorPickerContainer = styled.div`
@@ -77,16 +78,17 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   onColorChange,
   selectedColor,
   containerStyle,
+  defaultColor,
 }) => {
-  const [color, setColor] = useState<string>("#000000");
+  const [color, setColor] = useState<string>(defaultColor || "#000000");
   const [isPickerVisible, setPickerVisible] = useState<boolean>(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
-  
+
   useEffect(() => {
     if (selectedColor) {
       setColor(selectedColor);
     } else {
-      setColor("#000000");
+      setColor(defaultColor || "#000000");
     }
   }, [selectedColor]);
 

@@ -212,6 +212,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) => handleChange("buttonColor", value)}
           selectedColor={formData.buttonColor || ""}
           containerStyle={{ width: "60%", marginBottom: 10 }}
+          defaultColor={"#F5F5F5"}
         />
 
         <FlexRow>
