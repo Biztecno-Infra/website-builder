@@ -10,7 +10,7 @@ import {
   TextProps,
 } from "../types";
 
-export const defaultTextColor: string = "#000000";
+export const defaultTextColor: string = "";
 const defaultPlaceholderImage: string =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s";
 // const defaultPlaceholderImage : string = "https://t4.ftcdn.net/jpg/05/17/53/57/360_F_517535712_q7f9QC9X6TQxWi6xYZZbMmw5cnLMr279.jpg";
@@ -35,10 +35,10 @@ export const defaultGridPadding = {
 };
 
 export const defaultFont = "Modern Sans";
-export const defaultBg = "#FFFFFF";
+export const defaultBg = "";
 export const initialGlobalStyle: GlobalStyles = {
-  canvasColor:defaultBg,
-  textColor: defaultTextColor,
+  canvasColor: "#FFFFFF",
+  textColor: "#000000",
   fontFamily: defaultFont,
   padding: defaultPadding,
 };

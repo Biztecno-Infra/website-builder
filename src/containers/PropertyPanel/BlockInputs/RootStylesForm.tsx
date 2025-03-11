@@ -46,7 +46,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   const handleChange = (field: string, value: any) => {
     setStyles((prevStyles) => {
       const updatedStyles = { ...prevStyles, [field]: value };
-      updateGlobalStyles(updatedStyles); // Update the global styles
+      updateGlobalStyles(updatedStyles); 
       return updatedStyles;
     });
   };
@@ -75,7 +75,6 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             onColorChange={(field, value) => handleChange("canvasColor", value)}
             selectedColor={styles.canvasColor}
             containerStyle={{ width: "60%" }}
-            // defaultColor={globalStyles.canvasColor}
           />
           <PaddingInput
             padding={styles.padding}

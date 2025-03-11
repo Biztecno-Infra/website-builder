@@ -134,10 +134,10 @@ const Canvas = () => {
               <tr>
                 <td
                   style={{
-                    paddingTop: globalStyles.padding.top,
-                    paddingRight: globalStyles.padding.right,
-                    paddingBottom: globalStyles.padding.bottom,
-                    paddingLeft: globalStyles.padding.left,
+                    paddingTop: globalStyles?.padding.top,
+                    paddingRight: globalStyles?.padding.right,
+                    paddingBottom: globalStyles?.padding.bottom,
+                    paddingLeft: globalStyles?.padding.left,
                   }}
                 >
                   {rootBlockOrder.map(renderBlock)}

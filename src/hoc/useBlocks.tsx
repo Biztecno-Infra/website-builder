@@ -151,10 +151,10 @@ export const useBlocks = (): IBlockContext => {
 
   const handleJsonUpload = (jsonData: any) => {
     const { blocks, rootBlock } = jsonToBlocks(jsonData);
-    const { childrenIds, ...restProps } = rootBlock.data || {};
+    const { childrenIds, style } = rootBlock.data || {};
     const rootOrder = childrenIds || [];
     setBlocks(blocks);
-    // setGlobalStyles(restProps);
+    setGlobalStyles(style);
     setRootBlockOrder(rootOrder);
   };
 
@@ -503,6 +503,7 @@ export const useBlocks = (): IBlockContext => {
             canvasColor: globalStyles?.canvasColor,
             textColor: globalStyles?.textColor,
             fontFamily: globalStyles?.fontFamily,
+            padding: globalStyles?.padding
           },
           childrenIds: rootBlockOrder,
         },

@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import GradientColorPicker from "react-best-gradient-color-picker";
 import useClickOutside from "hoc/useClickOutside";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { SizeEnum } from "enum";
 
 interface ColorPickerProps {
   onColorChange: (field: string, value: string) => void;
@@ -43,7 +45,7 @@ const ColorHexInput = styled.input`
     background: #f1f1f1;
     border-radius: 4px;
     width: calc(100% - 2rem);
-    text-transform: uppercase;
+    // text-transform: uppercase;
     text-align: left;
     margin-left: 0.5rem;
   }
@@ -101,10 +103,12 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   return (
     <ColorPickerContainer style={containerStyle}>
       <PickerRow>
-        <ColorBox
+        {color && <ColorBox
           $selectedColor={color}
           onClick={() => setPickerVisible(!isPickerVisible)}
-        />
+        />}
+        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 5 , border: "1px solid" , borderRadius: 4}}/>}
+
 
         <ColorHexInput
           className="ebr-colorHexInput"
@@ -112,6 +116,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           value={color}
           onChange={(e) => handleColorChange(e.target.value.toUpperCase())}
           maxLength={10}
+          placeholder="Select Color"
         />
       </PickerRow>
 
