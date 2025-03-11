@@ -153,11 +153,11 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           />
         </FlexRow>
 
-        <AlignmentSelector
+        {/* <AlignmentSelector
           onChange={handleChange}
           value={formData.alignment}
           containerStyle={{ width: "60%" }}
-        />
+        /> */}
       </BasePropertyWrapper>
       <Divider />
       <BasePropertyWrapper
