@@ -54,7 +54,7 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#008080" : "#ddd")};
+  background: ${(props) => (props.primary ? "#0B978E" : "#ddd")};
   color: ${(props) => (props.primary ? "white" : "black")};
 
   &:disabled {
@@ -72,7 +72,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
   const [selectedFormat, setSelectedFormat] = useState<ExportType | null>(null);
 
   const handleExportFormat = () => {
-    if(selectedFormat) {
+    if (selectedFormat) {
       onExport(selectedFormat)
       onClose()
     }
