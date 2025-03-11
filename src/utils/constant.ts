@@ -38,7 +38,7 @@ export const defaultFont = "Modern Sans";
 export const defaultBg = "";
 export const initialGlobalStyle: GlobalStyles = {
   canvasColor: "#FFFFFF",
-  textColor: "#000000",
+  textColor: defaultTextColor,
   fontFamily: defaultFont,
   padding: defaultPadding,
 };
@@ -75,7 +75,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
   } else if (blockType === BlockType.TEXT) {
     return {
       text: "Text Block",
-      textColor: defaultTextColor,
+      color: defaultTextColor,
       fontSize: 16,
       fontWeight: "400",
       padding: defaultPadding,
@@ -134,7 +134,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
 export const generateTextBlock = (block: TextProps) => {
   const {
     fontWeight,
-    textColor,
+    color,
     fontFamily,
     fontSize,
     lineHeight,
@@ -155,7 +155,7 @@ export const generateTextBlock = (block: TextProps) => {
 
   const textStyle: any = {
     fontWeight,
-    color: textColor,
+    color,
     fontFamily,
     fontSize,
     lineHeight,

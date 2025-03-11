@@ -45,7 +45,7 @@ export interface SpacerProps extends BaseBlock {
 }
 
 export interface TextProps extends BaseBlock {
-  textColor?: string;
+  color?: string;
   fontFamily?: string;
   fontSize?: number;
   fontWeight?: string;

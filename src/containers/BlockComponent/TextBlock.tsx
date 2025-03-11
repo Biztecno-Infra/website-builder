@@ -11,7 +11,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
 }) => {
   const {
     text,
-    textColor,
+    color,
     backgroundColor,
     fontFamily,
     fontSize,
@@ -32,12 +32,13 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     [handleDropper]
   );
   const convertedStyle = convertStringtoStyle(customCss);
+  console.log(block , "huidshsdghfkj")
   return (
     <Droppable
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
-        color: textColor,
+        color: color,
         backgroundColor: backgroundColor,
         fontFamily: fontFamily,
         fontSize: `${fontSize}px`,

@@ -108,7 +108,7 @@ export const jsonToBlocks = (
           layoutBlock.data.style;
         textprops.text = layoutBlock.data.props.text;
         textprops.navigateToUrl = layoutBlock.data.props.navigateToUrl;
-        textprops.textColor = layoutBlock.data.style.color;
+        textprops.color = layoutBlock.data.style.color;
         textprops.fontSize = layoutBlock.data.style.fontSize;
         textprops.fontWeight = layoutBlock.data.style.fontWeight;
         textprops.fontFamily = layoutBlock.data.style.fontFamily;

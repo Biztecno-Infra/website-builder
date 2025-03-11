@@ -30,7 +30,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     fontSize = 16,
     fontWeight = "400",
     padding,
-    textColor , 
+    color , 
     backgroundColor,
     alignment,
     customCss,
@@ -46,7 +46,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     fontSize,
     fontWeight,
     padding,
-    textColor,
+    color,
     backgroundColor,
     alignment,
     backgroundImage,
@@ -62,7 +62,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       fontSize,
       fontWeight,
       padding,
-      textColor,
+      color,
       backgroundColor,
       alignment,
       backgroundImage,
@@ -73,14 +73,16 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {  
+    console.log(property , value)
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
       updateBlock(blockId, property, value);  
+      console.log(property , value , updatedData)
       return updatedData;
     });
   };
   
-
+console.log(selectedBlock)
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Text">
@@ -122,8 +124,8 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
         </FlexRow>
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("textColor", value)}
-            selectedColor={formData.textColor || ""}
+            onColorChange={(field, value) => handleChange("color", value)}
+            selectedColor={formData.color || ""}
             containerStyle={{ width: "65%" }}
           />
           <Dropdown
