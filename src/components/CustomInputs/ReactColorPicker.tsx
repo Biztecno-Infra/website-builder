@@ -78,7 +78,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   selectedColor,
   containerStyle,
 }) => {
-  const [color, setColor] = useState<string>("#000000");
+  const [color, setColor] = useState<string>("");
   const [isPickerVisible, setPickerVisible] = useState<boolean>(false);
   const pickerRef = useClickOutside(() => setPickerVisible(false));
   
@@ -86,7 +86,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
     if (selectedColor) {
       setColor(selectedColor);
     } else {
-      setColor("#000000");
+      setColor("");
     }
   }, [selectedColor]);
 

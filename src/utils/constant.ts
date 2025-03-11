@@ -35,9 +35,9 @@ export const defaultGridPadding = {
 };
 
 export const defaultFont = "Modern Sans";
-
+export const defaultBg = "#FFFFFF";
 export const initialGlobalStyle: GlobalStyles = {
-  canvasColor: "#FFFFFF",
+  canvasColor:defaultBg,
   textColor: defaultTextColor,
   fontFamily: defaultFont,
   padding: defaultPadding,
@@ -55,7 +55,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "",
       borderColor: "",
       borderRadius: "",
-      backgroundColor: "",
+      backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -70,15 +70,16 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "",
       borderColor: "",
       borderRadius: "",
+      backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.TEXT) {
     return {
       text: "Text Block",
-      textColor: "",
+      textColor: defaultTextColor,
       fontSize: 16,
       fontWeight: "400",
       padding: defaultPadding,
-      backgroundColor: "",
+      backgroundColor: defaultBg,
       alignment: "left",
       fontFamily: "",
       navigateToUrl: "",
@@ -89,7 +90,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
     return {
       buttonText: "Add More Text",
       buttonColor: "",
-      textColor: "",
+      textColor: defaultTextColor,
       padding: defaultPadding,
       navigateToUrl: "",
       fontFamily: "",
@@ -103,26 +104,27 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "",
       borderColor: "",
       borderRadius: "",
+      backgroundColor: defaultBg
     };
   } else if (blockType === BlockType.GRIDCELL) {
     return {
       childBlocks: [],
       padding: defaultGridPadding,
       verticalAlignment: "middle",
-      backgroundColor: "",
+      backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.DIVIDER) {
     return {
       thickness: 2,
       padding: defaultPadding,
-      backgroundColor: "",
       alignment: "left",
       dividerColor: "#808080",
+      backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.SPACER) {
     return {
       padding: defaultPadding,
-      backgroundColor: "",
+      backgroundColor: defaultBg,
     };
   } else {
     return {};

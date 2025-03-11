@@ -128,7 +128,7 @@ export function Input({
           type={type}
           value={value}
           name={name}
-          placeholder={!value ? "0" : placeholder}
+          placeholder={(!value && type === "number") ? "0" : placeholder}
           onChange={handleInputChange}
           onBlur={onBlur}
           disabled={disabled}
