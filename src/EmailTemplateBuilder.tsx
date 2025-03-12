@@ -10,12 +10,12 @@ import { BlockHookRef, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 import CanvasContainer from "@containers/CanvasContainer";
 import HeaderActions from "@containers/HeaderActions";
+import { ExportType } from "enum";
 import "./index.css";
 
 interface Props {
   theme?: Theme;
-  onExportJSON: (json: any) => void; // Callback for exporting JSON
-  onExportHTML: (html: string) => void; // Callback for exporting HTML
+  onExport: (format: ExportType, data: any) => void;
 }
 
 const Container = styled.div`
@@ -40,7 +40,7 @@ const ContentWrapper = styled.div`
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme , onExportHTML , onExportJSON }, ref) => {
+  ({ theme , onExport }, ref) => {
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>
@@ -48,10 +48,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
             <Container>
               <ElementsPanel />
               <MiddleContainer>
-              <HeaderActions
-                  onExportJSON={onExportJSON}
-                  onExportHTML={onExportHTML}
-                />
+              <HeaderActions onExport={onExport}  />
                 <ContentWrapper>
                   <CanvasContainer />
                   <PropertyPanel />

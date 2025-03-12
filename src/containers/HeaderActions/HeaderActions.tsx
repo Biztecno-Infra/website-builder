@@ -30,11 +30,10 @@ const RightActions = styled.div`
   justify-content: flex-end;
 `;
 interface Props {
-  onExportJSON: (json: any) => void; // Callback for exporting JSON
-  onExportHTML: (html: string) => void; // Callback for exporting HTML
+  onExport: (format: ExportType, data: any) => void;
 }
 
-function HeaderActions({ onExportHTML, onExportJSON }: Props) {
+function HeaderActions({ onExport }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   const {
@@ -58,14 +57,13 @@ function HeaderActions({ onExportHTML, onExportJSON }: Props) {
   };
 
   const handleExport = (format: ExportType) => {
-    const convertedJson = blocksToJson();
-    if (format === ExportType.JSON) {
-     onExportJSON(convertedJson); // Call parent's onExportJSON callback
-    } else if (format === ExportType.HTML) {
-      const convertedHtml = convertJsonToHtml(convertedJson);
-      onExportHTML(convertedHtml); // Call parent's onExportHTML callback
+    const convertedData = format === ExportType.JSON ? blocksToJson() : convertJsonToHtml(blocksToJson());
+    console.log(convertedData)
+    if(typeof onExport === "function"){
+      onExport(format, convertedData);
     }
   };
+
 
   return (
     <StyledHeader>
