@@ -65,11 +65,11 @@ const Button = styled.button<{ primary?: boolean }>`
 
 interface ExportModalProps {
   onClose: () => void;
-  onExport: (format: ExportType) => void;
+  onExport: (format: 'JSON' | 'HTML') => void;
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
-  const [selectedFormat, setSelectedFormat] = useState<ExportType | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<'JSON' | 'HTML' | null>(null);
 
   const handleExportFormat = () => {
     if (selectedFormat) {
@@ -90,7 +90,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             type="radio"
             name="exportFormat"
             value="JSON"
-            onChange={() => setSelectedFormat(ExportType.JSON)}
+            onChange={() => setSelectedFormat("JSON")}
             checked={selectedFormat === "JSON"}
           />
         </Option>
@@ -101,7 +101,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             type="radio"
             name="exportFormat"
             value="HTML"
-            onChange={() => setSelectedFormat(ExportType.HTML)}
+            onChange={() => setSelectedFormat("HTML")}
             checked={selectedFormat === "HTML"}
           />
         </Option>

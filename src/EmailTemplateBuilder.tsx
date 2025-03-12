@@ -15,7 +15,7 @@ import "./index.css";
 
 interface Props {
   theme?: Theme;
-  onExport: (format: ExportType, data: any) => void;
+  onExport: (format: 'JSON' | 'HTML', data: any) => void;
 }
 
 const Container = styled.div`

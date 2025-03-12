@@ -30,7 +30,7 @@ const RightActions = styled.div`
   justify-content: flex-end;
 `;
 interface Props {
-  onExport: (format: ExportType, data: any) => void;
+  onExport: (format: 'JSON' | 'HTML', data: any) => void;
 }
 
 function HeaderActions({ onExport }: Props) {
@@ -56,9 +56,9 @@ function HeaderActions({ onExport }: Props) {
     setSelectedView(view);
   };
 
-  const handleExport = (format: ExportType) => {
-    const convertedData = format === ExportType.JSON ? blocksToJson() : convertJsonToHtml(blocksToJson());
-    console.log(convertedData)
+  const handleExport = (format: 'JSON' | 'HTML') => {
+    const convertedData = format === 'JSON' ? blocksToJson() : convertJsonToHtml(blocksToJson());
+    console.log("handleExport" , convertedData)
     if(typeof onExport === "function"){
       onExport(format, convertedData);
     }
