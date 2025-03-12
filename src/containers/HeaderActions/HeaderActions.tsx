@@ -7,7 +7,7 @@ import SendTestModal from "@components/Modals/SendFileModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
-import { ExportType , ScreenViews } from "enum";
+import { ExportType, ScreenViews } from "enum";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -29,11 +29,21 @@ const RightActions = styled.div`
   width: 30%;
   justify-content: flex-end;
 `;
+interface Props {
+  onExportJSON: (json: any) => void; // Callback for exporting JSON
+  onExportHTML: (html: string) => void; // Callback for exporting HTML
+}
 
-function HeaderActions() {
+function HeaderActions({ onExportHTML, onExportJSON }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  const { selectedView, setSelectedView , handleJsonUpload , blocksToJson , convertJsonToHtml } = useBlockHook();
+  const {
+    selectedView,
+    setSelectedView,
+    handleJsonUpload,
+    blocksToJson,
+    convertJsonToHtml,
+  } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
@@ -50,10 +60,10 @@ function HeaderActions() {
   const handleExport = (format: ExportType) => {
     const convertedJson = blocksToJson();
     if (format === ExportType.JSON) {
-      console.log(convertedJson, "convertedJson");
+      onExportJSON(convertedJson); // Call parent's onExportJSON callback
     } else if (format === ExportType.HTML) {
       const convertedHtml = convertJsonToHtml(convertedJson);
-      console.log(convertedHtml , "convertedHtml");
+      onExportHTML(convertedHtml); // Call parent's onExportHTML callback
     }
   };
 
@@ -63,13 +73,22 @@ function HeaderActions() {
         <SvgIcon
           name={CUSTOM_SVG_ICON.DesktopIcon}
           onClick={() => handleViewChange(ScreenViews.DESKTOP)}
-          svgStyle={{ cursor: "pointer", marginRight: "10px", padding: '0.5rem', borderRadius: "5px" }}
+          svgStyle={{
+            cursor: "pointer",
+            marginRight: "10px",
+            padding: "0.5rem",
+            borderRadius: "5px",
+          }}
           bgColor={selectedView === ScreenViews.DESKTOP ? "#CCE2E3" : ""}
         />
         <SvgIcon
           name={CUSTOM_SVG_ICON.MobileIcon}
           onClick={() => handleViewChange(ScreenViews.MOBILE)}
-          svgStyle={{ cursor: "pointer", padding: '0.5rem', borderRadius: "5px" }}
+          svgStyle={{
+            cursor: "pointer",
+            padding: "0.5rem",
+            borderRadius: "5px",
+          }}
           bgColor={selectedView === ScreenViews.MOBILE ? "#CCE2E3" : ""}
         />
       </LeftActions>
@@ -85,10 +104,15 @@ function HeaderActions() {
         <ExportModal onClose={handleClose} onExport={handleExport} />
       )}
       {selectedOption === "Upload" && (
-        <UploadModal onClose={handleClose} onUpload={(json) => {handleJsonUpload(json)}} />
+        <UploadModal
+          onClose={handleClose}
+          onUpload={(json) => {
+            handleJsonUpload(json);
+          }}
+        />
       )}
       {selectedOption === "Send Test" && (
-        <SendTestModal onClose={handleClose} onSend={(file) => { }} />
+        <SendTestModal onClose={handleClose} onSend={(file) => {}} />
       )}
     </StyledHeader>
   );
