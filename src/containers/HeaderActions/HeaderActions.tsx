@@ -58,7 +58,6 @@ function HeaderActions({ onExport }: Props) {
 
   const handleExport = (format: 'JSON' | 'HTML') => {
     const convertedData = format === 'JSON' ? blocksToJson() : convertJsonToHtml(blocksToJson());
-    console.log("handleExport" , convertedData)
     if(typeof onExport === "function"){
       onExport(format, convertedData);
     }
