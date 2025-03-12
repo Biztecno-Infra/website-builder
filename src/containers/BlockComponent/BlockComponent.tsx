@@ -15,7 +15,7 @@ import GridBlock from "./GridBlock";
 import { useBlockHook } from "context/BlockContext";
 import { DividerBlock } from "./DividerBlock";
 import { SpacerBlock } from "./SpacerBlock";
-import { BlockType } from "enum";
+import { BlockType } from "email-builder-utils";
 
 const BlockComponent: React.FC<BlockComponentProps> = React.memo(
   ({ blockId }) => {

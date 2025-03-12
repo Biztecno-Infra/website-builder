@@ -1,3 +1,4 @@
+import { BlockType } from "email-builder-utils";
 import {
   generateButtonBlock,
   generateDividerBlock,
@@ -19,7 +20,6 @@ import {
   SpacerProps,
   Theme,
 } from "../types";
-import { BlockType } from "enum";
 
 const generateBlockToJsonData = (block: Block) => {
   let blockData: any;

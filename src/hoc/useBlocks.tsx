@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import update from "immutability-helper";
-import { html as beautifyHtml } from "js-beautify";
+import { BlockType , generateUniqueId } from "email-builder-utils";
 
 import {
   getDefaultBlockProperties,
@@ -14,10 +14,8 @@ import {
   GlobalStyles,
   RootLayout,
 } from "../types";
-import { generateUniqueId } from "@utils/common";
 import { jsonToBlocks, processBlock } from "utils";
-import { convertToHtml, tableCommonStyle } from "@utils/jsonToHtml";
-import { BlockType , ScreenViews } from "enum";
+import {  ScreenViews } from "enum";
 
 const initializeBlock = (
   block: Block

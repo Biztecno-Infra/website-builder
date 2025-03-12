@@ -26,17 +26,3 @@ export function parseBackground(image: string): string {
   // Return the original string if it's not wrapped in "url()"
   return trimmedImage;
 }
-
-
-export function generateUniqueId() {
-  // Get current timestamp in milliseconds as a base
-  const timestamp = Date.now().toString(36); // Convert to base-36 for shorter length
-
-  // Generate a random 5-character string (36^5 possibilities)
-  const randomStr = Math.random().toString(36).substring(2, 7);
-
-  // High-resolution timing to add further uniqueness, hashed for brevity
-  const perfTimeHash = (performance.now() * 1000 | 0).toString(36);
-
-  return `${timestamp}-${randomStr}-${perfTimeHash}`;
-}

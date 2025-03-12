@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useDrag } from "react-dnd";
 import styled, { useTheme } from "styled-components";
+import { BlockType } from "email-builder-utils";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { BlockType, SizeEnum } from "enum";
+import { SizeEnum } from "enum";
 import { Theme } from "types";
 
 export interface IElements {

@@ -1,4 +1,4 @@
-import { BlockType } from "enum";
+import { BlockType } from "email-builder-utils";
 import {
   ButtonProps,
   DividerProps,

@@ -1,6 +1,7 @@
 import React, { JSX, useCallback, useMemo, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { Block, GridProps, RootLayout } from "../../types";
+import { BlockType } from "email-builder-utils";
+import { GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
@@ -16,7 +17,7 @@ import {
   HeaderContainer,
   RootBlockContainer,
 } from "./style";
-import { BlockType, SizeEnum } from "enum";
+import { SizeEnum } from "enum";
 
 interface BlockNodeProps {
   blockId: string;
@@ -125,7 +126,7 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
         )}
         <BlockContentText>
           <BlockTextIcon style={{ width: "80%" }}>
-            <BlockText style={{ width: "20%" }}>{blockTypeIcons[block?.type]}</BlockText>
+            <BlockText style={{ width: "20%" }}>{blockTypeIcons[block?.type as BlockType]}</BlockText>
             <div style={{ fontSize: "12px", width: "80%" }}>{block?.type}</div>
           </BlockTextIcon>
           {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />}
