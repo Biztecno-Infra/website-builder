@@ -73,16 +73,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {  
-    console.log(property , value)
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
       updateBlock(blockId, property, value);  
-      console.log(property , value , updatedData)
       return updatedData;
     });
   };
   
-console.log(selectedBlock)
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Text">

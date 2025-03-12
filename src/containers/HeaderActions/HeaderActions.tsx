@@ -60,7 +60,7 @@ function HeaderActions({ onExportHTML, onExportJSON }: Props) {
   const handleExport = (format: ExportType) => {
     const convertedJson = blocksToJson();
     if (format === ExportType.JSON) {
-      onExportJSON(convertedJson); // Call parent's onExportJSON callback
+     onExportJSON(convertedJson); // Call parent's onExportJSON callback
     } else if (format === ExportType.HTML) {
       const convertedHtml = convertJsonToHtml(convertedJson);
       onExportHTML(convertedHtml); // Call parent's onExportHTML callback

@@ -32,7 +32,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     [handleDropper]
   );
   const convertedStyle = convertStringtoStyle(customCss);
-  console.log(block , "huidshsdghfkj")
+
   return (
     <Droppable
       accept="BLOCK"

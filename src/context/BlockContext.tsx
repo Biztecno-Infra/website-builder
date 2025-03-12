@@ -14,7 +14,7 @@ export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps
   const { convertJsonToHtml, handleJsonUpload, blocksToJson , blocks, rootBlockOrder} = customFunction;
 
   useImperativeHandle(ref, () => ({
-    getHTML: (jsonData:any) => convertJsonToHtml(jsonData), 
+    getHTML: (jsonData) => convertJsonToHtml(jsonData), 
     updateJSON: (newJson) => handleJsonUpload(newJson),
     getJSON: () => blocksToJson(blocks, rootBlockOrder),
   }));
