@@ -118,7 +118,6 @@ function convertSpacerBlockToHtml(blockData: IBlockData) {
 function convertTextBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const styles = buildStyles(style);
-  console.log(style , styles)
   const text = props.text || "";
   const navigateToUrl = props.navigateToUrl || "";
   const textContent = appendOutlookSupport(text.replaceAll(/\n/g, '<br>'), styles);

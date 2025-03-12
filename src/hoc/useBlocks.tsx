@@ -150,7 +150,6 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const handleJsonUpload = (jsonData: any) => {
-    console.log(jsonData , "handleJsonUpload");
     const { blocks, rootBlock } = jsonToBlocks(jsonData);
     const { childrenIds, style } = rootBlock.data || {};
     const rootOrder = childrenIds || [];
