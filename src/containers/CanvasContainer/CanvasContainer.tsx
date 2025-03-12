@@ -22,7 +22,9 @@ const BlockWrapper = styled.div<{ $isSelected: boolean }>`
   // border-radius: 10px;
   position: relative;
 `;
-
+const CanvasDropable = styled.div`
+  padding: 3rem;
+`;
 const DeleteWrapper = styled.div`
   position: absolute;
   cursor: pointer;
@@ -116,40 +118,41 @@ const Canvas = () => {
         scrollbarWidth: "none",
         msOverflowStyle: "none",
         fontFamily: globalStyles.fontFamily,
-        padding: "3rem"
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <div style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
-        {rootBlockOrder.length > 0 ? (
-          <TableWrapper
-            className="ebr-tableWrapper"
-            $canvasColor={globalStyles.canvasColor}
-            $canvasFont={globalStyles.fontFamily}
-            $canvasFontColor={globalStyles.textColor}
-            $canvasPadding={globalStyles.padding}
-            $isMobile={selectedView === ScreenViews.MOBILE}
-          >
-            <tbody>
-              <tr>
-                <td
-                  style={{
-                    paddingTop: globalStyles?.padding?.top,
-                    paddingRight: globalStyles?.padding?.right,
-                    paddingBottom: globalStyles?.padding?.bottom,
-                    paddingLeft: globalStyles?.padding?.left,
-                  }}
-                >
-                  {rootBlockOrder.map(renderBlock)}
-                </td>
-              </tr>
-            </tbody>
-            {/* <EmptyBlock text="Drag & drop more elements to add." /> */}
-          </TableWrapper>
-        ) : (
-          <EmptyBlock text="Drag & drop elements here to start building " />
-        )}
-      </div>
+      <CanvasDropable>
+        <div style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
+          {rootBlockOrder.length > 0 ? (
+            <TableWrapper
+              className="ebr-tableWrapper"
+              $canvasColor={globalStyles.canvasColor}
+              $canvasFont={globalStyles.fontFamily}
+              $canvasFontColor={globalStyles.textColor}
+              $canvasPadding={globalStyles.padding}
+              $isMobile={selectedView === ScreenViews.MOBILE}
+            >
+              <tbody>
+                <tr>
+                  <td
+                    style={{
+                      paddingTop: globalStyles?.padding?.top,
+                      paddingRight: globalStyles?.padding?.right,
+                      paddingBottom: globalStyles?.padding?.bottom,
+                      paddingLeft: globalStyles?.padding?.left,
+                    }}
+                  >
+                    {rootBlockOrder.map(renderBlock)}
+                  </td>
+                </tr>
+              </tbody>
+              {/* <EmptyBlock text="Drag & drop more elements to add." /> */}
+            </TableWrapper>
+          ) : (
+            <EmptyBlock text="Drag & drop elements here to start building " />
+          )}
+        </div>
+      </CanvasDropable>
     </Droppable>
   );
 };
