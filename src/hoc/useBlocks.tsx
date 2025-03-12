@@ -549,7 +549,7 @@ export const useBlocks = (): IBlockContext => {
         </style>
       </head>
       <body>
-        <table class="ebr-table-wrapper" style="font-family:${globalStyles?.fontFamily}; width:600px; max-width:600px;  margin:0 auto; background-color:${globalStyles?.canvasColor}; color:${globalStyles?.textColor}; ${tableCommonStyle}">
+        <table class="ebr-table-wrapper" style="font-family:${rootData.style?.fontFamily}; width:600px; max-width:600px;  margin:0 auto; background-color:${rootData.style?.canvasColor}; color:${rootData.style?.textColor}; ${tableCommonStyle}">
           <tbody>
             <tr>
               <td style="padding:0;">${blocksHtml}</td>
