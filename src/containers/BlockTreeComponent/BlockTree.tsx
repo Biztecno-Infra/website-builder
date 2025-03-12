@@ -32,6 +32,7 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.GRIDCELL]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumn} color={color} />,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
+  [BlockType.EMAILLAYOUT] : null
 });
 const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
   const theme = useTheme();
