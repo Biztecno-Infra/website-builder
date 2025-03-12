@@ -520,47 +520,7 @@ export const useBlocks = (): IBlockContext => {
     return layout;
   };
 
-  function convertJsonToHtml(jsonData: any) {
-    const rootData = jsonData?.root?.data;
-    const blocksHtml = rootData?.childrenIds
-      .map((childId: string) => convertToHtml(jsonData[childId], jsonData))
-      .join("");
-    const rawHtml = `
-    <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Email Layout</title>
-        <style>
-          @media screen and (max-width: 600px) {
-            .ebr-table-wrapper {
-              width: 360px !important;
-              max-width: 360px !important;
-            }
-          }
-
-          @media screen and (min-width: 601px) {
-            .ebr-table-wrapper {
-              width: 600px !important;
-              max-width: 600px !important;
-            }
-          }
-        </style>
-      </head>
-      <body>
-        <table class="ebr-table-wrapper" style="font-family:${rootData.style?.fontFamily}; width:600px; max-width:600px;  margin:0 auto; background-color:${rootData.style?.canvasColor}; color:${rootData.style?.textColor}; ${tableCommonStyle}">
-          <tbody>
-            <tr>
-              <td style="padding:0;">${blocksHtml}</td>
-            </tr>
-          </tbody>
-        </table>
-      </body>
-      </html>`;
-    return beautifyHtml(rawHtml, { indent_size: 2 });
-  }
-
+  
   return {
     setSelectedBlock,
     selectedBlock,
@@ -572,7 +532,6 @@ export const useBlocks = (): IBlockContext => {
     rootBlockOrder,
     updateGlobalStyles,
     blocksToJson,
-    convertJsonToHtml,
     globalStyles,
     selectedView,
     setSelectedView,

@@ -214,7 +214,6 @@ export interface IBlockContext {
   globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
   blocksToJson: any;
-  convertJsonToHtml: (jsonData: any) => string;
   selectedView: ScreenViews;
   setSelectedView: any;
 }

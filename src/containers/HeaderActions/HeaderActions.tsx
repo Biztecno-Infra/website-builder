@@ -7,7 +7,8 @@ import SendTestModal from "@components/Modals/SendFileModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
-import { ExportType, ScreenViews } from "enum";
+import { ScreenViews } from "enum";
+import { convertJsonToHtml } from "email-builder-utils";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -40,8 +41,7 @@ function HeaderActions({ onExport }: Props) {
     selectedView,
     setSelectedView,
     handleJsonUpload,
-    blocksToJson,
-    convertJsonToHtml,
+    blocksToJson
   } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
