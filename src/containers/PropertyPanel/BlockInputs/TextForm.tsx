@@ -3,11 +3,11 @@ import {
   AlignmentSelector,
   PaddingInput,
 } from "@components/StyleComponents";
-import {  ReactColorPicker } from "@components/CustomInputs";
+import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { TextProps } from "../../../types";
-import { TextArea, Input ,Dropdown } from "@components/lib";
+import { TextArea, Input, Dropdown } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
@@ -30,7 +30,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     fontSize = 16,
     fontWeight = "400",
     padding,
-    color , 
+    color,
     backgroundColor,
     alignment,
     customCss,
@@ -72,14 +72,17 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  const handleChange = (property: string, value: any) => {  
+  const handleChange = (property: string, value: any) => {
     setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);  
-      return updatedData;
+      const newFontSize = property === "fontSize" ? parseFloat(value) : prevData.fontSize;
+      return { ...prevData, [property]: value, ...(property === "fontSize" && { lineHeight: newFontSize }) };
     });
+
+    updateBlock(blockId, property, value);
+    if (property === "fontSize") updateBlock(blockId, "lineHeight", parseFloat(value));
   };
-  
+
+
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Text">
@@ -105,7 +108,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <Input
             name="fontSize"
             placeholder="Enter font size"
-            value={formData.fontSize || ''} 
+            value={formData.fontSize || ''}
             onChange={(name, value) => handleChange("fontSize", value)}
             containerStyle={{
               width: "26%",
@@ -114,7 +117,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               alignItems: "center",
               background: "#F1F1F1",
             }}
-            inputStyle={{width: "40%"}}
+            inputStyle={{ width: "40%" }}
             unitsLabel="px"
             type="number"
           />
@@ -143,7 +146,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <Input
             name="lineHeight"
             placeholder="Enter Line Height"
-            value={formData.lineHeight || ''} 
+            value={formData.lineHeight || ''}
             type="number"
             onChange={handleChange}
             iconProps={{
@@ -151,7 +154,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               size: SizeEnum.Small,
             }}
             containerStyle={{ width: "25%", padding: 3 }}
-            inputStyle={{width: "50%"}}
+            inputStyle={{ width: "50%" }}
           />
           <Input
             name="navigateToUrl"
