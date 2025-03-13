@@ -40,7 +40,7 @@ const IconWrapper = styled.div`
   pointer-events: none;
 `;
 
-const OptionsContainer = styled.div<{ show: boolean }>`
+const OptionsContainer = styled.div<{ $show: boolean }>`
   position: absolute;
   top: 100%;
   left: 0;
@@ -49,7 +49,7 @@ const OptionsContainer = styled.div<{ show: boolean }>`
   border: 1px solid #ccc;
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  display: ${({ show }) => (show ? "block" : "none")};
+  display: ${({ $show }) => ($show ? "block" : "none")};  // Changed to $show
   max-height: 150px;
   overflow-y: auto;
   z-index: 100;
@@ -120,7 +120,7 @@ export function Dropdown({
           <SvgIcon name={CUSTOM_SVG_ICON.ArrowDown} />
         </IconWrapper>
       </InputContainer>
-      <OptionsContainer show={showOptions}>
+      <OptionsContainer $show={showOptions}>
         {options.map((option) => (
           <Option
             key={option.key}

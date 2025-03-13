@@ -25,6 +25,7 @@ const PaddingContainer = styled.div`
   display: flex;
   flex-direction: row;
 `;
+
 export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
@@ -86,65 +87,52 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         try {
           const image = await Jimp.read(imageUrl);
           const { width, height } = image.bitmap;
-          setFormData((prev) => {
-            const updatedFormData = {
-              ...prev,
-              width,
-              height,
-            };
-            updateBlock(blockId, "width", width);
-            updateBlock(blockId, "height", height);
-            return updatedFormData;
-          });
+
+          setFormData((prev) => ({
+            ...prev,
+            width,
+            height,
+          }));
+
+          updateBlock(blockId, "width", width);
+          updateBlock(blockId, "height", height);
         } catch (error) {
           console.error("Error loading image:", error);
-          // Reset width and height in case of an error
-        setFormData((prev) => {
-          const updatedFormData = {
+          setFormData((prev) => ({
             ...prev,
-            width : 0,
+            width: 0,
             height: 0,
-          };
-          return updatedFormData
-        });
+          }));
         }
       }
     };
     loadImageDimensions();
-  }, []); 
+  }, []);
 
   const handleImageUrlChange = async (value: string) => {
-    setFormData((prev) => {
-      const updatedFormData = { ...prev, imageUrl: value };
-      updateBlock(blockId, "imageUrl", value);
-      return updatedFormData;
-    });
+    setFormData((prev) => ({ ...prev, imageUrl: value }));
+    updateBlock(blockId, "imageUrl", value);
 
     try {
       const image = await Jimp.read(value);
       const { width, height } = image.bitmap;
-      setFormData((prev) => {
-        const updatedFormData = {
-          ...prev,
-          width,
-          height,
-        };
-        updateBlock(blockId, "width", width);
-        updateBlock(blockId, "height", height);
-        return updatedFormData;
-      });
+
+      setFormData((prev) => ({
+        ...prev,
+        width,
+        height,
+      }));
+
+      updateBlock(blockId, "width", width);
+      updateBlock(blockId, "height", height);
     } catch (error) {
       console.error("Error loading image:", error);
     }
   };
 
- const handleChange = (property: string, value: any) => {
-  
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);  
-      return updatedData;
-    });
+  const handleChange = (property: string, value: any) => {
+    setFormData((prevData) => ({ ...prevData, [property]: value }));
+    updateBlock(blockId, property, value);
   };
 
   return (
@@ -190,9 +178,9 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               paddingRight: "0.5rem",
-              width: "45%" 
+              width: "45%"
             }}
-            inputStyle={{width: "35%"}}
+            inputStyle={{ width: "35%" }}
           />
           <Input
             type="number"
@@ -210,7 +198,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               marginLeft: "1rem",
               paddingRight: "0.5rem"
             }}
-            inputStyle={{width: "35%"}}
+            inputStyle={{ width: "35%" }}
           />
         </WidthHeightContainer>
         <AlignmentSelector
