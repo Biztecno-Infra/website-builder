@@ -35,7 +35,7 @@ const ButtonContainer = styled.div`
   padding-top: 1rem;
 `;
 
-const Button = styled.button<{ primary?: boolean }>`
+const Button = styled.button<{ $primary?: boolean }>`
   width: 48%;
   padding: 10px;
   border-radius: 5px;
@@ -43,8 +43,8 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#0b978e" : "#ddd")};
-  color: ${(props) => (props.primary ? "white" : "black")};
+  background: ${(props) => (props.$primary ? "#0b978e" : "#ddd")};
+  color: ${(props) => (props.$primary ? "white" : "black")};
 `;
 
 const Title = styled.div`
@@ -167,7 +167,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUpload }) => {
 
       <ButtonContainer>
         <Button onClick={onClose}>Cancel</Button>
-        <Button primary disabled={!file} onClick={handleUploadClick}>
+        <Button $primary disabled={!file} onClick={handleUploadClick}>
           Upload
         </Button>
       </ButtonContainer>

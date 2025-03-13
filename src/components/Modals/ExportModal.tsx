@@ -46,7 +46,7 @@ const ButtonContainer = styled.div`
   padding-top: 1rem;
 `;
 
-const Button = styled.button<{ primary?: boolean }>`
+const Button = styled.button<{ $primary?: boolean }>`
   width: 48%;
   padding: 10px;
   border-radius: 5px;
@@ -54,8 +54,8 @@ const Button = styled.button<{ primary?: boolean }>`
   cursor: pointer;
   font-size: 14px;
   font-weight: bold;
-  background: ${(props) => (props.primary ? "#0B978E" : "#ddd")};
-  color: ${(props) => (props.primary ? "white" : "black")};
+  background: ${(props) => (props.$primary ? "#0B978E" : "#ddd")};
+  color: ${(props) => (props.$primary ? "white" : "black")};
 
   &:disabled {
     background: #ccc;
@@ -109,7 +109,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
 
       <ButtonContainer>
         <Button onClick={onClose}>Cancel</Button>
-        <Button primary disabled={!selectedFormat} onClick={handleExportFormat}>
+        <Button $primary disabled={!selectedFormat} onClick={handleExportFormat}>
           Export
         </Button>
       </ButtonContainer>
