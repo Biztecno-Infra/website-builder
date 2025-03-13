@@ -64,7 +64,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       alignment: "left",
       padding: defaultPadding,
       navigateToUrl: "",
-      width: "",
+      width: 100,
       height: "",
       borderWidth: "",
       borderStyle: "",

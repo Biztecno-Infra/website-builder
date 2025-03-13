@@ -15,10 +15,10 @@ interface CustomImageProps {
 const CustomImage: React.FC<CustomImageProps> = React.memo(
   ({ imageUrl, altText, alignment, width, height, navigateToUrl }) => {
     const imageStyle: React.CSSProperties = {
-      width: width ? `${width}px` : "auto",
-      height: height ? `${height}px` : "auto",
-      maxWidth: "100%",
-      maxHeight: "100%",
+      width: width ? `${width}%` : "auto",
+      height: height ? `${height}%` : "auto",
+      // maxWidth: "100%",
+      // maxHeight: "100%",
       objectFit: "contain",
       textAlign: alignment as TextAlign,
     };

@@ -81,53 +81,59 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
-  useEffect(() => {
-    const loadImageDimensions = async () => {
-      if (imageUrl && !width && !height) {
-        try {
-          const image = await Jimp.read(imageUrl);
-          const { width, height } = image.bitmap;
-
-          setFormData((prev) => ({
-            ...prev,
-            width,
-            height,
-          }));
-
-          updateBlock(blockId, "width", width);
-          updateBlock(blockId, "height", height);
-        } catch (error) {
-          console.error("Error loading image:", error);
-          setFormData((prev) => ({
-            ...prev,
-            width: 0,
-            height: 0,
-          }));
-        }
-      }
-    };
-    loadImageDimensions();
-  }, []);
+  // useEffect(() => {
+  //   const loadImageDimensions = async () => {
+  //     if (imageUrl && !width && !height) {
+  //       try {
+  //         const image = await Jimp.read(imageUrl);
+  //         const { width, height } = image.bitmap;
+  //         setFormData((prev) => {
+  //           const updatedFormData = {
+  //             ...prev,
+  //             width,
+  //             height,
+  //           };
+  //           updateBlock(blockId, "width", width);
+  //           updateBlock(blockId, "height", height);
+  //           return updatedFormData;
+  //         });
+  //       } catch (error) {
+  //         console.error("Error loading image:", error);
+  //         // Reset width and height in case of an error
+  //       setFormData((prev) => {
+  //         const updatedFormData = {
+  //           ...prev,
+  //           width : 0,
+  //           height: 0,
+  //         };
+  //         return updatedFormData
+  //       });
+  //       }
+  //     }
+  //   };
+  //   loadImageDimensions();
+  // }, []); 
 
   const handleImageUrlChange = async (value: string) => {
     setFormData((prev) => ({ ...prev, imageUrl: value }));
     updateBlock(blockId, "imageUrl", value);
 
-    try {
-      const image = await Jimp.read(value);
-      const { width, height } = image.bitmap;
-
-      setFormData((prev) => ({
-        ...prev,
-        width,
-        height,
-      }));
-
-      updateBlock(blockId, "width", width);
-      updateBlock(blockId, "height", height);
-    } catch (error) {
-      console.error("Error loading image:", error);
-    }
+    // try {
+    //   const image = await Jimp.read(value);
+    //   const { width, height } = image.bitmap;
+    //   setFormData((prev) => {
+    //     const updatedFormData = {
+    //       ...prev,
+    //       width,
+    //       height,
+    //     };
+    //     updateBlock(blockId, "width", width);
+    //     updateBlock(blockId, "height", height);
+    //     return updatedFormData;
+    //   });
+    // } catch (error) {
+    //   console.error("Error loading image:", error);
+    // }
   };
 
   const handleChange = (property: string, value: any) => {
@@ -172,7 +178,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             onChange={(name: string, value: string) =>
               handleChange("height", value)
             }
-            unitsLabel="px"
+            unitsLabel="%"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
@@ -189,7 +195,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             onChange={(name: string, value: string) =>
               handleChange("width", value)
             }
-            unitsLabel="px"
+            unitsLabel="%"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageWidth,
             }}
