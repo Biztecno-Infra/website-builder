@@ -51,7 +51,7 @@ export const ExpandIcon = styled.div`
   transform: rotate(270deg);
 `;
 
-export const ChevronIcon = styled.samp<{ isExpanded: boolean }>`
+export const ChevronIcon = styled.samp`
 display: flex;
 flex-direction: row;
   margin-right: 10px;

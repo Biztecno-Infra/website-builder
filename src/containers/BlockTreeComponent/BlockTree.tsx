@@ -32,8 +32,9 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.GRIDCELL]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumn} color={color} />,
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
-  [BlockType.EMAILLAYOUT] : null
+  [BlockType.EMAILLAYOUT]: null,
 });
+
 const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -116,21 +117,26 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <BlockContent hasChildBlocks={hasChildBlocks} onClick={handleClick}>
+      <BlockContent onClick={handleClick}>
         {hasChildBlocks && (
-          <ChevronIcon isExpanded={isExpanded}>
-            {
-              isExpanded ? <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} /> : <SvgIcon name={CUSTOM_SVG_ICON.ArrowRight} />
-            }
-
+          <ChevronIcon data-isexpanded={isExpanded}>
+            {isExpanded ? (
+              <SvgIcon name={CUSTOM_SVG_ICON.ExpandIcon} />
+            ) : (
+              <SvgIcon name={CUSTOM_SVG_ICON.ArrowRight} />
+            )}
           </ChevronIcon>
         )}
         <BlockContentText>
           <BlockTextIcon style={{ width: "80%" }}>
-            <BlockText style={{ width: "20%" }}>{blockTypeIcons[block?.type as BlockType]}</BlockText>
+            <BlockText style={{ width: "20%" }}>
+              {blockTypeIcons[block?.type as BlockType]}
+            </BlockText>
             <div style={{ fontSize: "12px", width: "80%" }}>{block?.type}</div>
           </BlockTextIcon>
-          {isHovered && <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />}
+          {isHovered && (
+            <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />
+          )}
         </BlockContentText>
       </BlockContent>
 
@@ -219,8 +225,14 @@ const NodeTree = () => {
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
       <RootBlockContainer onClick={handleRootClick}>
-        <SvgIcon name={CUSTOM_SVG_ICON.GlobalSettings} size={SizeEnum.Small} svgStyle={{ width: "20%" }} />
-        <BlockContentText style={{ width: "80%", cursor: "pointer" }}>Global Settings</BlockContentText>
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.GlobalSettings}
+          size={SizeEnum.Small}
+          svgStyle={{ width: "20%" }}
+        />
+        <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
+          Global Settings
+        </BlockContentText>
       </RootBlockContainer>
       {rootBlockOrder.map(renderBlockNode)}
     </DroppableContainer>
