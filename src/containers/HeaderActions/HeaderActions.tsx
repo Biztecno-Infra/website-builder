@@ -56,8 +56,8 @@ function HeaderActions({ onExport }: Props) {
     setSelectedView(view);
   };
 
-  const handleExport = (format: 'JSON' | 'HTML') => {
-    const convertedData = format === 'JSON' ? blocksToJson() : convertJsonToHtml(blocksToJson());
+  const handleExport = async (format: 'JSON' | 'HTML') => {
+    const convertedData = format === 'JSON' ? blocksToJson() : await convertJsonToHtml(blocksToJson());
     if(typeof onExport === "function"){
       onExport(format, convertedData);
     }

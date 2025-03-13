@@ -1,4 +1,5 @@
-import { BlockType, ScreenViews } from "enum";
+import { BlockType } from "email-builder-utils";
+import { ScreenViews } from "enum";
 export interface Padding {
   top: number;
   right: number;
@@ -218,7 +219,7 @@ export interface IBlockContext {
   setSelectedView: any;
 }
 export interface BlockHookRef {
-  getHTML: (json:any) => string;
+  getHTML: (json:any) => Promise<string>;
   updateJSON: (data: any) => void;
   getJSON: () => any;
 }

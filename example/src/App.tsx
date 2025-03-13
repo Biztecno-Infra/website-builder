@@ -15,6 +15,10 @@ const App = () => {
         ...defaultTheme,
         // borderRadius: 10,
       }}
+
+      onExport= {(format: 'JSON' | 'HTML', data: any) => {
+        console.log(data);
+      }}
       />
     </Fragment>
   );
