@@ -22,11 +22,9 @@ const AlignmentButton = styled.button<{ active: boolean }>`
   align-items: center;
   justify-content: center;
   width: 23%;
-  
   &:hover {
     background: #e0e0e0;
   }
-  
   svg {
     font-size: 16px;
     color: ${(props) => (props.active ? "#000" : "#555")};
