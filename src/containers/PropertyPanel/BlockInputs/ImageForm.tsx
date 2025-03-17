@@ -46,7 +46,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     customCss,
     id: blockId
   } = selectedBlock as ImageProps;
-console.log(selectedBlock)
+
   const [formData, setFormData] = useState({
     imageUrl,
     altText,

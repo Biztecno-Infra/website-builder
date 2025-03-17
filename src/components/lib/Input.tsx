@@ -118,7 +118,6 @@ export function Input({
     }
   };
   
-console.log(value)
   return (
     <Fragment>
       <InputContainer style={containerStyle}>

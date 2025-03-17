@@ -146,15 +146,23 @@ export const useBlocks = (): IBlockContext => {
       );
     }
   };
-
   const handleJsonUpload = (jsonData: any) => {
-    const { blocks, rootBlock } = jsonToBlocks(jsonData);
-    const { childrenIds, style } = rootBlock.data || {};
-    const rootOrder = childrenIds || [];
-    setBlocks(blocks);
-    setGlobalStyles(style);
-    setRootBlockOrder(rootOrder);
+    try {
+      const { blocks, rootBlock } = jsonToBlocks(jsonData);
+      const { childrenIds, style } = rootBlock.data || {};
+      const rootOrder = childrenIds || [];
+  
+      setBlocks(blocks);
+      setGlobalStyles(style);
+      setRootBlockOrder(rootOrder);
+  
+      return { success: true, message: "Upload successful" };
+    } catch (error) {
+      console.error("Error uploading JSON:", error);
+      return { success: false, message: "Error uploading JSON", error };
+    }
   };
+  
 
   const handleSwappingV2 = (dragSrc: any, dropAreaId: string) => {
     setBlocks((prvsBlockState) => {
