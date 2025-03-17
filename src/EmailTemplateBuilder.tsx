@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import styled from "styled-components";
+import styled, { StyleSheetManager } from "styled-components";
 
 import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
@@ -15,7 +15,7 @@ import "./index.css";
 
 interface Props {
   theme?: Theme;
-  onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  onExport: (format: "JSON" | "HTML", data: any) => void;
 }
 
 const Container = styled.div`
@@ -40,24 +40,26 @@ const ContentWrapper = styled.div`
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme , onExport }, ref) => {
+  ({ theme, onExport }, ref) => {
     return (
-      <DndProvider backend={HTML5Backend}>
-        <CustomThemeProvider theme={theme! || {}}>
-          <BlockHookProvider ref={ref}>
-            <Container>
-              <ElementsPanel />
-              <MiddleContainer>
-              <HeaderActions onExport={onExport}  />
-                <ContentWrapper>
-                  <CanvasContainer />
-                  <PropertyPanel />
-                </ContentWrapper>
-              </MiddleContainer>
-            </Container>
-          </BlockHookProvider>
-        </CustomThemeProvider>
-      </DndProvider>
+      <StyleSheetManager shouldForwardProp={() => true}>
+        <DndProvider backend={HTML5Backend}>
+          <CustomThemeProvider theme={theme! || {}}>
+            <BlockHookProvider ref={ref}>
+              <Container>
+                <ElementsPanel />
+                <MiddleContainer>
+                  <HeaderActions onExport={onExport} />
+                  <ContentWrapper>
+                    <CanvasContainer />
+                    <PropertyPanel />
+                  </ContentWrapper>
+                </MiddleContainer>
+              </Container>
+            </BlockHookProvider>
+          </CustomThemeProvider>
+        </DndProvider>
+      </StyleSheetManager>
     );
   }
 );
