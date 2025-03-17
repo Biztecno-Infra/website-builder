@@ -70,6 +70,7 @@ interface InputProps {
     size?: SizeEnum;
   };
   inputStyle?: React.CSSProperties;
+  checkLessThanOne?:boolean;
 }
 
 export function Input({
@@ -85,34 +86,39 @@ export function Input({
   containerStyle,
   iconProps,
   inputStyle,
+  checkLessThanOne
 }: InputProps) {
   const [error, setError] = useState<string>("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-
+  
     let newValue = type === "number" ? Number(value) : value;
-
+  
     if (type === "number") {
       const numericValue = Number(value);
-
+  
+      if (numericValue < 1 && checkLessThanOne) {
+        return ;
+      }
       if (!isNaN(numericValue) && numericValue < 0) {
         setError("Value must be greater than or equal to 0");
         return;
       }
-
+  
       if (isNaN(numericValue)) {
         setError("Please enter a valid number");
       } else {
         setError("");
       }
     }
-
+  
     if (onChange) {
       onChange(name, newValue);
     }
   };
-
+  
+console.log(value)
   return (
     <Fragment>
       <InputContainer style={containerStyle}>
@@ -128,7 +134,7 @@ export function Input({
           type={type}
           value={value}
           name={name}
-          placeholder={placeholder || "auto"}
+          placeholder={placeholder}
           onChange={handleInputChange}
           onBlur={onBlur}
           disabled={disabled}

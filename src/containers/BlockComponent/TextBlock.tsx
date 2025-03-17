@@ -48,12 +48,6 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         paddingBottom: `${padding.bottom}px`,
         paddingLeft: `${padding.left}px`,
         textAlign: alignment as TextAlign,
-        backgroundImage: backgroundImage?.startsWith("url")
-          ? backgroundImage
-          : `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundRepeat: "no-repeat",
-        backgroundPosition: "center",
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
@@ -62,6 +56,13 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         }`,
         ...convertedStyle,
         ...rest,
+        ...(backgroundImage &&
+          backgroundImage.startsWith("url") && {
+            backgroundImage: backgroundImage,
+            backgroundSize: "cover",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center",
+          }),
       }}
       onClick={handleBlockClick}
     >

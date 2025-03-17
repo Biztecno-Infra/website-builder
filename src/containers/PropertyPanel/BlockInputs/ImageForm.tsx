@@ -46,7 +46,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     customCss,
     id: blockId
   } = selectedBlock as ImageProps;
-
+console.log(selectedBlock)
   const [formData, setFormData] = useState({
     imageUrl,
     altText,
@@ -175,6 +175,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             type="number"
             name="height"
             value={formData.height || ""}
+            placeholder="auto"
             onChange={(name: string, value: string) =>
               handleChange("height", value)
             }
@@ -191,6 +192,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           <Input
             type="number"
             name="width"
+            placeholder="auto"
             value={formData.width || ""}
             onChange={(name: string, value: string) =>
               handleChange("width", value)
