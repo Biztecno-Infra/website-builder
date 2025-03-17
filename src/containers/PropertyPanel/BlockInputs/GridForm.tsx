@@ -4,7 +4,7 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
-import { Input, TextArea } from "@components/lib";
+import { CustomInput, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 import { ReactColorPicker } from "@components/CustomInputs";
 
@@ -73,13 +73,13 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       return updatedData;
     });
   };
-  
+
 
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Columns">
         <FlexRow>
-          <Input
+          <CustomInput
             name="columns"
             placeholder="Cols"
             unitsLabel="Columns"
@@ -90,7 +90,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             inputStyle={{ width: "30%" }}
             checkLessThanOne
           />
-          <Input
+          <CustomInput
             name="columnGap"
             placeholder="Column Gap"
             type="number"

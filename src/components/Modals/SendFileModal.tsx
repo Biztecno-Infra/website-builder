@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { Input } from "@components/lib";
+import { CustomInput } from "@components/lib";
 import SvgIcon from "@components/SvgIcon";
 import ModalOverlay from "@components/lib/ModalOverlay";
 
@@ -76,7 +76,7 @@ const SendTestModal: React.FC<SendTestModalProps> = ({ onClose, onSend }) => {
       <Title>Send Test</Title>
       <Subtitle>Enter email below and press enter after each email (up to 5 emails)</Subtitle>
 
-      <Input
+      <CustomInput
         name="email"
         value={inputValue}
         placeholder="Enter email here"

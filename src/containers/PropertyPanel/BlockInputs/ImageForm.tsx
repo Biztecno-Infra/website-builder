@@ -7,7 +7,7 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
-import { Input, TextArea } from "@components/lib";
+import { CustomInput, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const FormWrapper = styled.div`
@@ -144,7 +144,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Image">
-        <Input
+        <CustomInput
           name="imageUrl"
           placeholder="Add Image URL"
           value={formData.imageUrl}
@@ -154,7 +154,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ marginBottom: "0.75rem" }}
         />
 
-        <Input
+        <CustomInput
           name="altText"
           placeholder="Add Alt Text"
           value={formData.altText}
@@ -163,7 +163,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           }
           containerStyle={{ marginBottom: "0.75rem" }}
         />
-        <Input
+        <CustomInput
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
@@ -171,7 +171,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ marginBottom: "0.75rem" }}
         />
         <WidthHeightContainer>
-          <Input
+          <CustomInput
             type="number"
             name="height"
             value={formData.height || ""}
@@ -189,7 +189,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             inputStyle={{ width: "35%" }}
           />
-          <Input
+          <CustomInput
             type="number"
             name="width"
             placeholder="auto"

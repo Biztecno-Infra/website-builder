@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Input, Dropdown } from "@components/lib";
+import { CustomInput, Dropdown } from "@components/lib";
 import { ReactColorPicker } from "@components/CustomInputs";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
@@ -57,7 +57,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           selectedColor={borderColor}
           containerStyle={{ width: "55%" }}
         />
-        <Input
+        <CustomInput
           name="borderRadius"
           type="number"
           value={borderRadius}
@@ -70,7 +70,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
         />
       </BorderContainer>
 
-      <Input
+      <CustomInput
         name="borderWidth"
         type="number"
         value={borderWidth}

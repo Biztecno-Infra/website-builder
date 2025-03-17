@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Input } from "@components/lib";
+import { CustomInput } from "@components/lib";
 
 interface ColumnCellWidthProps {
   rows: number;
@@ -59,7 +59,7 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
   return (
     <ColumnCellWidthContainer>
       {localWidths.map((width, index) => (
-        <Input
+        <CustomInput
           key={index}
           name={`cell-width-${index}`}
           type="number"
@@ -68,8 +68,8 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
           onChange={(name, value) => handleWidthChange(Number(value), index)}
           placeholder="Enter width in percentage"
           unitsLabel="%"
-          containerStyle={{width:"25%" , padding: 4 , marginBottom: 5 , marginRight: 3}}
-          inputStyle={{width:"50%"}}
+          containerStyle={{ width: "25%", padding: 4, marginBottom: 5, marginRight: 3 }}
+          inputStyle={{ width: "50%" }}
         />
       ))}
     </ColumnCellWidthContainer>

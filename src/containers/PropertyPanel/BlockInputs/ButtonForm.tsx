@@ -6,7 +6,7 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
-import { Input, TextArea, Dropdown } from "@components/lib";
+import { CustomInput, TextArea, Dropdown } from "@components/lib";
 import { ReactColorPicker } from "@components/CustomInputs";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
@@ -106,7 +106,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         name="Edit Button Text"
         containerStyle={{ padding: "1rem" }}
       >
-        <Input
+        <CustomInput
           name="buttonText"
           placeholder="Enter button text here"
           value={formData.buttonText}
@@ -123,7 +123,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{ width: "60%" }}
           />
 
-          <Input
+          <CustomInput
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize || ""}
@@ -165,7 +165,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         containerStyle={{ padding: "1rem" }}
       >
         <WidthHeightContainer>
-          <Input
+          <CustomInput
             type="number"
             name="width"
             placeholder="Enter Button Width"
@@ -182,7 +182,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
               paddingRight: "0.5rem",
             }}
           />
-          <Input
+          <CustomInput
             type="number"
             name="height"
             placeholder="Enter Button Height"
@@ -201,7 +201,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </WidthHeightContainer>
-        <Input
+        <CustomInput
           name="navigateToUrl"
           placeholder="Enter Button Navigation URL"
           value={formData.navigateToUrl}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { Input } from "@components/lib";
+import { CustomInput } from "@components/lib";
 import { Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
@@ -90,7 +90,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
     <PaddingWrapper style={containerStylePopUp}>
       {mainLabel && <label>{mainLabel}</label>}
 
-      <Input
+      <CustomInput
         name="paddingAll"
         value={isCommonPadding ? (padding.top || '') : ''}
         onChange={(name, value) => {
@@ -108,7 +108,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
           width: "55%",
           padding: 3,
         }}
-        inputStyle={{ width: "45%"}}
+        inputStyle={{ width: "45%" }}
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
@@ -118,34 +118,34 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       {isPopupOpen && (
         <Popup ref={popupRef}>
 
-          <Input
+          <CustomInput
             name="paddingTop"
             value={padding.top || ''}
             onChange={(name, value) => handlePaddingChange("top", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderTop: "1px solid #0B978E", width: "20%", paddingTop: '2px' , borderRadius: 0 }}
+            containerStyle={{ borderTop: "1px solid #0B978E", width: "20%", paddingTop: '2px', borderRadius: 0 }}
           />
 
-          <Input
+          <CustomInput
             name="paddingLeft"
             value={padding.left || ''}
             onChange={(name, value) => handlePaddingChange("left", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderLeft: "1px solid #0B978E", width: "20%", paddingLeft: '2px' , borderRadius: 0}}
+            containerStyle={{ borderLeft: "1px solid #0B978E", width: "20%", paddingLeft: '2px', borderRadius: 0 }}
           />
-          <Input
+          <CustomInput
             name="paddingRight"
             value={padding.right || ''}
             onChange={(name, value) => handlePaddingChange("right", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderRight: "1px solid #0B978E", width: "20%", paddingRight: "2px" , borderRadius: 0 }}
+            containerStyle={{ borderRight: "1px solid #0B978E", width: "20%", paddingRight: "2px", borderRadius: 0 }}
           />
-          <Input
+          <CustomInput
             name="paddingBottom"
             value={padding.bottom || ''}
             onChange={(name, value) => handlePaddingChange("bottom", parseInt(value, 10))}
             type="number"
-            containerStyle={{ borderBottom: "1px solid #0B978E", width: "20%", paddingBottom: "2px" , borderRadius: 0}}
+            containerStyle={{ borderBottom: "1px solid #0B978E", width: "20%", paddingBottom: "2px", borderRadius: 0 }}
           />
         </Popup>
       )}

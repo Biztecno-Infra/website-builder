@@ -4,7 +4,7 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
-import { Input, TextArea } from "@components/lib";
+import { CustomInput, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 
@@ -43,14 +43,14 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
- const handleChange = (property: string, value: any) => {
+  const handleChange = (property: string, value: any) => {
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);  
+      updateBlock(blockId, property, value);
       return updatedData;
     });
   };
-  
+
 
   return (
     <FormWrapper>
@@ -62,19 +62,19 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             }
             label={"Select Divider color"}
             selectedColor={formData.dividerColor || ""}
-            containerStyle={{width: "55%"}}
+            containerStyle={{ width: "55%" }}
           />
-          <Input
+          <CustomInput
             name="thickness"
             placeholder="Enter Divider Thickness"
-            value={formData.thickness ||''}
+            value={formData.thickness || ''}
             type="number"
             onChange={(name, value) => handleChange("thickness", Number(value))}
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight
             }}
             unitsLabel="px"
-            containerStyle={{width: "40%"}}
+            containerStyle={{ width: "40%" }}
             checkLessThanOne
           />
         </FlexRow>
@@ -87,12 +87,12 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             }
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
-            containerStyle={{width: "55%"}}
+            containerStyle={{ width: "55%" }}
           />
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{width: "40%"}}
+            containerStylePopUp={{ width: "40%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>

@@ -14,7 +14,7 @@ const InputContainer = styled.div`
 
   .ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};
-  height: 1.5rem;
+  height: 1.5rem !important;
   padding: 3px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
@@ -70,7 +70,7 @@ interface InputProps {
     size?: SizeEnum;
   };
   inputStyle?: React.CSSProperties;
-  checkLessThanOne?:boolean;
+  checkLessThanOne?: boolean;
 }
 
 export function CustomInput({
@@ -92,32 +92,32 @@ export function CustomInput({
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-  
+
     let newValue = type === "number" ? Number(value) : value;
-  
+
     if (type === "number") {
       const numericValue = Number(value);
-  
+
       if (numericValue < 1 && checkLessThanOne) {
-        return ;
+        return;
       }
       if (!isNaN(numericValue) && numericValue < 0) {
         setError("Value must be greater than or equal to 0");
         return;
       }
-  
+
       if (isNaN(numericValue)) {
         setError("Please enter a valid number");
       } else {
         setError("");
       }
     }
-  
+
     if (onChange) {
       onChange(name, newValue);
     }
   };
-  
+
   return (
     <Fragment>
       <InputContainer style={containerStyle}>

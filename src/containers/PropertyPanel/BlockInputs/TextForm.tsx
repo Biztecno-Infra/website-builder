@@ -7,7 +7,7 @@ import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { TextProps } from "../../../types";
-import { TextArea, Input, Dropdown } from "@components/lib";
+import { TextArea, CustomInput, Dropdown } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
@@ -105,7 +105,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{ width: "65%" }}
             initialValue={formData.fontFamily}
           />
-          <Input
+          <CustomInput
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize || ''}
@@ -143,7 +143,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           />
         </ColorPickerContainer>
         <FlexRow>
-          <Input
+          <CustomInput
             name="lineHeight"
             placeholder="Enter Line Height"
             value={formData.lineHeight || ''}
@@ -156,7 +156,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{ width: "25%", padding: 3 }}
             inputStyle={{ width: "50%" }}
           />
-          <Input
+          <CustomInput
             name="navigateToUrl"
             placeholder="Add URL to link text"
             value={formData.navigateToUrl}
@@ -180,7 +180,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{ width: "35%" }}
           />
         </FlexRow>
-        <Input
+        <CustomInput
           name="backgroundImage"
           placeholder="Add background image URL"
           value={formData.backgroundImage}
