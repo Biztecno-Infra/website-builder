@@ -72,7 +72,7 @@ interface InputProps {
   inputStyle?: React.CSSProperties;
 }
 
-export function Input({
+export function CustomInput({
   unitsLabel,
   name,
   value,
