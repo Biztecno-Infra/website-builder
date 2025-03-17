@@ -75,6 +75,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             }}
             unitsLabel="px"
             containerStyle={{width: "40%"}}
+            checkLessThanOne
           />
         </FlexRow>
       </BasePropertyWrapper>

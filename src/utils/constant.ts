@@ -51,10 +51,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       columnGap: 0,
       cellWidths: [50, 50],
       childBlocks: [],
-      borderWidth: "",
-      borderStyle: "",
+      borderWidth: 0,
+      borderStyle: "none",
       borderColor: "",
-      borderRadius: "",
+      borderRadius: 0,
       backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.IMAGE) {
@@ -66,10 +66,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       navigateToUrl: "",
       width: 100,
       height: "",
-      borderWidth: "",
-      borderStyle: "",
+      borderWidth: 0,
+      borderStyle: "none",
       borderColor: "",
-      borderRadius: "",
+      borderRadius: 0,
       backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.TEXT) {
@@ -100,10 +100,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       buttonPadding: defaultPadding,
       width: 150,
       height: 50,
-      borderWidth: "",
-      borderStyle: "",
+      borderWidth: 0,
+      borderStyle: "none",
       borderColor: "",
-      borderRadius: "",
+      borderRadius: 0,
       backgroundColor: defaultBg
     };
   } else if (blockType === BlockType.GRIDCELL) {
