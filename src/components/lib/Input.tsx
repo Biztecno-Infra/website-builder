@@ -14,7 +14,7 @@ const InputContainer = styled.div`
 
   .ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};
-  height: 1.5rem !important;
+  height: 1.5rem;
   padding: 3px;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
