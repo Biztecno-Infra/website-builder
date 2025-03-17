@@ -12,8 +12,8 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const AlignmentButton = styled.button<{ active: boolean }>`
-  background: ${(props) => (props.active ? "#d3d3d3" : "transparent")};
+const AlignmentButton = styled.button<{ $active: boolean }>`
+  background: ${(props) => (props.$active ? "#d3d3d3" : "transparent")};
   border: none;
   padding: 3px;
   cursor: pointer;
@@ -27,7 +27,7 @@ const AlignmentButton = styled.button<{ active: boolean }>`
   }
   svg {
     font-size: 16px;
-    color: ${(props) => (props.active ? "#000" : "#555")};
+    color: ${(props) => (props.$active ? "#000" : "#555")};
   }
 `;
 
@@ -40,13 +40,13 @@ interface VerticalAlignment {
 export const VerticalAlignment: React.FC<VerticalAlignment> = ({ value, onChange, containerStyle }) => {
   return (
     <Container style={containerStyle}>
-      <AlignmentButton active={value === "top"} onClick={() => onChange("verticalAlignment", "top")}>
+      <AlignmentButton $active={value === "top"} onClick={() => onChange("verticalAlignment", "top")}>
         <SvgIcon name={CUSTOM_SVG_ICON.TopAligment} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton active={value === "bottom"} onClick={() => onChange("verticalAlignment", "bottom")}>
+      <AlignmentButton $active={value === "bottom"} onClick={() => onChange("verticalAlignment", "bottom")}>
         <SvgIcon name={CUSTOM_SVG_ICON.BottomAligment} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton active={value === "middle"} onClick={() => onChange("verticalAlignment", "middle")}>
+      <AlignmentButton $active={value === "middle"} onClick={() => onChange("verticalAlignment", "middle")}>
         <SvgIcon name={CUSTOM_SVG_ICON.CenterAligment} size={SizeEnum.Small} />
       </AlignmentButton>
     </Container>
