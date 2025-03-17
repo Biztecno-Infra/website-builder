@@ -11,7 +11,9 @@ const InputContainer = styled.div`
   background-color: #f1f1f1;
   align-items: center;
   border-radius: 5px;
+`;
 
+const StyledInput = styled.input`
   .ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};
   height: 1.5rem;
@@ -38,9 +40,8 @@ const InputContainer = styled.div`
     background-color: ${({ theme }) => theme.colors.disabledBg};
     color: ${({ theme }) => theme.colors.disabledText};
     cursor: not-allowed;
-  }
-  }
-`;
+}}
+`
 
 const UnitsLabel = styled.div`
   padding-left: 4px;
@@ -128,7 +129,7 @@ export function CustomInput({
             svgStyle={{ padding: 3, width: "35%" }}
           />
         )}
-        <input
+        <StyledInput
           className="ebr-styledInput"
           type={type}
           value={value}
