@@ -16,23 +16,25 @@ interface ColorPickerProps {
 const ColorPickerContainer = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+      justify-content: center;
   position: relative;
   background-color: #f1f1f1;
   border-radius: 5px;
+  padding: 3px;
+
 `;
 
 const PickerRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px;
+
 `;
 
 const ColorBox = styled.div<{ $selectedColor: string }>`
   width: 1.6rem;
   height: 1.6rem;
-  border-radius: 4px;
+  border-radius: 5px;
   background-color: ${({ $selectedColor }) => $selectedColor || "#000000"};
   cursor: pointer;
   border: 1px solid #ccc;
@@ -42,10 +44,11 @@ const ColorHexInput = styled.input`
   &.ebr-colorHexInput {
     font-size: 14px;
     border: none;
+    height: 26px;
+    line-height:0;
     background: #f1f1f1;
     border-radius: 4px;
     width: calc(100% - 2rem);
-    // text-transform: uppercase;
     text-align: left;
     margin-left: 0.5rem;
   }
@@ -107,7 +110,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           $selectedColor={color}
           onClick={() => setPickerVisible(!isPickerVisible)}
         />}
-        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 5 , border: "1px solid" , borderRadius: 4}}/>}
+        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 3 , border: "1px solid" , borderRadius: 5 , marginLeft: 5}}/>}
 
 
         <ColorHexInput

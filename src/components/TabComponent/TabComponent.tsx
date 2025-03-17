@@ -20,7 +20,7 @@ const TabMenuItem = styled.div<{ $active: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 97%;
+  // width: 97%;
   &:hover {
     background-color: #f0f0f0;
   }

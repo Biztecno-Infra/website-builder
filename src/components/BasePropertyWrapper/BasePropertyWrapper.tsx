@@ -11,7 +11,7 @@ interface LayoutProps {
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
-  width: 90%;
+  // width: 90%;
   border-bottom: 1px solid #dddddd;
   padding: 1rem;
 `;

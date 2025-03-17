@@ -74,7 +74,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight
             }}
             unitsLabel="px"
-            containerStyle={{ width: "40%" }}
+            containerStyle={{ width: "40%"  , padding: 2}}
             checkLessThanOne
           />
         </FlexRow>

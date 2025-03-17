@@ -111,7 +111,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter button text here"
           value={formData.buttonText}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem", width: "90%" }}
+          containerStyle={{ marginBottom: "0.75rem", width: "90%"  ,padding: 2}}
         />
 
         <FlexRow>
@@ -177,9 +177,10 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageWidth,
             }}
+            inputStyle={{width: "35%"}}
             containerStyle={{
               width: "40%",
-              paddingRight: "0.5rem",
+              padding: 2
             }}
           />
           <CustomInput
@@ -194,10 +195,11 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
+            inputStyle={{width: "35%"}}
             containerStyle={{
               width: "40%",
               marginLeft: "1rem",
-              paddingRight: "0.5rem",
+              padding: 2
             }}
           />
         </WidthHeightContainer>
@@ -206,7 +208,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter Button Navigation URL"
           value={formData.navigateToUrl}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem", width: "90%" }}
+          containerStyle={{ marginBottom: "0.75rem", width: "90%" ,padding: 2 }}
         />
         <ReactColorPicker
           onColorChange={(field, value) => handleChange("buttonColor", value)}
@@ -232,8 +234,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           subLabel
           containerStyle={{
             border: "none",
-            padding: "0% 0% 0% 0%",
+            padding: 0,
             width: "95%",
+            marginTop: "0.5rem"
           }}
         >
           <BorderStyleDropdown

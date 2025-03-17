@@ -69,7 +69,7 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
           placeholder="Enter width in percentage"
           unitsLabel="%"
           containerStyle={{ width: "25%", padding: 4, marginBottom: 5, marginRight: 3 }}
-          inputStyle={{ width: "50%" }}
+          inputStyle={{ width: "55%" }}
         />
       ))}
     </ColumnCellWidthContainer>

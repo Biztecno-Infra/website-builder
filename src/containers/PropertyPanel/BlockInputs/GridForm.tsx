@@ -128,7 +128,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ padding: 0, width: "95%", border: "none" }}
+          containerStyle={{ padding: 0, width: "95%", border: "none" , marginTop: "0.5rem" }}
         >
           <BorderStyleDropdown
             onChange={handleChange}

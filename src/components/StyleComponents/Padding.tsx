@@ -26,7 +26,7 @@ const ToggleButton = styled.button`
   cursor: pointer;
   border: none;
   border-radius: 5px;
-  padding: 3px 0px;
+  padding: 2px 0px;
 `;
 
 const Popup = styled.div`

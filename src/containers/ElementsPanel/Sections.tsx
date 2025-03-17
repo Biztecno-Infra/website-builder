@@ -106,7 +106,7 @@ const Header = styled.div`
   font-size: ${({ theme }) => theme.fontSize.labelHeader};
   border-bottom: 1px solid #dddddd;
   height: 3rem;
-  width: 97%;
+  width: 100%;
   margin-bottom: 0.75rem;
   font-weight: 500;
   display: flex;

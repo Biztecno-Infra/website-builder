@@ -151,7 +151,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleImageUrlChange(value)
           }
-          containerStyle={{ marginBottom: "0.75rem" }}
+          containerStyle={{ marginBottom: "0.75rem"  , padding: 2}}
         />
 
         <CustomInput
@@ -161,14 +161,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("altText", value)
           }
-          containerStyle={{ marginBottom: "0.75rem" }}
+          containerStyle={{ marginBottom: "0.75rem" ,padding: 2 }}
         />
         <CustomInput
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem" }}
+          containerStyle={{ marginBottom: "0.75rem" ,padding: 2 }}
         />
         <WidthHeightContainer>
           <CustomInput
@@ -184,7 +184,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             containerStyle={{
-              paddingRight: "0.5rem",
+              padding: 2,
               width: "45%"
             }}
             inputStyle={{ width: "35%" }}
@@ -204,7 +204,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "45%",
               marginLeft: "1rem",
-              paddingRight: "0.5rem"
+              padding: 2
             }}
             inputStyle={{ width: "35%" }}
           />
@@ -234,7 +234,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ border: "none", padding: 0, width: "95%" }}
+          containerStyle={{ border: "none", padding: 0, width: "95%" ,marginTop: "0.5rem" }}
         >
           <BorderStyleDropdown
             onChange={handleChange}
