@@ -1,7 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { CustomInput, Dropdown } from "@components/lib";
-import { ReactColorPicker } from "@components/CustomInputs";
+import { CustomInput, Dropdown, ReactColorPicker } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const Wrapper = styled.div`
@@ -55,7 +54,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           onColorChange={(field, value) => onChange("borderColor", value)}
           label="Select Border Color"
           selectedColor={borderColor}
-          containerStyle={{ width: "55%" ,padding: 2 }}
+          containerStyle={{ width: "55%", padding: 2 }}
         />
         <CustomInput
           name="borderRadius"
@@ -66,8 +65,8 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
             name: CUSTOM_SVG_ICON.BorderWidth,
           }}
           unitsLabel="px"
-          containerStyle={{ width: "40%"}}
-          inputStyle={{width: "35%"}}
+          containerStyle={{ width: "40%" }}
+          inputStyle={{ width: "35%" }}
         />
       </BorderContainer>
 
@@ -80,7 +79,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           name: CUSTOM_SVG_ICON.BorderRadius,
         }}
         unitsLabel="px"
-        inputStyle={{width: "35%"}}
+        inputStyle={{ width: "35%" }}
         containerStyle={{ width: "40%" }}
       />
     </Wrapper>

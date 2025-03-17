@@ -4,8 +4,8 @@ import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { defaultGridPadding } from "@utils/constant";
-import { ReactColorPicker } from "@components/CustomInputs";
 import { FlexRow } from "../style";
+import { ReactColorPicker } from "@components/lib";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,

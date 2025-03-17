@@ -3,11 +3,10 @@ import { Jimp } from "jimp";
 import styled from "styled-components";
 import { BlockFormProps } from "../types";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
-import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
-import { CustomInput, TextArea } from "@components/lib";
+import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 const FormWrapper = styled.div`
@@ -151,7 +150,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleImageUrlChange(value)
           }
-          containerStyle={{ marginBottom: "0.75rem"  , padding: 2}}
+          containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
         />
 
         <CustomInput
@@ -161,14 +160,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("altText", value)
           }
-          containerStyle={{ marginBottom: "0.75rem" ,padding: 2 }}
+          containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
         />
         <CustomInput
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem" ,padding: 2 }}
+          containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
         />
         <WidthHeightContainer>
           <CustomInput
@@ -222,19 +221,19 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               handleChange("backgroundColor", value)
             }
             selectedColor={formData.backgroundColor}
-            containerStyle={{ width: "50%" }}
+            containerStyle={{ width: "55%" }}
           />
 
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "40%", paddingLeft: "1rem" }}
+            containerStylePopUp={{ width: "45%", paddingLeft: "1rem" }}
           />
         </PaddingContainer>
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ border: "none", padding: 0, width: "95%" ,marginTop: "0.5rem" }}
+          containerStyle={{ border: "none", padding: 0, width: "95%", marginTop: "0.5rem" }}
         >
           <BorderStyleDropdown
             onChange={handleChange}

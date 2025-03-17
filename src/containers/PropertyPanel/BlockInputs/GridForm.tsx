@@ -4,9 +4,8 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
-import { CustomInput, TextArea } from "@components/lib";
+import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
-import { ReactColorPicker } from "@components/CustomInputs";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -128,7 +127,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ padding: 0, width: "95%", border: "none" , marginTop: "0.5rem" }}
+          containerStyle={{ padding: 0, width: "95%", border: "none", marginTop: "0.5rem" }}
         >
           <BorderStyleDropdown
             onChange={handleChange}

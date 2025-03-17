@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
-import { CustomInput, TextArea } from "@components/lib";
+import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 
@@ -74,7 +73,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight
             }}
             unitsLabel="px"
-            containerStyle={{ width: "40%"  , padding: 2}}
+            containerStyle={{ width: "40%", padding: 2 }}
             checkLessThanOne
           />
         </FlexRow>
@@ -92,7 +91,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "40%" }}
+            containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>

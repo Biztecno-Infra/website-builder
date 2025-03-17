@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { ReactColorPicker } from "@components/CustomInputs";
 import { GlobalStyles } from "types";
-import { Dropdown } from "@components/lib";
+import { Dropdown, ReactColorPicker } from "@components/lib";
 import { fontOptions } from "../constant";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow } from "../style";
@@ -46,7 +45,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   const handleChange = (field: string, value: any) => {
     setStyles((prevStyles) => {
       const updatedStyles = { ...prevStyles, [field]: value };
-      updateGlobalStyles(updatedStyles); 
+      updateGlobalStyles(updatedStyles);
       return updatedStyles;
     });
   };

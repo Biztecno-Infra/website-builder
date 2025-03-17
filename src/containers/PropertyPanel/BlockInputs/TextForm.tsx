@@ -3,11 +3,10 @@ import {
   AlignmentSelector,
   PaddingInput,
 } from "@components/StyleComponents";
-import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { TextProps } from "../../../types";
-import { TextArea, CustomInput, Dropdown } from "@components/lib";
+import { TextArea, CustomInput, Dropdown, ReactColorPicker } from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";

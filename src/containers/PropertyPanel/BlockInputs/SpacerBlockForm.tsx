@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { ReactColorPicker } from "@components/CustomInputs";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow, FormWrapper } from "../style";
-import { TextArea } from "@components/lib";
+import { ReactColorPicker, TextArea } from "@components/lib";
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -32,11 +31,11 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
     });
   }, [selectedBlock]);
 
- const handleChange = (property: string, value: any) => {
-  
+  const handleChange = (property: string, value: any) => {
+
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);  
+      updateBlock(blockId, property, value);
       return updatedData;
     });
   };
