@@ -14,7 +14,7 @@ const InputContainer = styled.div`
 `;
 
 const StyledInput = styled.input`
-  .ebr-styledInput {
+  &&&.ebr-styledInput {
   width: ${({ width }: any) => width || '100%'};
   height: 1.5rem;
   padding: 3px;
