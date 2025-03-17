@@ -58,7 +58,7 @@ function HeaderActions({ onExport }: Props) {
 
   const handleExport = async (format: 'JSON' | 'HTML') => {
     const convertedData = format === 'JSON' ? blocksToJson() : await convertJsonToHtml(blocksToJson());
-    if(typeof onExport === "function"){
+    if (typeof onExport === "function") {
       onExport(format, convertedData);
     }
   };
@@ -90,9 +90,9 @@ function HeaderActions({ onExport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        <ButtonComponent $buttonPrimary text="Send" />
+        {/* <ButtonComponent $buttonPrimary text="Send" /> */}
         <CustomDropdownButton
-          options={["Export", "Upload", "Send Test"]}
+          options={["Export"]}
           onSelect={handleOptionSelect}
           buttonText="Actions"
         />
@@ -109,7 +109,7 @@ function HeaderActions({ onExport }: Props) {
         />
       )}
       {selectedOption === "Send Test" && (
-        <SendTestModal onClose={handleClose} onSend={(file) => {}} />
+        <SendTestModal onClose={handleClose} onSend={(file) => { }} />
       )}
     </StyledHeader>
   );

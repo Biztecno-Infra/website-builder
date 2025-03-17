@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { ButtonComponent } from "./Button";
 import useClickOutside from "hoc/useClickOutside";
-import  { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 
 const DropdownContainer = styled.div`
@@ -10,13 +10,14 @@ const DropdownContainer = styled.div`
   margin-right: 20px;
   display: flex;
   min-width: 7.5rem;
+  position: relative;
 `;
 
 const DropdownList = styled.div<{ open: any }>`
   position: absolute;
   background-color: white;
   border: 1px solid #ddd;
-  top: 2.75rem;
+  top: 2.125rem;
   list-style: none;
   z-index: 999;
   border-radius: 10px;
