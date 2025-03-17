@@ -153,15 +153,15 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
 });
 
 const EmptyTreeNodeContainer = styled(Droppable)`
-  padding-bottom: 50px;
-  padding-left: 16px;
-  background-color: #f4f4f4;
-  border: 1px dashed #ddd;
+  border: 1px dashed #006E75;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 50px;
   cursor: pointer;
+  color: #8D8D8D;
+  border-radius: 5px;
+  padding: 0.25rem 0;
+  font-size: 11px;
 `;
 
 const EmptyTreeNode = ({ id }: { id: string }) => {
@@ -176,7 +176,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
 
   return (
     <EmptyTreeNodeContainer accept="TREE_BLOCK" onDrop={handleDrop}>
-      DROP Nodes
+      Drag and drop a layer here
     </EmptyTreeNodeContainer>
   );
 };
