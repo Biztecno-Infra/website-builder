@@ -33,10 +33,12 @@ import MobileIcon from "./Icons/MobileIcon";
 import PaddingExpand from "./Icons/PaddingExpand";
 import PlusSVG from "./Icons/Plus";
 import RightAlign from "./Icons/RightAlign";
+import SearchIcon from "./Icons/SearchIcon";
 import SectionIcon from "./Icons/SectionIcon";
 import TopAligment from "./Icons/TopAligment";
 import TreeIcon from "./Icons/TreeIcon";
 import Upload from "./Icons/Upload";
+import UserIcon from "./Icons/UserIcon";
 
 export enum CUSTOM_SVG_ICON {
   Plus = "PlusSVG",
@@ -78,6 +80,8 @@ export enum CUSTOM_SVG_ICON {
   TopAligment = "TopAligment",
   BottomAligment = "BottomAligment",
   CenterAligment = "CenterAligment",
+  SearchIcon = "SearchIcon",
+  UserIcon = "UserIcon",
 }
 
 export const CustomIconRef: any = {
@@ -120,5 +124,7 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.ArrowRight]: ArrowRight,
   [CUSTOM_SVG_ICON.TopAligment]: TopAligment,
   [CUSTOM_SVG_ICON.BottomAligment]: BottomAligment,
-  [CUSTOM_SVG_ICON.CenterAligment]: CenterAligment
+  [CUSTOM_SVG_ICON.CenterAligment]: CenterAligment,
+  [CUSTOM_SVG_ICON.SearchIcon]: SearchIcon,
+  [CUSTOM_SVG_ICON.UserIcon]: UserIcon,
 };

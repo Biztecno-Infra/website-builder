@@ -9,6 +9,7 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "enum";
 import { convertJsonToHtml } from "email-builder-utils";
+import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -36,7 +37,7 @@ interface Props {
 
 function HeaderActions({ onExport }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-
+  const [open, setopen] = useState(false)
   const {
     selectedView,
     setSelectedView,
@@ -47,6 +48,10 @@ function HeaderActions({ onExport }: Props) {
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
   };
+
+  const handleTemplateModal = () => {
+    setopen(true)
+  }
 
   const handleClose = () => {
     setSelectedOption(null);
@@ -90,7 +95,10 @@ function HeaderActions({ onExport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        {/* <ButtonComponent $buttonPrimary text="Send" /> */}
+        <ButtonComponent $buttonPrimary text="Import Template" handleClick={handleTemplateModal} />
+        {open && (
+          <ImportTemplateModal />
+        )}
         <CustomDropdownButton
           options={["Export"]}
           onSelect={handleOptionSelect}
