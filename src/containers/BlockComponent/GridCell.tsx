@@ -92,7 +92,8 @@ const GridCell: React.FC<GridCellProps> = ({
   };
 
   return (
-    <StyledCell 
+    <StyledCell
+      id={blockId}
       $selected={isSelected} 
       $padding={(block as any)?.padding || {}} 
       $cellWidth={cellWidth}

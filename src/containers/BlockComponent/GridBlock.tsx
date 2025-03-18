@@ -27,6 +27,7 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
 
   return (
     <table
+      id={block.id}
       cellSpacing={columnGap || 0}
       style={{
         width: "100%",
