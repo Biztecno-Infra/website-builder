@@ -298,37 +298,45 @@ export const convertStringtoStyle = (cssString: string): React.CSSProperties => 
 };
 
 
-// export const parseCssString = (cssString: string): Record<string, string> => {
-//   const styleObject: Record<string, string> = {};
-//   if (typeof cssString !== "string" || !cssString.trim()) {
-//     console.warn("Invalid CSS string provided:", cssString);
-//     return styleObject; 
+// const handleImportTemplates = (templates: any[]) => {
+//   try {
+//     // Store all the new blocks and the root order that will be appended
+//     const newBlocks: IBlocksState = {};
+//     const newRootBlockOrder: string[] = [];
+
+//     templates.forEach((template) => {
+//       // Convert the template JSON to blocks
+//       const { blocks, rootBlock } = jsonToBlocks(template);
+//       const { childrenIds, style } = rootBlock.data || {};
+
+//       // Ensure unique IDs for imported blocks
+//       Object.keys(blocks).forEach((blockId) => {
+//         if (newBlocks[blockId]) {
+//           // If the block already exists, generate a new unique ID for it
+//           const newId = generateUniqueId();
+//           newBlocks[newId] = blocks[blockId];
+//           newBlocks[newId].id = newId;
+//           delete newBlocks[blockId]; // Remove the old block ID
+//         } else {
+//           newBlocks[blockId] = blocks[blockId];
+//         }
+//       });
+
+//       // Append root order from the template to new root order
+//       newRootBlockOrder.push(...(childrenIds || []));
+//     });
+
+//     // Merge the new blocks and root block order with the existing ones
+//     setBlocks((prevBlocks) => ({ ...prevBlocks, ...newBlocks }));
+//     setRootBlockOrder((prevRootOrder) => [...prevRootOrder, ...newRootBlockOrder]);
+
+//     return { success: true, message: "Templates imported successfully" };
+//   } catch (error) {
+//     console.error("Error importing templates:", error);
+//     return { success: false, message: "Error importing templates", error };
 //   }
-//   const cleanedCssString = cssString?.replace(/(\r\n|\n|\r|\s{2,})+/g, " ") 
-//     .trim();
-
-//   cleanedCssString.split(";").forEach((rule) => {
-//     if (rule.includes("background-image")) {
-//       const backgroundImageMatch = rule.match(
-//         /background-image\s*:\s*url\(\s*['"]?(https?:\/\/[^\s)]+)['"]?\s*\)/
-//       );
-
-//       if (backgroundImageMatch) {
-       
-//         styleObject["background-image"] = `url(${backgroundImageMatch[1]})`;
-//         return; 
-//       }
-//     }
-
-//     const [key, value] = rule.split(":").map((item) => item.trim());
-
-//     if (key && value) {
-//       styleObject[key] = value;
-//     }
-//   });
-
-//   return styleObject;
 // };
+
 
 export const defaultTheme: Theme = {
   colors: {

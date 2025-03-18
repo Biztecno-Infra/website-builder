@@ -107,7 +107,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <CustomInput
             name="fontSize"
             placeholder="Enter font size"
-            value={formData.fontSize || ''}
+            value={formData.fontSize}
             onChange={(name, value) => handleChange("fontSize", value)}
             containerStyle={{
               width: "26%",
@@ -145,7 +145,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <CustomInput
             name="lineHeight"
             placeholder="Enter Line Height"
-            value={formData.lineHeight || ''}
+            value={formData.lineHeight}
             type="number"
             onChange={handleChange}
             iconProps={{

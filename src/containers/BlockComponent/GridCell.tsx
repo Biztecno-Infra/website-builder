@@ -76,13 +76,12 @@ const GridCell: React.FC<GridCellProps> = ({
   };
   
   const renderGridCellChilds = (cellBlockId: string, index: number) => {
-    const hasMultipleChildBlocks = block?.childBlocks?.length > 1;
   
     return (
       <GridCellContainer key={cellBlockId}>
         <BlockComponent blockId={cellBlockId} />
 
-        {hasMultipleChildBlocks && cellBlockId === (selectedBlock as any)?.id && (
+        {cellBlockId === (selectedBlock as any)?.id && (
         <DeleteWrapper onClick={(e) => handleDeleteClick(e, cellBlockId)}>
           <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
         </DeleteWrapper>
