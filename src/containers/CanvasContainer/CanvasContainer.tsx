@@ -84,6 +84,7 @@ const Canvas = () => {
     return (
       <BlockWrapper
         key={blockId}
+        id={blockId}
         $isSelected={blockId === (selectedBlock as Block)?.id}
       >
         <BlockComponent blockId={blockId} />

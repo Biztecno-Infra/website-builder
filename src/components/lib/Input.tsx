@@ -1,7 +1,7 @@
 import React, { Fragment, useState } from "react";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { SizeEnum } from "enum"
+import { SizeEnum } from "enum";
 
 const InputContainer = styled.div`
   display: flex;
@@ -13,33 +13,39 @@ const InputContainer = styled.div`
   border-radius: 5px;
 
   .ebr-styledInput {
-  width: ${({ width }: any) => width || '100%'};
-  height: 26px;
-      line-height:0;
-  border: 1px solid ${({ theme }) => theme.colors.inputColor};
-  border-radius: 5px;
-  font-family: Arial, sans-serif;
+    width: ${({ width }: any) => width || "100%"};
+    height: 26px;
+    line-height: 0;
+    border: 1px solid ${({ theme }) => theme.colors.inputColor};
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 0.75rem;
+    &::placeholder {
+      color: ${({ theme }) => theme.colors.inputPlaceholderColor};
+    }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    &[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    &:disabled {
+      background-color: ${({ theme }) => theme.colors.disabledBg};
+      color: ${({ theme }) => theme.colors.disabledText};
+      cursor: not-allowed;
+    }
+  }
+`;
+
+const ErrorText = styled.div`
+  color: red;
   font-size: 0.75rem;
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.inputPlaceholderColor};
-  }
-
-  &::-webkit-outer-spin-button,
-  &::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  &[type='number'] {
-    -moz-appearance: textfield;
-  }
-
-  &:disabled {
-    background-color: ${({ theme }) => theme.colors.disabledBg};
-    color: ${({ theme }) => theme.colors.disabledText};
-    cursor: not-allowed;
-}
-}
+  margin-top: 4px;
 `;
 
 const UnitsLabel = styled.div`
@@ -86,28 +92,30 @@ export function CustomInput({
   containerStyle,
   iconProps,
   inputStyle,
-  checkLessThanOne
+  checkLessThanOne = false,
 }: InputProps) {
   const [error, setError] = useState<string>("");
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
 
-    let newValue = type === "number" ? Number(value) : value;
+    if (value === "") {
+      setError("Please enter a valid number");
+      if (onChange) {
+        onChange(name, value);
+      }
+      return;
+    }
+
+    const newValue = type === "number" && value ? Number(value) : value;
 
     if (type === "number") {
-      const numericValue = Number(value);
-
-      if (numericValue < 1 && checkLessThanOne) {
-        return;
-      }
-      if (!isNaN(numericValue) && numericValue < 0) {
-        setError("Value must be greater than or equal to 0");
-        return;
-      }
-
-      if (isNaN(numericValue)) {
+      if (isNaN(newValue as number)) {
         setError("Please enter a valid number");
+      } else if ((newValue as number) < 0) {
+        setError("Value must be greater than or equal to 0");
+      } else if ((newValue as number) < 1 && checkLessThanOne) {
+        setError("Not less than 1");
       } else {
         setError("");
       }
@@ -119,8 +127,8 @@ export function CustomInput({
   };
 
   return (
-    <Fragment>
-      <InputContainer style={containerStyle}>
+    <div style={{ display: "flex", flexDirection: "column", width: "100%"  , ...containerStyle}}>
+      <InputContainer>
         {iconProps && iconProps.name && (
           <SvgIcon
             name={iconProps.name}
@@ -156,7 +164,7 @@ export function CustomInput({
         /> */}
         {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       </InputContainer>
-      {/* {error && <ErrorText>{error}</ErrorText>} */}
-    </Fragment>
+      {error && <ErrorText>{error}</ErrorText>}
+    </div>
   );
 }
