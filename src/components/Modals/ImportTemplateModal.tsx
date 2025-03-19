@@ -198,9 +198,9 @@ interface ExportModalProps {
 	onClose: () => void;
 }
 
-const ImportTemplateModal: React.FC<ExportModalProps> = () => {
+const ImportTemplateModal: React.FC<ExportModalProps> = ({onClose}) => {
 	return (
-		<ModalOverlay customWidth="810px">
+		<ModalOverlay onClose={onClose} customWidth="810px">
 			<Title>Export</Title>
 
 			<SearchContainer>
@@ -221,7 +221,7 @@ const ImportTemplateModal: React.FC<ExportModalProps> = () => {
 			</TemplateListContainer>
 
 			<ButtonContainer>
-				<Button>Cancel</Button>
+				<Button onClick={onClose}>Cancel</Button>
 				<Button $primary onClick={() => ('')}>
 					Import
 				</Button>

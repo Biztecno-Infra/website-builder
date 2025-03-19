@@ -95,18 +95,21 @@ function HeaderActions({ onExport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        <ButtonComponent $buttonPrimary text="Import Template" handleClick={handleTemplateModal} />
+        {/* <ButtonComponent $buttonPrimary text="Import Template" handleClick={handleTemplateModal} />
         {open && (
-          <ImportTemplateModal />
-        )}
+          <ImportTemplateModal onClose={handleClose} />
+        )} */}
         <CustomDropdownButton
-          options={["Export"]}
+          options={["Export", "Import"]}
           onSelect={handleOptionSelect}
           buttonText="Actions"
         />
       </RightActions>
       {selectedOption === "Export" && (
         <ExportModal onClose={handleClose} onExport={handleExport} />
+      )}
+      {selectedOption === "Import" && (
+        <ImportTemplateModal onClose={handleClose} />
       )}
       {selectedOption === "Upload" && (
         <UploadModal
