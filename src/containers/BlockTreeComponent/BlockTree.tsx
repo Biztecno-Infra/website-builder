@@ -21,6 +21,7 @@ import { SizeEnum } from "enum";
 
 interface BlockNodeProps {
   blockId: string;
+  selectedBlock: any;
 }
 
 const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null> => ({
@@ -35,7 +36,7 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.EMAILLAYOUT]: null,
 });
 
-const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
+const BlockNode = React.memo(({ blockId , selectedBlock }: BlockNodeProps) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -99,25 +100,26 @@ const BlockNode = React.memo(({ blockId }: BlockNodeProps) => {
 
   const renderChildNodes = useCallback(
     (gridChildId: string, index: number) => (
-      <BlockNode key={gridChildId} blockId={gridChildId} />
+      <BlockNode key={gridChildId} blockId={gridChildId} selectedBlock={selectedBlock}/>
     ),
-    []
+    [selectedBlock]
   );
 
   const blockTypeIcons = getBlockTypeIcons(theme?.color?.buttonPrimary);
-
+console.log(selectedBlock)
   return (
     <BlockContainer
       ref={(node) => {
         if (node) drag(drop(node));
       }}
       $isDragging={isDragging}
+      $isSelected={selectedBlock.id === blockId}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <BlockContent onClick={handleClick}>
+      <BlockContent onClick={handleClick} hasChildBlocks={hasChildBlocks} >
         {hasChildBlocks && (
           <ChevronIcon data-isexpanded={isExpanded}>
             {isExpanded ? (
@@ -191,12 +193,12 @@ const DroppableContainer = styled(Droppable)`
 `;
 
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles } =
+  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles , selectedBlock } =
     useBlockHook();
 
   const renderBlockNode = useCallback(
-    (blockId: string) => <BlockNode key={blockId} blockId={blockId} />,
-    []
+    (blockId: string) => <BlockNode key={blockId} blockId={blockId} selectedBlock={selectedBlock} />,
+    [selectedBlock]
   );
 
   const handleDrop = useCallback(

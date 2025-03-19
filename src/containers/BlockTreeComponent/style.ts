@@ -3,10 +3,15 @@ import styled from "styled-components";
 export const BlockContainer = styled.div<{
   $isDragging: boolean;
   cursor: string;
+  $isSelected: boolean;
 }>`
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
   padding-left: 8px;
+  background-color:  ${({ $isSelected }) => ($isSelected ? "#f5f5f5" : "none")};
+   &:hover {
+    background-color: #f5f5f5;
+  }
 `;
 
 export const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
