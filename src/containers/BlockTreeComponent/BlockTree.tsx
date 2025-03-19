@@ -106,14 +106,14 @@ const BlockNode = React.memo(({ blockId , selectedBlock }: BlockNodeProps) => {
   );
 
   const blockTypeIcons = getBlockTypeIcons(theme?.color?.buttonPrimary);
-console.log(selectedBlock)
+
   return (
     <BlockContainer
       ref={(node) => {
         if (node) drag(drop(node));
       }}
       $isDragging={isDragging}
-      $isSelected={selectedBlock.id === blockId}
+      $isSelected={selectedBlock?.id === blockId}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
