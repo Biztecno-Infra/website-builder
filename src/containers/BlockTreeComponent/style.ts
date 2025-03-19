@@ -14,8 +14,8 @@ export const BlockContainer = styled.div<{
   }
 `;
 
-export const BlockContent = styled.div<{ hasChildBlocks: boolean }>`
-  cursor: ${({ hasChildBlocks }) => (hasChildBlocks ? "pointer" : "default")};
+export const BlockContent = styled.div<{ $hasChildBlocks: boolean }>`
+  cursor: ${({ $hasChildBlocks }) => ($hasChildBlocks ? "pointer" : "default")};
   display: flex;
   align-items: center;
   width: 100%;

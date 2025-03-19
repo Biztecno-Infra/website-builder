@@ -119,7 +119,7 @@ const BlockNode = React.memo(({ blockId , selectedBlock }: BlockNodeProps) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <BlockContent onClick={handleClick} hasChildBlocks={hasChildBlocks} >
+      <BlockContent onClick={handleClick} $hasChildBlocks={hasChildBlocks} >
         {hasChildBlocks && (
           <ChevronIcon data-isexpanded={isExpanded}>
             {isExpanded ? (
