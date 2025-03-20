@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useRef } from "react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
@@ -7,6 +7,7 @@ import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
+import html2canvas from "html2canvas";
 
 interface TableWrapperProps {
   $canvasColor: string;
@@ -19,12 +20,13 @@ interface TableWrapperProps {
 const BlockWrapper = styled.div<{ $isSelected: boolean }>`
   cursor: pointer;
   border: ${({ $isSelected }) => ($isSelected ? "1px dashed #006E75" : "none")};
-  // border-radius: 10px;
   position: relative;
 `;
+
 const CanvasDropable = styled.div`
   padding: 3rem;
 `;
+
 const DeleteWrapper = styled.div`
   position: absolute;
   cursor: pointer;
@@ -72,6 +74,7 @@ const Canvas = () => {
   } = useBlockHook();
 
   const theme = useTheme();
+  const canvasDropableRef = useRef<HTMLDivElement>(null);
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -79,6 +82,37 @@ const Canvas = () => {
     },
     [handleDropper]
   );
+
+  const handleSendButtonClick = async () => {
+    if (!canvasDropableRef.current) return;
+    try {
+      const canvas = await html2canvas(canvasDropableRef.current, { allowTaint: true, useCORS: true });
+
+      const imageBase64 = canvas.toDataURL("image/png");
+
+      const blob = await fetch(imageBase64).then((res) => res.blob());
+
+      console.log(imageBase64, 'kkk')
+      console.log(blob, 'l')
+
+      // const response = await fetch("/api/upload", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ image: imageBase64 }),
+      // });
+
+      // // Step 4: Handle the server response
+      // if (response.ok) {
+      //   const result = await response.json();
+      //   console.log("Upload successful:", result);
+      // } else {
+      //   console.error("Upload failed:", response.statusText);
+      // }
+    } catch (error) {
+      console.error("Error capturing or downloading screenshot:", error);
+    }
+
+  };
 
   const renderBlock = (blockId: string, index: number) => {
     return (
@@ -122,8 +156,16 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <CanvasDropable>
-        <div style={{ padding: rootBlockOrder.length === 0 ? 15 : 0, background: rootBlockOrder.length === 0 ? "#ffffff" : "none" }}>
+      <button onClick={handleSendButtonClick}>Send</button>
+
+
+      <CanvasDropable ref={canvasDropableRef} >
+        <div
+          style={{
+            padding: rootBlockOrder.length === 0 ? 15 : 0,
+            background: rootBlockOrder.length === 0 ? "#ffffff" : "none",
+          }}
+        >
           {rootBlockOrder.length > 0 ? (
             <TableWrapper
               className="ebr-tableWrapper"
@@ -147,7 +189,6 @@ const Canvas = () => {
                   </td>
                 </tr>
               </tbody>
-              {/* <EmptyBlock text="Drag & drop more elements to add." /> */}
             </TableWrapper>
           ) : (
             <EmptyBlock text="Drag & drop elements here to start building " />
