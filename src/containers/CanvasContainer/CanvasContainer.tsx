@@ -91,27 +91,20 @@ const Canvas = () => {
       const imageBase64 = canvas.toDataURL("image/png");
 
       const blob = await fetch(imageBase64).then((res) => res.blob());
+      const file = new File([blob], "screenshot.png", { type: "image/png" })
+      console.log(file, 'kkk')
+      const formData = new FormData();
+      formData.append("file", file);
 
-      console.log(imageBase64, 'kkk')
-      console.log(blob, 'l')
-
-      // const response = await fetch("/api/upload", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ image: imageBase64 }),
-      // });
-
-      // // Step 4: Handle the server response
-      // if (response.ok) {
-      //   const result = await response.json();
-      //   console.log("Upload successful:", result);
-      // } else {
-      //   console.error("Upload failed:", response.statusText);
-      // }
+      const response = await fetch("https://your-backend-api.com/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const result = await response.json();
+      console.log("Upload successful:", result);
     } catch (error) {
-      console.error("Error capturing or downloading screenshot:", error);
+      console.error("Upload failed:", error);
     }
-
   };
 
   const renderBlock = (blockId: string, index: number) => {
