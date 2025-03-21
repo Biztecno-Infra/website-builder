@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ModalOverlay from '@components/lib/ModalOverlay';
 import styled from 'styled-components';
 import SvgIcon, { CUSTOM_SVG_ICON } from '@components/SvgIcon';
+import { SizeEnum } from 'enum';
 
 const Title = styled.div`
   font-size: 1rem;
@@ -115,29 +116,37 @@ const TemplateListContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
 	justify-content: start;
-  gap: 16px;
+  gap: 30px;
   margin-top: 16px;
-  max-height: 300px; 
+  max-height: 345px; 
   overflow-y: auto;
 `;
 
 const Checkbox = styled.input.attrs({ type: 'checkbox' })`
+  appearance: none;
   margin-top: 8px;
   height: 18px;
   width: 18px;
   cursor: pointer;
+  border: 2px solid #D9D9D9;
+  border-radius: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  &:checked {
+    background-color: #0B978E;
+    border-color: #0B978E;
+  }
 
   &:checked::after {
     content: '✔';
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: white;
     font-size: 14px;
     font-weight: bold;
-    background-color: #0B978E;
   }
 `;
+
 
 const ButtonContainer = styled.div`
   display: flex;
@@ -165,19 +174,22 @@ const Button = styled.button<{ $primary?: boolean, $buttonWidth?: string }>`
   }
 `;
 
+
 interface TemplateCardProps {
   imageSrc: string;
   title: string;
   author: string;
+  onPreview: () => void;
   children?: React.ReactNode;
 }
-const TemplateCard: React.FC<TemplateCardProps> = ({ imageSrc, title, author, children }) => {
+
+const TemplateCard: React.FC<TemplateCardProps> = ({ imageSrc, title, author, onPreview, children }) => {
   return (
     <CardContainer>
       <TemplateImageContainer>
         <TemplateImage src={imageSrc} height={"219px"} width={"209px"} alt="Template Preview" />
         <HoverOverlay>
-          <Button $primary $buttonWidth={'50%'}>Preview</Button>
+          <Button $primary $buttonWidth={'50%'} onClick={onPreview}>Preview</Button>
         </HoverOverlay>
       </TemplateImageContainer>
       <ContentContainer>
@@ -272,6 +284,7 @@ const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  ,
             imageSrc="Sample" // Placeholder for actual image URL
             title={template.title}
             author={template.author}
+            onPreview={() => {}}
           >
             <Checkbox
               checked={selectedTemplates.includes(template.id)}

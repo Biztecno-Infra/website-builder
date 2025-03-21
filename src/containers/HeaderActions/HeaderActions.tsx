@@ -10,6 +10,7 @@ import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "enum";
 import { convertJsonToHtml } from "email-builder-utils";
 import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
+import PerviewTemplateModal from "@components/Modals/PerviewTemplateModal";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -38,7 +39,13 @@ interface Props {
 
 function HeaderActions({ onExport , templates }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [open, setopen] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
+    imageSrc: string;
+    title: string;
+    author: string;
+  } | null>(null);
+
   const {
     selectedView,
     setSelectedView,
@@ -51,9 +58,16 @@ function HeaderActions({ onExport , templates }: Props) {
     setSelectedOption(option);
   };
 
-  const handleTemplateModal = () => {
-    setopen(true)
-  }
+  const handlePreview = (template: { imageSrc: string; title: string; author: string }) => {
+    setSelectedTemplate(template);
+    setPreviewTemplate(true);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewTemplate(false);
+    setSelectedTemplate(null);
+    // setSelectedOption(null)
+  };
 
   const handleClose = () => {
     setSelectedOption(null);
@@ -107,6 +121,12 @@ function HeaderActions({ onExport , templates }: Props) {
       )}
       {selectedOption === "Import" && (
         <ImportTemplateModal onClose={handleClose} templates={templates} onImport={handleImportTemplates}/>
+      )}
+      {previewTemplate && selectedTemplate && (
+        <PerviewTemplateModal
+          onClose={handleClosePreview}
+          template={selectedTemplate}
+        />
       )}
       {selectedOption === "Upload" && (
         <UploadModal
