@@ -53,11 +53,31 @@ export const useBlocks = (): IBlockContext => {
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
     ScreenViews.DESKTOP
-  ); // Default to Desktop
+  ); 
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
+  const handleImportTemplates = (selectedTemplates: any[]) => {
+    selectedTemplates.forEach(template => {
+      const { root, ...otherBlocks } = template.json;
+  console.log(selectedTemplates , template , otherBlocks)
+  const convertedBlocks = jsonToBlocks(template.json)
+  console.log(convertedBlocks)
+      // Append root block to rootBlockOrder
+      if(selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
+        setGlobalStyles(root.data.style)
+      }
+      setRootBlockOrder((prevOrder) => [...prevOrder, ...(root.data.childrenIds || [])]);
+  
+      // Merge the new blocks with the existing blocks
+      setBlocks((prevBlocks) => ({
+        ...prevBlocks,
+        ...convertedBlocks.blocks, // Merging the new blocks
+      }));
+    });
+  };
+  
   const updateGlobalStyles = (updatedStyles: any) => {
     setGlobalStyles(updatedStyles);
   };
@@ -541,5 +561,6 @@ export const useBlocks = (): IBlockContext => {
     globalStyles,
     selectedView,
     setSelectedView,
+    handleImportTemplates
   };
 };

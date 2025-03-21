@@ -33,16 +33,18 @@ const RightActions = styled.div`
 `;
 interface Props {
   onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  templates: any[];
 }
 
-function HeaderActions({ onExport }: Props) {
+function HeaderActions({ onExport , templates }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [open, setopen] = useState(false)
   const {
     selectedView,
     setSelectedView,
     handleJsonUpload,
-    blocksToJson
+    blocksToJson, 
+    handleImportTemplates
   } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
@@ -67,7 +69,6 @@ function HeaderActions({ onExport }: Props) {
       onExport(format, convertedData);
     }
   };
-
 
   return (
     <StyledHeader>
@@ -95,12 +96,8 @@ function HeaderActions({ onExport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        {/* <ButtonComponent $buttonPrimary text="Import Template" handleClick={handleTemplateModal} />
-        {open && (
-          <ImportTemplateModal onClose={handleClose} />
-        )} */}
         <CustomDropdownButton
-          options={["Export", "Import"]}
+          options={["Export", "Import" ,"Upload"]}
           onSelect={handleOptionSelect}
           buttonText="Actions"
         />
@@ -109,7 +106,7 @@ function HeaderActions({ onExport }: Props) {
         <ExportModal onClose={handleClose} onExport={handleExport} />
       )}
       {selectedOption === "Import" && (
-        <ImportTemplateModal onClose={handleClose} />
+        <ImportTemplateModal onClose={handleClose} templates={templates} onImport={handleImportTemplates}/>
       )}
       {selectedOption === "Upload" && (
         <UploadModal
