@@ -24,6 +24,7 @@ import ExpandIcon from "./Icons/ExpandIcon";
 import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
 import GlobalSettings from "./Icons/GlobalSettings";
+import Globe from "./Icons/Globe";
 import ImageHeight from "./Icons/ImageHeight";
 import ImageWidth from "./Icons/ImageWidth";
 import JustifyAlign from "./Icons/JustifyAlign";
@@ -82,6 +83,7 @@ export enum CUSTOM_SVG_ICON {
   CenterAligment = "CenterAligment",
   SearchIcon = "SearchIcon",
   UserIcon = "UserIcon",
+  Globe = "Globe",
 }
 
 export const CustomIconRef: any = {
@@ -127,4 +129,5 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.CenterAligment]: CenterAligment,
   [CUSTOM_SVG_ICON.SearchIcon]: SearchIcon,
   [CUSTOM_SVG_ICON.UserIcon]: UserIcon,
+  [CUSTOM_SVG_ICON.Globe]: Globe,
 };

@@ -10,6 +10,7 @@ import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "enum";
 import { convertJsonToHtml } from "email-builder-utils";
 import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
+import PerviewTemplateModal from "@components/Modals/PerviewTemplateModal";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -37,7 +38,13 @@ interface Props {
 
 function HeaderActions({ onExport }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [open, setopen] = useState(false)
+  const [previewTemplate, setPreviewTemplate] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<{
+    imageSrc: string;
+    title: string;
+    author: string;
+  } | null>(null);
+
   const {
     selectedView,
     setSelectedView,
@@ -49,9 +56,16 @@ function HeaderActions({ onExport }: Props) {
     setSelectedOption(option);
   };
 
-  const handleTemplateModal = () => {
-    setopen(true)
-  }
+  const handlePreview = (template: { imageSrc: string; title: string; author: string }) => {
+    setSelectedTemplate(template);
+    setPreviewTemplate(true);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewTemplate(false);
+    setSelectedTemplate(null);
+    // setSelectedOption(null)
+  };
 
   const handleClose = () => {
     setSelectedOption(null);
@@ -95,10 +109,7 @@ function HeaderActions({ onExport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        {/* <ButtonComponent $buttonPrimary text="Import Template" handleClick={handleTemplateModal} />
-        {open && (
-          <ImportTemplateModal onClose={handleClose} />
-        )} */}
+
         <CustomDropdownButton
           options={["Export", "Import"]}
           onSelect={handleOptionSelect}
@@ -109,7 +120,13 @@ function HeaderActions({ onExport }: Props) {
         <ExportModal onClose={handleClose} onExport={handleExport} />
       )}
       {selectedOption === "Import" && (
-        <ImportTemplateModal onClose={handleClose} />
+        <ImportTemplateModal onClose={handleClose} onPreview={handlePreview} />
+      )}
+      {previewTemplate && selectedTemplate && (
+        <PerviewTemplateModal
+          onClose={handleClosePreview}
+          template={selectedTemplate}
+        />
       )}
       {selectedOption === "Upload" && (
         <UploadModal
