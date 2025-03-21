@@ -17,7 +17,7 @@ const BorderContainer = styled.div`
 `;
 
 export const borderStyleOptions = [
-  { key: "", text: "None", value: "" },
+  { key: "none", text: "None", value: "none" },
   { key: "solid", text: "Solid", value: "solid" },
   { key: "dashed", text: "Dashed", value: "dashed" },
   { key: "dotted", text: "Dotted", value: "dotted" },

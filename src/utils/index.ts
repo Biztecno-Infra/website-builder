@@ -179,7 +179,6 @@ export const jsonToBlocks = (
         const gridProps = block as any;
         const {
           columnGap = 0,
-          verticalAlign,
           ...gridStyleRest
         } = layoutBlock.data.style;
         gridProps.rows = layoutBlock.data.props.rows;
@@ -194,11 +193,11 @@ export const jsonToBlocks = (
         const gridCellProp = block as IGridCellProps;
         const {
           padding,
-          verticalAlignment,
+          verticalAlign,
           backgroundColor: cellBackgroundColor,
         } = layoutBlock.data.style || {};
         gridCellProp.padding = padding;
-        gridCellProp.verticalAlignment = verticalAlignment;
+        gridCellProp.verticalAlign = verticalAlign;
         gridCellProp.backgroundColor = cellBackgroundColor;
         break;
       case BlockType.DIVIDER:

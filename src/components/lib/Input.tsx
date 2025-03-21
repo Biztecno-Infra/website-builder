@@ -164,7 +164,7 @@ export function CustomInput({
         /> */}
         {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       </InputContainer>
-      {error && <ErrorText>{error}</ErrorText>}
+      {/* {error && <ErrorText>{error}</ErrorText>} */}
     </div>
   );
 }

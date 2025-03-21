@@ -11,19 +11,19 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { padding: initialPadding, backgroundColor, verticalAlignment } = selectedBlock as IGridCellProps;
+  const { padding: initialPadding, backgroundColor, verticalAlign } = selectedBlock as IGridCellProps;
 
   const [formData, setFormData] = useState({
     padding: initialPadding || defaultGridPadding,
     backgroundColor,
-    verticalAlignment
+    verticalAlign
   });
 
   useEffect(() => {
     setFormData(({
       padding: initialPadding || defaultGridPadding,
       backgroundColor,
-      verticalAlignment
+      verticalAlign
     }));
   }, [selectedBlock]);
 
@@ -51,7 +51,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
         />
       </FlexRow>
       <VerticalAlignment
-        value={formData.verticalAlignment}
+        value={formData.verticalAlign}
         onChange={handleChange}
         containerStyle={{ width: "60%" }}
       />

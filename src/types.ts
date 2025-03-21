@@ -117,7 +117,7 @@ export interface IGridCellProps extends ICoreBlock {
     left: number;
   };
   backgroundColor?: any;
-  verticalAlignment?: any;
+  verticalAlign?: any;
 }
 
 export interface GridProps extends BaseBlock {
@@ -217,6 +217,7 @@ export interface IBlockContext {
   blocksToJson: any;
   selectedView: ScreenViews;
   setSelectedView: any;
+  handleImportTemplates: any;
 }
 export interface BlockHookRef {
   getHTML: (json:any) => Promise<string>;
