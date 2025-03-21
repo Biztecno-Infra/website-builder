@@ -19,7 +19,6 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
       height: height ? `${height}%` : "auto",
       // maxWidth: "100%",
       // maxHeight: "100%",
-      display: "block",
       objectFit: "contain",
       textAlign: alignment as TextAlign,
     };
@@ -71,7 +70,6 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
-        // display: "inline-block",
         paddingTop: padding.top,
         paddingRight: padding.right,
         paddingBottom: padding.bottom,

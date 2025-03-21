@@ -7,14 +7,14 @@ import GridEmptyCell from "./GridEmptyCell";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
-const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlignment: string;}>`
+const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlign: string;}>`
   border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "1px solid transparent")};
   padding-top: ${(props) => props.$padding?.top}px;
   padding-bottom: ${(props) => props.$padding?.bottom}px;
   padding-right: ${(props) => props.$padding?.right}px;
   padding-left: ${(props) => props.$padding?.left}px;
   text-align: center;
-  vertical-align: ${(props) => (props as any).$verticalAlignment || "middle"};
+  vertical-align: ${(props) => (props as any).$verticalAlign || "middle"};
   cursor: pointer;
   position: relative;
   width: ${(props) => `${Math.round(props.$cellWidth)}px`};
@@ -89,7 +89,6 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
-
   return (
     <StyledCell
       id={blockId}
@@ -97,7 +96,7 @@ const GridCell: React.FC<GridCellProps> = ({
       $padding={(block as any)?.padding || {}} 
       $cellWidth={cellWidth}
       backgroundColor={block.backgroundColor}
-      $verticalAlignment={(block as IGridCellProps).verticalAlignment}
+      $verticalAlign={(block as IGridCellProps).verticalAlign}
       onClick={handleCellBlockClick}
     >
       {

@@ -40,13 +40,13 @@ interface VerticalAlignment {
 export const VerticalAlignment: React.FC<VerticalAlignment> = ({ value, onChange, containerStyle }) => {
   return (
     <Container style={containerStyle}>
-      <AlignmentButton $active={value === "top"} onClick={() => onChange("verticalAlignment", "top")}>
+      <AlignmentButton $active={value === "top"} onClick={() => onChange("verticalAlign", "top")}>
         <SvgIcon name={CUSTOM_SVG_ICON.TopAligment} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton $active={value === "bottom"} onClick={() => onChange("verticalAlignment", "bottom")}>
+      <AlignmentButton $active={value === "bottom"} onClick={() => onChange("verticalAlign", "bottom")}>
         <SvgIcon name={CUSTOM_SVG_ICON.BottomAligment} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton $active={value === "middle"} onClick={() => onChange("verticalAlignment", "middle")}>
+      <AlignmentButton $active={value === "middle"} onClick={() => onChange("verticalAlign", "middle")}>
         <SvgIcon name={CUSTOM_SVG_ICON.CenterAligment} size={SizeEnum.Small} />
       </AlignmentButton>
     </Container>

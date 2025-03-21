@@ -16,6 +16,7 @@ import "./index.css";
 interface Props {
   theme?: Theme;
   onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  onImport: (templates: any[]) => void;
 }
 
 const Container = styled.div`
@@ -40,15 +41,15 @@ const ContentWrapper = styled.div`
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme , onExport }, ref) => {
+  ({ theme , onExport , onImport }, ref) => {
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>
           <BlockHookProvider ref={ref}>
-            <Container>
+            <Container className="email-template-builder">
               <ElementsPanel />
               <MiddleContainer>
-              <HeaderActions onExport={onExport}  />
+              <HeaderActions onExport={onExport} onImport={onImport} />
                 <ContentWrapper>
                   <CanvasContainer />
                   <PropertyPanel />

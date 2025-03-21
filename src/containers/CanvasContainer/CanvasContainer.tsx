@@ -149,7 +149,7 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      <button onClick={handleSendButtonClick}>Send</button>
+      {/* <button onClick={handleSendButtonClick}>Send</button> */}
 
 
       <CanvasDropable ref={canvasDropableRef} >

@@ -110,7 +110,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
     return {
       childBlocks: [],
       padding: defaultGridPadding,
-      verticalAlignment: "middle",
+      verticalAlign: "middle",
       backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.DIVIDER) {
@@ -262,7 +262,6 @@ export const generateButtonBlock = (block: ButtonProps) => {
     customCss,
     ...rest,
   };
-
   return {
     type: block.type,
     data: {
@@ -320,7 +319,7 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
       style: {
         padding: block.padding,
         backgroundColor: block.backgroundColor,
-        verticalAlignment: block.verticalAlignment,
+        verticalAlign: block.verticalAlign,
       },
     },
   };

@@ -1,15 +1,15 @@
-html, body {
+.email-template-builder html, body {
     height: 100%; 
     width:100%;
   }
   
-  body {
+.email-template-builder  body {
     margin: 0;
     font: Montserrat;
   }
   
   
-  #root {
+  .email-template-builder #root {
     height: 100%;
     width: 100%;
     font: Montserrat;
