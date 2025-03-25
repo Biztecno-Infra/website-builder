@@ -75,8 +75,9 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         paddingBottom: padding.bottom,
         paddingLeft: padding.left,
         backgroundColor: backgroundColor,
+        lineHeight: 0 , 
         textAlign: (alignment as TextAlign) || "left",
-        borderRadius: borderRadius ? `${borderRadius}px` : "none",
+        borderRadius: borderRadius ? `${borderRadius}%` : "none",
         border:
           isSelected && block.parentId
             ? "1px dashed #006E75"

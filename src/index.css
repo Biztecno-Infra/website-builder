@@ -1,16 +1,26 @@
-.email-template-builder html, body {
-    height: 100%; 
-    width:100%;
-  }
-  
-.email-template-builder  body {
-    margin: 0;
-    font: Montserrat;
-  }
-  
-  
-  .email-template-builder #root {
-    height: 100%;
-    width: 100%;
-    font: Montserrat;
-  }
+.email-template-builder html,
+body {
+  height: 100%;
+  width: 100%;
+}
+
+.email-template-builder body {
+  margin: 0;
+  font: Montserrat;
+}
+
+
+.email-template-builder #root {
+  height: 100%;
+  width: 100%;
+  font: Montserrat;
+}
+
+.email-template-builder  *{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+  all: unset;
+  font-family: Montserrat, sans-serif;
+}

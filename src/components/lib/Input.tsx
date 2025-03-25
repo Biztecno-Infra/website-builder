@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
@@ -96,36 +96,35 @@ export function CustomInput({
 }: InputProps) {
   const [error, setError] = useState<string>("");
 
+  const validateInput = (value: string, type: string, checkLessThanOne: boolean) => {
+    if (value === "") return "Please enter a valid input";
+    
+    if (type === "number" && value) {
+      const numValue = Number(value);
+      
+      if (isNaN(numValue)) return "Please enter a valid number";
+      if (numValue < 0) return "Value must be greater than or equal to 0";
+      if (numValue < 1 && checkLessThanOne) return "Not less than 1";
+    }
+    
+    return ""; 
+  };
+  
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-
-    if (value === "") {
-      setError("Please enter a valid number");
-      if (onChange) {
-        onChange(name, value);
-      }
+    let { value } = event.target;
+  
+    if (type === "number" && value === "") {
+      setError("Please enter a valid input"); 
+      if (onChange) onChange(name, ""); 
       return;
     }
-
-    const newValue = type === "number" && value ? Number(value) : value;
-
-    if (type === "number") {
-      if (isNaN(newValue as number)) {
-        setError("Please enter a valid number");
-      } else if ((newValue as number) < 0) {
-        setError("Value must be greater than or equal to 0");
-      } else if ((newValue as number) < 1 && checkLessThanOne) {
-        setError("Not less than 1");
-      } else {
-        setError("");
-      }
-    }
-
-    if (onChange) {
-      onChange(name, newValue);
-    }
+  
+    const errorMessage = validateInput(value, type, checkLessThanOne);
+    if (errorMessage !== error) setError(errorMessage);
+  
+    if (onChange) onChange(name, type === "number" ? Number(value) : value);
   };
-
+  
   return (
     <div style={{ display: "flex", flexDirection: "column", width: "100%"  , ...containerStyle}}>
       <InputContainer>
@@ -164,7 +163,7 @@ export function CustomInput({
         /> */}
         {unitsLabel && <UnitsLabel>{unitsLabel}</UnitsLabel>}
       </InputContainer>
-      {/* {error && <ErrorText>{error}</ErrorText>} */}
+      {error && <ErrorText>{error}</ErrorText>}
     </div>
   );
 }

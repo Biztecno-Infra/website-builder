@@ -59,17 +59,20 @@ export const useBlocks = (): IBlockContext => {
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
-    selectedTemplates.forEach(template => {
+    selectedTemplates.forEach((template) => {
       const { root, ...otherBlocks } = template.json;
-  console.log(selectedTemplates , template , otherBlocks)
-  const convertedBlocks = jsonToBlocks(template.json)
-  console.log(convertedBlocks)
+      console.log(selectedTemplates, template, otherBlocks);
+      const convertedBlocks = jsonToBlocks(template.json);
+      console.log(convertedBlocks);
       // Append root block to rootBlockOrder
-      if(selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
-        setGlobalStyles(root.data.style)
+      if (selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
+        setGlobalStyles(root.data.style);
       }
-      setRootBlockOrder((prevOrder) => [...prevOrder, ...(root.data.childrenIds || [])]);
-  
+      setRootBlockOrder((prevOrder) => [
+        ...prevOrder,
+        ...(root.data.childrenIds || []),
+      ]);
+
       // Merge the new blocks with the existing blocks
       setBlocks((prevBlocks) => ({
         ...prevBlocks,

@@ -151,6 +151,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             handleImageUrlChange(value)
           }
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
+          type="text"
         />
 
         <CustomInput
@@ -161,6 +162,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             handleChange("altText", value)
           }
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
+          type="text"
         />
         <CustomInput
           name="navigateToUrl"
@@ -168,6 +170,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           value={formData.navigateToUrl}
           onChange={handleChange}
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
+          type="text"
         />
         <WidthHeightContainer>
           <CustomInput

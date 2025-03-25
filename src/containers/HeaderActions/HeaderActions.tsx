@@ -34,10 +34,9 @@ const RightActions = styled.div`
 `;
 interface Props {
   onExport: (format: 'JSON' | 'HTML', data: any) => void;
-  templates: any[];
 }
 
-function HeaderActions({ onExport , templates }: Props) {
+function HeaderActions({ onExport  }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<{
@@ -111,7 +110,7 @@ function HeaderActions({ onExport , templates }: Props) {
       </LeftActions>
       <RightActions>
         <CustomDropdownButton
-          options={["Export", "Import" ,"Upload"]}
+          options={["Export","Upload"]}
           onSelect={handleOptionSelect}
           buttonText="Actions"
         />
@@ -119,9 +118,9 @@ function HeaderActions({ onExport , templates }: Props) {
       {selectedOption === "Export" && (
         <ExportModal onClose={handleClose} onExport={handleExport} />
       )}
-      {selectedOption === "Import" && (
+      {/* {selectedOption === "Import" && (
         <ImportTemplateModal onClose={handleClose} templates={templates} onImport={handleImportTemplates}/>
-      )}
+      )} */}
       {previewTemplate && selectedTemplate && (
         <PerviewTemplateModal
           onClose={handleClosePreview}

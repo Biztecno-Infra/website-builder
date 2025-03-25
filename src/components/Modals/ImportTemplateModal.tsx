@@ -250,16 +250,15 @@ const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  ,
   const handleCheckboxChange = (templateId: string) => {
     setSelectedTemplates((prevSelected) => {
       if (prevSelected.includes(templateId)) {
-        return prevSelected.filter(_id => _id !== templateId);
+        return prevSelected.filter(id => id !== templateId);
       }
       return [...prevSelected, templateId];
     });
   };
 
   const handleImport = () => {
-    console.log(templates)
     const templatesToImport = templates.filter(template =>
-      selectedTemplates.includes(template._id)
+      selectedTemplates.includes(template.id)
     );
     onImport(templatesToImport)
     console.log(templatesToImport);  
@@ -281,10 +280,10 @@ const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  ,
       <TemplateListContainer>
         {templates.map((template) => (
           <TemplateCard
-            key={template._id}
+            key={template.id}
             imageSrc="Sample" // Placeholder for actual image URL
-            title={template.name}
-            author={template.name}
+            title={template.title}
+            author={template.author}
             onPreview={() => {}}
           >
             <Checkbox
