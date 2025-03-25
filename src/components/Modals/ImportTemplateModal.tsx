@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import ModalOverlay from '@components/lib/ModalOverlay';
 import styled from 'styled-components';
 import SvgIcon, { CUSTOM_SVG_ICON } from '@components/SvgIcon';
-import { SizeEnum } from 'enum';
 
 const Title = styled.div`
   font-size: 1rem;
@@ -179,7 +178,7 @@ interface TemplateCardProps {
   imageSrc: string;
   title: string;
   author: string;
-  onPreview: () => void;
+  onPreview?: () => void;
   children?: React.ReactNode;
 }
 
@@ -195,7 +194,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ imageSrc, title, author, on
       <ContentContainer>
         <TitleContainer>
           <TemplateTitle>{title}</TemplateTitle>
-          {children} 
+          {children}
         </TitleContainer>
         <AuthorContainer>
           <SvgIcon name={CUSTOM_SVG_ICON.UserIcon} svgStyle={{ paddingRight: '0.75rem' }} />
@@ -207,7 +206,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ imageSrc, title, author, on
 };
 
 interface ExportModalProps {
-	onClose: () => void;
+  onClose: () => void;
   onImport: any;
   templates: any[]
 }
@@ -267,7 +266,7 @@ const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  ,
 
   return (
     <ModalOverlay onClose={onClose} customWidth="810px">
-      <Title>Import Templates</Title>
+      <Title>Export</Title>
 
       <SearchContainer>
         <SubText>Select from the below templates to import</SubText>
@@ -296,12 +295,76 @@ const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  ,
 
       <ButtonContainer>
         <Button onClick={onClose}>Cancel</Button>
-        <Button $primary onClick={handleImport}>
+        <Button $primary onClick={() => ('')}>
           Import
         </Button>
       </ButtonContainer>
     </ModalOverlay>
   );
 };
+
+
+
+
+// const ImportTemplateModal: React.FC<ExportModalProps> = ({ onClose , onImport  , templates}) => {
+//   const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+
+//   const handleCheckboxChange = (templateId: string) => {
+//     setSelectedTemplates((prevSelected) => {
+//       if (prevSelected.includes(templateId)) {
+//         return prevSelected.filter(_id => _id !== templateId);
+//       }
+//       return [...prevSelected, templateId];
+//     });
+//   };
+
+//   const handleImport = () => {
+//     console.log(templates)
+//     const templatesToImport = templates.filter(template =>
+//       selectedTemplates.includes(template._id)
+//     );
+//     onImport(templatesToImport)
+//     console.log(templatesToImport);  
+//     onClose();
+//   };
+
+//   return (
+//     <ModalOverlay onClose={onClose} customWidth="810px">
+//       <Title>Import Templates</Title>
+
+//       <SearchContainer>
+//         <SubText>Select from the below templates to import</SubText>
+//         <SearchInputContainer>
+//           <SvgIcon name={CUSTOM_SVG_ICON.SearchIcon} />
+//           <SearchInput type="text" placeholder="Search Templates" />
+//         </SearchInputContainer>
+//       </SearchContainer>
+
+//       <TemplateListContainer>
+//         {templates.map((template) => (
+//           <TemplateCard
+//             key={template._id}
+//             imageSrc="Sample" // Placeholder for actual image URL
+//             title={template.name}
+//             author={template.name}
+//             onPreview={() => {}}
+//           >
+//             <Checkbox
+//               checked={selectedTemplates.includes(template.id)}
+//               onChange={() => handleCheckboxChange(template.id)}
+//             />
+//           </TemplateCard>
+//         ))}
+//       </TemplateListContainer>
+
+//       <ButtonContainer>
+//         <Button onClick={onClose}>Cancel</Button>
+//         <Button $primary onClick={handleImport}>
+//           Import
+//         </Button>
+//       </ButtonContainer>
+//     </ModalOverlay>
+//   );
+// };
 
 export default ImportTemplateModal;

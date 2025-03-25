@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import update from "immutability-helper";
-import { BlockType , generateUniqueId } from "email-builder-utils";
+import { BlockType, generateUniqueId } from "email-builder-utils";
+import html2canvas from "html2canvas";
 
 import {
   getDefaultBlockProperties,
@@ -15,7 +16,7 @@ import {
   RootLayout,
 } from "../types";
 import { jsonToBlocks, processBlock } from "utils";
-import {  ScreenViews } from "enum";
+import { ScreenViews } from "enum";
 
 const initializeBlock = (
   block: Block
@@ -53,10 +54,34 @@ export const useBlocks = (): IBlockContext => {
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
     ScreenViews.DESKTOP
-  ); 
+  );
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
+
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+
+  const captureScreenshot = async (canvasRef: React.RefObject<HTMLDivElement>) => {
+    if (!canvasRef.current) return;
+
+    try {
+      const canvas = await html2canvas(canvasRef.current, { useCORS: true, allowTaint: true });
+
+      return new Promise<File | null>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(null);
+
+          const file = new File([blob], "screenshot.png", { type: "image/png" });
+          setScreenshot(file); // Store the screenshot in state
+          resolve(file);
+        }, "image/png");
+      });
+    } catch (error) {
+      console.error("❌ Error capturing screenshot:", error);
+      return null;
+    }
+  };
+
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
     selectedTemplates.forEach((template) => {
@@ -80,7 +105,7 @@ export const useBlocks = (): IBlockContext => {
       }));
     });
   };
-  
+
   const updateGlobalStyles = (updatedStyles: any) => {
     setGlobalStyles(updatedStyles);
   };
@@ -169,23 +194,25 @@ export const useBlocks = (): IBlockContext => {
       );
     }
   };
+
+
   const handleJsonUpload = (jsonData: any) => {
     try {
       const { blocks, rootBlock } = jsonToBlocks(jsonData);
       const { childrenIds, style } = rootBlock.data || {};
       const rootOrder = childrenIds || [];
-  
+
       setBlocks(blocks);
       setGlobalStyles(style);
       setRootBlockOrder(rootOrder);
-  
+
       return { success: true, message: "Upload successful" };
     } catch (error) {
       console.error("Error uploading JSON:", error);
       return { success: false, message: "Error uploading JSON", error };
     }
   };
-  
+
 
   const handleSwappingV2 = (dragSrc: any, dropAreaId: string) => {
     setBlocks((prvsBlockState) => {
@@ -341,14 +368,14 @@ export const useBlocks = (): IBlockContext => {
 
           const newGridBlock = isGridCell
             ? {
-                type: BlockType.GRID,
-                id: generateUniqueId(),
-                parentId: undefined,
-                ...getDefaultBlockProperties(BlockType.GRID),
-                columns: 1,
-                cellWidths: [100],
-                childBlocks: [dragBlock.id],
-              }
+              type: BlockType.GRID,
+              id: generateUniqueId(),
+              parentId: undefined,
+              ...getDefaultBlockProperties(BlockType.GRID),
+              columns: 1,
+              cellWidths: [100],
+              childBlocks: [dragBlock.id],
+            }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -546,10 +573,10 @@ export const useBlocks = (): IBlockContext => {
       }
     });
 
-    return layout;
+    return { layout, screenshot };
   };
 
-  
+
   return {
     setSelectedBlock,
     selectedBlock,
@@ -564,6 +591,7 @@ export const useBlocks = (): IBlockContext => {
     globalStyles,
     selectedView,
     setSelectedView,
-    handleImportTemplates
+    handleImportTemplates,
+    captureScreenshot
   };
 };

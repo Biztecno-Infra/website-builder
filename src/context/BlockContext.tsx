@@ -1,7 +1,7 @@
 import { createContext, useContext, ReactNode, useImperativeHandle, forwardRef } from "react";
-import { useBlocks } from "../hoc/useBlocks"; 
+import { useBlocks } from "../hoc/useBlocks";
 import { BlockHookRef, IBlockContext } from "../types";
-import { convertJsonToHtml } from "email-builder-utils";
+import { convertJsonToHtml } from "email-builder-utils";
 
 
 const BlockHookContext = createContext<any>(null);
@@ -12,11 +12,11 @@ interface BlockHookProviderProps {
 
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
-  const { handleJsonUpload, blocksToJson , blocks, rootBlockOrder} = customFunction;
+  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder } = customFunction;
 
   useImperativeHandle(ref, () => ({
-    getHTML: async (jsonData) => await convertJsonToHtml(jsonData), 
-    updateJSON: (newJson) => handleJsonUpload(newJson),
+    getHTML: async (jsonData) => await convertJsonToHtml(jsonData),
+    updateJSON: (newJson,) => handleJsonUpload(newJson),
     getJSON: () => blocksToJson(blocks, rootBlockOrder),
   }));
 

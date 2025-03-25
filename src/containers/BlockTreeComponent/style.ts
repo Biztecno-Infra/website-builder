@@ -82,7 +82,7 @@ export const HeaderContainer = styled.div`
   font-size: ${({ theme }) => theme.fontSize.labelHeader};
   border-bottom: 1px solid #dddddd;
   width: 97%;
-  height: 3rem;
+  height: 49px;
   display: flex;
   align-items: center;
   font-weight: 500;
