@@ -36,7 +36,7 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.EMAILLAYOUT]: null,
 });
 
-const BlockNode = React.memo(({ blockId , selectedBlock }: BlockNodeProps) => {
+const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -100,7 +100,7 @@ const BlockNode = React.memo(({ blockId , selectedBlock }: BlockNodeProps) => {
 
   const renderChildNodes = useCallback(
     (gridChildId: string, index: number) => (
-      <BlockNode key={gridChildId} blockId={gridChildId} selectedBlock={selectedBlock}/>
+      <BlockNode key={gridChildId} blockId={gridChildId} selectedBlock={selectedBlock} />
     ),
     [selectedBlock]
   );
@@ -192,8 +192,14 @@ const DroppableContainer = styled(Droppable)`
   }
 `;
 
+const ScrollHead = styled.div`
+  height: calc(100% - 3rem);
+  overflow-y: auto;
+  /* z-index: -1; */
+`
+
 const NodeTree = () => {
-  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles , selectedBlock } =
+  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles, selectedBlock } =
     useBlockHook();
 
   const renderBlockNode = useCallback(
@@ -226,17 +232,19 @@ const NodeTree = () => {
   return (
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
-      <RootBlockContainer onClick={handleRootClick}>
-        <SvgIcon
-          name={CUSTOM_SVG_ICON.GlobalSettings}
-          size={SizeEnum.Small}
-          svgStyle={{ width: "20%" }}
-        />
-        <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
-          Global Settings
-        </BlockContentText>
-      </RootBlockContainer>
-      {rootBlockOrder.map(renderBlockNode)}
+      <ScrollHead>
+        <RootBlockContainer onClick={handleRootClick}>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.GlobalSettings}
+            size={SizeEnum.Small}
+            svgStyle={{ width: "20%" }}
+          />
+          <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
+            Global Settings
+          </BlockContentText>
+        </RootBlockContainer>
+        {rootBlockOrder.map(renderBlockNode)}
+      </ScrollHead>
     </DroppableContainer>
   );
 };

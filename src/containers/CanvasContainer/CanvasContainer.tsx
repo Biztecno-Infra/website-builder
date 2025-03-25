@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
@@ -7,8 +7,7 @@ import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
-import html2canvas from "html2canvas";
-
+// import domtoimage from "dom-to-image";
 interface TableWrapperProps {
   $canvasColor: string;
   $canvasFont: string;
@@ -71,6 +70,7 @@ const Canvas = () => {
     onDeleteBlock,
     globalStyles,
     selectedView,
+    captureScreenshot
   } = useBlockHook();
 
   const theme = useTheme();
@@ -83,29 +83,6 @@ const Canvas = () => {
     [handleDropper]
   );
 
-  const handleSendButtonClick = async () => {
-    if (!canvasDropableRef.current) return;
-    try {
-      const canvas = await html2canvas(canvasDropableRef.current, { allowTaint: true, useCORS: true });
-
-      const imageBase64 = canvas.toDataURL("image/png");
-
-      const blob = await fetch(imageBase64).then((res) => res.blob());
-      const file = new File([blob], "screenshot.png", { type: "image/png" })
-      console.log(file, 'kkk')
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("https://your-backend-api.com/upload", {
-        method: "POST",
-        body: formData,
-      });
-      const result = await response.json();
-      console.log("Upload successful:", result);
-    } catch (error) {
-      console.error("Upload failed:", error);
-    }
-  };
 
   const renderBlock = (blockId: string, index: number) => {
     return (
@@ -132,6 +109,13 @@ const Canvas = () => {
     );
   };
 
+  useEffect(() => {
+    const handleCaptureScreenshot = async () => {
+      await captureScreenshot(canvasDropableRef); // This will update the screenshot in useBlocks
+    };
+    handleCaptureScreenshot()
+  }, [])
+
   return (
     <Droppable
       accept="BLOCK"
@@ -149,8 +133,6 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-      {/* <button onClick={handleSendButtonClick}>Send</button> */}
-
 
       <CanvasDropable ref={canvasDropableRef} >
         <div
