@@ -7,7 +7,6 @@ import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
-import html2canvas from "html2canvas";
 
 // import domtoimage from "dom-to-image";
 interface TableWrapperProps {
@@ -63,7 +62,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   }
 `;
 
-const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
+const Canvas = () => {
   const {
     selectedBlock,
     handleDropper,
@@ -72,10 +71,11 @@ const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
     onDeleteBlock,
     globalStyles,
     selectedView,
+    canvasRef
   } = useBlockHook();
 
   const theme = useTheme();
-  const canvasDropableRef = useRef<HTMLDivElement>(null);
+  // const canvasDropableRef = useRef<HTMLDivElement>(null);
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -83,28 +83,6 @@ const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
     },
     [handleDropper]
   );
-
-  const captureScreenshot = async (): Promise<File | null> => {
-    if (!canvasDropableRef.current) return null;
-
-    try {
-      const canvas = await html2canvas(canvasDropableRef.current, { useCORS: true, allowTaint: true });
-
-      return new Promise<File | null>((resolve) => {
-        canvas.toBlob((blob) => {
-          if (!blob) return resolve(null);
-
-          const file = new File([blob], "screenshot.png", { type: "image/png" });
-          resolve(file);
-        }, "image/png");
-
-        
-      });
-    } catch (error) {
-      console.error("❌ Error capturing screenshot:", error);
-      return null;
-    }
-  };
 
 
   const renderBlock = (blockId: string, index: number) => {
@@ -132,16 +110,16 @@ const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
     );
   };
 
-  useEffect(() => {
-    if (typeof onSave === "function") {
-      const handleCaptureScreenshot = async () => {
-        const screenshot = await captureScreenshot();
-        onSave(screenshot); // Send the screenshot file back to onSave callback
-      };
+  // useEffect(() => {
+  //   if (typeof onSave === "function") {
+  //     const handleCaptureScreenshot = async () => {
+  //       const screenshot = await captureScreenshot();
+  //       onSave(screenshot); // Send the screenshot file back to onSave callback
+  //     };
 
-      handleCaptureScreenshot();
-    }
-  }, [onSave]); // T
+  //     handleCaptureScreenshot();
+  //   }
+  // }, [onSave]); // T
 
   return (
     <Droppable
@@ -161,7 +139,7 @@ const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
       onClick={() => setSelectedBlock(null)}
     >
 
-      <CanvasDropable ref={canvasDropableRef} >
+      <CanvasDropable ref={canvasRef} >
         <div
           style={{
             padding: rootBlockOrder.length === 0 ? 15 : 0,

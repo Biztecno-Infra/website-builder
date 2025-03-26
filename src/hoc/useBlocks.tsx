@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import update from "immutability-helper";
 import { BlockType, generateUniqueId } from "email-builder-utils";
 
@@ -46,6 +46,7 @@ const getDistributtedLength = (length: number): Array<number> => {
 };
 
 export const useBlocks = (): IBlockContext => {
+  const canvasRef = useRef<HTMLDivElement>(null);
   const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
     null
   );
@@ -570,5 +571,6 @@ export const useBlocks = (): IBlockContext => {
     selectedView,
     setSelectedView,
     handleImportTemplates,
+    canvasRef
   };
 };

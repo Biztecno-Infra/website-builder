@@ -6,9 +6,17 @@ const App = () => {
   const builderRef = useRef<BlockHookRef>(null);
 
   const getJSON = () => {
-    console.log(builderRef.current?.getJSON());
+    console.log(builderRef.current?.getScreenShot());
   };
-
+  const handleGetScreenshot = async () => {
+    const screenshot = await builderRef.current?.getScreenShot(); // Now you can await the result
+    if (screenshot) {
+      // Handle the screenshot file (e.g., upload or display)
+      console.log("Screenshot captured:", screenshot);
+    } else {
+      console.log("Failed to capture screenshot");
+    }
+  };
   return (
     <Fragment>
       <EmailBuilder ref={builderRef} theme={{
@@ -20,8 +28,8 @@ const App = () => {
         console.log(data);
       }}
 
-      onSave={(screen) => console.log(screen)}
       />
+      {/* <button onClick={handleGetScreenshot}>getHTML</button> */}
     </Fragment>
   );
 };

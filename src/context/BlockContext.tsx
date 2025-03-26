@@ -1,7 +1,8 @@
-import { createContext, useContext, ReactNode, useImperativeHandle, forwardRef } from "react";
+import { createContext, useContext, ReactNode, useImperativeHandle, forwardRef, useRef } from "react";
 import { useBlocks } from "../hoc/useBlocks";
 import { BlockHookRef, IBlockContext } from "../types";
 import { convertJsonToHtml } from "email-builder-utils";
+import html2canvas from "html2canvas";
 
 
 const BlockHookContext = createContext<any>(null);
@@ -12,12 +13,37 @@ interface BlockHookProviderProps {
 
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
-  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder } = customFunction;
+
+  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef } = customFunction;
+
+  const captureScreenshot = async (): Promise<File | null> => {
+    if (!canvasRef.current) return null;
+  
+    try {
+      const canvas = await html2canvas(canvasRef.current, { useCORS: true, allowTaint: true });
+      // const imageBase64 = canvas.toDataURL("image/png")
+      // console.log(imageBase64)
+      const blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/png");
+      });
+  
+      if (!blob) return null;
+  
+      // Return the File directly after creation
+      return new File([blob], "screenshot.png", { type: "image/png" });
+    } catch (error) {
+      console.error("❌ Error capturing screenshot:", error);
+      return null;
+    }
+  };
+  
+
 
   useImperativeHandle(ref, () => ({
     getHTML: async (jsonData) => await convertJsonToHtml(jsonData),
     updateJSON: (newJson,) => handleJsonUpload(newJson),
     getJSON: () => blocksToJson(blocks, rootBlockOrder),
+    getScreenShot : () => captureScreenshot()
   }));
 
   return <BlockHookContext.Provider value={customFunction}>{children}</BlockHookContext.Provider>;

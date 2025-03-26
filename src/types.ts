@@ -218,12 +218,14 @@ export interface IBlockContext {
   selectedView: ScreenViews;
   setSelectedView: any;
   handleImportTemplates: any;
+  canvasRef: any;
   // captureScreenshot: any
 }
 export interface BlockHookRef {
   getHTML: (json: any) => Promise<string>;
   updateJSON: (data: any) => void;
   getJSON: () => any;
+  getScreenShot:() => any;
 }
 
 
