@@ -70,7 +70,8 @@ const Canvas = () => {
     onDeleteBlock,
     globalStyles,
     selectedView,
-    captureScreenshot
+    captureScreenshot , 
+    blocksToJson
   } = useBlockHook();
 
   const theme = useTheme();
@@ -111,10 +112,10 @@ const Canvas = () => {
 
   useEffect(() => {
     const handleCaptureScreenshot = async () => {
-      await captureScreenshot(canvasDropableRef); // This will update the screenshot in useBlocks
+      await captureScreenshot(canvasDropableRef); 
     };
     handleCaptureScreenshot()
-  }, [])
+  }, [blocksToJson])
 
   return (
     <Droppable
