@@ -218,7 +218,7 @@ export interface IBlockContext {
   selectedView: ScreenViews;
   setSelectedView: any;
   handleImportTemplates: any;
-  captureScreenshot: any
+  // captureScreenshot: any
 }
 export interface BlockHookRef {
   getHTML: (json: any) => Promise<string>;

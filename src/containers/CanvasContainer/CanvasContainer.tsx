@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
@@ -7,6 +7,8 @@ import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
+import html2canvas from "html2canvas";
+
 // import domtoimage from "dom-to-image";
 interface TableWrapperProps {
   $canvasColor: string;
@@ -61,7 +63,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
   }
 `;
 
-const Canvas = () => {
+const Canvas = ({onSave} : {onSave: (screenshot: File | null) => void}) => {
   const {
     selectedBlock,
     handleDropper,
@@ -70,8 +72,6 @@ const Canvas = () => {
     onDeleteBlock,
     globalStyles,
     selectedView,
-    captureScreenshot , 
-    blocksToJson
   } = useBlockHook();
 
   const theme = useTheme();
@@ -83,6 +83,28 @@ const Canvas = () => {
     },
     [handleDropper]
   );
+
+  const captureScreenshot = async (): Promise<File | null> => {
+    if (!canvasDropableRef.current) return null;
+
+    try {
+      const canvas = await html2canvas(canvasDropableRef.current, { useCORS: true, allowTaint: true });
+
+      return new Promise<File | null>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve(null);
+
+          const file = new File([blob], "screenshot.png", { type: "image/png" });
+          resolve(file);
+        }, "image/png");
+
+        
+      });
+    } catch (error) {
+      console.error("❌ Error capturing screenshot:", error);
+      return null;
+    }
+  };
 
 
   const renderBlock = (blockId: string, index: number) => {
@@ -111,11 +133,15 @@ const Canvas = () => {
   };
 
   useEffect(() => {
-    const handleCaptureScreenshot = async () => {
-      await captureScreenshot(canvasDropableRef); 
-    };
-    handleCaptureScreenshot()
-  }, [blocksToJson])
+    if (typeof onSave === "function") {
+      const handleCaptureScreenshot = async () => {
+        const screenshot = await captureScreenshot();
+        onSave(screenshot); // Send the screenshot file back to onSave callback
+      };
+
+      handleCaptureScreenshot();
+    }
+  }, [onSave]); // T
 
   return (
     <Droppable

@@ -19,6 +19,8 @@ const App = () => {
       onExport= {(format: 'JSON' | 'HTML', data: any) => {
         console.log(data);
       }}
+
+      onSave={(screen) => console.log(screen)}
       />
     </Fragment>
   );

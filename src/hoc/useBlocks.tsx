@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
 import update from "immutability-helper";
 import { BlockType, generateUniqueId } from "email-builder-utils";
-import html2canvas from "html2canvas";
 
 import {
   getDefaultBlockProperties,
@@ -59,28 +58,7 @@ export const useBlocks = (): IBlockContext => {
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
-  const [screenshot, setScreenshot] = useState<File | null>(null);
 
-  const captureScreenshot = async (canvasRef: React.RefObject<HTMLDivElement>) => {
-    if (!canvasRef.current) return;
-
-    try {
-      const canvas = await html2canvas(canvasRef.current, { useCORS: true, allowTaint: true });
-
-      return new Promise<File | null>((resolve) => {
-        canvas.toBlob((blob) => {
-          if (!blob) return resolve(null);
-
-          const file = new File([blob], "screenshot.png", { type: "image/png" });
-          setScreenshot(file); // Store the screenshot in state
-          resolve(file);
-        }, "image/png");
-      });
-    } catch (error) {
-      console.error("❌ Error capturing screenshot:", error);
-      return null;
-    }
-  };
 
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
@@ -573,7 +551,7 @@ export const useBlocks = (): IBlockContext => {
       }
     });
 
-    return { layout, screenshot };
+    return layout;
   };
 
 
@@ -592,6 +570,5 @@ export const useBlocks = (): IBlockContext => {
     selectedView,
     setSelectedView,
     handleImportTemplates,
-    captureScreenshot
   };
 };
