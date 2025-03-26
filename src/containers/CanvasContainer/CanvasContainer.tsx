@@ -139,12 +139,13 @@ const Canvas = () => {
       onClick={() => setSelectedBlock(null)}
     >
 
-      <CanvasDropable ref={canvasRef} >
+      <CanvasDropable>
         <div
           style={{
             padding: rootBlockOrder.length === 0 ? 15 : 0,
             background: rootBlockOrder.length === 0 ? "#ffffff" : "none",
           }}
+          // ref={canvasRef}
         >
           {rootBlockOrder.length > 0 ? (
             <TableWrapper
@@ -154,6 +155,7 @@ const Canvas = () => {
               $canvasFontColor={globalStyles.textColor}
               $canvasPadding={globalStyles.padding}
               $isMobile={selectedView === ScreenViews.MOBILE}
+              ref={canvasRef}
             >
               <tbody>
                 <tr>
