@@ -63,11 +63,10 @@ export const useBlocks = (): IBlockContext => {
 
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
-    console.log(selectedTemplates)
     selectedTemplates.forEach((template) => {
-      const { root, ...otherBlocks } = template.json;
+      const { root, ...otherBlocks } = template.layout;
       console.log(selectedTemplates, template, otherBlocks);
-      const convertedBlocks = jsonToBlocks(template.json);
+      const convertedBlocks = jsonToBlocks(template.layout);
       console.log(convertedBlocks);
       // Append root block to rootBlockOrder
       if (selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
