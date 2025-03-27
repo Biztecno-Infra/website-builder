@@ -226,6 +226,7 @@ export interface BlockHookRef {
   updateJSON: (data: any) => void;
   getJSON: () => any;
   getScreenShot:() => any;
+  importTemplate: (templates: any[]) => void;
 }
 
 

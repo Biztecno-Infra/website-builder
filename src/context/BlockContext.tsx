@@ -14,7 +14,7 @@ interface BlockHookProviderProps {
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
 
-  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef } = customFunction;
+  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef , handleImportTemplates } = customFunction;
 
   const captureScreenshot = async (): Promise<File | null> => {
     if (!canvasRef.current) return null;
@@ -43,7 +43,8 @@ export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps
     getHTML: async (jsonData) => await convertJsonToHtml(jsonData),
     updateJSON: (newJson,) => handleJsonUpload(newJson),
     getJSON: () => blocksToJson(blocks, rootBlockOrder),
-    getScreenShot : () => captureScreenshot()
+    getScreenShot : () => captureScreenshot(), 
+    importTemplate: (templates: any[]) => handleImportTemplates(templates)
   }));
 
   return <BlockHookContext.Provider value={customFunction}>{children}</BlockHookContext.Provider>;

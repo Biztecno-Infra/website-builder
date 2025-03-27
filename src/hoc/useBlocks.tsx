@@ -63,6 +63,7 @@ export const useBlocks = (): IBlockContext => {
 
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
+    console.log(selectedTemplates)
     selectedTemplates.forEach((template) => {
       const { root, ...otherBlocks } = template.json;
       console.log(selectedTemplates, template, otherBlocks);
