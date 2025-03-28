@@ -23,20 +23,22 @@ const StyledHeader = styled.div`
 
 const LeftActions = styled.div`
   display: flex;
-  width: 70%;
+  width: calc(100% - 20.4rem);
   justify-content: center;
 `;
 
 const RightActions = styled.div`
   display: flex;
-  width: 30%;
-  justify-content: flex-end;
+  width: 20.4rem;
+  justify-content: space-evenly;
+  align-items: center;
 `;
 interface Props {
   onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  onImport: () => void;
 }
 
-function HeaderActions({ onExport  }: Props) {
+function HeaderActions({ onExport , onImport }: Props) {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<{
@@ -109,11 +111,14 @@ function HeaderActions({ onExport  }: Props) {
         />
       </LeftActions>
       <RightActions>
-        <CustomDropdownButton
+        <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
+        <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
+
+        {/* <CustomDropdownButton
           options={["Export","Upload"]}
           onSelect={handleOptionSelect}
           buttonText="Actions"
-        />
+        /> */}
       </RightActions>
       {selectedOption === "Export" && (
         <ExportModal onClose={handleClose} onExport={handleExport} />
