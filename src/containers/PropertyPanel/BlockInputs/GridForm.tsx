@@ -22,13 +22,16 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     customCss,
-    id: blockId
+    backgroundImage, 
+    id: blockId,
   } = selectedBlock as GridProps;
+
   const [formData, setFormData] = useState({
     rows,
     columns,
     columnGap,
     backgroundColor,
+    backgroundImage, 
     cellWidths,
     borderWidth,
     borderStyle,
@@ -43,6 +46,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       columns,
       columnGap,
       backgroundColor,
+      backgroundImage, 
       cellWidths,
       borderWidth,
       borderStyle,
@@ -53,7 +57,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {
-
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
 
@@ -124,10 +127,24 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
         />
+        <CustomInput
+          name="backgroundImage"
+          placeholder="Enter Background Image URL"
+          value={formData.backgroundImage || ""}
+          onChange={handleChange}
+          containerStyle={{ width: "90%", padding: 4 }}
+          inputStyle={{ width: "100%" }}
+        />
+
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ padding: 0, width: "95%", border: "none", marginTop: "0.5rem" }}
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
         >
           <BorderStyleDropdown
             onChange={handleChange}

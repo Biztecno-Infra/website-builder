@@ -289,12 +289,25 @@ export const generateGridBlock = (block: GridProps) => {
     parentId,
     customCss,
     borderWidth,
+    backgroundImage, 
     ...rest
   } = block || {};
+
+  const backgroundImageStyle = backgroundImage
+    ? backgroundImage.startsWith("url")
+      ? {
+          backgroundImage: backgroundImage,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+        }
+      : {}
+    : {};
 
   const gridStyle = {
     columnGap: columnGap || 0,
     backgroundColor,
+    ...backgroundImageStyle, 
     customCss,
     ...rest,
   };

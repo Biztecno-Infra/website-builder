@@ -130,6 +130,7 @@ export interface GridProps extends BaseBlock {
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
+  backgroundImage?: string;
 }
 
 export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;

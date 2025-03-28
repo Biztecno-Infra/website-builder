@@ -10,10 +10,15 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
     backgroundColor = "transparent",
     childBlocks,
     customCss,
+    backgroundImage, 
     ...rest
   } = block as GridProps;
 
   const convertedStyle = convertStringtoStyle(customCss);
+
+  const backgroundImageStyle = backgroundImage
+    ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : {};
 
   const renderCell = (childBlock: string, index: number) => {
     return (
@@ -38,6 +43,7 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
         ...convertedStyle,
+        ...backgroundImageStyle, 
         ...rest,
       }}
     >

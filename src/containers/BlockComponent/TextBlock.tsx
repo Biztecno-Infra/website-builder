@@ -33,6 +33,17 @@ export const TextBlock: React.FC<TextBlockProps> = ({
   );
   const convertedStyle = convertStringtoStyle(customCss);
 
+  const backgroundImageStyle = backgroundImage
+    ? backgroundImage.startsWith("url")
+      ? {
+          backgroundImage: backgroundImage,
+          backgroundSize: "cover",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "center",
+        }
+      : {}
+    : {};
+
   return (
     <Droppable
       accept="BLOCK"
@@ -55,14 +66,8 @@ export const TextBlock: React.FC<TextBlockProps> = ({
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
         ...convertedStyle,
+        ...backgroundImageStyle, 
         ...rest,
-        ...(backgroundImage &&
-          backgroundImage.startsWith("url") && {
-            backgroundImage: backgroundImage,
-            backgroundSize: "cover",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-          }),
       }}
       onClick={handleBlockClick}
     >
