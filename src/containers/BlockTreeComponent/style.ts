@@ -85,6 +85,6 @@ export const HeaderContainer = styled.div`
   height: 49px;
   display: flex;
   align-items: center;
-  font-weight: 500;
+  font-weight: bold;
   padding-left: 0.5rem;
 `;

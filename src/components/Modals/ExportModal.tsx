@@ -20,7 +20,7 @@ const Subtitle = styled.div`
 const OptionsContainer = styled.div`
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   width: 100%;
 `;
 
@@ -92,6 +92,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             value="JSON"
             onChange={() => setSelectedFormat("JSON")}
             checked={selectedFormat === "JSON"}
+            style={{ marginTop: "1rem" }}
           />
         </Option>
 
@@ -103,6 +104,7 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
             value="HTML"
             onChange={() => setSelectedFormat("HTML")}
             checked={selectedFormat === "HTML"}
+            style={{ marginTop: "1rem" }}
           />
         </Option>
       </OptionsContainer>

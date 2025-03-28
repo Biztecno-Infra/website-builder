@@ -108,7 +108,7 @@ const Header = styled.div`
   height: 3rem;
   width: 100%;
   margin-bottom: 0.75rem;
-  font-weight: 500;
+  font-weight: bold;
   display: flex;
   align-items: center;
   padding-left: 0.5rem;
