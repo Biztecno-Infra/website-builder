@@ -89,6 +89,9 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       navigateToUrl: "",
       lineHeight: 16,
       backgroundImage: "",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",    
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -161,14 +164,15 @@ export const generateTextBlock = (block: TextProps) => {
   } = block;
 
   const backgroundImageStyle = backgroundImage
-  ? {
-      backgroundImage: backgroundImage,
-      backgroundPosition: backgroundPosition,
-      backgroundRepeat: backgroundRepeat,
-      backgroundSize: backgroundSize,
-    }
-  : {};
-
+    ? {
+      backgroundImage: backgroundImage.startsWith('url') 
+      ? backgroundImage 
+      : `url(${backgroundImage})`,
+            backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
+    : {};
 
   const textStyle: any = {
     fontWeight,
@@ -309,8 +313,10 @@ export const generateGridBlock = (block: GridProps) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-        backgroundImage: backgroundImage,
-        backgroundPosition: backgroundPosition,
+      backgroundImage: backgroundImage.startsWith('url') 
+      ? backgroundImage 
+      : `url(${backgroundImage})`,
+            backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }

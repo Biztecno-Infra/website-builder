@@ -15,14 +15,13 @@ const InputContainer = styled.div`
   align-items: center;
   background-color: #f1f1f1;
   border-radius: 5px;
-  height: 1.75rem;
   padding: 4px;
   position: relative;
 `;
 
 const StyledInput = styled.input<{ width: string }>`
   width: ${(props) => props.width};
-  height: 100%;
+   height: 30px ;
   line-height: 0;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;

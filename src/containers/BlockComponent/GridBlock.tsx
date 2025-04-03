@@ -21,8 +21,10 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-        backgroundImage: backgroundImage , 
-        backgroundPosition: backgroundPosition,
+      backgroundImage: backgroundImage.startsWith('url') 
+      ? backgroundImage 
+      : `url(${backgroundImage})`,
+            backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }

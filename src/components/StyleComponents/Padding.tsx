@@ -123,7 +123,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
-        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} size={SizeEnum.Medium} />
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} svgStyle={{width:"32px" , height:"32px"}} />
       </ToggleButton>
 
       {isPopupOpen && (

@@ -9,6 +9,7 @@ const DropdownWrapper = styled.div`
   padding: 3px;
   background-color: #f1f1f1;
   border-radius: 5px;
+  // height: 30px;
 `;
 
 const InputContainer = styled.div`
@@ -16,13 +17,13 @@ const InputContainer = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-height: 1.75rem;
+// height: 100%;
 `;
 
 const StyledInput = styled.input`
   &.ebr-styledInputDropdown {
     width: 100%;
-    height: 100%;
+     height: 30px;
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 0.75rem;

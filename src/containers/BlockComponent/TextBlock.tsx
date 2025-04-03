@@ -35,15 +35,17 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     [handleDropper]
   );
   const convertedStyle = convertStringtoStyle(customCss);
-
   const backgroundImageStyle = backgroundImage
     ? {
-        backgroundImage: backgroundImage , 
-        backgroundPosition: backgroundPosition,
+      backgroundImage: backgroundImage.startsWith('url') 
+      ? backgroundImage 
+      : `url(${backgroundImage})`,
+            backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
     : {};
+
 
   return (
     <Droppable
