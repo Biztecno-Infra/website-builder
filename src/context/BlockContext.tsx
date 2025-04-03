@@ -14,22 +14,25 @@ interface BlockHookProviderProps {
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
 
-  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef , handleImportTemplates } = customFunction;
+  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef , handleImportTemplates , setSelectedBlock } = customFunction;
 
   const captureScreenshot = async (): Promise<File | null> => {
+    setSelectedBlock(null); 
+    
+    await new Promise(resolve => setTimeout(resolve, 50)); 
+    
     if (!canvasRef.current) return null;
   
     try {
       const canvas = await html2canvas(canvasRef.current, { useCORS: true, allowTaint: true });
-      // const imageBase64 = canvas.toDataURL("image/png")
-      // console.log(imageBase64)
+      // const imageBase64 = canvas.toDataURL("image/png");
+      // console.log(imageBase64);
       const blob = await new Promise<Blob | null>((resolve) => {
         canvas.toBlob(resolve, "image/png");
       });
   
       if (!blob) return null;
   
-      // Return the File directly after creation
       return new File([blob], "screenshot.png", { type: "image/png" });
     } catch (error) {
       console.error("❌ Error capturing screenshot:", error);

@@ -24,6 +24,10 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
   overflow: hidden;
+  font-size: 14px;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Montserrat;
 `;
 
 const MiddleContainer = styled.div`
@@ -41,7 +45,7 @@ const ContentWrapper = styled.div`
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme , onExport , onImport  }, ref) => {
+  ({ theme , onExport , onImport }, ref) => {
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>

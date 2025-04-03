@@ -20,7 +20,6 @@ const Subtitle = styled.div`
 const OptionsContainer = styled.div`
   display: flex;
   justify-content: center;
-  /* margin-bottom: 20px; */
   width: 100%;
 `;
 
@@ -33,10 +32,14 @@ const Option = styled.label<{ selected: boolean }>`
   font-size: 14px;
   color: ${(props) => (props.selected ? "#007f7f" : "black")};
   margin: 1rem;
+`;
 
-  input {
-    color: ${(props) => (props.selected ? "#007f7f" : "black")};
-  }
+const StyledRadioInput = styled.input.attrs({ type: "radio" })<{ $selected: boolean }>`
+  margin-top: 0.75rem;
+  accent-color: ${(props) => (props.$selected ? "#007f7f" : "black")};
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
 `;
 
 const ButtonContainer = styled.div`
@@ -73,10 +76,10 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
 
   const handleExportFormat = () => {
     if (selectedFormat) {
-      onExport(selectedFormat)
-      onClose()
+      onExport(selectedFormat);
+      onClose();
     }
-  }
+  };
 
   return (
     <ModalOverlay onClose={onClose} isSmall>
@@ -86,25 +89,23 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
       <OptionsContainer>
         <Option selected={selectedFormat === "JSON"}>
           <SvgIcon name={CUSTOM_SVG_ICON.JsonFile} size={SizeEnum.Medium} />
-          <input
-            type="radio"
+          <StyledRadioInput
             name="exportFormat"
             value="JSON"
             onChange={() => setSelectedFormat("JSON")}
+            $selected={selectedFormat === "JSON"}
             checked={selectedFormat === "JSON"}
-            style={{ marginTop: "1rem" }}
           />
         </Option>
 
         <Option selected={selectedFormat === "HTML"}>
           <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} size={SizeEnum.Medium} />
-          <input
-            type="radio"
+          <StyledRadioInput
             name="exportFormat"
             value="HTML"
             onChange={() => setSelectedFormat("HTML")}
+            $selected={selectedFormat === "HTML"}
             checked={selectedFormat === "HTML"}
-            style={{ marginTop: "1rem" }}
           />
         </Option>
       </OptionsContainer>
