@@ -59,9 +59,6 @@ export const useBlocks = (): IBlockContext => {
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
-
-
-
   const handleImportTemplates = (selectedTemplates: any[]) => {
     selectedTemplates.forEach((template) => {
       const { root, ...otherBlocks } = template.layout;

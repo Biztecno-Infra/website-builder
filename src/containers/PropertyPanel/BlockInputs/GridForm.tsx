@@ -6,6 +6,7 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
+import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -23,6 +24,9 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderRadius,
     customCss,
     backgroundImage, 
+    backgroundPosition , 
+    backgroundRepeat , 
+    backgroundSize,
     id: blockId,
   } = selectedBlock as GridProps;
 
@@ -38,6 +42,9 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     customCss,
+    backgroundPosition , 
+    backgroundRepeat, 
+    backgroundSize
   });
 
   useEffect(() => {
@@ -53,6 +60,9 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       borderColor,
       borderRadius,
       customCss,
+      backgroundPosition , 
+    backgroundRepeat, 
+    backgroundSize
     });
   }, [selectedBlock]);
 
@@ -127,14 +137,14 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
         />
-        <CustomInput
+        {/* <CustomInput
           name="backgroundImage"
           placeholder="Enter Background Image URL"
           value={formData.backgroundImage || ""}
           onChange={handleChange}
           containerStyle={{ width: "90%", padding: 4 }}
           inputStyle={{ width: "100%" }}
-        />
+        /> */}
 
         <BasePropertyWrapper
           name="Border Properties"
@@ -152,6 +162,29 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
+        <BasePropertyWrapper
+          name="Background Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BackgroundProperties
+            onChange={handleChange}
+            backgroundImage={formData.backgroundImage || ""}
+            backgroundPosition={formData.backgroundPosition || ""}
+            backgroundRepeat={formData.backgroundRepeat || ""}
+            backgroundSize={formData.backgroundSize || ""}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",

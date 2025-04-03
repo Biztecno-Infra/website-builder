@@ -20,7 +20,8 @@ const ColorPickerContainer = styled.div`
   position: relative;
   background-color: #f1f1f1;
   border-radius: 5px;
-  padding: 3px;
+height: 1.75rem;
+padding: 4px;
 
 `;
 
@@ -28,7 +29,7 @@ const PickerRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-
+  height: 100%;
 `;
 
 const ColorBox = styled.div<{ $selectedColor: string }>`
@@ -44,7 +45,7 @@ const ColorHexInput = styled.input`
   &.ebr-colorHexInput {
     font-size: 14px;
     border: none;
-    height: 26px;
+    height: 100%;
     line-height:0;
     background: #f1f1f1;
     border-radius: 4px;

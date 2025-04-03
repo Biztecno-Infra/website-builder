@@ -11,14 +11,23 @@ const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
     childBlocks,
     customCss,
     backgroundImage, 
+    backgroundPosition , 
+    backgroundRepeat , 
+    backgroundSize,
     ...rest
   } = block as GridProps;
 
   const convertedStyle = convertStringtoStyle(customCss);
 
   const backgroundImageStyle = backgroundImage
-    ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: "cover", backgroundPosition: "center" }
+    ? {
+        backgroundImage: backgroundImage , 
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
     : {};
+
 
   const renderCell = (childBlock: string, index: number) => {
     return (

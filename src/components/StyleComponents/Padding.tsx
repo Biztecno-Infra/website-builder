@@ -18,7 +18,7 @@ const PaddingWrapper = styled.div`
   flex-direction: row;
   align-items: center;
   position: relative;
-  justify-content: space-between;
+  // justify-content: space-between;
 `;
 
 const ToggleButton = styled.button`
@@ -27,6 +27,7 @@ const ToggleButton = styled.button`
   border: none;
   border-radius: 5px;
   padding: 2px 0px;
+  margin-left: 0.35rem;
 `;
 
 const Popup = styled.div`
@@ -116,10 +117,9 @@ export const PaddingInput: React.FC<PaddingProps> = ({
           alignItems: "center",
           background: "#F1F1F1",
           width: "55%",
-          padding: 3,
         }}
-        inputStyle={{ width: "45%" }}
-        placeholder={isCommonPadding ? "" : "-"} // Placeholder "-" if paddings are not common
+        inputStyle={{ width: "60%" }}
+        placeholder={isCommonPadding ? "" : "-"} 
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>

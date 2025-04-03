@@ -22,6 +22,9 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     lineHeight,
     navigateToUrl,
     customCss,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
     ...rest
   } = block;
 
@@ -34,14 +37,12 @@ export const TextBlock: React.FC<TextBlockProps> = ({
   const convertedStyle = convertStringtoStyle(customCss);
 
   const backgroundImageStyle = backgroundImage
-    ? backgroundImage.startsWith("url")
-      ? {
-          backgroundImage: backgroundImage,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-        }
-      : {}
+    ? {
+        backgroundImage: backgroundImage , 
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
     : {};
 
   return (

@@ -50,7 +50,6 @@ export interface TextProps extends BaseBlock {
   fontFamily?: string;
   fontSize?: number;
   fontWeight?: string;
-  backgroundImage?: string;
   lineHeight?: any
   padding: {
     top: number;
@@ -59,6 +58,10 @@ export interface TextProps extends BaseBlock {
     left: number;
   };
   navigateToUrl?: string;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
 }
 
 export interface ImageProps extends BaseBlock {
@@ -131,6 +134,9 @@ export interface GridProps extends BaseBlock {
   borderWidth?: number;
   borderStyle?: string;
   backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
 }
 
 export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;

@@ -56,6 +56,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderColor: "",
       borderRadius: 0,
       backgroundColor: defaultBg,
+      backgroundImage: "",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -104,7 +108,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "none",
       borderColor: "",
       borderRadius: 0,
-      backgroundColor: defaultBg
+      backgroundColor: defaultBg,
     };
   } else if (blockType === BlockType.GRIDCELL) {
     return {
@@ -150,8 +154,21 @@ export const generateTextBlock = (block: TextProps) => {
     type,
     cellIndex,
     customCss,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
     ...rest
   } = block;
+
+  const backgroundImageStyle = backgroundImage
+  ? {
+      backgroundImage: backgroundImage,
+      backgroundPosition: backgroundPosition,
+      backgroundRepeat: backgroundRepeat,
+      backgroundSize: backgroundSize,
+    }
+  : {};
+
 
   const textStyle: any = {
     fontWeight,
@@ -165,15 +182,9 @@ export const generateTextBlock = (block: TextProps) => {
     backgroundColor,
     textAlign: alignment,
     customCss,
+    ...backgroundImageStyle,
     ...rest,
   };
-
-  if (backgroundImage) {
-    textStyle.backgroundImage = `url('${backgroundImage}')`;
-    textStyle.backgroundSize = "cover";
-    textStyle.backgroundRepeat = "no-repeat";
-    textStyle.backgroundPosition = "center";
-  }
 
   return {
     type: block.type,
@@ -289,25 +300,26 @@ export const generateGridBlock = (block: GridProps) => {
     parentId,
     customCss,
     borderWidth,
-    backgroundImage, 
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
     ...rest
   } = block || {};
 
   const backgroundImageStyle = backgroundImage
-    ? backgroundImage.startsWith("url")
-      ? {
-          backgroundImage: backgroundImage,
-          backgroundSize: "cover",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "center",
-        }
-      : {}
+    ? {
+        backgroundImage: backgroundImage,
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
     : {};
 
   const gridStyle = {
     columnGap: columnGap || 0,
     backgroundColor,
-    ...backgroundImageStyle, 
+    ...backgroundImageStyle,
     customCss,
     ...rest,
   };
@@ -358,7 +370,7 @@ export const generateDividerBlock = (block: DividerProps) => {
         thickness,
         dividerColor,
         alignment,
-        customCss
+        customCss,
       },
     },
   };

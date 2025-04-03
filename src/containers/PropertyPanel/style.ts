@@ -11,6 +11,7 @@ export const FlexRow = styled.div`
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  max-width:100%
   margin-top: 5px;
   margin-bottom: 10px;
 `;

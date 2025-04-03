@@ -21,6 +21,7 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
       // maxHeight: "100%",
       objectFit: "contain",
       textAlign: alignment as TextAlign,
+      borderRadius:"inherit"
     };
 
     return (
@@ -77,7 +78,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         backgroundColor: backgroundColor,
         lineHeight: 0 , 
         textAlign: (alignment as TextAlign) || "left",
-        borderRadius: borderRadius ? `${borderRadius}%` : "none",
+        borderRadius: borderRadius ? `${borderRadius}px` : "none",
         border:
           isSelected && block.parentId
             ? "1px dashed #006E75"

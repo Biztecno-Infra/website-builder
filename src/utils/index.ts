@@ -236,7 +236,6 @@ export const jsonToBlocks = (
         }
       );
     }
-
     return block;
   };
 

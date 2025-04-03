@@ -230,7 +230,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "45%", paddingLeft: "1rem" }}
+            containerStylePopUp={{ width: "48%", paddingLeft: "1rem" }}
           />
         </PaddingContainer>
         <BasePropertyWrapper

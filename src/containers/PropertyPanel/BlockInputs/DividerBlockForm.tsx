@@ -73,7 +73,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight
             }}
             unitsLabel="px"
-            containerStyle={{ width: "40%", padding: 2 }}
+            containerStyle={{ width: "40%",  }}
             checkLessThanOne
           />
         </FlexRow>
@@ -91,7 +91,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "45%" }}
+            containerStylePopUp={{ width: "40%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>

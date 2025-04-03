@@ -12,6 +12,7 @@ import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
+import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -36,6 +37,9 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundImage,
     navigateToUrl,
     lineHeight,
+    backgroundPosition , 
+    backgroundRepeat , 
+    backgroundSize,
     id: blockId,
   } = selectedBlock as TextProps;
 
@@ -52,6 +56,9 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     customCss,
     navigateToUrl,
     lineHeight,
+    backgroundPosition , 
+    backgroundRepeat , 
+    backgroundSize,
   });
 
   useEffect(() => {
@@ -68,6 +75,9 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       customCss,
       navigateToUrl,
       lineHeight,
+      backgroundPosition , 
+      backgroundRepeat , 
+      backgroundSize
     });
   }, [selectedBlock]);
 
@@ -110,11 +120,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             value={formData.fontSize}
             onChange={(name, value) => handleChange("fontSize", value)}
             containerStyle={{
-              width: "26%",
-              padding: 3,
-              borderRadius: "5px",
-              alignItems: "center",
-              background: "#F1F1F1",
+              width: "30%",
             }}
             inputStyle={{ width: "40%" }}
             unitsLabel="px"
@@ -152,15 +158,15 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.LineHeight,
               size: SizeEnum.Small,
             }}
-            containerStyle={{ width: "25%", padding: 3 }}
-            inputStyle={{ width: "50%" }}
+            containerStyle={{ width: "25%" }}
+            inputStyle={{ width: "60%" , marginLeft: 4 }}
           />
           <CustomInput
             name="navigateToUrl"
             placeholder="Add URL to link text"
             value={formData.navigateToUrl}
             onChange={handleChange}
-            containerStyle={{ width: "68%", padding: 3 }}
+            containerStyle={{ width: "68%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>
@@ -179,14 +185,38 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{ width: "35%" }}
           />
         </FlexRow>
-        <CustomInput
+        {/* <CustomInput
           name="backgroundImage"
           placeholder="Add background image URL"
           value={formData.backgroundImage}
           onChange={(name, value) => handleChange(name, value)}
           containerStyle={{ padding: 3, marginBottom: 10 }}
-        />
+        /> */}
+      <BasePropertyWrapper
+          name="Background Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BackgroundProperties
+            onChange={handleChange}
+            backgroundImage={formData.backgroundImage || ""}
+            backgroundPosition={formData.backgroundPosition || ""}
+            backgroundRepeat={formData.backgroundRepeat || ""}
+            backgroundSize={formData.backgroundSize || ""}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
       </BasePropertyWrapper>
+
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"

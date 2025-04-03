@@ -110,7 +110,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter button text here"
           value={formData.buttonText}
           onChange={handleChange}
-          containerStyle={{ marginBottom: "0.75rem", width: "90%", padding: 2 }}
+          containerStyle={{ marginBottom: "0.75rem", width: "95%", padding: 2 }}
         />
 
         <FlexRow>
@@ -128,8 +128,8 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             value={formData.fontSize || ""}
             onChange={handleChange}
             type="number"
-            containerStyle={{ width: "26%", marginLeft: "0.5rem", padding: 3 }}
-            inputStyle={{ width: "40%" }}
+            containerStyle={{ width: "30%", padding: 3 }}
+            inputStyle={{ width: "45%" }}
             unitsLabel="px"
           />
         </FlexRow>
@@ -212,7 +212,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         <ReactColorPicker
           onColorChange={(field, value) => handleChange("buttonColor", value)}
           selectedColor={formData.buttonColor || ""}
-          containerStyle={{ width: "60%", marginBottom: 10 }}
+          containerStyle={{ width: "90%", marginBottom: 10 }}
           defaultColor={"#F5F5F5"}
         />
 
@@ -220,12 +220,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
-            containerStyle={{ width: "60%" }}
+            containerStyle={{ width: "50%" }}
           />
           <PaddingInput
             padding={formData.buttonPadding}
             onChange={(value) => handleChange("buttonPadding", value)}
-            containerStylePopUp={{ width: "40%", paddingLeft: "0.5rem" }}
+            containerStylePopUp={{ width: "40%", }}
           />
         </FlexRow>
         <BasePropertyWrapper
