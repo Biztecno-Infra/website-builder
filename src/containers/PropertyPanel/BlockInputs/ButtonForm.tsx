@@ -29,7 +29,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     id,
     buttonText,
     navigateToUrl,
-    textColor,
+    color,
     backgroundColor,
     buttonColor,
     fontFamily,
@@ -50,7 +50,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   const [formData, setFormData] = useState({
     buttonText,
     navigateToUrl,
-    textColor,
+    color,
     backgroundColor,
     buttonColor,
     fontFamily,
@@ -72,7 +72,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     setFormData({
       buttonText,
       navigateToUrl,
-      textColor,
+      color,
       backgroundColor,
       buttonColor,
       fontFamily,
@@ -135,9 +135,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         </FlexRow>
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("textColor", value)}
+            onColorChange={(field, value) => handleChange("color", value)}
             label="Select Text color"
-            selectedColor={formData.textColor || ""}
+            selectedColor={formData.color || ""}
             containerStyle={{ width: "60%" }}
           />
 
@@ -213,7 +213,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) => handleChange("buttonColor", value)}
           selectedColor={formData.buttonColor || ""}
           containerStyle={{ width: "90%", marginBottom: 10 }}
-          defaultColor={"#F5F5F5"}
         />
 
         <FlexRow>

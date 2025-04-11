@@ -87,7 +87,7 @@ export interface ButtonProps extends BaseBlock {
   buttonText?: string;
   navigateToUrl?: string;
   buttonColor?: string;
-  textColor?: string;
+  color?: string;
   fontFamily: string;
   fontSize: number;
   fontWeight: string;
@@ -137,6 +137,7 @@ export interface GridProps extends BaseBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
+  responsive?: true;
 }
 
 export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;

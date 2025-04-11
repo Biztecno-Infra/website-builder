@@ -60,6 +60,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
+      responsive : false
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -96,8 +97,8 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
   } else if (blockType === BlockType.BUTTON) {
     return {
       buttonText: "Add More Text",
-      buttonColor: "",
-      textColor: defaultTextColor,
+      buttonColor: "#F5F5F5",
+      color: defaultTextColor,
       padding: defaultPadding,
       navigateToUrl: "",
       fontFamily: "",
@@ -253,7 +254,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
     fontWeight,
     fontFamily,
     fontSize,
-    textColor,
+    color,
     buttonColor,
     buttonText,
     navigateToUrl,
@@ -271,7 +272,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
     fontWeight,
     fontFamily,
     fontSize,
-    color: textColor,
+    color,
     buttonColor,
     padding,
     customCss,
@@ -303,11 +304,11 @@ export const generateGridBlock = (block: GridProps) => {
     type,
     parentId,
     customCss,
-    borderWidth,
     backgroundImage,
     backgroundPosition,
     backgroundRepeat,
     backgroundSize,
+    responsive,
     ...rest
   } = block || {};
 
@@ -338,6 +339,7 @@ export const generateGridBlock = (block: GridProps) => {
         rows: rows || 1,
         columns: columns || 2,
         cellWidths: cellWidths || [50, 50],
+        responsive
       },
     },
   };

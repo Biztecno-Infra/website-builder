@@ -64,7 +64,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
 }) => {
   const {
     buttonText,
-    textColor,
+    color,
     backgroundColor,
     buttonColor,
     fontFamily,
@@ -91,7 +91,6 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
   );
 
   const convertedStyle = convertStringtoStyle(customCss)
-
   return (
     <Droppable
       accept="BLOCK"
@@ -112,7 +111,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     >
       <CustomButton
         buttonText={buttonText}
-        textColor={textColor}
+        textColor={color}
         buttonColor={buttonColor}
         fontFamily={fontFamily}
         fontSize={fontSize}

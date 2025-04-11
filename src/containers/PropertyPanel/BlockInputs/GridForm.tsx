@@ -23,10 +23,11 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     borderColor,
     borderRadius,
     customCss,
-    backgroundImage, 
-    backgroundPosition , 
-    backgroundRepeat , 
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
     backgroundSize,
+    responsive,
     id: blockId,
   } = selectedBlock as GridProps;
 
@@ -35,16 +36,17 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     columns,
     columnGap,
     backgroundColor,
-    backgroundImage, 
+    backgroundImage,
     cellWidths,
     borderWidth,
     borderStyle,
     borderColor,
     borderRadius,
     customCss,
-    backgroundPosition , 
-    backgroundRepeat, 
-    backgroundSize
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
+    responsive,
   });
 
   useEffect(() => {
@@ -53,16 +55,17 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       columns,
       columnGap,
       backgroundColor,
-      backgroundImage, 
+      backgroundImage,
       cellWidths,
       borderWidth,
       borderStyle,
       borderColor,
       borderRadius,
       customCss,
-      backgroundPosition , 
-    backgroundRepeat, 
-    backgroundSize
+      backgroundPosition,
+      backgroundRepeat,
+      backgroundSize,
+      responsive,
     });
   }, [selectedBlock]);
 
@@ -85,7 +88,6 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       return updatedData;
     });
   };
-
 
   return (
     <FormWrapper>
@@ -145,7 +147,21 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "90%", padding: 4 }}
           inputStyle={{ width: "100%" }}
         /> */}
-
+        <label
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            padding: "0.5rem",
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={formData.responsive}
+            onChange={(e) => handleChange("responsive", e.target.checked)}
+          />
+          Make grid responsive
+        </label>
         <BasePropertyWrapper
           name="Border Properties"
           subLabel

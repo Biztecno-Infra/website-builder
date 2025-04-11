@@ -176,7 +176,7 @@ export const jsonToBlocks = (
         break;
 
       case BlockType.GRID:
-        const gridProps = block as any;
+        const gridProps = block as GridProps;
         const {
           columnGap = 0,
           ...gridStyleRest
@@ -186,6 +186,7 @@ export const jsonToBlocks = (
         gridProps.columnGap = columnGap;
         gridProps.cellWidths = layoutBlock.data.props.cellWidths;
         gridProps.customCss = layoutBlock.data.props.customCss
+        gridProps.responsive = layoutBlock.data.props.responsive;
         Object.assign(gridProps, gridStyleRest);
         break;
 
