@@ -100,7 +100,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             value={formData.columns}
             onChange={handleChange}
             type="number"
-            containerStyle={{ width: "45%", padding: 4 }}
+            containerStyle={{ width: "47%", padding: 4 }}
             inputStyle={{ width: "30%" }}
             checkLessThanOne
           />
@@ -111,7 +111,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             unitsLabel="Column Gap"
             value={formData.columnGap}
             onChange={handleChange}
-            containerStyle={{ width: "45%", padding: 4 }}
+            containerStyle={{ width: "47%", padding: 4 }}
             inputStyle={{ width: "30%" }}
           />
         </FlexRow>

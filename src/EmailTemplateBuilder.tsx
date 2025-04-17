@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
-import styled from "styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 
 import PropertyPanel from "@containers/PropertyPanel";
 import ElementsPanel from "@containers/ElementsPanel";
@@ -11,23 +11,40 @@ import CustomThemeProvider from "@context/ThemeContext";
 import CanvasContainer from "@containers/CanvasContainer";
 import HeaderActions from "@containers/HeaderActions";
 import { ExportType } from "enum";
-import "./index.css";
+import "./index.css"; // keep it only if it's scoped
 
 interface Props {
   theme?: Theme;
-  onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  onExport: (format: "JSON" | "HTML", data: any) => void;
   onImport: () => void;
 }
 
+// 🛡️ Global styles scoped to just .email-template-builder
+const ScopedGlobalStyle = createGlobalStyle`
+  .email-template-builder {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  .email-template-builder *, 
+  .email-template-builder *::before, 
+  .email-template-builder *::after {
+    box-sizing: inherit;
+    font-family: inherit;
+  }
+`;
+
 const Container = styled.div`
-  display: flex;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-size: 14px;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Montserrat;
+  && {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    font-size: 14px;
+    font-family: Montserrat, sans-serif;
+  }
 `;
 
 const MiddleContainer = styled.div`
@@ -45,15 +62,16 @@ const ContentWrapper = styled.div`
 `;
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
-  ({ theme , onExport , onImport }, ref) => {
+  ({ theme, onExport, onImport }, ref) => {
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>
           <BlockHookProvider ref={ref}>
             <Container className="email-template-builder">
+              <ScopedGlobalStyle />
               <ElementsPanel />
               <MiddleContainer>
-              <HeaderActions onExport={onExport} onImport={onImport} />
+                <HeaderActions onExport={onExport} onImport={onImport} />
                 <ContentWrapper>
                   <CanvasContainer />
                   <PropertyPanel />
