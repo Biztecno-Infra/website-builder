@@ -7,6 +7,7 @@ import { GridProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
+import { extractBackgroundUrl } from "@utils/common";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -197,7 +198,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
         >
           <BackgroundProperties
             onChange={handleChange}
-            backgroundImage={formData.backgroundImage || ""}
+            backgroundImage={extractBackgroundUrl(formData.backgroundImage || "")}
             backgroundPosition={formData.backgroundPosition || ""}
             backgroundRepeat={formData.backgroundRepeat || ""}
             backgroundSize={formData.backgroundSize || ""}

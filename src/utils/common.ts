@@ -26,3 +26,9 @@ export function parseBackground(image: string): string {
   // Return the original string if it's not wrapped in "url()"
   return trimmedImage;
 }
+
+
+export function extractBackgroundUrl(input: string): string {
+  const match = input.match(/^url\(["']?(.*?)["']?\)$/);
+  return match ? match[1] : input;
+}
