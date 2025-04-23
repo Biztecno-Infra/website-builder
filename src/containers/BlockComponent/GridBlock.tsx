@@ -54,10 +54,10 @@ const GridBlock: React.FC<GridBlockProps> = ({
         backgroundColor,
         maxWidth: "100%",
         tableLayout: "fixed",
-        border: `1px dashed ${
-          isSelected && block.parentId ? "#006E75" : backgroundColor
-        }`,
-        // border: isSelected && block.parentId ? "1px dashed #006E75" : "none",
+        // border: `1px dashed ${
+        //   isSelected && block.parentId ? "#006E75" : backgroundColor
+        // }`,
+        border: isSelected && block.parentId ? "1px dashed #006E75" : "none",
         ...convertedStyle,
         ...backgroundImageStyle,
         ...rest,
