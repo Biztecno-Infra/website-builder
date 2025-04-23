@@ -105,7 +105,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       fontSize: 16,
       fontWeight: "400",
       alignment: "left",
-      buttonPadding: defaultPadding,
+      buttonPadding: defaultGridPadding,
       width: 150,
       height: 50,
       borderWidth: 0,

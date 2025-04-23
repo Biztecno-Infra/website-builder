@@ -55,8 +55,9 @@ const GridBlock: React.FC<GridBlockProps> = ({
         maxWidth: "100%",
         tableLayout: "fixed",
         border: `1px dashed ${
-          isSelected && block.parentId ? "#006E75" : "transparent"
+          isSelected && block.parentId ? "#006E75" : backgroundColor
         }`,
+        // border: isSelected && block.parentId ? "1px dashed #006E75" : "none",
         ...convertedStyle,
         ...backgroundImageStyle,
         ...rest,
@@ -65,10 +66,10 @@ const GridBlock: React.FC<GridBlockProps> = ({
       <tbody>
         {shouldStack ? (
           childBlocks?.map((blockId, index) => (
-            <tr key={blockId}>{renderCell(blockId, index)}</tr>
+            <tr style={{padding: 0}} key={blockId}>{renderCell(blockId, index)}</tr>
           ))
         ) : (
-          <tr>
+          <tr style={{padding: 0}}>
             {childBlocks?.map((blockId, index) => renderCell(blockId, index))}
           </tr>
         )}

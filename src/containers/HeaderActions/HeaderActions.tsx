@@ -113,7 +113,7 @@ function HeaderActions({ onExport , onImport }: Props) {
       <RightActions>
         <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
-        {/* <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/> */}
+        <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/>
 
 
         {/* <CustomDropdownButton

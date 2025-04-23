@@ -64,7 +64,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         textAlign: alignment as TextAlign,
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
-        lineHeight: lineHeight ? `${lineHeight}px` : "19.2px",
+        lineHeight: lineHeight ? `${lineHeight}px` : "16px",
         border: `1px dashed ${
           isSelected && block.parentId ? "#006E75" : "transparent"
         }`,

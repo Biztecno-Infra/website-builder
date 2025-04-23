@@ -8,11 +8,12 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
 const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlign: string;}>`
-  border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "1px solid transparent")};
-  padding-top: ${(props) => props.$padding?.top}px;
-  padding-bottom: ${(props) => props.$padding?.bottom}px;
-  padding-right: ${(props) => props.$padding?.right}px;
-  padding-left: ${(props) => props.$padding?.left}px;
+  // border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "1px solid transparent")};
+  border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "none")};
+  padding-top: ${(props) => props.$padding?.top ? props.$padding?.top : 0}px;
+  padding-bottom: ${(props) => props.$padding?.bottom ? props.$padding?.bottom : 0}px;
+  padding-right: ${(props) => props.$padding?.right ? props.$padding?.right : 0}px;
+  padding-left: ${(props) => props.$padding?.left ? props.$padding?.left : 0}px;
   text-align: center;
   vertical-align: ${(props) => (props as any).$verticalAlign || "middle"};
   cursor: pointer;
@@ -20,11 +21,7 @@ const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['pad
   width: ${(props) => `${Math.round(props.$cellWidth)}px`};
   max-width: ${(props) => `${Math.round(props.$cellWidth)}px`};
   background-color: ${(props) => (props as any).backgroundColor || ""};
-  
-  /* Prevent passing unknown props to the DOM */
-  &:not([data-is-selected]) {
-    /* Additional custom styles here if necessary */
-  }
+
 `;
 
 // Define which props should be forwarded to the DOM element

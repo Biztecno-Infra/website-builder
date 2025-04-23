@@ -158,7 +158,7 @@ const Canvas = () => {
               ref={canvasRef}
             >
               <tbody>
-                <tr>
+                <tr style={{padding: 0}}>
                   <td
                     style={{
                       paddingTop: globalStyles?.padding?.top,

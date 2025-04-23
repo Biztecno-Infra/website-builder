@@ -101,23 +101,32 @@ export function CustomInput({
   const [error, setError] = useState<string>("");
 
   const validateInput = (value: string) => {
-    if (value === "") return "Please enter a valid input";
+    if (value.trim() === "") return "Please enter a valid input";
+  
     if (type === "number") {
       const numValue = Number(value);
       if (isNaN(numValue)) return "Please enter a valid number";
       if (numValue < 0) return "Value must be greater than or equal to 0";
       if (numValue < 1 && checkLessThanOne) return "Not less than 1";
     }
+  
     return "";
   };
-
+  
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const errorMessage = validateInput(value);
+    const inputValue = event.target.value;
+  
+    // Run validation on string value
+    const errorMessage = validateInput(inputValue);
     setError(errorMessage);
-
-    if (onChange) onChange(name, type === "number" ? Number(value) : value);
+  
+    // Call onChange with raw input value (or parsed number if needed)
+    if (onChange) {
+      const parsedValue = type === "number" ? (inputValue === "" ? "" : Number(inputValue)) : inputValue;
+      onChange(name, parsedValue);
+    }
   };
+  
 
   return (
     <InputWrapper containerStyle={containerStyle}>
