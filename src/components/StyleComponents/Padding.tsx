@@ -39,7 +39,7 @@ const Popup = styled.div`
   border-radius: 6px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   padding: 0.25rem 0%;
-  width: 11rem;
+  width: 15rem;
   z-index: 10;
   display: flex;
   justify-content: space-around;
@@ -118,7 +118,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
           background: "#F1F1F1",
           width: "55%",
         }}
-        inputStyle={{ width: "60%" }}
+        inputStyle={{ width: "70%" }}
         placeholder={isCommonPadding ? "" : "-"} 
       />
 

@@ -177,12 +177,12 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               handleChange("backgroundColor", value)
             }
             selectedColor={formData.backgroundColor}
-            containerStyle={{ width: "60%" }}
+            containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "35%" }}
+            containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
         {/* <CustomInput

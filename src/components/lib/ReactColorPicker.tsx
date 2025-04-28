@@ -41,10 +41,10 @@ const ColorBox = styled.div<{ $selectedColor: string }>`
 
 const ColorHexInput = styled.input`
   &.ebr-colorHexInput {
-    font-size: 14px;
+    font-size: 0.8rem;
     border: none;
      height: 30px;
-    line-height:0;
+    line-height:0.5rem;
     background: #f1f1f1;
     border-radius: 4px;
     width: calc(100% - 2rem);
@@ -109,7 +109,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           $selectedColor={color}
           onClick={() => setPickerVisible(!isPickerVisible)}
         />}
-        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 3 , border: "1px solid" , borderRadius: 5 , marginLeft: 5}}/>}
+        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 3 , border: "1px solid" , borderRadius: 3 , marginLeft: 5}}/>}
 
 
         <ColorHexInput

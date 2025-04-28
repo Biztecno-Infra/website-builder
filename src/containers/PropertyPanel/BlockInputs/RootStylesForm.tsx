@@ -73,12 +73,12 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             label={"Select Canvas color"}
             onColorChange={(field, value) => handleChange("canvasColor", value)}
             selectedColor={styles.canvasColor}
-            containerStyle={{ width: "60%" }}
+            containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={styles.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "40%", paddingLeft: "1rem" }}
+            containerStylePopUp={{ width: "45%", paddingLeft: "1rem" }}
           />
         </FlexRow>
       </BasePropertyWrapper>

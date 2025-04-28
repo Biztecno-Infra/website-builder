@@ -91,7 +91,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "40%" }}
+            containerStylePopUp={{ width: "43%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>

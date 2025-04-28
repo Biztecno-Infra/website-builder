@@ -42,12 +42,12 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) => handleChange("backgroundColor", value)}
           label={"Select Background color"}
           selectedColor={formData.backgroundColor}
-          containerStyle={{ width: "60%" }}
+          containerStyle={{ width: "53%" }}
         />
         <PaddingInput
           padding={formData.padding}
           onChange={(padding) => handleChange("padding", padding)}
-          containerStylePopUp={{ width: "35%" }}
+          containerStylePopUp={{ width: "45%" }}
         />
       </FlexRow>
       <VerticalAlignment

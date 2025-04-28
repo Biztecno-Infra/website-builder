@@ -50,12 +50,12 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
             }
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
-            containerStyle={{ width: "55%" }}
+            containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={formData.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "40%" }}
+            containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
       </BasePropertyWrapper>
