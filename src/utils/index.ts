@@ -167,11 +167,9 @@ export const jsonToBlocks = (
         buttonprops.alignment = buttonTextAlign;
         buttonprops.backgroundColor = buttonBackgroundColor;
         buttonprops.borderRadius = buttonBorderRadius;
-        if (buttonBorderWidth && buttonBorderColor && buttonBorderStyle) {
           buttonprops.borderWidth = buttonBorderWidth;
           buttonprops.borderColor = buttonBorderColor;
           buttonprops.borderStyle = buttonBorderStyle;
-        }
         Object.assign(buttonprops, buttonStyleRest);
         break;
 
