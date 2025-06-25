@@ -56,8 +56,8 @@ export const useBlocks = (): IBlockContext => {
     ScreenViews.DESKTOP
   );
 
-  const [blocks, setBlocks] = useState<IBlocksState>({});
-  const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
+const [blocks, setBlocks] = useState<IBlocksState>({});
+const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
 
   const handleImportTemplates = (selectedTemplates: any[]) => {
     selectedTemplates.forEach((template) => {
@@ -145,31 +145,37 @@ export const useBlocks = (): IBlockContext => {
     });
   };
 
-  const onDeleteBlock = (blockId: string) => {
-    const deleteBlock = blocks[blockId];
-    setBlocks((prevBlocks) => {
-      let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
+const onDeleteBlock = (blockId: string) => {
+  const deleteBlock = blocks[blockId];
 
-      if (deleteBlock.parentId) {
-        updatedBlocks = update(updatedBlocks, {
-          [deleteBlock.parentId]: {
-            childBlocks: {
-              $apply: (childBlocks: string[]) =>
-                childBlocks.filter((id) => id !== blockId),
-            },
+  if (!deleteBlock) {
+    console.warn(`Block with ID ${blockId} does not exist.`);
+    return;
+  }
+
+  setBlocks((prevBlocks) => {
+    let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
+
+    if (deleteBlock?.parentId && updatedBlocks[deleteBlock.parentId]) {
+      updatedBlocks = update(updatedBlocks, {
+        [deleteBlock.parentId]: {
+          childBlocks: {
+            $apply: (childBlocks: string[]) =>
+              childBlocks.filter((id) => id !== blockId),
           },
-        });
-      }
-
-      return updatedBlocks;
-    });
-
-    if (!deleteBlock.parentId) {
-      setRootBlockOrder((prevOrder) =>
-        prevOrder.filter((id) => id !== blockId)
-      );
+        },
+      });
     }
-  };
+
+    return updatedBlocks;
+  });
+
+  if (!deleteBlock?.parentId) {
+    setRootBlockOrder((prevOrder) =>
+      prevOrder.filter((id) => id !== blockId)
+    );
+  }
+};
 
 
   const handleJsonUpload = (jsonData: any) => {
@@ -531,12 +537,7 @@ export const useBlocks = (): IBlockContext => {
       root: {
         type: "EmailLayout",
         data: {
-          style: {
-            canvasColor: globalStyles?.canvasColor,
-            textColor: globalStyles?.textColor,
-            fontFamily: globalStyles?.fontFamily,
-            padding: globalStyles?.padding
-          },
+          style: globalStyles,
           childrenIds: rootBlockOrder,
         },
       },
@@ -551,7 +552,6 @@ export const useBlocks = (): IBlockContext => {
 
     return layout;
   };
-
 
   return {
     setSelectedBlock,

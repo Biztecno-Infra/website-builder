@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import BlockComponent from "./BlockComponent";
 import { GridCellProps, IGridCellProps } from "../../types";
 import { useBlockHook } from "context/BlockContext";
@@ -7,9 +7,9 @@ import GridEmptyCell from "./GridEmptyCell";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
-const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlign: string;}>`
-  // border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "1px solid transparent")};
-  border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "none")};
+const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlign: string;  theme: any}>`
+  border: ${({ $selected , theme }) => ($selected ? `1px dashed ${theme.colors.primary}` : "none")};
+  // border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "none")};
   padding-top: ${(props) => props.$padding?.top ? props.$padding?.top : 0}px;
   padding-bottom: ${(props) => props.$padding?.bottom ? props.$padding?.bottom : 0}px;
   padding-right: ${(props) => props.$padding?.right ? props.$padding?.right : 0}px;
@@ -45,6 +45,7 @@ const GridCell: React.FC<GridCellProps> = ({
 }) => {
 
   const { setSelectedBlock, handleDropper , selectedBlock, blocks , onDeleteBlock } = useBlockHook();
+   const theme = useTheme()
 
   const block = useMemo(() => blocks[blockId], [blocks , blockId]);
     
@@ -95,6 +96,7 @@ const GridCell: React.FC<GridCellProps> = ({
       backgroundColor={block.backgroundColor}
       $verticalAlign={(block as IGridCellProps).verticalAlign}
       onClick={handleCellBlockClick}
+      theme={theme}
     >
       {
         block?.childBlocks?.map(renderGridCellChilds)

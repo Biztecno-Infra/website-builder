@@ -4,6 +4,7 @@ import GridCell from "./GridCell";
 import { convertStringtoStyle } from "@utils/index";
 import { ScreenViews } from "enum";
 import { useBlockHook } from "@context/BlockContext";
+import { useTheme } from "styled-components";
 
 const GridBlock: React.FC<GridBlockProps> = ({
   block,
@@ -23,6 +24,7 @@ const GridBlock: React.FC<GridBlockProps> = ({
     ...rest
   } = block as GridProps;
  const { selectedView} = useBlockHook();
+   const theme = useTheme()
   const shouldStack = responsive === true && selectedView === ScreenViews.MOBILE;
   const convertedStyle = convertStringtoStyle(customCss);
 
@@ -57,7 +59,7 @@ const GridBlock: React.FC<GridBlockProps> = ({
         // border: `1px dashed ${
         //   isSelected && block.parentId ? "#006E75" : backgroundColor
         // }`,
-        border: isSelected && block.parentId ? "1px dashed #006E75" : "none",
+        border: isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none",
         ...convertedStyle,
         ...backgroundImageStyle,
         ...rest,

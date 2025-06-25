@@ -80,7 +80,7 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       onMouseLeave={() => setIsHovered(false)}
       style={{
         borderRadius: elements.borderRadius,
-        border: isDragging ? 'none' : elements.border, // Remove border during drag
+        border: isDragging ? 'none' : `${elements.border} solid ${theme.colors.primary}`, // Remove border during drag
       }}
     >
       <BlockIconText>

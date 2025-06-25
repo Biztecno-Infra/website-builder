@@ -1,5 +1,6 @@
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { Theme } from "react-toastify";
 
 // Styled Components
 const EmptyBlockContainer = styled.div`
@@ -14,20 +15,19 @@ const EmptyBlockContainer = styled.div`
   background: #ffffff;
 `;
 
-const MessageText = styled.div`
+const MessageText = styled.div<{ theme: DefaultTheme }>`
   font-size: 11px;
-  font-weight:400;
-  color: #0B978E;
+  font-weight: 400;
+  color: ${({ theme }) => theme.colors.primary};
   padding-bottom: 1rem;
-  font: Montserrat;
+  font-family: Montserrat;
 `;
-
 const SvgIconWrapper = styled.div`
 padding: 1rem;
 
 `;
 
-const EmptyBlock = ({ text }: any) => {
+const EmptyBlock = ({ text , theme}: {text: string , theme: any}) => {
   return (
     <EmptyBlockContainer>
       <SvgIconWrapper>
@@ -35,7 +35,7 @@ const EmptyBlock = ({ text }: any) => {
           name={CUSTOM_SVG_ICON.EmptyCanvas}
         />
       </SvgIconWrapper>
-      <MessageText>{text}</MessageText>
+      <MessageText theme={theme}>{text}</MessageText>
     </EmptyBlockContainer>
   );
 };

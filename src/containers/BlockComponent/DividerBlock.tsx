@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { TextAlign, DividerBlockProps } from "../../types";
 import { convertStringtoStyle } from "@utils/index";
+import { useTheme } from "styled-components";
 
 export const DividerBlock: React.FC<DividerBlockProps> = ({
   block,
@@ -18,6 +19,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     customCss,
     ...rest
   } = block;
+   const theme = useTheme()
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -40,7 +42,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         backgroundColor,
         textAlign: alignment as TextAlign,
         border: `1px dashed ${
-          isSelected && block.parentId ? "#006E75" : "transparent"
+          isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
         // borderRadius: 10,
         ...convertedStyle,

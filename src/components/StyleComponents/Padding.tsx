@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { CustomInput } from "@components/lib";
 import { Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
@@ -50,6 +50,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
   mainLabel,
   containerStylePopUp,
 }) => {
+  const theme = useTheme()
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const popupRef = useClickOutside(() => setIsPopupOpen(false));
@@ -123,7 +124,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
       />
 
       <ToggleButton onClick={() => setIsPopupOpen(!isPopupOpen)}>
-        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} svgStyle={{width:"32px" , height:"32px"}} />
+        <SvgIcon name={CUSTOM_SVG_ICON.PaddingExpand} svgStyle={{width:"32px" , height:"32px", color: theme.colors.primary}} />
       </ToggleButton>
 
       {isPopupOpen && (

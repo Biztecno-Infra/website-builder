@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { TextAlign, ButtonBlockProps } from "../../types";
 import Droppable from "../Droppable";
 import { convertStringtoStyle } from "@utils/index";
+import { useTheme } from "styled-components";
 
 const CustomButton: React.FC<{
   buttonText?: string;
@@ -82,6 +83,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     height,
     ...rest
   } = block;
+   const theme = useTheme()
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -102,7 +104,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         paddingLeft: padding?.left,
         backgroundColor: backgroundColor,
         textAlign: alignment as TextAlign,
-        border: `1px dashed ${isSelected && block.parentId ? "#006E75" : "transparent"}`,
+        border: isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none",
         // borderRadius: 10,
         ...convertedStyle,
         ...rest

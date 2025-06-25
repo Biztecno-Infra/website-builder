@@ -137,7 +137,7 @@ export interface GridProps extends BaseBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
-  responsive?: true;
+  responsive?: boolean;
 }
 
 export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;
@@ -181,16 +181,15 @@ export interface GlobalStyles {
   textColor: string;
   fontFamily: string;
   padding: Padding;
-}
+  borderRadius?: number;
+  borderColor: string;
+  borderWidth?: number;
+  borderStyle?: string;}
 
 export interface RootLayout {
   type: string;
   data: {
-    style: {
-      canvasColor: string;
-      textColor: string;
-      fontFamily: string;
-    };
+    style: GlobalStyles;
     childrenIds: string[];
   };
 }

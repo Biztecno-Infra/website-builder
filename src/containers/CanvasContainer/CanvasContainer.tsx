@@ -17,9 +17,10 @@ interface TableWrapperProps {
   $isMobile: boolean;
 }
 
-const BlockWrapper = styled.div<{ $isSelected: boolean }>`
+const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
-  border: ${({ $isSelected }) => ($isSelected ? "1px dashed #006E75" : "none")};
+  border: ${({ $isSelected, theme }) =>
+    $isSelected ? `1px dashed ${theme.colors.primary}` : "none"};
   position: relative;
 `;
 
@@ -50,7 +51,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
     background-color: ${({ $canvasColor }) => $canvasColor};
     font-family: ${({ $canvasFont }) => $canvasFont};
     color: ${({ $canvasFontColor }) => $canvasFontColor};
-    border-collapse: collapse;
+    // border-collapse: collapse;
     table-layout: fixed;
     width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
     max-width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
@@ -71,7 +72,7 @@ const Canvas = () => {
     onDeleteBlock,
     globalStyles,
     selectedView,
-    canvasRef
+    canvasRef,
   } = useBlockHook();
 
   const theme = useTheme();
@@ -84,13 +85,13 @@ const Canvas = () => {
     [handleDropper]
   );
 
-
   const renderBlock = (blockId: string, index: number) => {
     return (
       <BlockWrapper
         key={blockId}
         id={blockId}
         $isSelected={blockId === (selectedBlock as Block)?.id}
+        theme={theme}
       >
         <BlockComponent blockId={blockId} />
         {blockId === (selectedBlock as Block)?.id && (
@@ -138,7 +139,6 @@ const Canvas = () => {
       }}
       onClick={() => setSelectedBlock(null)}
     >
-
       <CanvasDropable>
         <div
           style={{
@@ -156,9 +156,17 @@ const Canvas = () => {
               $canvasPadding={globalStyles.padding}
               $isMobile={selectedView === ScreenViews.MOBILE}
               ref={canvasRef}
+              style={{
+                border: globalStyles.borderWidth
+                  ? `${globalStyles.borderWidth}px ${globalStyles.borderStyle} ${globalStyles.borderColor}`
+                  : "none",
+                borderRadius: globalStyles.borderRadius
+                  ? `${globalStyles.borderRadius}px`
+                  : "0",
+              }}
             >
               <tbody>
-                <tr style={{padding: 0}}>
+                <tr style={{ padding: 0 }}>
                   <td
                     style={{
                       paddingTop: globalStyles?.padding?.top,
@@ -173,7 +181,10 @@ const Canvas = () => {
               </tbody>
             </TableWrapper>
           ) : (
-            <EmptyBlock text="Drag & drop elements here to start building " />
+            <EmptyBlock
+              theme={theme!}
+              text="Drag & drop elements here to start building "
+            />
           )}
         </div>
       </CanvasDropable>

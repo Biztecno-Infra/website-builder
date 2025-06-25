@@ -41,6 +41,10 @@ export const initialGlobalStyle: GlobalStyles = {
   textColor: defaultTextColor,
   fontFamily: defaultFont,
   padding: defaultPadding,
+  borderColor: "", 
+  borderRadius: 0,
+  borderWidth: 0, 
+  borderStyle: "none",
 };
 
 export const getDefaultBlockProperties = (blockType: BlockType) => {
@@ -60,7 +64,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
-      responsive : false
+      responsive : true
     };
   } else if (blockType === BlockType.IMAGE) {
     return {

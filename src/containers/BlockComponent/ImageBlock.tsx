@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import { TextAlign, ImageBlockProps } from "../../types";
 import Droppable from "../Droppable";
 import { convertStringtoStyle } from "@utils/index";
+import { useTheme } from "styled-components";
 
 interface CustomImageProps {
   imageUrl?: string;
@@ -56,6 +57,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
     customCss,
     ...rest
   } = block;
+   const theme = useTheme()
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -81,7 +83,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         borderRadius: borderRadius ? `${borderRadius}px` : "none",
         border:
           isSelected && block.parentId
-            ? "1px dashed #006E75"
+            ? `1px dashed ${theme.colors.primary}`
             : borderWidth
             ? `${borderWidth}px ${borderStyle} ${borderColor}`
             : "1px solid transparent",

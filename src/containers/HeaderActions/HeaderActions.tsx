@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { ButtonComponent } from "@components/lib";
 import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
 import ExportModal from "@components/Modals/ExportModal";
@@ -39,6 +39,7 @@ interface Props {
 }
 
 function HeaderActions({ onExport , onImport }: Props) {
+  const theme = useTheme()
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<{
@@ -96,6 +97,7 @@ function HeaderActions({ onExport , onImport }: Props) {
             marginRight: "10px",
             padding: "0.5rem",
             borderRadius: "5px",
+            color: selectedView === ScreenViews.DESKTOP ? theme.colors.primary : "#8A8A8A",
           }}
           bgColor={selectedView === ScreenViews.DESKTOP ? "#CCE2E3" : ""}
         />
@@ -106,6 +108,7 @@ function HeaderActions({ onExport , onImport }: Props) {
             cursor: "pointer",
             padding: "0.5rem",
             borderRadius: "5px",
+            color: selectedView === ScreenViews.MOBILE ? theme.colors.primary : "#8A8A8A",
           }}
           bgColor={selectedView === ScreenViews.MOBILE ? "#CCE2E3" : ""}
         />
@@ -113,7 +116,7 @@ function HeaderActions({ onExport , onImport }: Props) {
       <RightActions>
         <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
-        {/* <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/> */}
+        <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/>
 
 
         {/* <CustomDropdownButton

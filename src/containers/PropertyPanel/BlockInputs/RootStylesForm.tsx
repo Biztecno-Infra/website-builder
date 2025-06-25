@@ -6,6 +6,7 @@ import { Dropdown, ReactColorPicker } from "@components/lib";
 import { fontOptions } from "../constant";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow } from "../style";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 
 interface GlobalStylesFormProps {
   globalStyles: GlobalStyles;
@@ -26,19 +27,27 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
-    padding: initialPadding
+    padding: initialPadding,
+    borderColor: initialBorderColor = "",
+    borderWidth: initialBorderWidth = 0,
+    borderRadius: initialBorderRadius = 0,
+    borderStyle: initialBorderStyle = "none",
   } = globalStyles;
 
   const [styles, setStyles] = useState({
     canvasColor: initialCanvasColor,
     textColor: initialTextColor,
     fontFamily: initialFontFamily,
-    padding: initialPadding
+    padding: initialPadding,
+    borderColor: initialBorderColor,
+    borderWidth: initialBorderWidth,
+    borderRadius: initialBorderRadius,
+    borderStyle: initialBorderStyle,
   });
 
   // Effect to update the state when globalStyles changes
   useEffect(() => {
-    setStyles(globalStyles);
+    setStyles(globalStyles as any);
   }, [globalStyles]);
 
   // Common change handler
@@ -81,6 +90,31 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             containerStylePopUp={{ width: "45%", paddingLeft: "1rem" }}
           />
         </FlexRow>
+      </BasePropertyWrapper>
+
+      <BasePropertyWrapper
+        name="Border Properties"
+        subLabel
+        containerStyle={{
+          border: "none",
+          padding: 0,
+          width: "95%",
+          marginTop: "0.5rem",
+          marginLeft: "0.5rem",
+        }}
+      >
+        <BorderStyleDropdown
+          onChange={handleChange}
+          borderWidth={styles.borderWidth}
+          borderStyle={styles.borderStyle}
+          borderColor={styles.borderColor}
+          borderRadius={styles.borderRadius}
+          containerStyle={{
+            border: "1px solid #DDDDDD",
+            borderRadius: "10px",
+            padding: "0.5rem",
+          }}
+        />
       </BasePropertyWrapper>
     </FormWrapper>
   );

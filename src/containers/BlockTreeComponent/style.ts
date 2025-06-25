@@ -31,7 +31,7 @@ export const BlockContentText = styled.div`
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: #0B978E;
+  color: ${({ theme }) => theme.colors.primary}; // changed to use theme primary color
   width: 100%;
   padding: 0.75rem 0.5rem;
   &:hover {

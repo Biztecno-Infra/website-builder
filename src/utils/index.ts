@@ -357,7 +357,7 @@ export const defaultTheme: Theme = {
     background: "white",
     padding: "5px",
     textAlign: "center",
-    border: "1px solid #0B978E",
+    border: "1px",
     borderRadius: "10px",
     marginBottom: "10px",
     cursor: "pointer",

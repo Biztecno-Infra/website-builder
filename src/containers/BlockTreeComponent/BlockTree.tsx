@@ -146,7 +146,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
         <ChildNodesContainer>
           {(block as GridProps)?.childBlocks.map(renderChildNodes)}
           {(block as GridProps)?.childBlocks.length === 0 && (
-            <EmptyTreeNode id={block.id} />
+            <EmptyTreeNode id={block.id} theme={theme} />
           )}
         </ChildNodesContainer>
       )}
@@ -155,7 +155,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
 });
 
 const EmptyTreeNodeContainer = styled(Droppable)`
-  border: 1px dashed #006E75;
+  border: 1px dashed ${({ theme }) => theme.colors.primary};
   display: flex;
   justify-content: center;
   align-items: center;
@@ -166,7 +166,7 @@ const EmptyTreeNodeContainer = styled(Droppable)`
   font-size: 11px;
 `;
 
-const EmptyTreeNode = ({ id }: { id: string }) => {
+const EmptyTreeNode = ({ id , theme}: { id: string , theme: any}) => {
   const { handleDropper } = useBlockHook();
 
   const handleDrop = useCallback(
@@ -177,7 +177,7 @@ const EmptyTreeNode = ({ id }: { id: string }) => {
   );
 
   return (
-    <EmptyTreeNodeContainer accept="TREE_BLOCK" onDrop={handleDrop}>
+    <EmptyTreeNodeContainer accept="TREE_BLOCK" onDrop={handleDrop} theme={theme}>
       Drag and drop a layer here
     </EmptyTreeNodeContainer>
   );
@@ -199,6 +199,7 @@ const ScrollHead = styled.div`
 `
 
 const NodeTree = () => {
+  const theme = useTheme();
   const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles, selectedBlock } =
     useBlockHook();
 
@@ -218,11 +219,7 @@ const NodeTree = () => {
     const rootBlock: RootLayout = {
       type: "EmailLayout",
       data: {
-        style: {
-          canvasColor: globalStyles?.canvasColor,
-          textColor: globalStyles?.textColor,
-          fontFamily: globalStyles?.fontFamily,
-        },
+        style: globalStyles,
         childrenIds: rootBlockOrder,
       },
     };
@@ -237,7 +234,7 @@ const NodeTree = () => {
           <SvgIcon
             name={CUSTOM_SVG_ICON.GlobalSettings}
             size={SizeEnum.Small}
-            svgStyle={{ width: "20%" }}
+            svgStyle={{ width: "20%" , color: theme.colors.primary }}
           />
           <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
             Global Settings

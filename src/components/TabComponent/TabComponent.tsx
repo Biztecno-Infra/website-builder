@@ -1,7 +1,8 @@
-import React from "react";
-import styled from "styled-components";
+import React, { use } from "react";
+import styled, { useTheme } from "styled-components";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
+import { Theme } from "types";
 
 const TabMenu = styled.div`
   display: flex;
@@ -11,11 +12,11 @@ const TabMenu = styled.div`
   width: 4rem;
 `;
 
-const TabMenuItem = styled.div<{ $active: boolean }>`
+const TabMenuItem = styled.div<{ $active: boolean , theme: Theme }>`
   cursor: pointer;
-  color: ${({ $active }) => ($active ? "#006E75" : "#8A8A8A")};
+  color: ${({ $active , theme }) => ($active ? theme.colors.primary : "#8A8A8A")};
   background-color: ${({ $active }) => ($active ? "#F5F5F5" : "transparent")};
-  border-right: ${({ $active }) => ($active ? "4px solid #006E75" : "none")};
+  border-right: ${({ $active , theme }) => ($active ? `4px solid ${theme.colors.primary}` : "none")};
   height: 3rem;
   display: flex;
   justify-content: center;
@@ -37,6 +38,7 @@ const TabComponent: React.FC<TabProps> = ({
   onTabChange,
   tabs,
 }) => {
+const theme = useTheme();
   return (
     <TabMenu>
       {tabs.map((tab, index) => (
@@ -44,6 +46,7 @@ const TabComponent: React.FC<TabProps> = ({
           key={index}
           $active={activeIndex === index}
           onClick={() => onTabChange(index)}
+          theme={theme}
         >
           <SvgIcon name={tab.label} size={SizeEnum.Medium} />
         </TabMenuItem>
