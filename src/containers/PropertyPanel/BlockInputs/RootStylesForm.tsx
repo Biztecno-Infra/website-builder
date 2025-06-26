@@ -85,7 +85,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             containerStyle={{ width: "53%" }}
           />
           <PaddingInput
-            padding={styles.padding}
+            padding={styles?.padding}
             onChange={(padding: any) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%", paddingLeft: "1rem" }}
           />

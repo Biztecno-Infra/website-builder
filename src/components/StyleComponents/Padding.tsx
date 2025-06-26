@@ -45,7 +45,7 @@ const Popup = styled.div`
   justify-content: space-around;
 `;
 export const PaddingInput: React.FC<PaddingProps> = ({
-  padding,
+  padding = { top: 0, right: 0, bottom: 0, left: 0 },
   onChange,
   mainLabel,
   containerStylePopUp,
@@ -56,7 +56,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
   const popupRef = useClickOutside(() => setIsPopupOpen(false));
 
   useEffect(() => {
-    const { top, right, bottom, left } = padding;
+    const { top, right, bottom, left } = padding || {};
     if (top === right && right === bottom && bottom === left) {
       if (
         padding.top !== padding.right ||
@@ -71,7 +71,7 @@ export const PaddingInput: React.FC<PaddingProps> = ({
         });
       }
     }
-  }, [padding.top, padding.right, padding.bottom, padding.left, onChange]);
+  }, [padding?.top, padding?.right, padding?.bottom, padding?.left, onChange]);
 
   const handlePaddingChange = (side: string, value: number) => {
     onChange({
