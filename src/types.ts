@@ -226,6 +226,10 @@ export interface IBlockContext {
   setSelectedView: any;
   handleImportTemplates: any;
   canvasRef: any;
+  undo : () => void;
+  redo : () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   // captureScreenshot: any
 }
 export interface BlockHookRef {

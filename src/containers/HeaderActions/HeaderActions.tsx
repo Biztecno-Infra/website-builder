@@ -53,7 +53,11 @@ function HeaderActions({ onExport , onImport }: Props) {
     setSelectedView,
     handleJsonUpload,
     blocksToJson, 
-    handleImportTemplates
+    handleImportTemplates , 
+      undo,
+  redo,
+  canRedo , 
+  canUndo
   } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
@@ -114,6 +118,9 @@ function HeaderActions({ onExport , onImport }: Props) {
         />
       </LeftActions>
       <RightActions>
+<ButtonComponent $buttonPrimary handleClick={undo} disabled={!canUndo} text="Undo" />
+<ButtonComponent $buttonPrimary handleClick={redo} disabled={!canRedo} text="Redo" />
+
         <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
         {/* <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/> */}
