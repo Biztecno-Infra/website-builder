@@ -99,7 +99,7 @@ export const jsonToBlocks = (
       type: layoutBlock.type,
       parentId: parentId || null,
       childBlocks: [],
-      layerName: layoutBlock.data.props?.layerName || "",
+      layerName: layoutBlock?.layerName || "",
     };
 
     switch (block.type) {

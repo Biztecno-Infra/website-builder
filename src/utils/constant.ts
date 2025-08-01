@@ -41,9 +41,9 @@ export const initialGlobalStyle: GlobalStyles = {
   textColor: defaultTextColor,
   fontFamily: defaultFont,
   padding: defaultPadding,
-  borderColor: "", 
+  borderColor: "",
   borderRadius: 0,
-  borderWidth: 0, 
+  borderWidth: 0,
   borderStyle: "none",
 };
 
@@ -64,7 +64,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
-      responsive : true
+      responsive: true,
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -96,7 +96,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundImage: "",
       backgroundSize: "cover",
       backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",    
+      backgroundRepeat: "no-repeat",
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -170,10 +170,10 @@ export const generateTextBlock = (block: TextProps) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
@@ -197,12 +197,12 @@ export const generateTextBlock = (block: TextProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: textStyle,
       props: {
         text: text || "",
         navigateToUrl,
-        layerName: block.layerName || "",
       },
     },
   };
@@ -240,13 +240,13 @@ export const generateImageBlock = (block: ImageProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: imageStyle,
       props: {
         imageUrl,
         altText,
         navigateToUrl,
-        layerName: block.layerName || "",
       },
     },
   };
@@ -286,13 +286,13 @@ export const generateButtonBlock = (block: ButtonProps) => {
   };
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: buttonStyle,
       props: {
         text: buttonText,
         navigateToUrl,
         textAlign: alignment,
-        layerName: block.layerName || "",
       },
     },
   };
@@ -321,10 +321,10 @@ export const generateGridBlock = (block: GridProps) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
@@ -340,6 +340,8 @@ export const generateGridBlock = (block: GridProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
+
     data: {
       style: gridStyle,
       props: {
@@ -347,7 +349,6 @@ export const generateGridBlock = (block: GridProps) => {
         columns: columns || 2,
         cellWidths: cellWidths || [50, 50],
         responsive,
-        layerName: block.layerName || "",
       },
     },
   };
@@ -356,10 +357,8 @@ export const generateGridBlock = (block: GridProps) => {
 export const generateGridCellBlock = (block: IGridCellProps) => {
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
-      props: {
-        layerName: block.layerName || "",
-      },
       style: {
         padding: block.padding,
         backgroundColor: block.backgroundColor,
@@ -382,10 +381,9 @@ export const generateDividerBlock = (block: DividerProps) => {
 
   return {
     type: type,
+    layerName: block.layerName || "",
+
     data: {
-       props: {
-        layerName: block.layerName || "",
-      },
       style: {
         padding,
         backgroundColor,
@@ -402,10 +400,8 @@ export const generateSpacerBlock = (block: SpacerProps) => {
   const { alignment, backgroundColor, padding, type, customCss } = block || {};
   return {
     type: type,
+    layerName: block.layerName || "",
     data: {
-       props: {
-        layerName: block.layerName || "",
-      },
       style: {
         padding,
         backgroundColor,
