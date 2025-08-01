@@ -41,6 +41,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundRepeat , 
     backgroundSize,
     id: blockId,
+    aliasName
   } = selectedBlock as TextProps;
 
   const [formData, setFormData] = useState({
@@ -59,6 +60,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundPosition , 
     backgroundRepeat , 
     backgroundSize,
+    aliasName
   });
 
   useEffect(() => {
@@ -77,7 +79,8 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       lineHeight,
       backgroundPosition , 
       backgroundRepeat , 
-      backgroundSize
+      backgroundSize, 
+      aliasName
     });
   }, [selectedBlock]);
 
@@ -95,6 +98,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Text">
+        <CustomInput
+        name="aliasName"
+        placeholder="Enter Alias Name"
+        value={aliasName || ""}
+        onChange={handleChange}
+      />
+     
         <TextArea
           name="content"
           placeholder="Enter Content"

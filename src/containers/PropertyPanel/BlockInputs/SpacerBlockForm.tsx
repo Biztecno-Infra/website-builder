@@ -4,7 +4,7 @@ import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow, FormWrapper } from "../style";
-import { ReactColorPicker, TextArea } from "@components/lib";
+import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -15,12 +15,14 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
     backgroundColor,
     padding,
     customCss,
+    aliasName,
   } = selectedBlock as SpacerProps;
 
   const [formData, setFormData] = useState({
     backgroundColor,
     padding,
     customCss,
+    aliasName,
   });
 
   useEffect(() => {
@@ -28,11 +30,11 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
       backgroundColor,
       padding,
       customCss,
+      aliasName,
     });
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {
-
     setFormData((prevData) => {
       const updatedData = { ...prevData, [property]: value };
       updateBlock(blockId, property, value);
@@ -43,6 +45,12 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Spacer">
+        <CustomInput
+          name="aliasName"
+          placeholder="Enter Alias Name"
+          value={aliasName || ""}
+          onChange={handleChange}
+        />
         <FlexRow>
           <ReactColorPicker
             onColorChange={(field, value) =>

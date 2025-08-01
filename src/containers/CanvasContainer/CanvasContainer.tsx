@@ -7,6 +7,7 @@ import styled, { useTheme } from "styled-components";
 import { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
+import { useDrag, useDrop } from "react-dnd";
 
 // import domtoimage from "dom-to-image";
 interface TableWrapperProps {
@@ -73,6 +74,7 @@ const Canvas = () => {
     globalStyles,
     selectedView,
     canvasRef,
+    blocks,
   } = useBlockHook();
 
   const theme = useTheme();
@@ -85,16 +87,94 @@ const Canvas = () => {
     [handleDropper]
   );
 
-  const renderBlock = (blockId: string, index: number) => {
+  // const renderBlock = (blockId: string, index: number) => {
+  //   return (
+  //     <BlockWrapper
+  //       key={blockId}
+  //       id={blockId}
+  //       $isSelected={blockId === (selectedBlock as Block)?.id}
+  //       theme={theme}
+  //     >
+  //       <BlockComponent blockId={blockId} />
+  //       {blockId === (selectedBlock as Block)?.id && (
+  //         <TrashIconWrapper
+  //           onClick={(e) => {
+  //             e.stopPropagation();
+  //             onDeleteBlock(blockId);
+  //             setSelectedBlock(null);
+  //           }}
+  //         >
+  //           <DeleteWrapper>
+  //             <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+  //           </DeleteWrapper>
+  //         </TrashIconWrapper>
+  //       )}
+  //     </BlockWrapper>
+  //   );
+  // };
+
+  // useEffect(() => {
+  //   if (typeof onSave === "function") {
+  //     const handleCaptureScreenshot = async () => {
+  //       const screenshot = await captureScreenshot();
+  //       onSave(screenshot); // Send the screenshot file back to onSave callback
+  //     };
+
+  //     handleCaptureScreenshot();
+  //   }
+  // }, [onSave]); // T
+
+  const DraggableBlock = React.memo(({ blockId }: { blockId: string }) => {
+    const theme = useTheme();
+    const {
+      blocks,
+      selectedBlock,
+      setSelectedBlock,
+      onDeleteBlock,
+      handleDropper,
+    } = useBlockHook();
+    const block = blocks[blockId];
+    const blockType = block?.type;
+
+    const [{ isDragging }, drag] = useDrag({
+      type: "TREE_BLOCK",
+      item: { id: blockId },
+      collect: (monitor) => ({ isDragging: monitor.isDragging() }),
+    });
+
+    const [, drop] = useDrop({
+      accept: "TREE_BLOCK",
+      drop: (item: { id: string }) => {
+        if (item.id !== blockId) handleDropper(item, blockId);
+      },
+    });
+
+    const [isHovered, setIsHovered] = useState(false);
+
     return (
       <BlockWrapper
-        key={blockId}
-        id={blockId}
-        $isSelected={blockId === (selectedBlock as Block)?.id}
+        ref={(node) => {
+          if (node) drag(drop(node));
+        }}
+        $isSelected={(selectedBlock as Block)?.id === blockId}
         theme={theme}
+        style={{
+          opacity: isDragging ? 0.3 : 1,
+          backgroundColor: isHovered
+            ? theme.colors.hoverBg || "#f0f0f0"
+            : "transparent",
+          transition: "background-color 0.2s ease",
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
+        {isHovered && (
+          <div style={{ top: 0, position: "absolute", right: 0 }}>
+            {blockType}
+          </div>
+        )}
         <BlockComponent blockId={blockId} />
-        {blockId === (selectedBlock as Block)?.id && (
+        {(selectedBlock as Block)?.id === blockId && (
           <TrashIconWrapper
             onClick={(e) => {
               e.stopPropagation();
@@ -109,18 +189,11 @@ const Canvas = () => {
         )}
       </BlockWrapper>
     );
-  };
+  });
 
-  // useEffect(() => {
-  //   if (typeof onSave === "function") {
-  //     const handleCaptureScreenshot = async () => {
-  //       const screenshot = await captureScreenshot();
-  //       onSave(screenshot); // Send the screenshot file back to onSave callback
-  //     };
-
-  //     handleCaptureScreenshot();
-  //   }
-  // }, [onSave]); // T
+  const renderBlock = (blockId: string) => (
+    <DraggableBlock key={blockId} blockId={blockId} />
+  );
 
   return (
     <Droppable

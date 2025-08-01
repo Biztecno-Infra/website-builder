@@ -8,9 +8,10 @@ import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "enum";
-import { convertJsonToHtml } from "email-builder-utils";
+// import { convertJsonToHtml } from "email-builder-utils";
 import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
 import PerviewTemplateModal from "@components/Modals/PerviewTemplateModal";
+import { convertJsonToHtml } from "@utils/jsonToHtml";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -82,6 +83,7 @@ function HeaderActions({ onExport , onImport }: Props) {
   const handleExport = async (format: 'JSON' | 'HTML') => {
     const convertedData = format === 'JSON' ? blocksToJson() : await convertJsonToHtml(blocksToJson());
     if (typeof onExport === "function") {
+      console.log("Exporting data:", convertedData);
       onExport(format, convertedData);
     }
   };
