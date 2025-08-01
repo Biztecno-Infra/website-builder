@@ -1,4 +1,4 @@
-import React, { JSX, useCallback, useMemo, useState } from "react";
+import React, { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { BlockType } from "email-builder-utils";
 import { GridProps, RootLayout } from "../../types";
@@ -35,11 +35,28 @@ const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null>
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
   [BlockType.EMAILLAYOUT]: null,
 });
+function isDescendant(blocks: Record<string, any>, ancestorId: string, targetId: string): boolean {
+  const visited = new Set();
 
+  function dfs(currentId: string): boolean {
+    if (visited.has(currentId)) return false;
+    visited.add(currentId);
+
+    const block = blocks[currentId];
+    if (!block || !block.childBlocks) return false;
+
+    if (block.childBlocks.includes(targetId)) return true;
+
+    return block.childBlocks.some((childId: string) => dfs(childId));
+  }
+
+  return dfs(ancestorId);
+}
 const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+    const nodeRef = useRef<HTMLDivElement | null>(null);
 
   const { blocks, handleDropper, setSelectedBlock } = useBlockHook();
 
@@ -106,15 +123,24 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   );
 
   const blockTypeIcons = getBlockTypeIcons(theme?.color?.buttonPrimary);
-
+useEffect(() => {
+  if (selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id)) {
+    setIsExpanded(true);
+  }
+}, [selectedBlock?.id, blockId, blocks]);
+ const isSelected = selectedBlock?.id === blockId;
   return (
     <BlockContainer
       ref={(node) => {
+        nodeRef.current = node;
         if (node) drag(drop(node));
       }}
       $isDragging={isDragging}
       $isSelected={selectedBlock?.id === blockId}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
+      style={{
+  border: isSelected ? "1px solid red" : "none",
+}}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
