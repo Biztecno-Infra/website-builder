@@ -202,6 +202,7 @@ export const generateTextBlock = (block: TextProps) => {
       props: {
         text: text || "",
         navigateToUrl,
+        layerName: block.layerName || "",
       },
     },
   };
@@ -245,6 +246,7 @@ export const generateImageBlock = (block: ImageProps) => {
         imageUrl,
         altText,
         navigateToUrl,
+        layerName: block.layerName || "",
       },
     },
   };
@@ -290,6 +292,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
         text: buttonText,
         navigateToUrl,
         textAlign: alignment,
+        layerName: block.layerName || "",
       },
     },
   };
@@ -343,7 +346,8 @@ export const generateGridBlock = (block: GridProps) => {
         rows: rows || 1,
         columns: columns || 2,
         cellWidths: cellWidths || [50, 50],
-        responsive
+        responsive,
+        layerName: block.layerName || "",
       },
     },
   };
@@ -353,6 +357,9 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
   return {
     type: block.type,
     data: {
+      props: {
+        layerName: block.layerName || "",
+      },
       style: {
         padding: block.padding,
         backgroundColor: block.backgroundColor,
@@ -376,6 +383,9 @@ export const generateDividerBlock = (block: DividerProps) => {
   return {
     type: type,
     data: {
+       props: {
+        layerName: block.layerName || "",
+      },
       style: {
         padding,
         backgroundColor,
@@ -393,6 +403,9 @@ export const generateSpacerBlock = (block: SpacerProps) => {
   return {
     type: type,
     data: {
+       props: {
+        layerName: block.layerName || "",
+      },
       style: {
         padding,
         backgroundColor,
