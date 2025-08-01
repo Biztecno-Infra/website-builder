@@ -43,7 +43,8 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderRadius,
     navigateToUrl,
     customCss,
-    id: blockId
+    id: blockId,
+    aliasName,
   } = selectedBlock as ImageProps;
 
   const [formData, setFormData] = useState({
@@ -60,6 +61,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderRadius,
     customCss,
     navigateToUrl,
+    aliasName,
   });
 
   useEffect(() => {
@@ -77,6 +79,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       borderRadius,
       customCss,
       navigateToUrl,
+      aliasName,
     });
   }, [selectedBlock]);
 
@@ -111,7 +114,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   //     }
   //   };
   //   loadImageDimensions();
-  // }, []); 
+  // }, []);
 
   const handleImageUrlChange = async (value: string) => {
     setFormData((prev) => ({ ...prev, imageUrl: value }));
@@ -143,6 +146,12 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Image">
+        <CustomInput
+          name="aliasName"
+          placeholder="Enter Alias Name"
+          value={aliasName || ""}
+          onChange={handleChange}
+        />
         <CustomInput
           name="imageUrl"
           placeholder="Add Image URL"
@@ -187,7 +196,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               padding: 2,
-              width: "45%"
+              width: "45%",
             }}
             inputStyle={{ width: "35%" }}
           />
@@ -206,7 +215,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "45%",
               marginLeft: "1rem",
-              padding: 2
+              padding: 2,
             }}
             inputStyle={{ width: "35%" }}
           />
@@ -236,7 +245,12 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ border: "none", padding: 0, width: "95%", marginTop: "0.5rem" }}
+          containerStyle={{
+            border: "none",
+            padding: 0,
+            width: "95%",
+            marginTop: "0.5rem",
+          }}
         >
           <BorderStyleDropdown
             onChange={handleChange}
