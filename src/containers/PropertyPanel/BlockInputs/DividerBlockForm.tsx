@@ -20,6 +20,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     dividerColor,
     customCss,
     id: blockId,
+    layerName
   } = selectedBlock as DividerProps;
 
   const [formData, setFormData] = useState({
@@ -28,7 +29,8 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     alignment,
     padding,
     dividerColor,
-    customCss
+    customCss , 
+    layerName
   });
 
   useEffect(() => {
@@ -38,7 +40,8 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
       alignment,
       padding,
       dividerColor,
-      customCss
+      customCss, 
+      layerName
     });
   }, [selectedBlock]);
 
@@ -54,6 +57,16 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Divider">
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
         <FlexRow>
           <ReactColorPicker
             onColorChange={(field, value) =>
@@ -70,10 +83,10 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             type="number"
             onChange={(name, value) => handleChange("thickness", Number(value))}
             iconProps={{
-              name: CUSTOM_SVG_ICON.ImageHeight
+              name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             unitsLabel="px"
-            containerStyle={{ width: "40%",  }}
+            containerStyle={{ width: "40%" }}
             checkLessThanOne
           />
         </FlexRow>

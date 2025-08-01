@@ -134,7 +134,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
             <BlockText style={{ width: "20%" }}>
               {blockTypeIcons[block?.type as BlockType]}
             </BlockText>
-            <div style={{ fontSize: "12px", width: "80%" }}>{block?.type}</div>
+            <div style={{ fontSize: "12px", width: "80%" }}>{block?.layerName ||  block?.type}</div>
           </BlockTextIcon>
           {isHovered && (
             <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />

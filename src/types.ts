@@ -14,6 +14,7 @@ interface ICoreBlock {
   type: BlockType;
   parentId?: string | null;
   childBlocks: Array<string>;
+  layerName?: string;
 }
 
 
