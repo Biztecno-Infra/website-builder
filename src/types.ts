@@ -14,7 +14,7 @@ interface ICoreBlock {
   type: BlockType;
   parentId?: string | null;
   childBlocks: Array<string>;
-  aliasName: string;
+  layerName?: string;
 }
 
 

@@ -30,7 +30,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     backgroundSize,
     responsive,
     id: blockId,
-    aliasName,
+    layerName,
   } = selectedBlock as GridProps;
 
   const [formData, setFormData] = useState({
@@ -49,7 +49,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     backgroundRepeat,
     backgroundSize,
     responsive,
-    aliasName,
+    layerName,
   });
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
       backgroundRepeat,
       backgroundSize,
       responsive,
-      aliasName,
+      layerName,
     });
   }, [selectedBlock]);
 
@@ -96,13 +96,17 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Columns">
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
         <FlexRow>
-          <CustomInput
-            name="aliasName"
-            placeholder="Enter Alias Name"
-            value={aliasName || ""}
-            onChange={handleChange}
-          />
           <CustomInput
             name="columns"
             placeholder="Cols"

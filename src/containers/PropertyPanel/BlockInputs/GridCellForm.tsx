@@ -5,26 +5,33 @@ import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { defaultGridPadding } from "@utils/constant";
 import { FlexRow } from "../style";
-import { ReactColorPicker } from "@components/lib";
+import { CustomInput, ReactColorPicker } from "@components/lib";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { padding: initialPadding, backgroundColor, verticalAlign } = selectedBlock as IGridCellProps;
+  const {
+    padding: initialPadding,
+    backgroundColor,
+    verticalAlign,
+    layerName,
+  } = selectedBlock as IGridCellProps;
 
   const [formData, setFormData] = useState({
     padding: initialPadding || defaultGridPadding,
     backgroundColor,
-    verticalAlign
+    verticalAlign,
+    layerName,
   });
 
   useEffect(() => {
-    setFormData(({
+    setFormData({
       padding: initialPadding || defaultGridPadding,
       backgroundColor,
-      verticalAlign
-    }));
+      verticalAlign,
+      layerName,
+    });
   }, [selectedBlock]);
 
   const handleChange = (field: string, value: any) => {
@@ -36,10 +43,22 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
   };
 
   return (
-    <BasePropertyWrapper name="Edit Column" containerStyle={{ border: 'none' }}>
+    <BasePropertyWrapper name="Edit Column" containerStyle={{ border: "none" }}>
+      <CustomInput
+        name="layerName"
+        placeholder="Enter Layer Name"
+        value={formData.layerName || ""}
+        onChange={(name, value) => handleChange("layerName", value)}
+        containerStyle={{
+          width: "100%",
+          marginBottom: "10px",
+        }}
+      />
       <FlexRow>
         <ReactColorPicker
-          onColorChange={(field, value) => handleChange("backgroundColor", value)}
+          onColorChange={(field, value) =>
+            handleChange("backgroundColor", value)
+          }
           label={"Select Background color"}
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "53%" }}
@@ -58,4 +77,3 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
     </BasePropertyWrapper>
   );
 };
-

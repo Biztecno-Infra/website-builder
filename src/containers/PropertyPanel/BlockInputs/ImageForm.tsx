@@ -44,7 +44,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     navigateToUrl,
     customCss,
     id: blockId,
-    aliasName,
+    layerName
   } = selectedBlock as ImageProps;
 
   const [formData, setFormData] = useState({
@@ -61,7 +61,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     borderRadius,
     customCss,
     navigateToUrl,
-    aliasName,
+    layerName
   });
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       borderRadius,
       customCss,
       navigateToUrl,
-      aliasName,
+      layerName
     });
   }, [selectedBlock]);
 
@@ -147,10 +147,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     <FormWrapper>
       <BasePropertyWrapper name="Edit Image">
         <CustomInput
-          name="aliasName"
-          placeholder="Enter Alias Name"
-          value={aliasName || ""}
-          onChange={handleChange}
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
         />
         <CustomInput
           name="imageUrl"

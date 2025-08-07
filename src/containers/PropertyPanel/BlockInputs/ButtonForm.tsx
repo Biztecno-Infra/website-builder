@@ -6,7 +6,12 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
-import { CustomInput, TextArea, Dropdown, ReactColorPicker } from "@components/lib";
+import {
+  CustomInput,
+  TextArea,
+  Dropdown,
+  ReactColorPicker,
+} from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
@@ -45,6 +50,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     width,
     height,
     customCss,
+    layerName,
   } = selectedBlock as ButtonProps;
 
   const [formData, setFormData] = useState({
@@ -66,6 +72,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     buttonPadding,
     width,
     height,
+    layerName,
   });
 
   useEffect(() => {
@@ -88,6 +95,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
       buttonPadding,
       width,
       height,
+      layerName,
     });
   }, [selectedBlock]);
 
@@ -105,6 +113,16 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         name="Edit Button Text"
         containerStyle={{ padding: "1rem" }}
       >
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
         <CustomInput
           name="buttonText"
           placeholder="Enter button text here"
@@ -179,7 +197,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             inputStyle={{ width: "35%" }}
             containerStyle={{
               width: "40%",
-              padding: 2
+              padding: 2,
             }}
           />
           <CustomInput
@@ -198,7 +216,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "40%",
               marginLeft: "1rem",
-              padding: 2
+              padding: 2,
             }}
           />
         </WidthHeightContainer>
@@ -219,12 +237,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
-            containerStyle={{ width: "53%" , padding: 8 }}
+            containerStyle={{ width: "53%", padding: 8 }}
           />
           <PaddingInput
             padding={formData.buttonPadding}
             onChange={(value) => handleChange("buttonPadding", value)}
-            containerStylePopUp={{ width: "45%", }}
+            containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
         <BasePropertyWrapper
@@ -234,7 +252,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             border: "none",
             padding: 0,
             width: "95%",
-            marginTop: "0.5rem"
+            marginTop: "0.5rem",
           }}
         >
           <BorderStyleDropdown
