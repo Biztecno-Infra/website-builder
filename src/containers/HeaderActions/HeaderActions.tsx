@@ -85,6 +85,7 @@ function HeaderActions({ onExport , onImport }: Props) {
     if (typeof onExport === "function") {
       console.log("Exporting data:", convertedData);
       onExport(format, convertedData);
+      console.log(convertedData)
     }
   };
 
@@ -118,7 +119,7 @@ function HeaderActions({ onExport , onImport }: Props) {
       <RightActions>
         <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
-        {/* <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/> */}
+        <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/>
 
 
         {/* <CustomDropdownButton

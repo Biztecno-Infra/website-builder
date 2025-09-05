@@ -1,7 +1,5 @@
 import { Jimp } from "jimp";
 import { BlockType } from "email-builder-utils";
-
-
 interface Padding {
   top: number;
   right: number;
@@ -28,8 +26,12 @@ interface IBlockData {
   };
 }
 
-
-const addPxToAttributes = ["fontSize", "lineHeight", "borderRadius", "borderWidth"];
+const addPxToAttributes = [
+  "fontSize",
+  "lineHeight",
+  "borderRadius",
+  "borderWidth",
+];
 
 const addPxOrPerToAttributes = ["width", "height"];
 const allPxAttributes = [...addPxToAttributes, ...addPxOrPerToAttributes];
@@ -42,7 +44,9 @@ function cleanJson(obj: any): any {
 
   return Object.fromEntries(
     Object.entries(obj)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== "")
+      .filter(
+        ([_, value]) => value !== undefined && value !== null && value !== ""
+      )
       .map(([key, value]) => [key, cleanJson(value)])
   );
 }
@@ -56,7 +60,10 @@ function jsonToPlainString(obj: any): string {
     .join("");
 }
 
-function buildStyles(style: any, { pxChanges, perChanges }: { pxChanges: string[]; perChanges: string[] }) {
+function buildStyles(
+  style: any,
+  { pxChanges, perChanges }: { pxChanges: string[]; perChanges: string[] }
+) {
   if (!style) style = {};
   const stylesObj: any = {};
 
@@ -64,7 +71,10 @@ function buildStyles(style: any, { pxChanges, perChanges }: { pxChanges: string[
     if (key === "customCss") return;
     if (value === undefined || value === null || value === "") return;
 
-    if ((key === "padding" || key === "buttonPadding") && typeof value === "object") {
+    if (
+      (key === "padding" || key === "buttonPadding") &&
+      typeof value === "object"
+    ) {
       const padding = value as Padding;
       value = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
     }
@@ -80,10 +90,16 @@ function buildStyles(style: any, { pxChanges, perChanges }: { pxChanges: string[
     }
   });
 
-  return `${jsonToPlainString(cleanJson(stylesObj))}${style.customCss || ""}`.trim();
+  return `${jsonToPlainString(cleanJson(stylesObj))}${
+    style.customCss || ""
+  }`.trim();
 }
 
-export async function convertToHtml(blockData: IBlockData, rootData: any, cellWidthInPx: number) {
+export async function convertToHtml(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthInPx: number
+) {
   switch (blockData.type) {
     case BlockType.TEXT:
       return convertTextBlock(blockData);
@@ -117,7 +133,10 @@ function appendOutlookSupport(content: string, contentStyle: string) {
 function convertDividerBlockToHtml(blockData: IBlockData) {
   const { style } = blockData.data;
   const { thickness, dividerColor, ...rest } = style;
-  const convertedStyle = buildStyles(rest, { perChanges: [], pxChanges: allPxAttributes });
+  const convertedStyle = buildStyles(rest, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
 
   const dividerContent = `
     <table width="100%" cellpadding="0" cellspacing="0">
@@ -133,18 +152,29 @@ function convertDividerBlockToHtml(blockData: IBlockData) {
 
 function convertSpacerBlockToHtml(blockData: IBlockData) {
   const { style } = blockData.data;
-  const styles = buildStyles(style, { perChanges: [], pxChanges: allPxAttributes });
+  const styles = buildStyles(style, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
   return appendOutlookSupport(``, styles);
 }
 
 function convertTextBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
-  const styles = buildStyles(style, { perChanges: [], pxChanges: allPxAttributes });
+  const styles = buildStyles(style, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
   const text = props.text || "";
   const navigateToUrl = props.navigateToUrl || "";
-  const textContent = appendOutlookSupport(text.replaceAll(/\n/g, "<br>"), styles);
+  const textContent = appendOutlookSupport(
+    text.replaceAll(/\n/g, "<br>"),
+    styles
+  );
 
-  return navigateToUrl ? `<a href="${navigateToUrl}" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>` : textContent;
+  return navigateToUrl
+    ? `<a href="${navigateToUrl}" rel="noreferrer noopener" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>`
+    : textContent;
 }
 async function appendOutlookForImage(
   content: string,
@@ -180,7 +210,9 @@ async function appendOutlookForImage(
       : `stroked="false"`;
 
   const outlookImage = `<!--[if mso]>
-  <v:${useRoundRect ? "roundrect" : "rect"} xmlns:v="urn:schemas-microsoft-com:vml"
+  <v:${
+    useRoundRect ? "roundrect" : "rect"
+  } xmlns:v="urn:schemas-microsoft-com:vml"
     style="width:${scaledWidth}px;height:${scaledHeight}px;"
     ${borderAttributes}
     ${useRoundRect ? `arcsize="${arcsize}"` : ""}
@@ -218,14 +250,13 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     objectFit,
     borderStyle,
     borderRadius: borderRadius,
-    borderColor
+    borderColor,
   };
 
   // Add border styles to container for fallback clients
   const containerStyles = buildStyles(
     {
       ...containerStyle,
-
     },
     { perChanges: [], pxChanges: addPxToAttributes }
   );
@@ -237,8 +268,12 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
 
   const imageElement = `<img src="${imageUrl}" alt="${altText}" style="${imageTagStyles}" />`;
 
-  const innerContainerWidth = ((typeof width === "string" ? parseInt(width.replace("%", "")) : width) / 100) *
-    (cellWidthInPx - (style?.padding?.left || 0) - (style?.padding?.right || 0));
+  const innerContainerWidth =
+    ((typeof width === "string" ? parseInt(width.replace("%", "")) : width) /
+      100) *
+    (cellWidthInPx -
+      (style?.padding?.left || 0) -
+      (style?.padding?.right || 0));
 
   const outlookImage = await appendOutlookForImage(
     imageElement,
@@ -251,7 +286,7 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
   const imageContent = appendOutlookSupport(outlookImage, containerStyles);
 
   return navigateToUrl
-    ? `<a href="${navigateToUrl}" target="_blank" style="display:block; text-decoration:none; cursor:pointer;">${imageContent}</a>`
+    ? `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener"  style="display:block; text-decoration:none; cursor:pointer;">${imageContent}</a>`
     : imageContent;
 }
 
@@ -264,7 +299,12 @@ function appendOutlookForButton(
     borderColor?: string;
     borderWidth?: number;
     buttonColor: string;
-    buttonPadding?: { top: number; bottom: number; right: number; left: number };
+    buttonPadding?: {
+      top: number;
+      bottom: number;
+      right: number;
+      left: number;
+    };
     color?: string;
     fontFamily?: string;
     fontSize?: number;
@@ -295,12 +335,16 @@ function appendOutlookForButton(
 
   return `
 <!--[if mso]>
-<v:${borderRadius ? "roundrect" : "rect"} xmlns:v="urn:schemas-microsoft-com:vml" href="${navigateToUrl}"
+<v:${
+    borderRadius ? "roundrect" : "rect"
+  } xmlns:v="urn:schemas-microsoft-com:vml" href="${navigateToUrl}"
   style="height:${height}px;v-text-anchor:middle;width:${width}px;"
   arcsize="${borderRadius / height}" ${borderAttributes}
   fillcolor="${buttonColor}">
   <w:anchorlock/>
-  <v:textbox inset="${buttonPadding.top}px,${buttonPadding.left}px,${buttonPadding.bottom}px,${buttonPadding.right}px">
+  <v:textbox inset="${buttonPadding.top}px,${buttonPadding.left}px,${
+    buttonPadding.bottom
+  }px,${buttonPadding.right}px">
     <center style="font-family:${fontFamily};font-size:${fontSize}px;font-weight:${fontWeight};color:${color};">
       ${text}
     </center>
@@ -317,7 +361,21 @@ function appendOutlookForButton(
 function convertButtonBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { text, navigateToUrl } = props;
-  const { fontFamily, fontSize, fontWeight, borderColor, borderRadius, borderWidth, borderStyle, buttonPadding, color, buttonColor, width, height, ...rest } = style;
+  const {
+    fontFamily,
+    fontSize,
+    fontWeight,
+    borderColor,
+    borderRadius,
+    borderWidth,
+    borderStyle,
+    buttonPadding,
+    color,
+    buttonColor,
+    width,
+    height,
+    ...rest
+  } = style;
   const buttonStyle = {
     width,
     height,
@@ -332,66 +390,130 @@ function convertButtonBlock(blockData: IBlockData) {
     color,
     backgroundColor: buttonColor,
   };
-  const convertedButtonStyle = buildStyles(buttonStyle, { perChanges: [], pxChanges: allPxAttributes });
-  const convertedStyles = buildStyles(rest, { perChanges: [], pxChanges: allPxAttributes });
+  const convertedButtonStyle = buildStyles(buttonStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+  const convertedStyles = buildStyles(rest, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
 
-  const buttonElement = `<a href="${navigateToUrl}" style="display:inline-block; text-decoration:none; cursor:pointer;"><button style="${convertedButtonStyle}">${text}</button></a>`;
-  const buttonContent = appendOutlookSupport(appendOutlookForButton(buttonElement, style as any, navigateToUrl, text), convertedStyles);
+  const buttonElement = `<a href="${navigateToUrl}" rel="noreferrer noopener" style="display:inline-block; text-decoration:none; cursor:pointer;"><button style="${convertedButtonStyle}">${text}</button></a>`;
+  const buttonContent = appendOutlookSupport(
+    appendOutlookForButton(buttonElement, style as any, navigateToUrl, text),
+    convertedStyles
+  );
 
   return buttonContent;
 }
 
-async function processGridItemsInParallel(columns: any, childrenIds: any, cellWidths: any, cellWidthInPx: number, rootData: any) {
-  const gridItemPromises = [];
-  for (let colIndex = 0; colIndex < columns; colIndex++) {
-    const childId = childrenIds[colIndex];
-    const cellWidth = cellWidths ? cellWidths[colIndex] : 100 / columns;
-    const childBlockData = rootData[childId];
+async function convertGridBlock(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthInPx: number
+) {
+  const { style = {}, childrenIds = [], props } = blockData.data;
+  const { columns = 1, cellWidths = [] } = props;
+  const { columnGap = 0, ...restStyle } = style;
 
-    if (childBlockData) {
-      const gridItemPromise = convertGridCellBlock(childBlockData, rootData, cellWidth, cellWidthInPx);
-      gridItemPromises.push(gridItemPromise);
+  const tableStyles = buildStyles(restStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  const total = childrenIds.length;
+  const visualRows = Math.ceil(total / columns);
+
+  let html = `
+  <!--[if mso]>
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" style="${tableCommonStyle}">
+  <![endif]-->
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" style="${tableCommonStyle} ${tableStyles}">
+  `;
+
+  for (let r = 0; r < visualRows; r++) {
+    html += "<tr>";
+    for (let c = 0; c < columns; c++) {
+      const idx = r * columns + c;
+      const childId = childrenIds[idx];
+      const widthPercent = cellWidths[c] ?? 100 / columns;
+
+      if (childId) {
+        const child = rootData[childId];
+         const { style: cellStyle = {} } = child.data || {};
+          const verticalAlign = cellStyle.verticalAlign || "top";
+        const childHtml = child
+          ? await convertGridCellBlock(
+              child,
+              rootData,
+              widthPercent,
+              cellWidthInPx
+            )
+          : "";
+
+        html += `
+          <td
+            width="${widthPercent}%"
+            class="stack-column"
+            style="vertical-align:${verticalAlign}; padding:0; word-break:break-word;"
+          >
+            ${childHtml}
+          </td>`;
+      } else {
+        html += `<td width="${widthPercent}%" class="stack-column" style="padding:0;"></td>`;
+      }
     }
+    html += "</tr>";
   }
-  const gridItems = await Promise.all(gridItemPromises);
-  return gridItems;
+
+  html += `</table><!--[if mso]></table><![endif]-->`;
+  return html;
 }
 
-async function convertGridBlock(blockData: IBlockData, rootData: any, cellWidthInPx: number) {
-  const { style, childrenIds = [], props } = blockData.data;
-  const { columnGap, ...rest } = style;
-  const { rows, columns, cellWidths } = props;
-  const styles = buildStyles(rest, { perChanges: [], pxChanges: allPxAttributes });
-  const gridItems: any[] = await processGridItemsInParallel(columns, childrenIds, cellWidths, cellWidthInPx, rootData);
+
+async function convertGridCellBlock(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthPercent: number,
+  parentCellWidthPx: number
+) {
+  const { style = {}, childrenIds = [] } = blockData.data;
+
+  const styles = buildStyles(style, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  const innerHtmlParts: string[] = [];
+  for (const childId of childrenIds) {
+    const child = rootData[childId];
+    if (child) {
+      const cellWidthPx = parentCellWidthPx * (cellWidthPercent / 100);
+      innerHtmlParts.push(await convertToHtml(child, rootData, cellWidthPx));
+    }
+  }
+
+  const innerContent = innerHtmlParts.join("");
 
   return `
-    <table cellspacing="${columnGap}" style="width:100%; max-width:100%; ${styles}">
-      <tbody>
-        <tr>${gridItems.join("")}</tr>
-      </tbody>
-    </table>
-  `;
+    <table
+      role="presentation"
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      width="100%"
+      style="border-collapse:collapse;table-layout:fixed;${styles}"
+    >
+      <tr>
+        <td style="padding:0;">
+          ${innerContent}
+        </td>
+      </tr>
+    </table>`;
 }
-
-async function convertGridCellBlock(blockData: IBlockData, rootData: any, cellWidth: number, parentCellWidth: number) {
-  const { style, childrenIds } = blockData.data;
-  const styles = buildStyles(style, { perChanges: [], pxChanges: allPxAttributes });
-  const cellItems: string[] = [];
-
-  if (childrenIds && childrenIds?.length > 0) {
-    for (const childId of childrenIds) {
-      cellItems.push(await convertToHtml(rootData[childId], rootData, parentCellWidth * (cellWidth || 0) / 100));
-    }
-  }
-
-  return `<td class="stack-column" style="width:${cellWidth}% ; max-width:${cellWidth}%; ${styles}">${cellItems.join("")}</td>`;
-}
-
-
-
 
 export const convertJsonToHtml = async (jsonData: any) => {
-  console.log(jsonData);
   const rootData = jsonData?.root?.data;
   const blocksHtml = [];
   for (const childId of rootData?.childrenIds) {
@@ -405,6 +527,7 @@ export const convertJsonToHtml = async (jsonData: any) => {
       )
     );
   }
+
   const {
     fontFamily,
     canvasColor,
@@ -418,41 +541,68 @@ export const convertJsonToHtml = async (jsonData: any) => {
 
   const { top = 0, right = 0, bottom = 0, left = 0 } = padding;
 
-  const rawHtml = `
-  <!DOCTYPE html>
+  const rawHtml = `<!DOCTYPE html>
   <html lang="en">
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Email Layout</title>
+      <meta name="x-apple-disable-message-reformatting" />
       <style>
         .responsive-table {
           width: 100%;
           max-width: 600px;
         }
-  
         @media only screen and (max-width: 600px) {
-          .stack-column {
+          .responsive-table {
+            width: 100% !important;
+          }
+          .stack-column,
+          .stack-column td {
             display: block !important;
             width: 100% !important;
             max-width: 100% !important;
           }
         }
+
+         @media (prefers-color-scheme: light) {
+    body, table, td {
+      background-color: #ffffff !important;
+      color: #000000 !important;
+    }
+    a {
+      color: #1a0dab !important; /* example light-mode link */
+      text-decoration: underline;
+    }
+  }
+
+  /* Dark mode overrides */
+  @media (prefers-color-scheme: dark) {
+    body, table, td {
+      background-color: #121212 !important; /* softer than pure black */
+      color: #e0e0e0 !important;
+    }
+    a {
+      color: #4da3ff !important;
+      text-decoration: underline !important;
+    }
+
+  }
       </style>
     </head>
     <body>
       <center>
         <table
           class="responsive-table"
-  style="
-    font-family: ${fontFamily};
-    margin: 0 auto;
-    table-layout:fixed;
-    background-color: ${canvasColor};
-    color: ${textColor};
-    padding: ${top}px ${right}px ${bottom}px ${left}px;
-    border: ${borderWidth}px ${borderStyle} ${borderColor};
-    border-radius: ${borderRadius}px; "
+          bgcolor=${canvasColor}"
+          style="
+            font-family: ${fontFamily};
+            margin: 0 auto;
+            table-layout:fixed;
+            background-color: ${canvasColor};
+            color: ${textColor};
+            padding: ${top}px ${right}px ${bottom}px ${left}px;
+            border: ${borderWidth}px ${borderStyle} ${borderColor};
+            border-radius: ${borderRadius}px; "
         >
           <tbody>
             <tr>
