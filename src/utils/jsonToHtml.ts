@@ -563,37 +563,13 @@ export const convertJsonToHtml = async (jsonData: any) => {
             max-width: 100% !important;
           }
         }
-
-         @media (prefers-color-scheme: light) {
-    body, table, td {
-      background-color: #ffffff !important;
-      color: #000000 !important;
-    }
-    a {
-      color: #1a0dab !important; /* example light-mode link */
-      text-decoration: underline;
-    }
-  }
-
-  /* Dark mode overrides */
-  @media (prefers-color-scheme: dark) {
-    body, table, td {
-      background-color: #121212 !important; /* softer than pure black */
-      color: #e0e0e0 !important;
-    }
-    a {
-      color: #4da3ff !important;
-      text-decoration: underline !important;
-    }
-
-  }
       </style>
     </head>
     <body>
       <center>
         <table
           class="responsive-table"
-          bgcolor=${canvasColor}"
+          bgcolor="${canvasColor}"
           style="
             font-family: ${fontFamily};
             margin: 0 auto;
