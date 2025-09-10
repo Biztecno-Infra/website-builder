@@ -29,17 +29,18 @@ const LeftActions = styled.div`
 
 const RightActions = styled.div`
   display: flex;
-  width: 20.4rem;
+  // width: 20.4rem;
+  width: auto;
   justify-content: space-evenly;
   align-items: center;
 `;
 interface Props {
-  onExport: (format: 'JSON' | 'HTML', data: any) => void;
+  onExport: (format: "JSON" | "HTML", data: any) => void;
   onImport: () => void;
 }
 
-function HeaderActions({ onExport , onImport }: Props) {
-  const theme = useTheme()
+function HeaderActions({ onExport, onImport }: Props) {
+  const theme = useTheme();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<{
@@ -52,19 +53,23 @@ function HeaderActions({ onExport , onImport }: Props) {
     selectedView,
     setSelectedView,
     handleJsonUpload,
-    blocksToJson, 
-    handleImportTemplates , 
-      undo,
-  redo,
-  canRedo , 
-  canUndo
+    blocksToJson,
+    handleImportTemplates,
+    undo,
+    redo,
+    canRedo,
+    canUndo,
   } = useBlockHook();
 
   const handleOptionSelect = (option: string) => {
     setSelectedOption(option);
   };
 
-  const handlePreview = (template: { imageSrc: string; title: string; author: string }) => {
+  const handlePreview = (template: {
+    imageSrc: string;
+    title: string;
+    author: string;
+  }) => {
     setSelectedTemplate(template);
     setPreviewTemplate(true);
   };
@@ -83,8 +88,11 @@ function HeaderActions({ onExport , onImport }: Props) {
     setSelectedView(view);
   };
 
-  const handleExport = async (format: 'JSON' | 'HTML') => {
-    const convertedData = format === 'JSON' ? blocksToJson() : await convertJsonToHtml(blocksToJson());
+  const handleExport = async (format: "JSON" | "HTML") => {
+    const convertedData =
+      format === "JSON"
+        ? blocksToJson()
+        : await convertJsonToHtml(blocksToJson());
     if (typeof onExport === "function") {
       onExport(format, convertedData);
     }
@@ -101,7 +109,10 @@ function HeaderActions({ onExport , onImport }: Props) {
             marginRight: "10px",
             padding: "0.5rem",
             borderRadius: "5px",
-            color: selectedView === ScreenViews.DESKTOP ? theme.colors.primary : "#8A8A8A",
+            color:
+              selectedView === ScreenViews.DESKTOP
+                ? theme.colors.primary
+                : "#8A8A8A",
           }}
           bgColor={selectedView === ScreenViews.DESKTOP ? "#CCE2E3" : ""}
         />
@@ -112,19 +123,37 @@ function HeaderActions({ onExport , onImport }: Props) {
             cursor: "pointer",
             padding: "0.5rem",
             borderRadius: "5px",
-            color: selectedView === ScreenViews.MOBILE ? theme.colors.primary : "#8A8A8A",
+            color:
+              selectedView === ScreenViews.MOBILE
+                ? theme.colors.primary
+                : "#8A8A8A",
           }}
           bgColor={selectedView === ScreenViews.MOBILE ? "#CCE2E3" : ""}
         />
       </LeftActions>
       <RightActions>
-<ButtonComponent $buttonPrimary handleClick={undo} disabled={!canUndo} text="Undo" />
-<ButtonComponent $buttonPrimary handleClick={redo} disabled={!canRedo} text="Redo" />
+        {canUndo && <ButtonComponent
+          $buttonPrimary
+          handleClick={undo}
+          text="Undo"
+        />}
+       {canRedo &&  <ButtonComponent
+          $buttonPrimary
+          handleClick={redo}
+          text="Redo"
+        />}
 
-        <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Export")} text="Export" />
-        <ButtonComponent $buttonPrimary handleClick={onImport} text="Import"/>
-        {/* <ButtonComponent $buttonPrimary handleClick={() => setSelectedOption("Upload")} text="Upload"/> */}
-
+        <ButtonComponent
+          $buttonPrimary
+          handleClick={() => setSelectedOption("Export")}
+          text="Export"
+        />
+        <ButtonComponent $buttonPrimary handleClick={onImport} text="Import" />
+        <ButtonComponent
+          $buttonPrimary
+          handleClick={() => setSelectedOption("Upload")}
+          text="Upload"
+        />
 
         {/* <CustomDropdownButton
           options={["Export","Upload"]}
@@ -153,7 +182,7 @@ function HeaderActions({ onExport , onImport }: Props) {
         />
       )}
       {selectedOption === "Send Test" && (
-        <SendTestModal onClose={handleClose} onSend={(file) => { }} />
+        <SendTestModal onClose={handleClose} onSend={(file) => {}} />
       )}
     </StyledHeader>
   );

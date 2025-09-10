@@ -1,7 +1,6 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import update from "immutability-helper";
 import { BlockType, generateUniqueId } from "email-builder-utils";
-
 import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
 import {
   Block,
@@ -13,6 +12,7 @@ import {
 } from "../types";
 import { jsonToBlocks, processBlock } from "utils";
 import { ScreenViews } from "enum";
+import { useUndoRedo } from "./useUndoRedo";
 
 const initializeBlock = (
   block: Block
@@ -44,9 +44,9 @@ const getDistributtedLength = (length: number): Array<number> => {
 
 export const useBlocks = (): IBlockContext => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
-    null
-  );
+  // const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
+  //   null
+  // );
   const [globalStyles, setGlobalStyles] =
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
@@ -55,157 +55,188 @@ export const useBlocks = (): IBlockContext => {
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
+const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
 
-  const past = useRef<
-    Array<{
-      blocks: IBlocksState;
-      rootOrder: string[];
-      globalStyles: GlobalStyles;
-    }>
-  >([]);
-  const future = useRef<
-    Array<{
-      blocks: IBlocksState;
-      rootOrder: string[];
-      globalStyles: GlobalStyles;
-    }>
-  >([]);
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
+const selectedBlock = useMemo(() => 
+  selectedBlockId ? blocks[selectedBlockId] : null,
+  [selectedBlockId, blocks]
+);
+const {
+  push,
+  undo: undoHistory,
+  redo: redoHistory,
+  canUndo,
+  canRedo,
+} = useUndoRedo({
+  blocks,
+  rootOrder: rootBlockOrder,
+  globalStyles
+});
+
+const undo = () => {
+  if (!canUndo) return;
+
+  const currentState = {
+    blocks,
+    rootOrder: rootBlockOrder,
+    globalStyles
+  };
+
+  const prevState = undoHistory(currentState);
+  if (!prevState) return;
+
+  setBlocks(prevState.blocks);
+  setRootBlockOrder(prevState.rootOrder);
+  setGlobalStyles(prevState.globalStyles);
+};
+
+const redo = () => {
+  if (!canRedo) return;
+
+  const currentState = {
+    blocks,
+    rootOrder: rootBlockOrder,
+    globalStyles
+  };
+
+  const nextState = redoHistory(currentState);
+  if (!nextState) return;
+
+  setBlocks(nextState.blocks);
+  setRootBlockOrder(nextState.rootOrder);
+  setGlobalStyles(nextState.globalStyles);
+};
+
+console.log("selectedBlock", selectedBlock);
   console.log("blocks", blocks, rootBlockOrder, globalStyles);
-  const pushToPast = () => {
-    console.log(past.current, future.current, "pushToPast");
-    const rootBlockOrderNew = [...rootBlockOrder];
-    past.current?.push({
-      blocks: JSON.parse(JSON.stringify(blocks)),
-      rootOrder: [...rootBlockOrderNew],
-      globalStyles: JSON.parse(JSON.stringify(globalStyles)),
-    });
-    future.current = []; // clear redo stack
-    setCanUndo(past.current.length > 0);
-    setCanRedo(false);
-  };
+const handleImportTemplates = useCallback((selectedTemplates: any[]) => {
+  // Process all templates at once instead of iterating
+  const processedData = selectedTemplates.reduce((acc, template) => {
+    const { root, ...otherBlocks } = template.layout;
+    const convertedBlocks = jsonToBlocks(template.layout);
+    
+    return {
+      blocks: { ...acc.blocks, ...convertedBlocks.blocks },
+      childrenIds: [...acc.childrenIds, ...(root.data.childrenIds || [])],
+      style: selectedTemplates.length === 1 && !acc.style ? root.data.style : acc.style
+    };
+  }, {
+    blocks: {},
+    childrenIds: [],
+    style: null
+  });
 
-  const undo = () => {
-    if (past.current.length === 0) return;
+  // Batch state updates
+  const batchUpdate = () => {
+    // Only update global styles if needed
+    if (processedData.style && rootBlockOrder.length === 0) {
+      setGlobalStyles(processedData.style);
+    }
 
-    const previous = past.current.pop()!;
-    future.current.push({
-      blocks,
-      rootOrder: rootBlockOrder,
-      globalStyles,
-    });
+    // Update blocks and root order together
+    setBlocks(prevBlocks => ({
+      ...prevBlocks,
+      ...processedData.blocks
+    }));
 
-    setBlocks(previous.blocks);
-    setRootBlockOrder(previous.rootOrder);
-    setGlobalStyles(previous.globalStyles);
-    setCanUndo(past.current.length > 0);
-    setCanRedo(true);
-  };
+    setRootBlockOrder(prevOrder => [
+      ...prevOrder,
+      ...processedData.childrenIds
+    ]);
 
-  const redo = () => {
-    if (future.current.length === 0) return;
-
-    const next = future.current.pop()!;
-    past.current.push({
-      blocks,
-      rootOrder: rootBlockOrder,
-      globalStyles,
-    });
-
-    setBlocks(next.blocks);
-    setRootBlockOrder(next.rootOrder);
-    setGlobalStyles(next.globalStyles);
-    setCanUndo(true);
-    setCanRedo(future.current.length > 0);
-  };
-
-  const handleImportTemplates = (selectedTemplates: any[]) => {
-    selectedTemplates.forEach((template) => {
-      const { root, ...otherBlocks } = template.layout;
-      const convertedBlocks = jsonToBlocks(template.layout);
-      // Append root block to rootBlockOrder
-      if (selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
-        setGlobalStyles(root.data.style);
-      }
-      setRootBlockOrder((prevOrder) => [
-        ...prevOrder,
-        ...(root.data.childrenIds || []),
-      ]);
-
-      // Merge the new blocks with the existing blocks
-      setBlocks((prevBlocks) => ({
-        ...prevBlocks,
-        ...convertedBlocks.blocks, // Merging the new blocks
-      }));
-      pushToPast();
-    });
-  };
-
-  const updateGlobalStyles = (updatedStyles: any) => {
-    pushToPast();
-    setGlobalStyles(updatedStyles);
-  };
-
-  const updateBlock = (blockId: any, property: any, value: any) => {
-    setBlocks((prevBlocks) => {
-      const block = prevBlocks[blockId] as any;
-      if (!block) return prevBlocks;
-
-      if (block.type === BlockType.GRID && property === "columns") {
-        const { columns: prevColumns, childBlocks = [] } = block;
-        const newColumns = value;
-        const columnDiff = newColumns - prevColumns;
-
-        if (columnDiff > 0) {
-          // Add new grid cells
-          const newGridCellIds = Array.from(
-            { length: columnDiff },
-            generateUniqueId
-          );
-          const newGridCells = Object.fromEntries(
-            newGridCellIds.map((id) => [
-              id,
-              {
-                $set: {
-                  id,
-                  type: BlockType.GRIDCELL,
-                  parentId: blockId,
-                  childBlocks: [],
-                },
-              },
-            ])
-          );
-
-          return update(prevBlocks, {
-            [blockId]: {
-              columns: { $set: newColumns },
-              childBlocks: { $push: newGridCellIds },
-            },
-            ...newGridCells,
-          });
-        } else if (columnDiff < 0) {
-          const updatedGridCells = childBlocks.slice(0, columnDiff);
-          const removedGridCells = childBlocks.slice(columnDiff);
-          const removeUpdates = Object.fromEntries(
-            removedGridCells.map((id: any) => [id, { $unset: [id] }])
-          );
-
-          return update(prevBlocks, {
-            [blockId]: {
-              columns: { $set: newColumns },
-              childBlocks: { $set: updatedGridCells },
-            },
-            ...removeUpdates,
-          });
-        }
-      }
-      return update(prevBlocks, {
-        [blockId]: { [property]: { $set: value } },
+    // Push to history after all updates are complete
+    requestAnimationFrame(() => {
+      push({ 
+        blocks: { ...blocks, ...processedData.blocks },
+        rootOrder: [...rootBlockOrder, ...processedData.childrenIds],
+        globalStyles: processedData.style || globalStyles
       });
     });
-        pushToPast();
   };
+
+  // Use requestAnimationFrame for better performance
+  requestAnimationFrame(batchUpdate);
+}, [blocks, rootBlockOrder, globalStyles, selectedBlock, push, setBlocks, setRootBlockOrder, setGlobalStyles]);
+
+  const updateGlobalStyles = (updatedStyles: any) => {
+    setGlobalStyles(updatedStyles);
+    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+  };
+
+const updateBlock = (blockId: any, property: any, value: any) => {
+  // Wrap both state updates in one operation
+  setBlocks((prevBlocks) => {
+    const block = prevBlocks[blockId] as any;
+    if (!block) return prevBlocks;
+
+    let updatedBlocks = prevBlocks;
+
+    if (block.type === BlockType.GRID && property === "columns") {
+      const { columns: prevColumns, childBlocks = [] } = block;
+      const newColumns = value;
+      const columnDiff = newColumns - prevColumns;
+
+      if (columnDiff > 0) {
+        // Add new grid cells
+        const newGridCellIds = Array.from({ length: columnDiff }, generateUniqueId);
+        const newGridCells = Object.fromEntries(
+          newGridCellIds.map((id) => [
+            id,
+            {
+              $set: {
+                id,
+                type: BlockType.GRIDCELL,
+                parentId: blockId,
+                childBlocks: [],
+              },
+            },
+          ])
+        );
+
+        updatedBlocks = update(prevBlocks, {
+          [blockId]: {
+            columns: { $set: newColumns },
+            childBlocks: { $push: newGridCellIds },
+            cellWidths: { $set: getDistributtedLength(newColumns) },
+          },
+          ...newGridCells,
+        });
+
+        return updatedBlocks;
+      } 
+      
+      if (columnDiff < 0) {
+        const updatedGridCells = childBlocks.slice(0, newColumns);
+        const removedGridCells = childBlocks.slice(newColumns);
+        const removeUpdates = Object.fromEntries(
+          removedGridCells.map((id: any) => [id, { $unset: [id] }])
+        );
+
+        updatedBlocks = update(prevBlocks, {
+          [blockId]: {
+            columns: { $set: newColumns },
+            childBlocks: { $set: updatedGridCells },
+            cellWidths: { $set: getDistributtedLength(newColumns) },
+          },
+          ...removeUpdates,
+        });
+
+        return updatedBlocks;
+      }
+    }
+
+    // Default property update
+    updatedBlocks = update(prevBlocks, {
+      [blockId]: { [property]: { $set: value } },
+    });
+push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
+    return updatedBlocks;
+  });
+
+  // Call pushToPast right after setBlocks to ensure state is updated
+  // push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+;
+};
 
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
@@ -237,7 +268,8 @@ export const useBlocks = (): IBlockContext => {
         prevOrder.filter((id) => id !== blockId)
       );
     }
-    pushToPast();
+    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+;
   };
 
   const handleJsonUpload = (jsonData: any) => {
@@ -512,7 +544,7 @@ export const useBlocks = (): IBlockContext => {
       }
       return prvsBlockState;
     });
-    pushToPast();
+    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
@@ -571,8 +603,8 @@ export const useBlocks = (): IBlockContext => {
       return { ...newBlocks, ...extraBlocks };
     });
 
-    setSelectedBlock(defaultBlock);
-    pushToPast();
+    setSelectedBlockId(defaultBlock.id);
+    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
   /**
@@ -583,7 +615,8 @@ export const useBlocks = (): IBlockContext => {
    */
   const handleDropper = useCallback(
     (dragSrc: any, dropAreaId: string) => {
-      //  pushToPast();
+      //  push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+;
       console.log("handleDropper", dragSrc, dropAreaId);
       if (dragSrc.id) {
         handleSwappingV2(dragSrc, dropAreaId);
@@ -616,7 +649,7 @@ export const useBlocks = (): IBlockContext => {
   };
 
   return {
-    setSelectedBlock,
+    setSelectedBlock: setSelectedBlockId,
     selectedBlock,
     blocks,
     updateBlock,

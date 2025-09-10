@@ -32,7 +32,7 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
       (e?: React.MouseEvent) => {
         e?.stopPropagation();
         if (!isSelected) {
-          setSelectedBlock(block);
+          setSelectedBlock(block.id);
         }
       },
       [isSelected, setSelectedBlock, block]

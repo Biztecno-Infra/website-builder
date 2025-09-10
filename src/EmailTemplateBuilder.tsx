@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled, { createGlobalStyle } from "styled-components";
@@ -63,6 +63,32 @@ const ContentWrapper = styled.div`
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
   ({ theme, onExport, onImport }, ref) => {
+
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.ctrlKey) {
+          switch (event.key.toLowerCase()) {
+            case 'z':
+              event.preventDefault();
+              if (!event.shiftKey && ref && 'current' in ref && ref.current?.undo) {
+                ref.current.undo();
+              }
+              break;
+            case 'y':
+              event.preventDefault();
+              if (ref && 'current' in ref && ref.current?.redo) {
+                ref.current.redo();
+              }
+              break;
+          }
+        }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [ref]);
+
+   
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>

@@ -82,7 +82,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      setSelectedBlock(block);
+      setSelectedBlock(block.id);
       setIsExpanded((prev) => !prev);
     },
     [block, setSelectedBlock]
@@ -223,7 +223,7 @@ const NodeTree = () => {
         childrenIds: rootBlockOrder,
       },
     };
-    setSelectedBlock(rootBlock);
+    setSelectedBlock(rootBlock.type);
   }, [rootBlockOrder, globalStyles, setSelectedBlock]);
 
   return (

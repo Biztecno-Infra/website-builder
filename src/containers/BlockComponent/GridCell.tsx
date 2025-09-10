@@ -61,7 +61,7 @@ const GridCell: React.FC<GridCellProps> = ({
     (e?: React.MouseEvent) => {
       e?.stopPropagation();
       if (!isSelected) {
-        setSelectedBlock(block);
+        setSelectedBlock(block.id);
       }
     },
     [isSelected, setSelectedBlock, block]
