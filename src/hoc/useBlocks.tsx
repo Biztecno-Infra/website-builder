@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import update from "immutability-helper";
 import { BlockType, generateUniqueId } from "email-builder-utils";
 import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
@@ -44,6 +44,7 @@ const getDistributtedLength = (length: number): Array<number> => {
 
 export const useBlocks = (): IBlockContext => {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const HISTORY_COALESCE_MS = 250;
   // const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
   //   null
   // );
@@ -55,188 +56,271 @@ export const useBlocks = (): IBlockContext => {
 
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
-const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [selectedBlockId, setSelectedBlockId] = useState<
+    string | "EmailLayout" | null
+  >(null);
+  const isApplyingHistory = useRef<boolean>(false);
+  console.log("blocks", blocks);
+  const selectedBlock: Block | RootLayout | null = useMemo(() => {
+    if (selectedBlockId === "EmailLayout") {
+      return {
+        type: "EmailLayout",
+        data: { style: globalStyles, childrenIds: rootBlockOrder },
+      } as RootLayout;
+    }
+    if (selectedBlockId) {
+      return blocks[selectedBlockId] || null;
+    }
+    return null;
+  }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
+  console.log("selectedBlockId", selectedBlockId, selectedBlock);
 
-const selectedBlock = useMemo(() => 
-  selectedBlockId ? blocks[selectedBlockId] : null,
-  [selectedBlockId, blocks]
-);
-const {
-  push,
-  undo: undoHistory,
-  redo: redoHistory,
-  canUndo,
-  canRedo,
-} = useUndoRedo({
-  blocks,
-  rootOrder: rootBlockOrder,
-  globalStyles
-});
+  const {
+    push,
+    undo: undoHistory,
+    redo: redoHistory,
+    canUndo,
+    canRedo,
+  } = useUndoRedo({
+    blocks,
+    rootOrder: rootBlockOrder,
+    globalStyles,
+  });
 
-const undo = () => {
+  // Debounced automatic history push on meaningful state changes
+  useEffect(() => {
+    if (isApplyingHistory.current) return;
+    const handle = window.setTimeout(() => {
+      push({
+        blocks,
+        rootOrder: rootBlockOrder,
+        globalStyles,
+      });
+    }, HISTORY_COALESCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [blocks, rootBlockOrder, globalStyles, push]);
+
+  const undo = async () => {
   if (!canUndo) return;
-
+  
   const currentState = {
     blocks,
     rootOrder: rootBlockOrder,
-    globalStyles
+    globalStyles,
   };
 
-  const prevState = undoHistory(currentState);
+  const prevState = await undoHistory(currentState);
   if (!prevState) return;
 
+  isApplyingHistory.current = true;
   setBlocks(prevState.blocks);
   setRootBlockOrder(prevState.rootOrder);
   setGlobalStyles(prevState.globalStyles);
+  setTimeout(() => {
+    isApplyingHistory.current = false;
+  }, 0);
 };
 
-const redo = () => {
+const redo = async () => {
   if (!canRedo) return;
-
+  
   const currentState = {
     blocks,
     rootOrder: rootBlockOrder,
-    globalStyles
+    globalStyles,
   };
 
-  const nextState = redoHistory(currentState);
+  const nextState = await redoHistory(currentState);
   if (!nextState) return;
 
+  isApplyingHistory.current = true;
   setBlocks(nextState.blocks);
   setRootBlockOrder(nextState.rootOrder);
   setGlobalStyles(nextState.globalStyles);
+  setTimeout(() => {
+    isApplyingHistory.current = false;
+  }, 0);
 };
+  // const undo = () => {
+  //   if (!canUndo) return;
 
-console.log("selectedBlock", selectedBlock);
-  console.log("blocks", blocks, rootBlockOrder, globalStyles);
-const handleImportTemplates = useCallback((selectedTemplates: any[]) => {
-  // Process all templates at once instead of iterating
-  const processedData = selectedTemplates.reduce((acc, template) => {
-    const { root, ...otherBlocks } = template.layout;
-    const convertedBlocks = jsonToBlocks(template.layout);
-    
-    return {
-      blocks: { ...acc.blocks, ...convertedBlocks.blocks },
-      childrenIds: [...acc.childrenIds, ...(root.data.childrenIds || [])],
-      style: selectedTemplates.length === 1 && !acc.style ? root.data.style : acc.style
-    };
-  }, {
-    blocks: {},
-    childrenIds: [],
-    style: null
-  });
+  //   const currentState = {
+  //     blocks,
+  //     rootOrder: rootBlockOrder,
+  //     globalStyles,
+  //   };
 
-  // Batch state updates
-  const batchUpdate = () => {
-    // Only update global styles if needed
-    if (processedData.style && rootBlockOrder.length === 0) {
-      setGlobalStyles(processedData.style);
-    }
+  //   const prevState = undoHistory(currentState);
+  //   if (!prevState) return;
 
-    // Update blocks and root order together
-    setBlocks(prevBlocks => ({
-      ...prevBlocks,
-      ...processedData.blocks
-    }));
+  //   isApplyingHistory.current = true;
+  //   setBlocks(prevState.blocks);
+  //   setRootBlockOrder(prevState.rootOrder);
+  //   setGlobalStyles(prevState.globalStyles);
+  //   // Allow state to settle before re-enabling history capture
+  //   setTimeout(() => {
+  //     isApplyingHistory.current = false;
+  //   }, 0);
+  // };
 
-    setRootBlockOrder(prevOrder => [
-      ...prevOrder,
-      ...processedData.childrenIds
-    ]);
+  // const redo = () => {
+  //   if (!canRedo) return;
 
-    // Push to history after all updates are complete
-    requestAnimationFrame(() => {
-      push({ 
-        blocks: { ...blocks, ...processedData.blocks },
-        rootOrder: [...rootBlockOrder, ...processedData.childrenIds],
-        globalStyles: processedData.style || globalStyles
-      });
-    });
-  };
+  //   const currentState = {
+  //     blocks,
+  //     rootOrder: rootBlockOrder,
+  //     globalStyles,
+  //   };
 
-  // Use requestAnimationFrame for better performance
-  requestAnimationFrame(batchUpdate);
-}, [blocks, rootBlockOrder, globalStyles, selectedBlock, push, setBlocks, setRootBlockOrder, setGlobalStyles]);
+  //   const nextState = redoHistory(currentState);
+  //   if (!nextState) return;
+
+  //   isApplyingHistory.current = true;
+  //   setBlocks(nextState.blocks);
+  //   setRootBlockOrder(nextState.rootOrder);
+  //   setGlobalStyles(nextState.globalStyles);
+  //   setTimeout(() => {
+  //     isApplyingHistory.current = false;
+  //   }, 0);
+  // };
+
+  const handleImportTemplates = useCallback(
+    (selectedTemplates: any[]) => {
+      // Process all templates at once instead of iterating
+      const processedData = selectedTemplates.reduce(
+        (acc, template) => {
+          const { root, ...otherBlocks } = template.layout;
+          const convertedBlocks = jsonToBlocks(template.layout);
+
+          return {
+            blocks: { ...acc.blocks, ...convertedBlocks.blocks },
+            childrenIds: [...acc.childrenIds, ...(root.data.childrenIds || [])],
+            style:
+              selectedTemplates.length === 1 && !acc.style
+                ? root.data.style
+                : acc.style,
+          };
+        },
+        {
+          blocks: {},
+          childrenIds: [],
+          style: null,
+        }
+      );
+
+      // Batch state updates
+      const batchUpdate = () => {
+        // Only update global styles if needed
+        if (processedData.style && rootBlockOrder.length === 0) {
+          setGlobalStyles(processedData.style);
+        }
+
+        // Update blocks and root order together
+        setBlocks((prevBlocks) => ({
+          ...prevBlocks,
+          ...processedData.blocks,
+        }));
+
+        setRootBlockOrder((prevOrder) => [
+          ...prevOrder,
+          ...processedData.childrenIds,
+        ]);
+      };
+
+      // Use requestAnimationFrame for better performance
+      requestAnimationFrame(batchUpdate);
+    },
+    [
+      blocks,
+      rootBlockOrder,
+      globalStyles,
+      selectedBlock,
+      push,
+      setBlocks,
+      setRootBlockOrder,
+      setGlobalStyles,
+    ]
+  );
 
   const updateGlobalStyles = (updatedStyles: any) => {
     setGlobalStyles(updatedStyles);
-    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
-const updateBlock = (blockId: any, property: any, value: any) => {
-  // Wrap both state updates in one operation
-  setBlocks((prevBlocks) => {
-    const block = prevBlocks[blockId] as any;
-    if (!block) return prevBlocks;
+  const updateBlock = (blockId: any, property: any, value: any) => {
+    // Wrap both state updates in one operation
+    setBlocks((prevBlocks) => {
+      const block = prevBlocks[blockId] as any;
+      if (!block) return prevBlocks;
 
-    let updatedBlocks = prevBlocks;
+      let updatedBlocks = prevBlocks;
 
-    if (block.type === BlockType.GRID && property === "columns") {
-      const { columns: prevColumns, childBlocks = [] } = block;
-      const newColumns = value;
-      const columnDiff = newColumns - prevColumns;
+      if (block.type === BlockType.GRID && property === "columns") {
+        const { columns: prevColumns, childBlocks = [] } = block;
+        const newColumns = value;
+        const columnDiff = newColumns - prevColumns;
 
-      if (columnDiff > 0) {
-        // Add new grid cells
-        const newGridCellIds = Array.from({ length: columnDiff }, generateUniqueId);
-        const newGridCells = Object.fromEntries(
-          newGridCellIds.map((id) => [
-            id,
-            {
-              $set: {
-                id,
-                type: BlockType.GRIDCELL,
-                parentId: blockId,
-                childBlocks: [],
+        if (columnDiff > 0) {
+          // Add new grid cells
+          const newGridCellIds = Array.from(
+            { length: columnDiff },
+            generateUniqueId
+          );
+          const newGridCells = Object.fromEntries(
+            newGridCellIds.map((id) => [
+              id,
+              {
+                $set: {
+                  id,
+                  type: BlockType.GRIDCELL,
+                  parentId: blockId,
+                  childBlocks: [],
+                },
               },
+            ])
+          );
+
+          updatedBlocks = update(prevBlocks, {
+            [blockId]: {
+              columns: { $set: newColumns },
+              childBlocks: { $push: newGridCellIds },
+              cellWidths: { $set: getDistributtedLength(newColumns) },
             },
-          ])
-        );
+            ...newGridCells,
+          });
 
-        updatedBlocks = update(prevBlocks, {
-          [blockId]: {
-            columns: { $set: newColumns },
-            childBlocks: { $push: newGridCellIds },
-            cellWidths: { $set: getDistributtedLength(newColumns) },
-          },
-          ...newGridCells,
-        });
+          return updatedBlocks;
+        }
 
-        return updatedBlocks;
-      } 
-      
-      if (columnDiff < 0) {
-        const updatedGridCells = childBlocks.slice(0, newColumns);
-        const removedGridCells = childBlocks.slice(newColumns);
-        const removeUpdates = Object.fromEntries(
-          removedGridCells.map((id: any) => [id, { $unset: [id] }])
-        );
+        if (columnDiff < 0) {
+          const updatedGridCells = childBlocks.slice(0, newColumns);
+          const removedGridCells = childBlocks.slice(newColumns);
+          const removeUpdates = Object.fromEntries(
+            removedGridCells.map((id: any) => [id, { $unset: [id] }])
+          );
 
-        updatedBlocks = update(prevBlocks, {
-          [blockId]: {
-            columns: { $set: newColumns },
-            childBlocks: { $set: updatedGridCells },
-            cellWidths: { $set: getDistributtedLength(newColumns) },
-          },
-          ...removeUpdates,
-        });
+          updatedBlocks = update(prevBlocks, {
+            [blockId]: {
+              columns: { $set: newColumns },
+              childBlocks: { $set: updatedGridCells },
+              cellWidths: { $set: getDistributtedLength(newColumns) },
+            },
+            ...removeUpdates,
+          });
 
-        return updatedBlocks;
+          return updatedBlocks;
+        }
       }
-    }
 
-    // Default property update
-    updatedBlocks = update(prevBlocks, {
-      [blockId]: { [property]: { $set: value } },
+      // Default property update
+      updatedBlocks = update(prevBlocks, {
+        [blockId]: { [property]: { $set: value } },
+      });
+      return updatedBlocks;
     });
-push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
-    return updatedBlocks;
-  });
 
-  // Call pushToPast right after setBlocks to ensure state is updated
-  // push({ blocks, rootOrder: rootBlockOrder, globalStyles });
-;
-};
+    // Call pushToPast right after setBlocks to ensure state is updated
+    // push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+  };
 
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
@@ -268,8 +352,6 @@ push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
         prevOrder.filter((id) => id !== blockId)
       );
     }
-    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
-;
   };
 
   const handleJsonUpload = (jsonData: any) => {
@@ -544,7 +626,6 @@ push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
       }
       return prvsBlockState;
     });
-    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
@@ -604,7 +685,6 @@ push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
     });
 
     setSelectedBlockId(defaultBlock.id);
-    push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
   /**
@@ -616,7 +696,6 @@ push({ blocks: updatedBlocks, rootOrder: rootBlockOrder, globalStyles });
   const handleDropper = useCallback(
     (dragSrc: any, dropAreaId: string) => {
       //  push({ blocks, rootOrder: rootBlockOrder, globalStyles });
-;
       console.log("handleDropper", dragSrc, dropAreaId);
       if (dragSrc.id) {
         handleSwappingV2(dragSrc, dropAreaId);

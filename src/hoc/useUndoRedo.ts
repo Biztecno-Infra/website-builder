@@ -53,7 +53,7 @@
 
 
 import { useRef, useState, useCallback } from "react";
-import { Block, GlobalStyles, IBlocksState, RootLayout } from "../types";
+import {  GlobalStyles, IBlocksState } from "../types";
 
 interface StateSnapshot {
   blocks: IBlocksState;
@@ -61,9 +61,27 @@ interface StateSnapshot {
   globalStyles: GlobalStyles;
 }
 
-const MAX_HISTORY_SIZE = 50;
+interface UseUndoRedoOptions {
+  maxEntries?: number;
+  isEqual?: (a: StateSnapshot, b: StateSnapshot) => boolean;
+}
 
-export const useUndoRedo = (initialState: StateSnapshot) => {
+const defaultIsEqual = (a: StateSnapshot, b: StateSnapshot): boolean => {
+  return (
+    a === b ||
+    (a.blocks === b.blocks &&
+      a.rootOrder === b.rootOrder &&
+      a.globalStyles === b.globalStyles)
+  );
+};
+
+export const useUndoRedo = (
+  initialState: StateSnapshot,
+  options: UseUndoRedoOptions = {}
+) => {
+  const maxEntries = Math.max(1, options.maxEntries ?? 20000);
+  const isEqual = options.isEqual ?? defaultIsEqual;
+
   const past = useRef<StateSnapshot[]>([]);
   const future = useRef<StateSnapshot[]>([]);
 
@@ -73,26 +91,29 @@ export const useUndoRedo = (initialState: StateSnapshot) => {
   const push = useCallback((newState: StateSnapshot) => {
     const lastState = past.current[past.current.length - 1];
 
-    // Avoid duplicate consecutive states
-    if (JSON.stringify(newState) === JSON.stringify(lastState)) {
+    // Avoid duplicate consecutive states using fast reference equality
+    if (lastState && isEqual(newState, lastState)) {
       return;
     }
 
+    // Shallow container copy to freeze references without deep cloning
     past.current.push({ ...newState });
 
-    if (past.current.length > MAX_HISTORY_SIZE) {
+    if (past.current.length > maxEntries) {
       past.current.shift();
     }
 
-    future.current = []; // clear redo stack
-    setCanUndo(true);
+    // clear redo stack
+    if (future.current.length) future.current = [];
+    setCanUndo(past.current.length > 0);
     setCanRedo(false);
-  }, []);
+  }, [isEqual, maxEntries]);
 
   const undo = useCallback((currentState: StateSnapshot): StateSnapshot | null => {
     if (past.current.length === 0) return null;
 
     const previousState = past.current.pop()!;
+    // Shallow container copy to preserve references
     future.current.push({ ...currentState });
 
     setCanUndo(past.current.length > 0);
@@ -121,3 +142,83 @@ export const useUndoRedo = (initialState: StateSnapshot) => {
     canRedo,
   };
 };
+
+
+//Patches based undo redo using immer
+// import { useRef, useState, useCallback } from "react";
+// import { GlobalStyles, IBlocksState } from "../types";
+// import { produceWithPatches, applyPatches, Patch } from "immer";
+
+// interface StateSnapshot {
+//   blocks: IBlocksState;
+//   rootOrder: string[];
+//   globalStyles: GlobalStyles;
+// }
+
+// interface HistoryEntry {
+//   state: StateSnapshot;
+//   patches: Patch[];
+//   inversePatches: Patch[];
+// }
+
+// export const useUndoRedo = (initialState: StateSnapshot) => {
+//   const past = useRef<HistoryEntry[]>([]);
+//   const future = useRef<HistoryEntry[]>([]);
+
+//   const [canUndo, setCanUndo] = useState(false);
+//   const [canRedo, setCanRedo] = useState(false);
+
+//   const push = useCallback(
+//     (current: StateSnapshot, updater: (draft: StateSnapshot) => void) => {
+//       const [next, patches, inversePatches] = produceWithPatches(
+//         current,
+//         updater
+//       );
+
+//       past.current.push({ state: next, patches, inversePatches });
+//       future.current.length = 0; // clear redo stack
+
+//       setCanUndo(past.current.length > 0);
+//       setCanRedo(false);
+
+//       return next;
+//     },
+//     []
+//   );
+
+//   const undo = useCallback((current: StateSnapshot): StateSnapshot | null => {
+//     if (past.current.length === 0) return null;
+
+//     const last = past.current.pop()!;
+//     const prev = applyPatches(current, last.inversePatches);
+
+//     future.current.push(last);
+//     setCanUndo(past.current.length > 0);
+//     setCanRedo(true);
+
+//     return prev;
+//   }, []);
+
+//   const redo = useCallback((current: StateSnapshot): StateSnapshot | null => {
+//     if (future.current.length === 0) return null;
+
+//     const nextEntry = future.current.pop()!;
+//     const next = applyPatches(current, nextEntry.patches);
+
+//     past.current.push(nextEntry);
+//     setCanUndo(true);
+//     setCanRedo(future.current.length > 0);
+
+//     return next;
+//   }, []);
+
+//   return {
+//     push,
+//     undo,
+//     redo,
+//     canUndo,
+//     canRedo,
+//   };
+// };
+
+

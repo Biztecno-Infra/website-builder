@@ -64,29 +64,39 @@ const ContentWrapper = styled.div`
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
   ({ theme, onExport, onImport }, ref) => {
 
-    useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.ctrlKey) {
-          switch (event.key.toLowerCase()) {
-            case 'z':
-              event.preventDefault();
-              if (!event.shiftKey && ref && 'current' in ref && ref.current?.undo) {
-                ref.current.undo();
-              }
-              break;
-            case 'y':
-              event.preventDefault();
-              if (ref && 'current' in ref && ref.current?.redo) {
-                ref.current.redo();
-              }
-              break;
+useEffect(() => {
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.ctrlKey) {
+      switch (event.key.toLowerCase()) {
+        case "z":
+          event.preventDefault();
+          if (event.shiftKey) {
+            // Ctrl+Shift+Z → redo
+            if (ref && "current" in ref && ref.current?.redo) {
+              ref.current.redo();
+            }
+          } else {
+            // Ctrl+Z → undo
+            if (ref && "current" in ref && ref.current?.undo) {
+              ref.current.undo();
+            }
           }
-        }
-      };
+          break;
 
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [ref]);
+        case "y":
+          // Ctrl+Y → redo (Windows convention)
+          event.preventDefault();
+          if (ref && "current" in ref && ref.current?.redo) {
+            ref.current.redo();
+          }
+          break;
+      }
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [ref]);
 
    
     return (
