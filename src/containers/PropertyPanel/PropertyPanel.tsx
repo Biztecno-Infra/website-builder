@@ -1,16 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
-import styled from "styled-components";
-import { BlockType } from "email-builder-utils";
-import { TextBlockForm } from "./BlockInputs/TextForm";
-import { ImageBlockForm } from "./BlockInputs/ImageForm";
-import { ButtonBlockForm } from "./BlockInputs/ButtonForm";
-import { GridBlockForm } from "./BlockInputs/GridForm";
-import { Block } from "../../types";
-import { useBlockHook } from "context/BlockContext";
-import { GridCellForm } from "./BlockInputs/GridCellForm";
-import { DividerBlockForm } from "./BlockInputs/DividerBlockForm";
-import { SpacerBlockForm } from "./BlockInputs/SpacerBlockForm";
-import { RootStylesForm } from "./BlockInputs/RootStylesForm";
+"use client"
+
+import { useEffect, useMemo, useState } from "react"
+import styled from "styled-components"
+import { BlockType } from "email-builder-utils"
+import { TextBlockForm } from "./BlockInputs/TextForm"
+import { ImageBlockForm } from "./BlockInputs/ImageForm"
+import { ButtonBlockForm } from "./BlockInputs/ButtonForm"
+import { GridBlockForm } from "./BlockInputs/GridForm"
+import type { Block } from "../../types"
+import { useBlockHook } from "context/BlockContext"
+import { GridCellForm } from "./BlockInputs/GridCellForm"
+import { DividerBlockForm } from "./BlockInputs/DividerBlockForm"
+import { SpacerBlockForm } from "./BlockInputs/SpacerBlockForm"
+import { RootStylesForm } from "./BlockInputs/RootStylesForm"
 
 export enum PropertyTabView {
   Global = "Global",
@@ -24,8 +26,8 @@ const blockFormMapping: any = {
   [BlockType.GRID]: GridBlockForm,
   [BlockType.GRIDCELL]: GridCellForm,
   [BlockType.DIVIDER]: DividerBlockForm,
-  [BlockType.SPACER]: SpacerBlockForm
-};
+  [BlockType.SPACER]: SpacerBlockForm,
+}
 
 const PropertyPanelWrapper = styled.div`
   width: 20.4rem;
@@ -38,54 +40,41 @@ const PropertyPanelWrapper = styled.div`
   position: relative;
   z-index: 100;
   border-bottom: none;
-  `;
+  `
 
 function PropertyPanel() {
-  const {
-    updateBlock,
-    selectedBlock,
-    globalStyles,
-    updateGlobalStyles
-  } = useBlockHook();
+  const { updateBlock, selectedBlock, globalStyles, updateGlobalStyles } = useBlockHook()
 
-  const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global);
+  const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global)
 
   const renderBlockForm = useMemo(() => {
-    if (!selectedBlock) return ;
+    if (!selectedBlock) return
 
-    if (selectedBlock.type === "EmailLayout") return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles} />;
+    if (selectedBlock.type === "EmailLayout")
+      return <RootStylesForm globalStyles={globalStyles} updateGlobalStyles={updateGlobalStyles} />
 
-    const BlockFormComponent = blockFormMapping[selectedBlock.type];
+    const BlockFormComponent = blockFormMapping[selectedBlock.type]
     if (BlockFormComponent) {
-      return (
-        <BlockFormComponent
-          selectedBlock={selectedBlock}
-          updateBlock={updateBlock}
-        />
-      );
+      return <BlockFormComponent selectedBlock={selectedBlock} updateBlock={updateBlock} />
     }
-    return null;
-  }, [selectedBlock, tabView]);
+    return null
+  }, [selectedBlock, tabView])
 
   useEffect(() => {
     if (selectedBlock) {
-      setTabView(PropertyTabView.Inspect);
+      setTabView(PropertyTabView.Inspect)
     } else {
-      setTabView(PropertyTabView.Global);
+      setTabView(PropertyTabView.Global)
     }
-  }, [(selectedBlock as Block)?.id]);
+  }, [(selectedBlock as Block)?.id])
 
   useEffect(() => {
     if (selectedBlock && tabView === PropertyTabView.Global) {
-      setTabView(PropertyTabView.Inspect);
+      setTabView(PropertyTabView.Inspect)
     }
-  }, [selectedBlock]);
+  }, [selectedBlock])
 
-  return (
-    <PropertyPanelWrapper>
-      {renderBlockForm}
-    </PropertyPanelWrapper>
-  );
+  return <PropertyPanelWrapper>{renderBlockForm}</PropertyPanelWrapper>
 }
 
-export default PropertyPanel;
+export default PropertyPanel
