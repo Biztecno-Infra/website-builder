@@ -4,7 +4,6 @@ import { BlockType, generateUniqueId } from "email-builder-utils";
 import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
 import {
   Block,
-  IGridCellProps,
   IBlockContext,
   IBlocksState,
   GlobalStyles,
@@ -22,7 +21,7 @@ const initializeBlock = (
   let properties = getDefaultBlockProperties(type);
 
   if (type === BlockType.GRID) {
-    [...new Array(properties.columns)].forEach((value) => {
+    [...new Array(properties.columns)].forEach(() => {
       const blockID = generateUniqueId();
       (properties as any).childBlocks.push(blockID);
 
@@ -45,9 +44,7 @@ const getDistributtedLength = (length: number): Array<number> => {
 export const useBlocks = (): IBlockContext => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const HISTORY_COALESCE_MS = 250;
-  // const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
-  //   null
-  // );
+
   const [globalStyles, setGlobalStyles] =
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
@@ -60,7 +57,7 @@ export const useBlocks = (): IBlockContext => {
     string | "EmailLayout" | null
   >(null);
   const isApplyingHistory = useRef<boolean>(false);
-  console.log("blocks", blocks);
+
   const selectedBlock: Block | RootLayout | null = useMemo(() => {
     if (selectedBlockId === "EmailLayout") {
       return {
@@ -73,7 +70,6 @@ export const useBlocks = (): IBlockContext => {
     }
     return null;
   }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
-  console.log("selectedBlockId", selectedBlockId, selectedBlock);
 
   const {
     push,
@@ -87,109 +83,48 @@ export const useBlocks = (): IBlockContext => {
     globalStyles,
   });
 
-  // Debounced automatic history push on meaningful state changes
+  // Debounced automatic history push
   useEffect(() => {
     if (isApplyingHistory.current) return;
     const handle = window.setTimeout(() => {
-      push({
-        blocks,
-        rootOrder: rootBlockOrder,
-        globalStyles,
-      });
+      push({ blocks, rootOrder: rootBlockOrder, globalStyles });
     }, HISTORY_COALESCE_MS);
     return () => window.clearTimeout(handle);
   }, [blocks, rootBlockOrder, globalStyles, push]);
 
   const undo = async () => {
-  if (!canUndo) return;
-  
-  const currentState = {
-    blocks,
-    rootOrder: rootBlockOrder,
-    globalStyles,
+    if (!canUndo) return;
+    const prevState = await undoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!prevState) return;
+
+    isApplyingHistory.current = true;
+    setBlocks(prevState.blocks);
+    setRootBlockOrder(prevState.rootOrder);
+    setGlobalStyles(prevState.globalStyles);
+    setTimeout(() => {
+      isApplyingHistory.current = false;
+    }, 0);
   };
 
-  const prevState = await undoHistory(currentState);
-  if (!prevState) return;
+  const redo = async () => {
+    if (!canRedo) return;
+    const nextState = await redoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!nextState) return;
 
-  isApplyingHistory.current = true;
-  setBlocks(prevState.blocks);
-  setRootBlockOrder(prevState.rootOrder);
-  setGlobalStyles(prevState.globalStyles);
-  setTimeout(() => {
-    isApplyingHistory.current = false;
-  }, 0);
-};
-
-const redo = async () => {
-  if (!canRedo) return;
-  
-  const currentState = {
-    blocks,
-    rootOrder: rootBlockOrder,
-    globalStyles,
+    isApplyingHistory.current = true;
+    setBlocks(nextState.blocks);
+    setRootBlockOrder(nextState.rootOrder);
+    setGlobalStyles(nextState.globalStyles);
+    setTimeout(() => {
+      isApplyingHistory.current = false;
+    }, 0);
   };
-
-  const nextState = await redoHistory(currentState);
-  if (!nextState) return;
-
-  isApplyingHistory.current = true;
-  setBlocks(nextState.blocks);
-  setRootBlockOrder(nextState.rootOrder);
-  setGlobalStyles(nextState.globalStyles);
-  setTimeout(() => {
-    isApplyingHistory.current = false;
-  }, 0);
-};
-  // const undo = () => {
-  //   if (!canUndo) return;
-
-  //   const currentState = {
-  //     blocks,
-  //     rootOrder: rootBlockOrder,
-  //     globalStyles,
-  //   };
-
-  //   const prevState = undoHistory(currentState);
-  //   if (!prevState) return;
-
-  //   isApplyingHistory.current = true;
-  //   setBlocks(prevState.blocks);
-  //   setRootBlockOrder(prevState.rootOrder);
-  //   setGlobalStyles(prevState.globalStyles);
-  //   // Allow state to settle before re-enabling history capture
-  //   setTimeout(() => {
-  //     isApplyingHistory.current = false;
-  //   }, 0);
-  // };
-
-  // const redo = () => {
-  //   if (!canRedo) return;
-
-  //   const currentState = {
-  //     blocks,
-  //     rootOrder: rootBlockOrder,
-  //     globalStyles,
-  //   };
-
-  //   const nextState = redoHistory(currentState);
-  //   if (!nextState) return;
-
-  //   isApplyingHistory.current = true;
-  //   setBlocks(nextState.blocks);
-  //   setRootBlockOrder(nextState.rootOrder);
-  //   setGlobalStyles(nextState.globalStyles);
-  //   setTimeout(() => {
-  //     isApplyingHistory.current = false;
-  //   }, 0);
-  // };
 
   const handleImportTemplates = useCallback(
     (selectedTemplates: any[]) => {
-      // Process all templates at once instead of iterating
       const processedData = selectedTemplates.reduce(
         (acc, template) => {
-          const { root, ...otherBlocks } = template.layout;
+          const { root } = template.layout;
           const convertedBlocks = jsonToBlocks(template.layout);
 
           return {
@@ -201,45 +136,21 @@ const redo = async () => {
                 : acc.style,
           };
         },
-        {
-          blocks: {},
-          childrenIds: [],
-          style: null,
-        }
+        { blocks: {}, childrenIds: [], style: null }
       );
 
-      // Batch state updates
       const batchUpdate = () => {
-        // Only update global styles if needed
         if (processedData.style && rootBlockOrder.length === 0) {
           setGlobalStyles(processedData.style);
         }
 
-        // Update blocks and root order together
-        setBlocks((prevBlocks) => ({
-          ...prevBlocks,
-          ...processedData.blocks,
-        }));
-
-        setRootBlockOrder((prevOrder) => [
-          ...prevOrder,
-          ...processedData.childrenIds,
-        ]);
+        setBlocks((prev) => ({ ...prev, ...processedData.blocks }));
+        setRootBlockOrder((prev) => [...prev, ...processedData.childrenIds]);
       };
 
-      // Use requestAnimationFrame for better performance
       requestAnimationFrame(batchUpdate);
     },
-    [
-      blocks,
-      rootBlockOrder,
-      globalStyles,
-      selectedBlock,
-      push,
-      setBlocks,
-      setRootBlockOrder,
-      setGlobalStyles,
-    ]
+    [rootBlockOrder]
   );
 
   const updateGlobalStyles = (updatedStyles: any) => {
@@ -247,7 +158,6 @@ const redo = async () => {
   };
 
   const updateBlock = (blockId: any, property: any, value: any) => {
-    // Wrap both state updates in one operation
     setBlocks((prevBlocks) => {
       const block = prevBlocks[blockId] as any;
       if (!block) return prevBlocks;
@@ -260,11 +170,7 @@ const redo = async () => {
         const columnDiff = newColumns - prevColumns;
 
         if (columnDiff > 0) {
-          // Add new grid cells
-          const newGridCellIds = Array.from(
-            { length: columnDiff },
-            generateUniqueId
-          );
+          const newGridCellIds = Array.from({ length: columnDiff }, generateUniqueId);
           const newGridCells = Object.fromEntries(
             newGridCellIds.map((id) => [
               id,
@@ -287,7 +193,6 @@ const redo = async () => {
             },
             ...newGridCells,
           });
-
           return updatedBlocks;
         }
 
@@ -306,29 +211,19 @@ const redo = async () => {
             },
             ...removeUpdates,
           });
-
           return updatedBlocks;
         }
       }
 
-      // Default property update
-      updatedBlocks = update(prevBlocks, {
+      return update(prevBlocks, {
         [blockId]: { [property]: { $set: value } },
       });
-      return updatedBlocks;
     });
-
-    // Call pushToPast right after setBlocks to ensure state is updated
-    // push({ blocks, rootOrder: rootBlockOrder, globalStyles });
   };
 
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
-
-    if (!deleteBlock) {
-      console.warn(`Block with ID ${blockId} does not exist.`);
-      return;
-    }
+    if (!deleteBlock) return;
 
     setBlocks((prevBlocks) => {
       let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
@@ -348,9 +243,7 @@ const redo = async () => {
     });
 
     if (!deleteBlock?.parentId) {
-      setRootBlockOrder((prevOrder) =>
-        prevOrder.filter((id) => id !== blockId)
-      );
+      setRootBlockOrder((prev) => prev.filter((id) => id !== blockId));
     }
   };
 
@@ -358,15 +251,11 @@ const redo = async () => {
     try {
       const { blocks, rootBlock } = jsonToBlocks(jsonData);
       const { childrenIds, style } = rootBlock.data || {};
-      const rootOrder = childrenIds || [];
-
       setBlocks(blocks);
       setGlobalStyles(style);
-      setRootBlockOrder(rootOrder);
-
+      setRootBlockOrder(childrenIds || []);
       return { success: true, message: "Upload successful" };
     } catch (error) {
-      console.error("Error uploading JSON:", error);
       return { success: false, message: "Error uploading JSON", error };
     }
   };
@@ -630,11 +519,7 @@ const redo = async () => {
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
     const blockID = generateUniqueId();
-    const blockProps = {
-      type: dragSrc.type as BlockType,
-      id: blockID,
-      parentId: undefined,
-    };
+    const blockProps = { type: dragSrc.type as BlockType, id: blockID, parentId: undefined };
     const { defaultBlock, extraBlocks } = initializeBlock(blockProps as Block);
 
     setBlocks((prevBlocks) => {
@@ -643,7 +528,6 @@ const redo = async () => {
 
       if (dropBlock) {
         if (dropBlock.type === BlockType.GRIDCELL) {
-          // Drop into empty grid cell
           newBlocks = update(newBlocks, {
             [dropBlock.id]: { childBlocks: { $push: [blockID] } },
             [blockID]: { $set: { ...defaultBlock, parentId: dropBlock.id } },
@@ -651,32 +535,18 @@ const redo = async () => {
         } else if (dropBlock.parentId) {
           const parent = prevBlocks[dropBlock.parentId];
           if (parent?.type === BlockType.GRIDCELL) {
-            const index = parent.childBlocks.findIndex(
-              (id) => id === dropBlock.id
-            );
+            const index = parent.childBlocks.findIndex((id) => id === dropBlock.id);
             newBlocks = update(newBlocks, {
-              [parent.id]: {
-                childBlocks: { $splice: [[index, 0, blockID]] },
-              },
-              [blockID]: {
-                $set: { ...defaultBlock, parentId: parent.id },
-              },
+              [parent.id]: { childBlocks: { $splice: [[index, 0, blockID]] } },
+              [blockID]: { $set: { ...defaultBlock, parentId: parent.id } },
             });
-          } else {
-            console.error("Unsupported block drop scenario");
           }
         } else {
-          // Drop on a top-level block (no parent)
           newBlocks[blockID] = defaultBlock;
           const index = rootBlockOrder.findIndex((id) => id === dropBlock.id);
-          setRootBlockOrder((prev) =>
-            update(prev, {
-              $splice: [[index, 0, blockID]],
-            })
-          );
+          setRootBlockOrder((prev) => update(prev, { $splice: [[index, 0, blockID]] }));
         }
       } else {
-        // Dropped on empty canvas
         newBlocks[blockID] = defaultBlock;
         setRootBlockOrder((prev) => [...prev, blockID]);
       }
@@ -687,16 +557,8 @@ const redo = async () => {
     setSelectedBlockId(defaultBlock.id);
   };
 
-  /**
-   *
-   * @param targetSrc It can be a block which is already in canvas or it can be section which means i need to insert into canvas
-   * @param dropArea it can be root or any block id, if it is root then directly insert as children of root, if it is any block
-   *  then check the parent of block if it is grid then insert at bootom of that grid or if it is root then insert in root childrens at last
-   */
   const handleDropper = useCallback(
     (dragSrc: any, dropAreaId: string) => {
-      //  push({ blocks, rootOrder: rootBlockOrder, globalStyles });
-      console.log("handleDropper", dragSrc, dropAreaId);
       if (dragSrc.id) {
         handleSwappingV2(dragSrc, dropAreaId);
       } else if (dragSrc.type) {
@@ -710,18 +572,13 @@ const redo = async () => {
     const layout = {
       root: {
         type: "EmailLayout",
-        data: {
-          style: globalStyles,
-          childrenIds: rootBlockOrder,
-        },
+        data: { style: globalStyles, childrenIds: rootBlockOrder },
       },
     };
 
     rootBlockOrder?.forEach((blockId) => {
       const block = blocks[blockId];
-      if (block) {
-        processBlock(block, blocks, layout, null);
-      }
+      if (block) processBlock(block, blocks, layout, null);
     });
 
     return layout;
