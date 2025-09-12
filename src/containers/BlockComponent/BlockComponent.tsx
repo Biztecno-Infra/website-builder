@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useMemo, useCallback } from "react"
 import type {
   ButtonProps,
@@ -28,15 +26,15 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(({ blockId }) =
     return selectedBlock ? blockId === (selectedBlock as Block).id : false
   }, [selectedBlock, blockId]) // Optimized dependency array
 
-  const handleBlockClick = useCallback(
-    (e?: React.MouseEvent) => {
-      e?.stopPropagation()
-      if (!isSelected) {
-        setSelectedBlock(block)
-      }
-    },
-    [isSelected, setSelectedBlock, block],
-  )
+    const handleBlockClick = useCallback(
+      (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        if (!isSelected) {
+          setSelectedBlock(block.id);
+        }
+      },
+      [isSelected, setSelectedBlock, block]
+    );
 
   const renderBlock = useMemo(() => {
     if (!block) return null

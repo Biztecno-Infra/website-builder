@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, useEffect } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import styled, { createGlobalStyle } from "styled-components";
@@ -62,51 +62,42 @@ const ContentWrapper = styled.div`
 
 const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
   ({ theme, onExport, onImport }, ref) => {
-function parseGradient(gradient: any) {
-  const gradientRegex = /linear-gradient\(([^,]+),\s*(.+)\)/i;
-  const match = gradient.match(gradientRegex);
-  if (!match) return null;
 
-  const direction = match[1].trim();
-  const stopsString = match[2].trim();
+useEffect(() => {
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.ctrlKey) {
+      switch (event.key.toLowerCase()) {
+        case "z":
+          event.preventDefault();
+          if (event.shiftKey) {
+            // Ctrl+Shift+Z → redo
+            if (ref && "current" in ref && ref.current?.redo) {
+              ref.current.redo();
+            }
+          } else {
+            // Ctrl+Z → undo
+            if (ref && "current" in ref && ref.current?.undo) {
+              ref.current.undo();
+            }
+          }
+          break;
 
-  // Split color stops by comma, respecting rgb(), rgba(), etc.
-  const stops = [];
-  let current = '';
-  let depth = 0;
-
-  for (let char of stopsString) {
-    if (char === '(') depth++;
-    if (char === ')') depth--;
-    if (char === ',' && depth === 0) {
-      stops.push(current.trim());
-      current = '';
-    } else {
-      current += char;
+        case "y":
+          // Ctrl+Y → redo (Windows convention)
+          event.preventDefault();
+          if (ref && "current" in ref && ref.current?.redo) {
+            ref.current.redo();
+          }
+          break;
+      }
     }
-  }
-  if (current) stops.push(current.trim());
-
-  // Parse each stop into color and position
-  const parsedStops = stops.map(stop => {
-    const parts = stop.match(/(rgba?\([^)]+\)|#[0-9a-fA-F]+|\b[a-zA-Z]+\b)\s*(\d+%?)?/);
-    if (!parts) return null;
-    return {
-      color: parts[1],
-      position: parts[2] || null
-    };
-  }).filter(Boolean);
-
-  return {
-    direction,
-    colorStops: parsedStops
   };
-}
 
-// Example usage
-const gradient = "linear-gradient(90deg, RGB(172, 169, 222) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%)";
-const parsed = parseGradient(gradient);
-console.log(parsed);
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [ref]);
+
+   
     return (
       <DndProvider backend={HTML5Backend}>
         <CustomThemeProvider theme={theme! || {}}>

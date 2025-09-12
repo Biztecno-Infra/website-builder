@@ -1,14 +1,9 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import update from "immutability-helper";
 import { BlockType, generateUniqueId } from "email-builder-utils";
-
-import {
-  getDefaultBlockProperties,
-  initialGlobalStyle,
-} from "@utils/constant";
+import { getDefaultBlockProperties, initialGlobalStyle } from "@utils/constant";
 import {
   Block,
-  IGridCellProps,
   IBlockContext,
   IBlocksState,
   GlobalStyles,
@@ -16,6 +11,7 @@ import {
 } from "../types";
 import { jsonToBlocks, processBlock } from "utils";
 import { ScreenViews } from "enum";
+import { useUndoRedo } from "./useUndoRedo";
 
 const initializeBlock = (
   block: Block
@@ -25,7 +21,7 @@ const initializeBlock = (
   let properties = getDefaultBlockProperties(type);
 
   if (type === BlockType.GRID) {
-    [...new Array(properties.columns)].forEach((value) => {
+    [...new Array(properties.columns)].forEach(() => {
       const blockID = generateUniqueId();
       (properties as any).childBlocks.push(blockID);
 
@@ -47,40 +43,115 @@ const getDistributtedLength = (length: number): Array<number> => {
 
 export const useBlocks = (): IBlockContext => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [selectedBlock, setSelectedBlock] = useState<Block | RootLayout | null>(
-    null
-  );
+  const HISTORY_COALESCE_MS = 250;
+
   const [globalStyles, setGlobalStyles] =
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
     ScreenViews.DESKTOP
   );
 
-const [blocks, setBlocks] = useState<IBlocksState>({});
-const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
+  const [blocks, setBlocks] = useState<IBlocksState>({});
+  const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
+  const [selectedBlockId, setSelectedBlockId] = useState<
+    string | "EmailLayout" | null
+  >(null);
+  const isApplyingHistory = useRef<boolean>(false);
 
-  const handleImportTemplates = (selectedTemplates: any[]) => {
-    selectedTemplates.forEach((template) => {
-      const { root, ...otherBlocks } = template.layout;
-      console.log(selectedTemplates, template, otherBlocks);
-      const convertedBlocks = jsonToBlocks(template.layout);
-      console.log(convertedBlocks);
-      // Append root block to rootBlockOrder
-      if (selectedTemplates.length === 1 && rootBlockOrder.length === 0) {
-        setGlobalStyles(root.data.style);
-      }
-      setRootBlockOrder((prevOrder) => [
-        ...prevOrder,
-        ...(root.data.childrenIds || []),
-      ]);
+  const selectedBlock: Block | RootLayout | null = useMemo(() => {
+    if (selectedBlockId === "EmailLayout") {
+      return {
+        type: "EmailLayout",
+        data: { style: globalStyles, childrenIds: rootBlockOrder },
+      } as RootLayout;
+    }
+    if (selectedBlockId) {
+      return blocks[selectedBlockId] || null;
+    }
+    return null;
+  }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
 
-      // Merge the new blocks with the existing blocks
-      setBlocks((prevBlocks) => ({
-        ...prevBlocks,
-        ...convertedBlocks.blocks, // Merging the new blocks
-      }));
-    });
+  const {
+    push,
+    undo: undoHistory,
+    redo: redoHistory,
+    canUndo,
+    canRedo,
+  } = useUndoRedo({
+    blocks,
+    rootOrder: rootBlockOrder,
+    globalStyles,
+  });
+
+  // Debounced automatic history push
+  useEffect(() => {
+    if (isApplyingHistory.current) return;
+    const handle = window.setTimeout(() => {
+      push({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    }, HISTORY_COALESCE_MS);
+    return () => window.clearTimeout(handle);
+  }, [blocks, rootBlockOrder, globalStyles, push]);
+
+  const undo = async () => {
+    if (!canUndo) return;
+    const prevState = await undoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!prevState) return;
+
+    isApplyingHistory.current = true;
+    setBlocks(prevState.blocks);
+    setRootBlockOrder(prevState.rootOrder);
+    setGlobalStyles(prevState.globalStyles);
+    setTimeout(() => {
+      isApplyingHistory.current = false;
+    }, 0);
   };
+
+  const redo = async () => {
+    if (!canRedo) return;
+    const nextState = await redoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!nextState) return;
+
+    isApplyingHistory.current = true;
+    setBlocks(nextState.blocks);
+    setRootBlockOrder(nextState.rootOrder);
+    setGlobalStyles(nextState.globalStyles);
+    setTimeout(() => {
+      isApplyingHistory.current = false;
+    }, 0);
+  };
+
+  const handleImportTemplates = useCallback(
+    (selectedTemplates: any[]) => {
+      const processedData = selectedTemplates.reduce(
+        (acc, template) => {
+          const { root } = template.layout;
+          const convertedBlocks = jsonToBlocks(template.layout);
+
+          return {
+            blocks: { ...acc.blocks, ...convertedBlocks.blocks },
+            childrenIds: [...acc.childrenIds, ...(root.data.childrenIds || [])],
+            style:
+              selectedTemplates.length === 1 && !acc.style
+                ? root.data.style
+                : acc.style,
+          };
+        },
+        { blocks: {}, childrenIds: [], style: null }
+      );
+
+      const batchUpdate = () => {
+        if (processedData.style && rootBlockOrder.length === 0) {
+          setGlobalStyles(processedData.style);
+        }
+
+        setBlocks((prev) => ({ ...prev, ...processedData.blocks }));
+        setRootBlockOrder((prev) => [...prev, ...processedData.childrenIds]);
+      };
+
+      requestAnimationFrame(batchUpdate);
+    },
+    [rootBlockOrder]
+  );
 
   const updateGlobalStyles = (updatedStyles: any) => {
     setGlobalStyles(updatedStyles);
@@ -91,17 +162,15 @@ const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
       const block = prevBlocks[blockId] as any;
       if (!block) return prevBlocks;
 
+      let updatedBlocks = prevBlocks;
+
       if (block.type === BlockType.GRID && property === "columns") {
         const { columns: prevColumns, childBlocks = [] } = block;
         const newColumns = value;
         const columnDiff = newColumns - prevColumns;
 
         if (columnDiff > 0) {
-          // Add new grid cells
-          const newGridCellIds = Array.from(
-            { length: columnDiff },
-            generateUniqueId
-          );
+          const newGridCellIds = Array.from({ length: columnDiff }, generateUniqueId);
           const newGridCells = Object.fromEntries(
             newGridCellIds.map((id) => [
               id,
@@ -116,85 +185,80 @@ const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
             ])
           );
 
-          return update(prevBlocks, {
+          updatedBlocks = update(prevBlocks, {
             [blockId]: {
               columns: { $set: newColumns },
               childBlocks: { $push: newGridCellIds },
+              cellWidths: { $set: getDistributtedLength(newColumns) },
             },
             ...newGridCells,
           });
-        } else if (columnDiff < 0) {
-          const updatedGridCells = childBlocks.slice(0, columnDiff);
-          const removedGridCells = childBlocks.slice(columnDiff);
+          return updatedBlocks;
+        }
+
+        if (columnDiff < 0) {
+          const updatedGridCells = childBlocks.slice(0, newColumns);
+          const removedGridCells = childBlocks.slice(newColumns);
           const removeUpdates = Object.fromEntries(
             removedGridCells.map((id: any) => [id, { $unset: [id] }])
           );
 
-          return update(prevBlocks, {
+          updatedBlocks = update(prevBlocks, {
             [blockId]: {
               columns: { $set: newColumns },
               childBlocks: { $set: updatedGridCells },
+              cellWidths: { $set: getDistributtedLength(newColumns) },
             },
             ...removeUpdates,
           });
+          return updatedBlocks;
         }
       }
+
       return update(prevBlocks, {
         [blockId]: { [property]: { $set: value } },
       });
     });
   };
 
-const onDeleteBlock = (blockId: string) => {
-  const deleteBlock = blocks[blockId];
+  const onDeleteBlock = (blockId: string) => {
+    const deleteBlock = blocks[blockId];
+    if (!deleteBlock) return;
 
-  if (!deleteBlock) {
-    console.warn(`Block with ID ${blockId} does not exist.`);
-    return;
-  }
+    setBlocks((prevBlocks) => {
+      let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
 
-  setBlocks((prevBlocks) => {
-    let updatedBlocks = update(prevBlocks, { $unset: [blockId] });
-
-    if (deleteBlock?.parentId && updatedBlocks[deleteBlock.parentId]) {
-      updatedBlocks = update(updatedBlocks, {
-        [deleteBlock.parentId]: {
-          childBlocks: {
-            $apply: (childBlocks: string[]) =>
-              childBlocks.filter((id) => id !== blockId),
+      if (deleteBlock?.parentId && updatedBlocks[deleteBlock.parentId]) {
+        updatedBlocks = update(updatedBlocks, {
+          [deleteBlock.parentId]: {
+            childBlocks: {
+              $apply: (childBlocks: string[]) =>
+                childBlocks.filter((id) => id !== blockId),
+            },
           },
-        },
-      });
+        });
+      }
+
+      return updatedBlocks;
+    });
+
+    if (!deleteBlock?.parentId) {
+      setRootBlockOrder((prev) => prev.filter((id) => id !== blockId));
     }
-
-    return updatedBlocks;
-  });
-
-  if (!deleteBlock?.parentId) {
-    setRootBlockOrder((prevOrder) =>
-      prevOrder.filter((id) => id !== blockId)
-    );
-  }
-};
-
+  };
 
   const handleJsonUpload = (jsonData: any) => {
     try {
       const { blocks, rootBlock } = jsonToBlocks(jsonData);
       const { childrenIds, style } = rootBlock.data || {};
-      const rootOrder = childrenIds || [];
-
       setBlocks(blocks);
       setGlobalStyles(style);
-      setRootBlockOrder(rootOrder);
-
+      setRootBlockOrder(childrenIds || []);
       return { success: true, message: "Upload successful" };
     } catch (error) {
-      console.error("Error uploading JSON:", error);
       return { success: false, message: "Error uploading JSON", error };
     }
   };
-
 
   const handleSwappingV2 = (dragSrc: any, dropAreaId: string) => {
     setBlocks((prvsBlockState) => {
@@ -350,14 +414,14 @@ const onDeleteBlock = (blockId: string) => {
 
           const newGridBlock = isGridCell
             ? {
-              type: BlockType.GRID,
-              id: generateUniqueId(),
-              parentId: undefined,
-              ...getDefaultBlockProperties(BlockType.GRID),
-              columns: 1,
-              cellWidths: [100],
-              childBlocks: [dragBlock.id],
-            }
+                type: BlockType.GRID,
+                id: generateUniqueId(),
+                parentId: undefined,
+                ...getDefaultBlockProperties(BlockType.GRID),
+                columns: 1,
+                cellWidths: [100],
+                childBlocks: [dragBlock.id],
+              }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -455,72 +519,44 @@ const onDeleteBlock = (blockId: string) => {
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
     const blockID = generateUniqueId();
-    const blockProprtys = {
-      type: dragSrc.type as BlockType,
-      id: blockID,
-      parentId: undefined,
-    };
-    const { defaultBlock, extraBlocks } = initializeBlock(
-      blockProprtys as Block
-    );
+    const blockProps = { type: dragSrc.type as BlockType, id: blockID, parentId: undefined };
+    const { defaultBlock, extraBlocks } = initializeBlock(blockProps as Block);
 
-    setBlocks((prevsBlocks) => {
-      const dropBlock = dropAreaId ? prevsBlocks[dropAreaId] : undefined;
+    setBlocks((prevBlocks) => {
+      const dropBlock = dropAreaId ? prevBlocks[dropAreaId] : undefined;
+      let newBlocks = { ...prevBlocks };
 
       if (dropBlock) {
-        if (dropBlock?.type === BlockType.GRIDCELL) {
-          // "Drop in grid cell empty";
-          prevsBlocks = update(blocks, {
+        if (dropBlock.type === BlockType.GRIDCELL) {
+          newBlocks = update(newBlocks, {
             [dropBlock.id]: { childBlocks: { $push: [blockID] } },
             [blockID]: { $set: { ...defaultBlock, parentId: dropBlock.id } },
           });
         } else if (dropBlock.parentId) {
-          // "Drop in grid cell with childrens";
-          const dropBlockParent = prevsBlocks[dropBlock.parentId];
-          if (dropBlockParent?.type === BlockType.GRIDCELL) {
-            const dropNodeIndex = (
-              dropBlockParent as IGridCellProps
-            ).childBlocks.findIndex((id) => dropBlock.id === id);
-            prevsBlocks = update(blocks, {
-              [dropBlockParent.id]: {
-                childBlocks: { $splice: [[dropNodeIndex, 0, blockID]] },
-              },
-              [blockID]: {
-                $set: { ...defaultBlock, parentId: dropBlockParent.id },
-              },
+          const parent = prevBlocks[dropBlock.parentId];
+          if (parent?.type === BlockType.GRIDCELL) {
+            const index = parent.childBlocks.findIndex((id) => id === dropBlock.id);
+            newBlocks = update(newBlocks, {
+              [parent.id]: { childBlocks: { $splice: [[index, 0, blockID]] } },
+              [blockID]: { $set: { ...defaultBlock, parentId: parent.id } },
             });
-          } else {
-            console.error("It is not a nested cell");
           }
         } else {
-          // "Drop on block which has no parent";
-          prevsBlocks[blockID] = defaultBlock;
-          const indexOfDropArea = rootBlockOrder.findIndex(
-            (value) => value === dropBlock.id
-          );
-
-          setRootBlockOrder((prevs) =>
-            update(prevs, {
-              $splice: [[indexOfDropArea, 0, blockID]],
-            })
-          );
+          newBlocks[blockID] = defaultBlock;
+          const index = rootBlockOrder.findIndex((id) => id === dropBlock.id);
+          setRootBlockOrder((prev) => update(prev, { $splice: [[index, 0, blockID]] }));
         }
       } else {
-        // Directly drop to canvas and append at last
-        prevsBlocks[blockID] = defaultBlock;
-        setRootBlockOrder((prevs) => [...prevs, blockID]);
+        newBlocks[blockID] = defaultBlock;
+        setRootBlockOrder((prev) => [...prev, blockID]);
       }
-      return { ...prevsBlocks, ...extraBlocks };
+
+      return { ...newBlocks, ...extraBlocks };
     });
-    setSelectedBlock(defaultBlock);
+
+    setSelectedBlockId(defaultBlock.id);
   };
 
-  /**
-   *
-   * @param targetSrc It can be a block which is already in canvas or it can be section which means i need to insert into canvas
-   * @param dropArea it can be root or any block id, if it is root then directly insert as children of root, if it is any block
-   *  then check the parent of block if it is grid then insert at bootom of that grid or if it is root then insert in root childrens at last
-   */
   const handleDropper = useCallback(
     (dragSrc: any, dropAreaId: string) => {
       if (dragSrc.id) {
@@ -536,25 +572,20 @@ const onDeleteBlock = (blockId: string) => {
     const layout = {
       root: {
         type: "EmailLayout",
-        data: {
-          style: globalStyles,
-          childrenIds: rootBlockOrder,
-        },
+        data: { style: globalStyles, childrenIds: rootBlockOrder },
       },
     };
 
     rootBlockOrder?.forEach((blockId) => {
       const block = blocks[blockId];
-      if (block) {
-        processBlock(block, blocks, layout, null);
-      }
+      if (block) processBlock(block, blocks, layout, null);
     });
 
     return layout;
   };
 
   return {
-    setSelectedBlock,
+    setSelectedBlock: setSelectedBlockId,
     selectedBlock,
     blocks,
     updateBlock,
@@ -568,6 +599,10 @@ const onDeleteBlock = (blockId: string) => {
     selectedView,
     setSelectedView,
     handleImportTemplates,
-    canvasRef
+    canvasRef,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 };

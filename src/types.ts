@@ -212,7 +212,7 @@ export interface BlockData {
 }
 
 export interface IBlockContext {
-  setSelectedBlock: (block: Block | RootLayout | null) => void;
+  setSelectedBlock: (blockId: string | null) => void;
   selectedBlock: Block | RootLayout | null;
   blocks: IBlocksState;
   updateBlock: (blockId: string, property: string, value: any) => void;
@@ -227,6 +227,10 @@ export interface IBlockContext {
   setSelectedView: any;
   handleImportTemplates: any;
   canvasRef: any;
+  undo : () => void;
+  redo : () => void;
+  canUndo: boolean;
+  canRedo: boolean;
   // captureScreenshot: any
 }
 export interface BlockHookRef {
@@ -235,6 +239,8 @@ export interface BlockHookRef {
   getJSON: () => any;
   getScreenShot:() => any;
   importTemplate: (templates: any[]) => void;
+  undo: () => void;
+  redo: () => void;
 }
 
 

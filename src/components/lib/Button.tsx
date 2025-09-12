@@ -17,6 +17,7 @@ interface ButtonProps {
     iconPosition?: "left" | "right";
     iconSize?: SizeEnum;
   };
+  disabled?: boolean;
 }
 
 const Button = styled.button<ButtonProps>`
@@ -66,6 +67,7 @@ const ButtonComponent: React.FC<ButtonProps> = ({
   text,
   handleClick,
   $iconProps,
+  disabled = false,
 }) => {
   return (
     <Button
@@ -77,6 +79,7 @@ const ButtonComponent: React.FC<ButtonProps> = ({
       outline={outline}
       onClick={handleClick}
       $iconProps={$iconProps}
+      disabled={disabled}
     >
       {$iconProps?.iconName && $iconProps.iconPosition === "left" && (
         <SvgIcon name={$iconProps.iconName} size={$iconProps.iconSize} />
