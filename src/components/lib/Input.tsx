@@ -21,7 +21,7 @@ const InputContainer = styled.div`
 
 const StyledInput = styled.input<{ width: string }>`
   width: ${(props) => props.width};
-   height: 30px ;
+  height: 30px;
   line-height: 0;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
@@ -103,6 +103,10 @@ export function CustomInput({
   const validateInput = (value: string) => {
     if (value.trim() === "") return "Please enter a valid input";
   
+    if (name === "layerName" && value.length > 40) {
+      return "Layer Name cannot be more than 40 characters";
+    }
+
     if (type === "number") {
       const numValue = Number(value);
       if (isNaN(numValue)) return "Please enter a valid number";
@@ -126,7 +130,6 @@ export function CustomInput({
       onChange(name, parsedValue);
     }
   };
-  
 
   return (
     <InputWrapper containerStyle={containerStyle}>

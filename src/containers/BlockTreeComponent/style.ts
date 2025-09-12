@@ -8,10 +8,13 @@ export const BlockContainer = styled.div<{
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
   padding-left: 8px;
-  background-color:  ${({ $isSelected }) => ($isSelected ? "#f5f5f5" : "none")};
-   &:hover {
-    background-color: #f5f5f5;
-  }
+  background-color:  ${({ $isSelected }) => ($isSelected ? "#006E75" : "none")};
+  color:  ${({ $isSelected }) => ($isSelected ? "#FFFFFF" : "inherit")};
+  &:hover {
+    ${({ $isSelected }) => !$isSelected && `
+      background-color: #f5f5f5;
+      `}
+}
 `;
 
 export const BlockContent = styled.div<{ $hasChildBlocks: boolean }>`
@@ -26,22 +29,27 @@ export const ChildNodesContainer = styled.div`
   padding-left: 8px;
 `;
 
-export const BlockContentText = styled.div`
+export const BlockContentText = styled.div<{
+  $isSelected?: boolean;
+}>`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: ${({ theme }) => theme.colors.primary}; // changed to use theme primary color
+  color: ${({ theme, $isSelected }) => ($isSelected ? "#f5f5f5" : theme.colors.primary)}; // changed to use theme primary color
   width: 100%;
   padding: 0.75rem 0.5rem;
+
   &:hover {
-    background-color: #f5f5f5;
-    display: flex;
-  flex-direction: row;
-  align-items: center;
+    ${({ $isSelected }) => !$isSelected && `
+      background-color: #f5f5f5;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+    `}
   }
-    font-family: Montserrat;
 `;
+
 
 export const BlockTextIcon = styled.div`
   display: flex;

@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo, useEffect, useRef } from "react"
 import BlockComponent from "../BlockComponent"
 import Droppable from "../Droppable"
 import EmptyBlock from "./EmptyBlock"
@@ -7,6 +7,7 @@ import styled, { useTheme } from "styled-components"
 import type { Block, Padding } from "types"
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon"
 import { ScreenViews } from "enum"
+
 interface TableWrapperProps {
   $canvasColor: string
   $canvasFont: string
@@ -48,7 +49,6 @@ const TableWrapper = styled.table<TableWrapperProps>`
     background-color: ${({ $canvasColor }) => $canvasColor};
     font-family: ${({ $canvasFont }) => $canvasFont};
     color: ${({ $canvasFontColor }) => $canvasFontColor};
-    // border-collapse: collapse;
     table-layout: fixed;
     width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
     max-width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
@@ -74,6 +74,8 @@ const Canvas = () => {
 
   const theme = useTheme()
 
+ const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({})
+ 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
       requestAnimationFrame(() => {
@@ -83,10 +85,23 @@ const Canvas = () => {
     [handleDropper],
   )
 
+  // Function to render each block and assign a ref
   const renderBlock = useCallback(
     (blockId: string, index: number) => {
+      // Assign a ref to each block only if it doesn't exist already
+      if (!blockRefs.current[blockId]) {
+        blockRefs.current[blockId] = React.createRef<HTMLDivElement | any>()
+      }
+      const blockRef = blockRefs.current[blockId]
+
       return (
-        <BlockWrapper key={blockId} id={blockId} $isSelected={blockId === (selectedBlock as Block)?.id} theme={theme}>
+        <BlockWrapper
+          key={blockId}
+          id={blockId}
+          $isSelected={blockId === (selectedBlock as Block)?.id}
+          theme={theme}
+          ref={blockRef} // Assign the ref here
+        >
           <BlockComponent blockId={blockId} />
           {blockId === (selectedBlock as Block)?.id && (
             <TrashIconWrapper
@@ -106,6 +121,7 @@ const Canvas = () => {
     },
     [selectedBlock, theme, onDeleteBlock, setSelectedBlock],
   )
+
 
   const memoizedTableWrapper = useMemo(
     () => (
@@ -142,6 +158,16 @@ const Canvas = () => {
     ),
     [globalStyles, selectedView, canvasRef, rootBlockOrder, renderBlock],
   )
+
+  // Scroll to the selected block when selectedBlock changes
+  useEffect(() => {
+    if (selectedBlock && blockRefs.current[(selectedBlock as Block).id]) {
+      blockRefs.current[(selectedBlock as Block).id]?.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    }
+  }, [selectedBlock])
 
   return (
     <Droppable
