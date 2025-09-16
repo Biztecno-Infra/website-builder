@@ -31,7 +31,6 @@ const LeftActions = styled.div`
 const RightActions = styled.div`
   display: flex;
   width: 20.4rem;
-  width: auto;
   justify-content: space-evenly;
   align-items: center;
 `;
@@ -152,11 +151,11 @@ function HeaderActions({ onExport, onImport }: Props) {
           text="Export"
         />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import" />
-        <ButtonComponent
+        {/* <ButtonComponent
           $buttonPrimary
           handleClick={() => setSelectedOption("Upload")}
           text="Upload"
-        />
+        /> */}
 
         {/* <CustomDropdownButton
           options={["Export","Upload"]}
