@@ -30,7 +30,7 @@ const LeftActions = styled.div`
 
 const RightActions = styled.div`
   display: flex;
-  // width: 20.4rem;
+  width: 20.4rem;
   width: auto;
   justify-content: space-evenly;
   align-items: center;
@@ -135,7 +135,7 @@ function HeaderActions({ onExport, onImport }: Props) {
         />
       </LeftActions>
       <RightActions>
-        {canUndo && <ButtonComponent
+        {/* {canUndo && <ButtonComponent
           $buttonPrimary
           handleClick={undo}
           text="Undo"
@@ -144,7 +144,7 @@ function HeaderActions({ onExport, onImport }: Props) {
           $buttonPrimary
           handleClick={redo}
           text="Redo"
-        />}
+        />} */}
 
         <ButtonComponent
           $buttonPrimary
