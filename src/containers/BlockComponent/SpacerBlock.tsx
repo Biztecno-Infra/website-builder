@@ -30,10 +30,9 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
         paddingBottom: `${padding.bottom}px`,
         paddingLeft: `${padding.left}px`,
         backgroundColor,
-        border: `1px dashed ${
+        outline: `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
-        // borderRadius: 10,
         ...convertedStyle,
         ...rest,
       }}

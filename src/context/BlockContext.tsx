@@ -3,7 +3,6 @@ import { useBlocks } from "../hoc/useBlocks";
 import { BlockHookRef, IBlockContext } from "../types";
 import { convertJsonToHtml } from "email-builder-utils";
 import html2canvas from "html2canvas";
-// import { convertJsonToHtml } from "@utils/jsonToHtml";
 
 
 const BlockHookContext = createContext<any>(null);

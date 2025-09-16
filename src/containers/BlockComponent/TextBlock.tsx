@@ -67,9 +67,12 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "16px",
-        border: `1px dashed ${
+        outline:  `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
+        // border: `1px dashed ${
+        //   isSelected && block.parentId ? theme.colors.primary : "transparent"
+        // }`,
         ...convertedStyle,
         ...backgroundImageStyle, 
         ...rest,

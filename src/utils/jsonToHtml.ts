@@ -15,6 +15,7 @@ interface BlockJsonProps {
   text: string;
   altText: string;
   imageUrl: string;
+  responsive?: boolean;
 }
 
 interface IBlockData {
@@ -414,7 +415,7 @@ async function convertGridBlock(
   cellWidthInPx: number
 ) {
   const { style = {}, childrenIds = [], props } = blockData.data;
-  const { columns = 1, cellWidths = [] } = props;
+  const { columns = 1, cellWidths = [], responsive = true } = props;
   const { columnGap = 0, ...restStyle } = style;
 
   const tableStyles = buildStyles(restStyle, {
@@ -441,27 +442,27 @@ async function convertGridBlock(
 
       if (childId) {
         const child = rootData[childId];
-         const { style: cellStyle = {} } = child.data || {};
-          const verticalAlign = cellStyle.verticalAlign || "top";
-        const childHtml = child
-          ? await convertGridCellBlock(
-              child,
-              rootData,
-              widthPercent,
-              cellWidthInPx
-            )
-          : "";
+        const { style: cellStyle = {} } = child.data || {};
+        const verticalAlign = cellStyle.verticalAlign || "top";
+        const { html: childHtml, styles } = await convertGridCellBlock(
+          child,
+          rootData,
+          widthPercent,
+          cellWidthInPx
+        );
 
         html += `
-          <td
-            width="${widthPercent}%"
-            class="stack-column"
-            style="vertical-align:${verticalAlign}; padding:0; word-break:break-word;"
-          >
-            ${childHtml}
-          </td>`;
+   <td
+    width="${widthPercent}%"
+    ${responsive ? 'class="stack-column"' : ""}
+    style="vertical-align:${verticalAlign}; padding:0; word-break:break-word; ${styles}"
+  >
+    ${childHtml}
+  </td>`;
       } else {
-        html += `<td width="${widthPercent}%" class="stack-column" style="padding:0;"></td>`;
+        html += `<td width="${widthPercent}%" ${
+          responsive ? 'class="stack-column"' : ""
+        } style="padding:0;"></td>`;
       }
     }
     html += "</tr>";
@@ -470,7 +471,6 @@ async function convertGridBlock(
   html += `</table><!--[if mso]></table><![endif]-->`;
   return html;
 }
-
 
 async function convertGridCellBlock(
   blockData: IBlockData,
@@ -494,24 +494,12 @@ async function convertGridCellBlock(
     }
   }
 
-  const innerContent = innerHtmlParts.join("");
-
-  return `
-    <table
-      role="presentation"
-      border="0"
-      cellpadding="0"
-      cellspacing="0"
-      width="100%"
-      style="border-collapse:collapse;table-layout:fixed;${styles}"
-    >
-      <tr>
-        <td style="padding:0;">
-          ${innerContent}
-        </td>
-      </tr>
-    </table>`;
+  return {
+    html: innerHtmlParts.join(""),
+    styles, 
+  };
 }
+
 
 export const convertJsonToHtml = async (jsonData: any) => {
   const rootData = jsonData?.root?.data;

@@ -18,7 +18,7 @@ interface TableWrapperProps {
 
 const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
-  border: ${({ $isSelected, theme }) => ($isSelected ? `1px dashed ${theme.colors.primary}` : "none")};
+  outline: ${({ $isSelected, theme }) => ($isSelected ? `1px dashed ${theme.colors.primary}` : "1px solid transparent")};
   position: relative;
 `
 

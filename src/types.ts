@@ -63,6 +63,10 @@ export interface TextProps extends BaseBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
+    borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
 }
 
 export interface ImageProps extends BaseBlock {
@@ -122,6 +126,14 @@ export interface IGridCellProps extends ICoreBlock {
   };
   backgroundColor?: any;
   verticalAlign?: any;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
+    borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
 }
 
 export interface GridProps extends BaseBlock {

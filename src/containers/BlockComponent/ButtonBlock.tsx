@@ -104,8 +104,9 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         paddingLeft: padding?.left,
         backgroundColor: backgroundColor,
         textAlign: alignment as TextAlign,
-        border: isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none",
-        // borderRadius: 10,
+        outline: `1px dashed ${
+          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        }`,        
         ...convertedStyle,
         ...rest
       }}

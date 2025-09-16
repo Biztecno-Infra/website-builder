@@ -97,6 +97,10 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -124,6 +128,14 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultGridPadding,
       verticalAlign: "middle",
       backgroundColor: defaultBg,
+      backgroundImage: "",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
     };
   } else if (blockType === BlockType.DIVIDER) {
     return {
@@ -355,14 +367,29 @@ export const generateGridBlock = (block: GridProps) => {
 };
 
 export const generateGridCellBlock = (block: IGridCellProps) => {
+  const { layerName , childBlocks , id , type ,  backgroundColor ,  padding , parentId , verticalAlign , backgroundImage , backgroundPosition , backgroundRepeat , backgroundSize , ...rest} = block || {};
+
+   const backgroundImageStyle = backgroundImage
+    ? {
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
+    : {};
+
   return {
-    type: block.type,
-    layerName: block.layerName || "",
+    type: type,
+    layerName: layerName || "",
     data: {
       style: {
-        padding: block.padding,
-        backgroundColor: block.backgroundColor,
-        verticalAlign: block.verticalAlign,
+        padding: padding,
+        backgroundColor: backgroundColor,
+        verticalAlign: verticalAlign,
+        ...backgroundImageStyle, 
+        ...rest
       },
     },
   };

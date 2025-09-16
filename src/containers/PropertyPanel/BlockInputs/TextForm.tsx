@@ -15,6 +15,7 @@ import { SizeEnum } from "enum";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -44,6 +45,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundSize,
     id: blockId,
     layerName,
+    borderColor, 
+    borderRadius , 
+    borderWidth,
+    borderStyle
   } = selectedBlock as TextProps;
 
   const [formData, setFormData] = useState({
@@ -63,6 +68,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundRepeat,
     backgroundSize,
     layerName,
+    borderColor, 
+    borderRadius , 
+    borderWidth,
+    borderStyle
   });
 
   useEffect(() => {
@@ -83,6 +92,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       backgroundRepeat,
       backgroundSize,
       layerName,
+      borderColor, 
+      borderRadius , 
+      borderWidth,
+      borderStyle
     });
   }, [selectedBlock]);
 
@@ -228,6 +241,29 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             backgroundPosition={formData.backgroundPosition || ""}
             backgroundRepeat={formData.backgroundRepeat || ""}
             backgroundSize={formData.backgroundSize || ""}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
+                <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",

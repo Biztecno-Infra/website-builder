@@ -41,10 +41,9 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         paddingLeft: `${padding.left}px`,
         backgroundColor,
         textAlign: alignment as TextAlign,
-        border: `1px dashed ${
+        outline: `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
-        // borderRadius: 10,
         ...convertedStyle,
         ...rest,
       }}

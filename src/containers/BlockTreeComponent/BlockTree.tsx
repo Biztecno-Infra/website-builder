@@ -152,6 +152,11 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
     }
   }, [selectedBlock?.id, blockId, blocks]);
   const isSelected = selectedBlock?.id === blockId;
+const isAncestorOfSelected = selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id);
+const isDescendantOfSelected = selectedBlock?.id && isDescendant(blocks, selectedBlock.id, blockId);
+const hasChildren = Array.isArray(block?.childBlocks) && block.childBlocks.length > 0;
+
+  console.log(block , "block in tree" , isSelected);
   return (
     <BlockContainer
       id={block.id}
@@ -159,8 +164,11 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
         nodeRef.current = node;
         if (node) drag(drop(node));
       }}
-      $isDragging={isDragging}
-      $isSelected={selectedBlock?.id === blockId}
+  $isDragging={isDragging}
+  $isSelected={isSelected}
+  $isAncestor={isAncestorOfSelected}
+  $isDescendant={isDescendantOfSelected}
+      $hasChildBlocks={hasChildren}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
@@ -214,8 +222,9 @@ const EmptyTreeNodeContainer = styled(Droppable)`
   cursor: pointer;
   color: #8d8d8d;
   border-radius: 5px;
-  padding: 0.25rem 0;
+  padding: 1rem 0;
   font-size: 11px;
+  background-color: #ffffff;
 `;
 
 const EmptyTreeNode = ({ id, theme }: { id: string; theme: any }) => {
@@ -316,13 +325,13 @@ const NodeTree = () => {
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
       <ScrollHead ref={scrollContainerRef}>
-        <RootBlockContainer onClick={handleRootClick}>
+        <RootBlockContainer onClick={handleRootClick} $isSelected={selectedBlock?.type === "EmailLayout"}>
           <SvgIcon
             name={CUSTOM_SVG_ICON.GlobalSettings}
             size={SizeEnum.Small}
-            svgStyle={{ width: "20%", color: theme.colors.primary }}
+            svgStyle={{ width: "20%", color: selectedBlock?.type === "EmailLayout" ? "#ffffff" :theme.colors.primary }}
           />
-          <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
+          <BlockContentText style={{ width: "80%", cursor: "pointer" }}$isSelected={selectedBlock?.type === "EmailLayout"}>
             Global Settings
           </BlockContentText>
         </RootBlockContainer>

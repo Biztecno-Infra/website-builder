@@ -81,12 +81,9 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         lineHeight: 0 , 
         textAlign: (alignment as TextAlign) || "left",
         borderRadius: borderRadius ? `${borderRadius}px` : "none",
-        border:
-          isSelected && block.parentId
-            ? `1px dashed ${theme.colors.primary}`
-            : borderWidth
-            ? `${borderWidth}px ${borderStyle} ${borderColor}`
-            : "1px solid transparent",
+        outline: `1px dashed ${
+          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        }`,
         ...convertedStyle,
         ...rest
       }}

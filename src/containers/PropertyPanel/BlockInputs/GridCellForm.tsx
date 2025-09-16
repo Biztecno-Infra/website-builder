@@ -6,6 +6,8 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { defaultGridPadding } from "@utils/constant";
 import { FlexRow } from "../style";
 import { CustomInput, ReactColorPicker } from "@components/lib";
+import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -16,6 +18,14 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
     backgroundColor,
     verticalAlign,
     layerName,
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
   } = selectedBlock as IGridCellProps;
 
   const [formData, setFormData] = useState({
@@ -23,6 +33,14 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
     backgroundColor,
     verticalAlign,
     layerName,
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
   });
 
   useEffect(() => {
@@ -31,6 +49,14 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
       backgroundColor,
       verticalAlign,
       layerName,
+      backgroundImage,
+      backgroundPosition,
+      backgroundRepeat, 
+      backgroundSize,
+      borderWidth,
+      borderStyle,
+      borderColor,
+      borderRadius,
     });
   }, [selectedBlock]);
 
@@ -74,6 +100,53 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
         onChange={handleChange}
         containerStyle={{ width: "60%" }}
       />
+
+              <BasePropertyWrapper
+          name="Background Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BackgroundProperties
+            onChange={handleChange}
+            backgroundImage={formData.backgroundImage || ""}
+            backgroundPosition={formData.backgroundPosition || ""}
+            backgroundRepeat={formData.backgroundRepeat || ""}
+            backgroundSize={formData.backgroundSize || ""}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
+                <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
     </BasePropertyWrapper>
   );
 };
