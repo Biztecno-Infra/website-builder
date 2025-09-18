@@ -79,7 +79,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
       }}
       onClick={handleBlockClick}
     >
-      {text}
+      <div dangerouslySetInnerHTML={{ __html: text ?? "" }} />
     </Droppable>
   );
 };

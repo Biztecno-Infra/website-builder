@@ -16,6 +16,7 @@ import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
+import RichTextEditor from "./RichTextEditor";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -128,7 +129,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             marginBottom: "10px",
           }}
         />
-        <TextArea
+        {/* <TextArea
           name="content"
           placeholder="Enter Content"
           value={formData.text || ""}
@@ -136,6 +137,10 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("text", value)
           }
+        /> */}
+        <RichTextEditor
+          formData={formData}
+          handleChange={(name, value) => handleChange(name, value)}
         />
         <FlexRow style={{ marginTop: "10px" }}>
           <Dropdown
@@ -248,7 +253,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </BasePropertyWrapper>
-                <BasePropertyWrapper
+        <BasePropertyWrapper
           name="Border Properties"
           subLabel
           containerStyle={{
