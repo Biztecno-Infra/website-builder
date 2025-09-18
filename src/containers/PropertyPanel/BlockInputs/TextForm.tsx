@@ -129,7 +129,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             marginBottom: "10px",
           }}
         />
-        {/* <TextArea
+        <TextArea
           name="content"
           placeholder="Enter Content"
           value={formData.text || ""}
@@ -137,11 +137,11 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("text", value)
           }
-        /> */}
-        <RichTextEditor
+        />
+        {/* <RichTextEditor
           formData={formData}
           handleChange={(name, value) => handleChange(name, value)}
-        />
+        /> */}
         <FlexRow style={{ marginTop: "10px" }}>
           <Dropdown
             name="fontFamily"

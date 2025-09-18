@@ -70,16 +70,14 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         outline:  `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
-        // border: `1px dashed ${
-        //   isSelected && block.parentId ? theme.colors.primary : "transparent"
-        // }`,
         ...convertedStyle,
         ...backgroundImageStyle, 
         ...rest,
       }}
       onClick={handleBlockClick}
     >
-      <div dangerouslySetInnerHTML={{ __html: text ?? "" }} />
+      {text}
+      {/* <div dangerouslySetInnerHTML={{ __html: text ?? "" }} /> */}
     </Droppable>
   );
 };
