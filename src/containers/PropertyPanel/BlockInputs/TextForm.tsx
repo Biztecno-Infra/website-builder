@@ -1,18 +1,21 @@
 import React, { useEffect, useState } from "react";
-import {
-  AlignmentSelector,
-  PaddingInput,
-} from "@components/StyleComponents";
+import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { TextProps } from "../../../types";
-import { TextArea, CustomInput, Dropdown, ReactColorPicker } from "@components/lib";
+import {
+  TextArea,
+  CustomInput,
+  Dropdown,
+  ReactColorPicker,
+} from "@components/lib";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import RichTextEditor from "./RichTextEditor";
 
 const ColorPickerContainer = styled.div`
@@ -38,10 +41,15 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundImage,
     navigateToUrl,
     lineHeight,
-    backgroundPosition , 
-    backgroundRepeat , 
+    backgroundPosition,
+    backgroundRepeat,
     backgroundSize,
     id: blockId,
+    layerName,
+    borderColor, 
+    borderRadius , 
+    borderWidth,
+    borderStyle
   } = selectedBlock as TextProps;
 
   const [formData, setFormData] = useState({
@@ -57,9 +65,14 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     customCss,
     navigateToUrl,
     lineHeight,
-    backgroundPosition , 
-    backgroundRepeat , 
+    backgroundPosition,
+    backgroundRepeat,
     backgroundSize,
+    layerName,
+    borderColor, 
+    borderRadius , 
+    borderWidth,
+    borderStyle
   });
 
   useEffect(() => {
@@ -76,30 +89,59 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       customCss,
       navigateToUrl,
       lineHeight,
-      backgroundPosition , 
-      backgroundRepeat , 
-      backgroundSize
+      backgroundPosition,
+      backgroundRepeat,
+      backgroundSize,
+      layerName,
+      borderColor, 
+      borderRadius , 
+      borderWidth,
+      borderStyle
     });
   }, [selectedBlock]);
 
   const handleChange = (property: string, value: any) => {
     setFormData((prevData) => {
-      const newFontSize = property === "fontSize" ? parseFloat(value) : prevData.fontSize;
-      return { ...prevData, [property]: value, ...(property === "fontSize" && { lineHeight: newFontSize }) };
+      const newFontSize =
+        property === "fontSize" ? parseFloat(value) : prevData.fontSize;
+      return {
+        ...prevData,
+        [property]: value,
+        ...(property === "fontSize" && { lineHeight: newFontSize }),
+      };
     });
 
     updateBlock(blockId, property, value);
-    if (property === "fontSize") updateBlock(blockId, "lineHeight", parseFloat(value));
+    if (property === "fontSize")
+      updateBlock(blockId, "lineHeight", parseFloat(value));
   };
-
 
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Text">
-       <RichTextEditor
-  formData={formData}
-  handleChange={(name, value) => handleChange(name, value)}
-/>
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
+        {/* <TextArea
+          name="content"
+          placeholder="Enter Content"
+          value={formData.text || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("text", value)
+          }
+        /> */}
+        <RichTextEditor
+          formData={formData}
+          handleChange={(name, value) => handleChange(name, value)}
+        />
         <FlexRow style={{ marginTop: "10px" }}>
           <Dropdown
             name="fontFamily"
@@ -155,7 +197,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
               size: SizeEnum.Small,
             }}
             containerStyle={{ width: "25%" }}
-            inputStyle={{ width: "60%" , marginLeft: 4 }}
+            inputStyle={{ width: "60%", marginLeft: 4 }}
           />
           <CustomInput
             name="navigateToUrl"
@@ -188,7 +230,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name, value) => handleChange(name, value)}
           containerStyle={{ padding: 3, marginBottom: 10 }}
         /> */}
-      <BasePropertyWrapper
+        <BasePropertyWrapper
           name="Background Properties"
           subLabel
           containerStyle={{
@@ -204,6 +246,29 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             backgroundPosition={formData.backgroundPosition || ""}
             backgroundRepeat={formData.backgroundRepeat || ""}
             backgroundSize={formData.backgroundSize || ""}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
+        <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",
