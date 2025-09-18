@@ -2,7 +2,6 @@ import React, { useCallback } from "react";
 import Droppable from "../Droppable";
 import { TextBlockProps, TextAlign } from "types";
 import { convertStringtoStyle } from "@utils/index";
-import { useTheme } from "styled-components";
 
 export const TextBlock: React.FC<TextBlockProps> = ({
   block,
@@ -28,7 +27,6 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     backgroundSize,
     ...rest
   } = block;
-   const theme = useTheme()
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -39,15 +37,14 @@ export const TextBlock: React.FC<TextBlockProps> = ({
   const convertedStyle = convertStringtoStyle(customCss);
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
     : {};
-
 
   return (
     <Droppable
@@ -67,19 +64,16 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "16px",
-        outline:  `1px dashed ${
-          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        border: `1px dashed ${
+          isSelected && block.parentId ? "#006E75" : "transparent"
         }`,
-        // border: `1px dashed ${
-        //   isSelected && block.parentId ? theme.colors.primary : "transparent"
-        // }`,
         ...convertedStyle,
-        ...backgroundImageStyle, 
+        ...backgroundImageStyle,
         ...rest,
       }}
       onClick={handleBlockClick}
     >
-      {text}
+      <div dangerouslySetInnerHTML={{ __html: text ?? "" }} />
     </Droppable>
   );
 };
