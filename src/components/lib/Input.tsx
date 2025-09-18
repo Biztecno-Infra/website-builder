@@ -81,6 +81,7 @@ interface InputProps {
   };
   inputStyle?: React.CSSProperties;
   checkLessThanOne?: boolean;
+  isPercentageValidation?: boolean;
 }
 
 export function CustomInput({
@@ -97,6 +98,7 @@ export function CustomInput({
   iconProps,
   inputStyle,
   checkLessThanOne = false,
+  isPercentageValidation = false,
 }: InputProps) {
   const [error, setError] = useState<string>("");
 
@@ -112,6 +114,12 @@ export function CustomInput({
       if (isNaN(numValue)) return "Please enter a valid number";
       if (numValue < 0) return "Value must be greater than or equal to 0";
       if (numValue < 1 && checkLessThanOne) return "Not less than 1";
+
+         if (isPercentageValidation && (name === "width" || name === "height")) {
+      if (numValue > 100) {
+        return "Percentage value cannot exceed 100";
+      }
+    }
     }
   
     return "";

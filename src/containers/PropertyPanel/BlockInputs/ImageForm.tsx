@@ -203,6 +203,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               width: "45%",
             }}
             inputStyle={{ width: "35%" }}
+            isPercentageValidation
           />
           <CustomInput
             type="number"
@@ -222,6 +223,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               padding: 2,
             }}
             inputStyle={{ width: "35%" }}
+            isPercentageValidation
           />
         </WidthHeightContainer>
         <AlignmentSelector

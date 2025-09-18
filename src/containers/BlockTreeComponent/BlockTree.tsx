@@ -152,11 +152,13 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
     }
   }, [selectedBlock?.id, blockId, blocks]);
   const isSelected = selectedBlock?.id === blockId;
-const isAncestorOfSelected = selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id);
-const isDescendantOfSelected = selectedBlock?.id && isDescendant(blocks, selectedBlock.id, blockId);
-const hasChildren = Array.isArray(block?.childBlocks) && block.childBlocks.length > 0;
+  const isAncestorOfSelected =
+    selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id);
+  const isDescendantOfSelected =
+    selectedBlock?.id && isDescendant(blocks, selectedBlock.id, blockId);
+  const hasChildren =
+    Array.isArray(block?.childBlocks) && block.childBlocks.length > 0;
 
-  console.log(block , "block in tree" , isSelected);
   return (
     <BlockContainer
       id={block.id}
@@ -164,10 +166,10 @@ const hasChildren = Array.isArray(block?.childBlocks) && block.childBlocks.lengt
         nodeRef.current = node;
         if (node) drag(drop(node));
       }}
-  $isDragging={isDragging}
-  $isSelected={isSelected}
-  $isAncestor={isAncestorOfSelected}
-  $isDescendant={isDescendantOfSelected}
+      $isDragging={isDragging}
+      $isSelected={isSelected}
+      $isAncestor={isAncestorOfSelected}
+      $isDescendant={isDescendantOfSelected}
       $hasChildBlocks={hasChildren}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
@@ -184,7 +186,7 @@ const hasChildren = Array.isArray(block?.childBlocks) && block.childBlocks.lengt
             )}
           </ChevronIcon>
         )}
-        <BlockContentText $isSelected={isSelected} >
+        <BlockContentText $isSelected={isSelected}>
           <BlockTextIcon style={{ width: "80%" }}>
             <BlockText style={{ width: "20%" }}>
               {blockTypeIcons[block?.type as BlockType]}
@@ -273,23 +275,40 @@ const NodeTree = () => {
     selectedBlock,
   } = useBlockHook();
 
-  // 1. Ref for scroll container
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // 2. Scroll to the selected block
   useEffect(() => {
-    if ((selectedBlock as Block)?.id && scrollContainerRef.current) {
-      // Find the node that corresponds to selectedBlock
-      const selectedNode = document.getElementById(
-        (selectedBlock as Block)?.id
-      );
+    const selectedNodeId = (selectedBlock as Block)?.id;
+    const scrollContainer = scrollContainerRef.current;
+    if (!selectedNodeId || !scrollContainer) return;
+
+    const tryScroll = () => {
+      const selectedNode = document.getElementById(selectedNodeId);
       if (selectedNode) {
         selectedNode.scrollIntoView({
-          behavior: "smooth", // Smooth scroll effect
-          block: "center", // Center the selected block in the view
+          behavior: "smooth",
+          block: "center",
         });
+        return true;
       }
-    }
+      return false;
+    };
+    if (tryScroll()) return;
+
+    const observer = new MutationObserver(() => {
+      if (tryScroll()) {
+        observer.disconnect(); // Stop observing once successful
+      }
+    });
+
+    observer.observe(scrollContainer, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
   }, [(selectedBlock as Block)?.id]);
 
   const renderBlockNode = useCallback(
@@ -324,14 +343,26 @@ const NodeTree = () => {
   return (
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
-      <ScrollHead ref={scrollContainerRef}>
-        <RootBlockContainer onClick={handleRootClick} $isSelected={selectedBlock?.type === "EmailLayout"}>
+      <ScrollHead ref={scrollContainerRef} className="scroll-tree">
+        <RootBlockContainer
+          onClick={handleRootClick}
+          $isSelected={selectedBlock?.type === "EmailLayout"}
+        >
           <SvgIcon
             name={CUSTOM_SVG_ICON.GlobalSettings}
             size={SizeEnum.Small}
-            svgStyle={{ width: "20%", color: selectedBlock?.type === "EmailLayout" ? "#ffffff" :theme.colors.primary }}
+            svgStyle={{
+              width: "20%",
+              color:
+                selectedBlock?.type === "EmailLayout"
+                  ? "#ffffff"
+                  : theme.colors.primary,
+            }}
           />
-          <BlockContentText style={{ width: "80%", cursor: "pointer" }}$isSelected={selectedBlock?.type === "EmailLayout"}>
+          <BlockContentText
+            style={{ width: "80%", cursor: "pointer" }}
+            $isSelected={selectedBlock?.type === "EmailLayout"}
+          >
             Global Settings
           </BlockContentText>
         </RootBlockContainer>

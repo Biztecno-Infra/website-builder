@@ -1,37 +1,37 @@
-import React, { useCallback, useMemo, useEffect, useRef } from "react"
-import BlockComponent from "../BlockComponent"
-import Droppable from "../Droppable"
-import EmptyBlock from "./EmptyBlock"
-import { useBlockHook } from "context/BlockContext"
-import styled, { useTheme } from "styled-components"
-import type { Block, Padding } from "types"
-import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon"
-import { ScreenViews } from "enum"
+import React, { useCallback, useMemo, useEffect, useRef } from "react";
+import BlockComponent from "../BlockComponent";
+import Droppable from "../Droppable";
+import EmptyBlock from "./EmptyBlock";
+import { useBlockHook } from "context/BlockContext";
+import styled, { useTheme } from "styled-components";
+import type { Block, Padding } from "types";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { ScreenViews } from "enum";
 
 interface TableWrapperProps {
-  $canvasColor: string
-  $canvasFont: string
-  $canvasFontColor: string
-  $canvasPadding: Padding
-  $isMobile: boolean
+  $canvasColor: string;
+  $canvasFont: string;
+  $canvasFontColor: string;
+  $canvasPadding: Padding;
+  $isMobile: boolean;
 }
 
 const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
   outline: ${({ $isSelected, theme }) => ($isSelected ? `1px dashed ${theme.colors.primary}` : "1px solid transparent")};
   position: relative;
-`
+`;
 
 const CanvasDropable = styled.div`
   padding: 3rem;
-`
+`;
 
 const DeleteWrapper = styled.div`
   position: absolute;
   cursor: pointer;
   right: 28px;
   bottom: 3px;
-`
+`;
 
 const TrashIconWrapper = styled.div`
   position: absolute;
@@ -41,7 +41,7 @@ const TrashIconWrapper = styled.div`
   padding: 5px;
   cursor: pointer;
   z-index: 998;
-`
+`;
 
 const TableWrapper = styled.table<TableWrapperProps>`
   &.ebr-tableWrapper {
@@ -58,7 +58,7 @@ const TableWrapper = styled.table<TableWrapperProps>`
       max-width: 360px !important;
     }
   }
-`
+`;
 
 const Canvas = () => {
   const {
@@ -70,29 +70,29 @@ const Canvas = () => {
     globalStyles,
     selectedView,
     canvasRef,
-  } = useBlockHook()
+    blocks
+  } = useBlockHook();
 
-  const theme = useTheme()
+  const theme = useTheme();
+  const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
 
- const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({})
- 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
       requestAnimationFrame(() => {
-        handleDropper(item, undefined!)
-      })
+        handleDropper(item, undefined!);
+      });
     },
     [handleDropper],
-  )
+  );
 
   // Function to render each block and assign a ref
   const renderBlock = useCallback(
     (blockId: string, index: number) => {
       // Assign a ref to each block only if it doesn't exist already
       if (!blockRefs.current[blockId]) {
-        blockRefs.current[blockId] = React.createRef<HTMLDivElement | any>()
+        blockRefs.current[blockId] = React.createRef<HTMLDivElement | any>();
       }
-      const blockRef = blockRefs.current[blockId]
+      const blockRef = blockRefs.current[blockId];
 
       return (
         <BlockWrapper
@@ -106,9 +106,9 @@ const Canvas = () => {
           {blockId === (selectedBlock as Block)?.id && (
             <TrashIconWrapper
               onClick={(e) => {
-                e.stopPropagation()
-                onDeleteBlock(blockId)
-                setSelectedBlock(null)
+                e.stopPropagation();
+                onDeleteBlock(blockId);
+                setSelectedBlock(null);
               }}
             >
               <DeleteWrapper>
@@ -117,10 +117,27 @@ const Canvas = () => {
             </TrashIconWrapper>
           )}
         </BlockWrapper>
-      )
+      );
     },
     [selectedBlock, theme, onDeleteBlock, setSelectedBlock],
-  )
+  );
+  useEffect(() => {
+    const selectedNodeId = (selectedBlock as Block)?.id;
+
+    if (!selectedNodeId) return;
+
+    // Find the block element by its ID within the canvasRef
+    const blockElement = canvasRef.current?.querySelector(`#${selectedNodeId}`);
+
+    if (blockElement) {
+      blockElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    } else {
+      console.log("Block not found within the canvas", selectedNodeId);
+    }
+  }, [selectedBlock, canvasRef]); // Trig
 
 
   const memoizedTableWrapper = useMemo(
@@ -157,17 +174,7 @@ const Canvas = () => {
       </TableWrapper>
     ),
     [globalStyles, selectedView, canvasRef, rootBlockOrder, renderBlock],
-  )
-
-  // Scroll to the selected block when selectedBlock changes
-  useEffect(() => {
-    if (selectedBlock && blockRefs.current[(selectedBlock as Block).id]) {
-      blockRefs.current[(selectedBlock as Block).id]?.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      })
-    }
-  }, [selectedBlock])
+  );
 
   return (
     <Droppable
@@ -201,7 +208,7 @@ const Canvas = () => {
         </div>
       </CanvasDropable>
     </Droppable>
-  )
-}
+  );
+};
 
-export default React.memo(Canvas)
+export default React.memo(Canvas);
