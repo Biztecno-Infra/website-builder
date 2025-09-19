@@ -11,7 +11,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
   isSelected,
 }) => {
   const { backgroundColor, padding, customCss, ...rest } = block;
-   const theme = useTheme()
+  const theme = useTheme();
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
       handleDropper(item, block.id);
@@ -22,6 +22,7 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
 
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{

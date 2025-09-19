@@ -57,6 +57,7 @@ export const useBlocks = (): IBlockContext => {
     string | "EmailLayout" | null
   >(null);
   const isApplyingHistory = useRef<boolean>(false);
+  const [undoLocked, setUndoLocked] = useState<boolean>(false);
 
   const selectedBlock: Block | RootLayout | null = useMemo(() => {
     if (selectedBlockId === "EmailLayout") {
@@ -149,6 +150,7 @@ export const useBlocks = (): IBlockContext => {
       };
 
       requestAnimationFrame(batchUpdate);
+      setUndoLocked(true);
     },
     [rootBlockOrder]
   );
@@ -254,6 +256,7 @@ export const useBlocks = (): IBlockContext => {
       setBlocks(blocks);
       setGlobalStyles(style);
       setRootBlockOrder(childrenIds || []);
+      setUndoLocked(true);
       return { success: true, message: "Upload successful" };
     } catch (error) {
       return { success: false, message: "Error uploading JSON", error };
@@ -604,5 +607,6 @@ export const useBlocks = (): IBlockContext => {
     redo,
     canUndo,
     canRedo,
+    undoLocked
   };
 };

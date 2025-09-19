@@ -18,7 +18,10 @@ interface TableWrapperProps {
 
 const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
-  outline: ${({ $isSelected, theme }) => ($isSelected ? `1px dashed ${theme.colors.primary}` : "1px solid transparent")};
+  outline: ${({ $isSelected, theme }) =>
+    $isSelected
+      ? `1px dashed ${theme.colors.primary}`
+      : "1px solid transparent"};
   position: relative;
 `;
 
@@ -70,11 +73,13 @@ const Canvas = () => {
     globalStyles,
     selectedView,
     canvasRef,
-    blocks
+    blocks,
   } = useBlockHook();
 
   const theme = useTheme();
-  const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>({});
+  const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>(
+    {}
+  );
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -82,7 +87,7 @@ const Canvas = () => {
         handleDropper(item, undefined!);
       });
     },
-    [handleDropper],
+    [handleDropper]
   );
 
   // Function to render each block and assign a ref
@@ -97,7 +102,7 @@ const Canvas = () => {
       return (
         <BlockWrapper
           key={blockId}
-          id={blockId}
+          id={`block-${blockId}`}
           $isSelected={blockId === (selectedBlock as Block)?.id}
           theme={theme}
           ref={blockRef} // Assign the ref here
@@ -119,26 +124,31 @@ const Canvas = () => {
         </BlockWrapper>
       );
     },
-    [selectedBlock, theme, onDeleteBlock, setSelectedBlock],
+    [selectedBlock, theme, onDeleteBlock, setSelectedBlock]
   );
+
   useEffect(() => {
     const selectedNodeId = (selectedBlock as Block)?.id;
-
     if (!selectedNodeId) return;
 
-    // Find the block element by its ID within the canvasRef
-    const blockElement = canvasRef.current?.querySelector(`#${selectedNodeId}`);
+    const frame = requestAnimationFrame(() => {
+      const blockElement = canvasRef.current?.querySelector(
+        `#block-${selectedNodeId}`
+      );
+      console.log(blockElement, "blockElement");
 
-    if (blockElement) {
-      blockElement.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    } else {
-      console.log("Block not found within the canvas", selectedNodeId);
-    }
-  }, [selectedBlock, canvasRef]); // Trig
+      if (blockElement) {
+        blockElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else {
+        console.log("Block not found within the canvas", selectedNodeId);
+      }
+    });
 
+    return () => cancelAnimationFrame(frame);
+  }, [selectedBlock]);
 
   const memoizedTableWrapper = useMemo(
     () => (
@@ -154,7 +164,9 @@ const Canvas = () => {
           border: globalStyles.borderWidth
             ? `${globalStyles.borderWidth}px ${globalStyles.borderStyle} ${globalStyles.borderColor}`
             : "none",
-          borderRadius: globalStyles.borderRadius ? `${globalStyles.borderRadius}px` : "0",
+          borderRadius: globalStyles.borderRadius
+            ? `${globalStyles.borderRadius}px`
+            : "0",
         }}
       >
         <tbody>
@@ -173,7 +185,7 @@ const Canvas = () => {
         </tbody>
       </TableWrapper>
     ),
-    [globalStyles, selectedView, canvasRef, rootBlockOrder, renderBlock],
+    [globalStyles, selectedView, canvasRef, rootBlockOrder, renderBlock]
   );
 
   return (
@@ -203,7 +215,10 @@ const Canvas = () => {
           {rootBlockOrder.length > 0 ? (
             memoizedTableWrapper
           ) : (
-            <EmptyBlock theme={theme!} text="Drag & drop elements here to start building " />
+            <EmptyBlock
+              theme={theme!}
+              text="Drag & drop elements here to start building "
+            />
           )}
         </div>
       </CanvasDropable>

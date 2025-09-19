@@ -195,10 +195,12 @@ export const jsonToBlocks = (
           padding,
           verticalAlign,
           backgroundColor: cellBackgroundColor,
+          ...rest
         } = layoutBlock.data.style || {};
         gridCellProp.padding = padding;
         gridCellProp.verticalAlign = verticalAlign;
         gridCellProp.backgroundColor = cellBackgroundColor;
+        Object.assign(gridCellProp, rest);
         break;
       case BlockType.DIVIDER:
         const dividerProps = block as DividerProps;

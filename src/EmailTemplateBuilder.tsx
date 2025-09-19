@@ -65,6 +65,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
 
 useEffect(() => {
   const handleKeyDown = (event: KeyboardEvent) => {
+    if(ref && "current" in ref && ref.current?.undoLocked) return;
     if (event.ctrlKey) {
       switch (event.key.toLowerCase()) {
         case "z":

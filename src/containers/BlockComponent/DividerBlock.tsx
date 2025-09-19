@@ -19,7 +19,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     customCss,
     ...rest
   } = block;
-   const theme = useTheme()
+  const theme = useTheme();
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -32,6 +32,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
 
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{

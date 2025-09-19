@@ -7,7 +7,7 @@
 // interface CustomImageProps {
 //   imageUrl?: string;
 //   altText?: string;
-//   alignment: string; 
+//   alignment: string;
 //   width?: number;
 //   height?: number;
 //   navigateToUrl?: string;
@@ -81,7 +81,7 @@
 //   );
 
 //     const convertedStyle = convertStringtoStyle(customCss)
-  
+
 //   return (
 //     <Droppable
 //       accept="BLOCK"
@@ -92,7 +92,7 @@
 //         paddingBottom: padding.bottom,
 //         paddingLeft: padding.left,
 //         backgroundColor: backgroundColor,
-//         lineHeight: 0 , 
+//         lineHeight: 0 ,
 //         textAlign: (alignment as TextAlign) || "left",
 //         borderRadius: borderRadius ? `${borderRadius}px` : "none",
 //         outline: `1px dashed ${
@@ -115,12 +115,12 @@
 //   );
 // };
 
-
 import React, { useCallback, useEffect, useState } from "react";
 import { TextAlign, ImageBlockProps } from "../../types";
 import Droppable from "../Droppable";
 import { convertStringtoStyle } from "@utils/index";
 import { useTheme } from "styled-components";
+import LoadingSpinner from "@components/lib/LoadingContainer";
 
 interface CustomImageProps {
   imageUrl?: string;
@@ -133,8 +133,11 @@ interface CustomImageProps {
 
 const CustomImage: React.FC<CustomImageProps> = React.memo(
   ({ imageUrl, altText, alignment, width, height, navigateToUrl }) => {
-    const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 });
-    const [isLoading, setIsLoading] = useState(true);  // Loading state to prevent flickering
+    const [imageDimensions, setImageDimensions] = useState({
+      width: 0,
+      height: 0,
+    });
+    const [isLoading, setIsLoading] = useState(true); // Loading state to prevent flickering
 
     useEffect(() => {
       const img = new Image();
@@ -144,29 +147,26 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
           width: img.naturalWidth,
           height: img.naturalHeight,
         });
-        setIsLoading(false);  // Image is loaded, set loading to false
+        setIsLoading(false); // Image is loaded, set loading to false
       };
       img.onerror = () => {
-        setIsLoading(false);  // If there's an error, stop loading
+        setIsLoading(false); // If there's an error, stop loading
       };
     }, [imageUrl]);
 
     const imageStyle: React.CSSProperties = {
-      width: width ? `${width}%` : "auto",  // You can control the image width with percentage
-      height: height ? `${height}%` : "auto",  // Similarly, height can be controlled
-      objectFit: "contain",  // Ensures the image is contained within its bounds
+      width: width ? `${width}%` : "auto", // You can control the image width with percentage
+      height: height ? `${height}%` : "auto", // Similarly, height can be controlled
+      objectFit: "contain", // Ensures the image is contained within its bounds
       textAlign: alignment as TextAlign,
       borderRadius: "inherit",
-      maxWidth: `${imageDimensions.width}px`,  // Limit max width based on original size
+      maxWidth: `${imageDimensions.width}px`, // Limit max width based on original size
       maxHeight: `${imageDimensions.height}px`, // Limit max height based on original size
     };
 
     return isLoading ? (
       // Optionally render a placeholder or loading spinner
-      <div style={{ width: "100%", height: "100%", textAlign: "center" }}>
-        <span>Loading...</span>
-        
-      </div>
+      <LoadingSpinner size={50} color="#007bff" />
     ) : (
       <img
         src={imageUrl || ""}
@@ -212,6 +212,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
 
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{

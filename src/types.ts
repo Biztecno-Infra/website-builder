@@ -67,6 +67,8 @@ export interface TextProps extends BaseBlock {
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
+    width?: number;
+  height?: number;
 }
 
 export interface ImageProps extends BaseBlock {
@@ -243,6 +245,7 @@ export interface IBlockContext {
   redo : () => void;
   canUndo: boolean;
   canRedo: boolean;
+  undoLocked: boolean;
   // captureScreenshot: any
 }
 export interface BlockHookRef {
@@ -253,6 +256,7 @@ export interface BlockHookRef {
   importTemplate: (templates: any[]) => void;
   undo: () => void;
   redo: () => void;
+  undoLocked: boolean;
 }
 
 
