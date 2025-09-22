@@ -17,7 +17,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     fontFamily,
     fontSize,
     fontWeight,
-    padding,
+    padding , // ✅ fallback to empty object
     alignment,
     backgroundImage,
     lineHeight,
@@ -27,9 +27,10 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     backgroundRepeat,
     backgroundSize,
     textContainerBackgroundColor,
-    textContainerPadding,
+    textContainerPadding, // ✅ fallback to empty object
     ...rest
   } = block;
+
   const theme = useTheme();
 
   const handleDrop = useCallback(
@@ -38,7 +39,9 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     },
     [handleDropper]
   );
+
   const convertedStyle = convertStringtoStyle(customCss);
+
   const backgroundImageStyle = backgroundImage
     ? {
         backgroundImage: backgroundImage.startsWith("url")
@@ -67,10 +70,10 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         fontSize: `${fontSize}px`,
         fontWeight: fontWeight,
         backgroundColor: textContainerBackgroundColor || "",
-        paddingTop: `${textContainerPadding.top || 0}px`,
-        paddingRight: `${textContainerPadding.right || 0}px`,
-        paddingBottom: `${textContainerPadding.bottom || 0}px`,
-        paddingLeft: `${textContainerPadding.left || 0}px`,
+        paddingTop: `${textContainerPadding?.top ?? 0}px`,
+        paddingRight: `${textContainerPadding?.right ?? 0}px`,
+        paddingBottom: `${textContainerPadding?.bottom ?? 0}px`,
+        paddingLeft: `${textContainerPadding?.left ?? 0}px`,
         textAlign: alignment as TextAlign,
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
@@ -83,21 +86,17 @@ export const TextBlock: React.FC<TextBlockProps> = ({
       }}
       onClick={handleBlockClick}
     >
-      {/* {text} */}
       <div
         style={{
           ...rest,
           backgroundColor: backgroundColor,
           display: "inline-block",
-          // textAlign: "center",
-          paddingTop: `${padding.top}px`,
-          paddingRight: `${padding.right}px`,
-          paddingBottom: `${padding.bottom}px`,
-          paddingLeft: `${padding.left}px`,
-          maxWidth: "100%", // ✅ prevent child from overflowing parent
+          paddingTop: `${padding?.top ?? 0}px`,
+          paddingRight: `${padding?.right ?? 0}px`,
+          paddingBottom: `${padding?.bottom ?? 0}px`,
+          paddingLeft: `${padding?.left ?? 0}px`,
+          maxWidth: "100%",
           boxSizing: "border-box",
-          // width: rest.width ? `${rest.width}px` : "auto",
-          // height: rest.height ? `${rest.height}px` : "auto",
         }}
         dangerouslySetInnerHTML={{ __html: sanitizedText }}
       />
