@@ -26,6 +26,8 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     backgroundPosition,
     backgroundRepeat,
     backgroundSize,
+    textContainerBackgroundColor,
+    textContainerPadding,
     ...rest
   } = block;
   const theme = useTheme();
@@ -48,21 +50,27 @@ export const TextBlock: React.FC<TextBlockProps> = ({
       }
     : {};
 
+  const sanitizedText = (text ?? "")
+    .replaceAll(/<p>/g, "<div>")
+    .replaceAll(/<\/p>/g, "</div>");
+
   return (
     <Droppable
       id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
+        width: "100%",
+        maxWidth: "100%",
         color: color,
-        backgroundColor: backgroundColor,
         fontFamily: fontFamily,
         fontSize: `${fontSize}px`,
         fontWeight: fontWeight,
-        paddingTop: `${padding.top}px`,
-        paddingRight: `${padding.right}px`,
-        paddingBottom: `${padding.bottom}px`,
-        paddingLeft: `${padding.left}px`,
+        backgroundColor: textContainerBackgroundColor,
+        paddingTop: `${textContainerPadding.top}px`,
+        paddingRight: `${textContainerPadding.right}px`,
+        paddingBottom: `${textContainerPadding.bottom}px`,
+        paddingLeft: `${textContainerPadding.left}px`,
         textAlign: alignment as TextAlign,
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
@@ -72,12 +80,27 @@ export const TextBlock: React.FC<TextBlockProps> = ({
         }`,
         ...convertedStyle,
         ...backgroundImageStyle,
-        ...rest,
       }}
       onClick={handleBlockClick}
     >
       {/* {text} */}
-      <div dangerouslySetInnerHTML={{ __html: text ?? "" }} />
+      <div
+        style={{
+          ...rest,
+          backgroundColor: backgroundColor,
+          display: "inline-block",
+          // textAlign: "center",
+          paddingTop: `${padding.top}px`,
+          paddingRight: `${padding.right}px`,
+          paddingBottom: `${padding.bottom}px`,
+          paddingLeft: `${padding.left}px`,
+          maxWidth: "100%", // ✅ prevent child from overflowing parent
+          boxSizing: "border-box",
+          // width: rest.width ? `${rest.width}px` : "auto",
+          // height: rest.height ? `${rest.height}px` : "auto",
+        }}
+        dangerouslySetInnerHTML={{ __html: sanitizedText }}
+      />
     </Droppable>
   );
 };

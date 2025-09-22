@@ -51,6 +51,8 @@ const CustomButton: React.FC<{
     paddingLeft: buttonPadding?.left,
     width,
     height,
+    maxWidth: "100%",
+    boxSizing: "border-box",
   } as React.CSSProperties;
 
   const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
@@ -109,6 +111,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         outline: `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
+        maxWidth: "100%",
         ...convertedStyle,
         ...rest,
       }}

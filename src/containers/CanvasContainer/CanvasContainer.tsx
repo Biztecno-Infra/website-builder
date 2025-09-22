@@ -135,7 +135,6 @@ const Canvas = () => {
       const blockElement = canvasRef.current?.querySelector(
         `#block-${selectedNodeId}`
       );
-      console.log(blockElement, "blockElement");
 
       if (blockElement) {
         blockElement.scrollIntoView({

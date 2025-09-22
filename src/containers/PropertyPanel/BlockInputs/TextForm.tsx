@@ -46,10 +46,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundSize,
     id: blockId,
     layerName,
-    borderColor, 
-    borderRadius , 
+    borderColor,
+    borderRadius,
     borderWidth,
-    borderStyle
+    borderStyle,
+    width,
+    textContainerPadding,
+    textContainerBackgroundColor,
   } = selectedBlock as TextProps;
 
   const [formData, setFormData] = useState({
@@ -69,10 +72,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     backgroundRepeat,
     backgroundSize,
     layerName,
-    borderColor, 
-    borderRadius , 
+    borderColor,
+    borderRadius,
     borderWidth,
-    borderStyle
+    borderStyle,
+    width,
+    textContainerPadding,
+    textContainerBackgroundColor,
   });
 
   useEffect(() => {
@@ -93,10 +99,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       backgroundRepeat,
       backgroundSize,
       layerName,
-      borderColor, 
-      borderRadius , 
+      borderColor,
+      borderRadius,
       borderWidth,
-      borderStyle
+      borderStyle,
+      width,
+      textContainerBackgroundColor,
+      textContainerPadding,
     });
   }, [selectedBlock]);
 
@@ -129,7 +138,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             marginBottom: "10px",
           }}
         />
-        <TextArea
+        {/* <TextArea
           name="content"
           placeholder="Enter Content"
           value={formData.text || ""}
@@ -137,11 +146,11 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           onChange={(name: string, value: string) =>
             handleChange("text", value)
           }
-        />
-        {/* <RichTextEditor
-          formData={formData}
-          handleChange={(name, value) => handleChange(name, value)}
         /> */}
+        <RichTextEditor
+          textContent={text || ""}
+          handleChange={(name, value) => handleChange(name, value)}
+        />
         <FlexRow style={{ marginTop: "10px" }}>
           <Dropdown
             name="fontFamily"
@@ -208,7 +217,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           />
         </FlexRow>
       </BasePropertyWrapper>
-      <BasePropertyWrapper name="Edit Container">
+      <BasePropertyWrapper name="Edit Text Container">
         <FlexRow>
           <ReactColorPicker
             onColorChange={(field, value) =>
@@ -222,6 +231,67 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             onChange={(padding: any) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
+        </FlexRow>
+
+        <CustomInput
+          type="number"
+          name="width"
+          placeholder="Width"
+          value={formData.width || ""}
+          onChange={(name: string, value: string) =>
+            handleChange("width", value)
+          }
+          unitsLabel="px"
+          iconProps={{
+            name: CUSTOM_SVG_ICON.ImageWidth,
+          }}
+          inputStyle={{ width: "40%" }}
+          containerStyle={{
+            width: "50%",
+            padding: 2,
+          }}
+        />
+        <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+          />
+        </BasePropertyWrapper>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Edit Container">
+        <FlexRow>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("textContainerBackgroundColor", value)
+            }
+            selectedColor={formData.textContainerBackgroundColor || ""}
+            containerStyle={{ width: "53%" }}
+          />
+           <PaddingInput
+            padding={formData.textContainerPadding}
+            onChange={(padding: any) =>
+              handleChange("textContainerPadding", padding)
+            }
+            containerStylePopUp={{ width: "45%" }}
+          />
+         
         </FlexRow>
         {/* <CustomInput
           name="backgroundImage"
@@ -246,29 +316,6 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             backgroundPosition={formData.backgroundPosition || ""}
             backgroundRepeat={formData.backgroundRepeat || ""}
             backgroundSize={formData.backgroundSize || ""}
-            containerStyle={{
-              border: "1px solid #DDDDDD",
-              borderRadius: "10px",
-              padding: "0.5rem",
-            }}
-          />
-        </BasePropertyWrapper>
-        <BasePropertyWrapper
-          name="Border Properties"
-          subLabel
-          containerStyle={{
-            padding: 0,
-            width: "95%",
-            border: "none",
-            marginTop: "0.5rem",
-          }}
-        >
-          <BorderStyleDropdown
-            onChange={handleChange}
-            borderWidth={formData.borderWidth}
-            borderStyle={formData.borderStyle}
-            borderColor={formData.borderColor}
-            borderRadius={formData.borderRadius}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",

@@ -129,10 +129,14 @@ interface CustomImageProps {
   width?: number;
   height?: number;
   navigateToUrl?: string;
+  borderColor?: string ;
+  borderRadius?: number ;  
+  borderStyle?: string ; 
+  borderWidth?: number ;
 }
 
 const CustomImage: React.FC<CustomImageProps> = React.memo(
-  ({ imageUrl, altText, alignment, width, height, navigateToUrl }) => {
+  ({ imageUrl, altText, alignment, width, height, navigateToUrl , ...rest }) => {
     const [imageDimensions, setImageDimensions] = useState({
       width: 0,
       height: 0,
@@ -162,6 +166,7 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
       borderRadius: "inherit",
       maxWidth: `${imageDimensions.width}px`, // Limit max width based on original size
       maxHeight: `${imageDimensions.height}px`, // Limit max height based on original size
+      ...rest
     };
 
     return isLoading ? (
@@ -191,12 +196,9 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
     alignment,
     backgroundColor,
     padding,
-    borderColor,
-    borderRadius,
-    borderStyle,
-    borderWidth,
     navigateToUrl,
     customCss,
+    borderColor , borderRadius , borderStyle , borderWidth ,
     ...rest
   } = block;
   const theme = useTheme();
@@ -223,7 +225,7 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         backgroundColor: backgroundColor,
         lineHeight: 0,
         textAlign: (alignment as TextAlign) || "left",
-        borderRadius: borderRadius ? `${borderRadius}px` : "none",
+        // borderRadius: borderRadius ? `${borderRadius}px` : "none",
         outline: `1px dashed ${
           isSelected && block.parentId ? theme.colors.primary : "transparent"
         }`,
@@ -239,6 +241,10 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         width={width}
         height={height}
         navigateToUrl={navigateToUrl}
+        borderColor = {borderColor}
+        borderRadius = {borderRadius}  
+        borderStyle ={borderStyle} 
+        borderWidth ={borderWidth}
       />
     </Droppable>
   );

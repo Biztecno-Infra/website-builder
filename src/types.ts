@@ -51,7 +51,7 @@ export interface TextProps extends BaseBlock {
   fontFamily?: string;
   fontSize?: number;
   fontWeight?: string;
-  lineHeight?: any
+  lineHeight?: any;
   padding: {
     top: number;
     right: number;
@@ -63,12 +63,18 @@ export interface TextProps extends BaseBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
-    borderRadius?: number;
+  borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
-    width?: number;
-  height?: number;
+  width?: number;
+  textContainerPadding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  textContainerBackgroundColor?: string;
 }
 
 export interface ImageProps extends BaseBlock {

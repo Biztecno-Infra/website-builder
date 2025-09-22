@@ -4,7 +4,7 @@ import 'react-quill/dist/quill.snow.css';
 import styled from 'styled-components';
 
 type Props = {
-  formData: { text: string };
+  textContent: string ;
   handleChange: (name: string, value: string) => void;
 };
 
@@ -13,30 +13,43 @@ const EditorWrapper = styled.div`
     min-height: 150px;
     font-size: 14px;
   }
+
+  .quill {
+    border: 4px solid #f1f1f1;
+    border-radius: 5px;
+  }
+
+  .ql-toolbar.ql-snow {
+    border: none;
+    border-bottom: 2px solid #f1f1f1;
+  }
+
+  .ql-container.ql-snow {
+    border: none;
+  }
 `;
 
-const RichTextEditor = ({ formData, handleChange }: Props) => {
+const RichTextEditor = ({ textContent, handleChange }: Props) => {
   return (
     <EditorWrapper>
-      <label htmlFor="content">Content</label>
       <ReactQuill
         theme="snow"
-        value={formData.text}
-        onChange={(val) => handleChange('text', val)}
+        value={textContent}
+        onChange={(val) => handleChange("text", val)}
         placeholder="Enter content..."
         modules={{
           toolbar: [
-            ['bold', 'italic', 'underline'],
-            [{ list: 'ordered' }, { list: 'bullet' }],
-            ['clean'],
+            ["bold", "italic", "underline"],
+            [{ color: [] }, { background: [] }], 
+            ["clean"],
           ],
         }}
         formats={[
-          'bold',
-          'italic',
-          'underline',
-          'list',
-          'bullet',
+          "bold",
+          "italic",
+          "underline",
+          "color",
+          "background",
         ]}
       />
     </EditorWrapper>

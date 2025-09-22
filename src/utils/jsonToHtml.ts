@@ -162,14 +162,23 @@ function convertSpacerBlockToHtml(blockData: IBlockData) {
 
 function convertTextBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
-  const styles = buildStyles(style, {
+  const { width, backgroundColor , padding , borderRadius, borderStyle , borderColor, borderWidth, textContainerBackgroundColor , textContainerPadding , ...rest } = style;
+  const textBoxStyle = {width, backgroundColor , padding , borderRadius, borderStyle , borderColor, borderWidth}
+    const convertedTextStyle = buildStyles(textBoxStyle, {
     perChanges: [],
     pxChanges: allPxAttributes,
   });
-  const text = props.text || "";
+  const styles = buildStyles({padding: textContainerPadding , backgroundColor: textContainerBackgroundColor , ...rest}, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+  const sanitizedText = (props.text ?? "")
+    .replaceAll(/<p>/g, "<div>")
+    .replaceAll(/<\/p>/g, "</div>");
   const navigateToUrl = props.navigateToUrl || "";
+  const convertedTextBox = `<div style="display: inline-block; max-width: 100%; box-sizing: border-box; ${convertedTextStyle}">${sanitizedText.replaceAll(/\n/g, "<br>")}</div>`
   const textContent = appendOutlookSupport(
-    text.replaceAll(/\n/g, "<br>"),
+    convertedTextBox,
     styles
   );
 
@@ -177,6 +186,7 @@ function convertTextBlock(blockData: IBlockData) {
     ? `<a href="${navigateToUrl}" rel="noreferrer noopener" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>`
     : textContent;
 }
+
 async function appendOutlookForImage(
   content: string,
   outerContainerWidth: number,
@@ -254,6 +264,10 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     borderColor,
   };
 
+      const image = await Jimp.read(imageUrl);
+  const originalWidth = image.bitmap.width;
+  const originalHeight = image.bitmap.height;
+
   // Add border styles to container for fallback clients
   const containerStyles = buildStyles(
     {
@@ -267,7 +281,7 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     pxChanges: addPxToAttributes,
   });
 
-  const imageElement = `<img src="${imageUrl}" alt="${altText}" style="${imageTagStyles}" />`;
+  const imageElement = `<img src="${imageUrl}" alt="${altText}" style="${imageTagStyles}; max-width: ${originalWidth}px; max-height: ${originalHeight}px;" />`;
 
   const innerContainerWidth =
     ((typeof width === "string" ? parseInt(width.replace("%", "")) : width) /
@@ -390,12 +404,13 @@ function convertButtonBlock(blockData: IBlockData) {
     padding: buttonPadding,
     color,
     backgroundColor: buttonColor,
-  };
+      };
   const convertedButtonStyle = buildStyles(buttonStyle, {
     perChanges: [],
     pxChanges: allPxAttributes,
   });
-  const convertedStyles = buildStyles(rest, {
+  const convertedStyles = buildStyles(    { maxWidth: "100%", boxSizing: "border-box", ...rest },
+ {
     perChanges: [],
     pxChanges: allPxAttributes,
   });

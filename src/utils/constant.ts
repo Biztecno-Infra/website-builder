@@ -101,6 +101,8 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "none",
       borderColor: "",
       borderRadius: 0,
+      textContainerPadding: defaultGridPadding , 
+      textContainerBackgroundColor: defaultBg ,
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
