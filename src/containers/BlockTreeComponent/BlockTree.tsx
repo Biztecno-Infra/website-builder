@@ -118,7 +118,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      setSelectedBlock(block.id);
+      setSelectedBlock(blockId);
       setIsExpanded((prev) => !prev);
     },
     [block, setSelectedBlock]

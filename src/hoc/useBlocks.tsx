@@ -8,6 +8,7 @@ import {
   IBlocksState,
   GlobalStyles,
   RootLayout,
+  IGridCellProps,
 } from "../types";
 import { jsonToBlocks, processBlock } from "utils";
 import { ScreenViews } from "enum";
@@ -83,7 +84,7 @@ export const useBlocks = (): IBlockContext => {
     rootOrder: rootBlockOrder,
     globalStyles,
   });
-
+console.log(selectedBlock , "selectedBlock")
   // Debounced automatic history push
   useEffect(() => {
     if (isApplyingHistory.current) return;
@@ -160,6 +161,7 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const updateBlock = (blockId: any, property: any, value: any) => {
+    console.log("blockeeeeeee")
     setBlocks((prevBlocks) => {
       const block = prevBlocks[blockId] as any;
       if (!block) return prevBlocks;
@@ -417,14 +419,14 @@ export const useBlocks = (): IBlockContext => {
 
           const newGridBlock = isGridCell
             ? {
-                type: BlockType.GRID,
-                id: generateUniqueId(),
-                parentId: undefined,
-                ...getDefaultBlockProperties(BlockType.GRID),
-                columns: 1,
-                cellWidths: [100],
-                childBlocks: [dragBlock.id],
-              }
+              type: BlockType.GRID,
+              id: generateUniqueId(),
+              parentId: undefined,
+              ...getDefaultBlockProperties(BlockType.GRID),
+              columns: 1,
+              cellWidths: [100],
+              childBlocks: [dragBlock.id],
+            }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -522,39 +524,62 @@ export const useBlocks = (): IBlockContext => {
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
     const blockID = generateUniqueId();
-    const blockProps = { type: dragSrc.type as BlockType, id: blockID, parentId: undefined };
-    const { defaultBlock, extraBlocks } = initializeBlock(blockProps as Block);
+    const blockProprtys = {
+      type: dragSrc.type as BlockType,
+      id: blockID,
+      parentId: undefined,
+    };
+    const { defaultBlock, extraBlocks } = initializeBlock(
+      blockProprtys as Block
+    );
 
-    setBlocks((prevBlocks) => {
-      const dropBlock = dropAreaId ? prevBlocks[dropAreaId] : undefined;
-      let newBlocks = { ...prevBlocks };
+    setBlocks((prevsBlocks) => {
+      const dropBlock = dropAreaId ? prevsBlocks[dropAreaId] : undefined;
 
       if (dropBlock) {
-        if (dropBlock.type === BlockType.GRIDCELL) {
-          newBlocks = update(newBlocks, {
+        if (dropBlock?.type === BlockType.GRIDCELL) {
+          // "Drop in grid cell empty";
+          prevsBlocks = update(blocks, {
             [dropBlock.id]: { childBlocks: { $push: [blockID] } },
             [blockID]: { $set: { ...defaultBlock, parentId: dropBlock.id } },
           });
         } else if (dropBlock.parentId) {
-          const parent = prevBlocks[dropBlock.parentId];
-          if (parent?.type === BlockType.GRIDCELL) {
-            const index = parent.childBlocks.findIndex((id) => id === dropBlock.id);
-            newBlocks = update(newBlocks, {
-              [parent.id]: { childBlocks: { $splice: [[index, 0, blockID]] } },
-              [blockID]: { $set: { ...defaultBlock, parentId: parent.id } },
+          // "Drop in grid cell with childrens";
+          const dropBlockParent = prevsBlocks[dropBlock.parentId];
+          if (dropBlockParent?.type === BlockType.GRIDCELL) {
+            const dropNodeIndex = (
+              dropBlockParent as IGridCellProps
+            ).childBlocks.findIndex((id) => dropBlock.id === id);
+            prevsBlocks = update(blocks, {
+              [dropBlockParent.id]: {
+                childBlocks: { $splice: [[dropNodeIndex, 0, blockID]] },
+              },
+              [blockID]: {
+                $set: { ...defaultBlock, parentId: dropBlockParent.id },
+              },
             });
+          } else {
+            console.error("It is not a nested cell");
           }
         } else {
-          newBlocks[blockID] = defaultBlock;
-          const index = rootBlockOrder.findIndex((id) => id === dropBlock.id);
-          setRootBlockOrder((prev) => update(prev, { $splice: [[index, 0, blockID]] }));
+          // "Drop on block which has no parent";
+          prevsBlocks[blockID] = defaultBlock;
+          const indexOfDropArea = rootBlockOrder.findIndex(
+            (value) => value === dropBlock.id
+          );
+
+          setRootBlockOrder((prevs) =>
+            update(prevs, {
+              $splice: [[indexOfDropArea, 0, blockID]],
+            })
+          );
         }
       } else {
-        newBlocks[blockID] = defaultBlock;
-        setRootBlockOrder((prev) => [...prev, blockID]);
+        // Directly drop to canvas and append at last
+        prevsBlocks[blockID] = defaultBlock;
+        setRootBlockOrder((prevs) => [...prevs, blockID]);
       }
-
-      return { ...newBlocks, ...extraBlocks };
+      return { ...prevsBlocks, ...extraBlocks };
     });
 
     setSelectedBlockId(defaultBlock.id);
