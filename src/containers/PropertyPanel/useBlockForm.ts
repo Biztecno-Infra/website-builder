@@ -1,24 +1,20 @@
 // hooks/useBlockForm.ts
-
 import { useEffect, useState } from "react";
 
 export function useBlockForm<T extends object>(
   selectedBlock: T,
-  updateBlock: (blockId: string, property: string, value: any) => void
+  updateBlock: (id: string, key: keyof T, value: any) => void
 ) {
-  const [formData, setFormData] = useState<T>(selectedBlock);
-  const blockId = (selectedBlock as any).id;
+  const { id: blockId, ...rest } = selectedBlock as any;
+  const [formData, setFormData] = useState<any>(rest);
 
   useEffect(() => {
-    setFormData(selectedBlock);
+    setFormData(rest);
   }, [selectedBlock]);
 
-  const handleChange = (property: string, value: any) => {
-    setFormData((prev) => {
-      const updated = { ...prev, [property]: value };
-      updateBlock(blockId, property, value);
-      return updated;
-    });
+  const handleChange = (property: keyof T, value: any) => {
+    setFormData((prev: any) => ({ ...prev, [property]: value }));
+    updateBlock(blockId, property, value);
   };
 
   return { formData, handleChange };

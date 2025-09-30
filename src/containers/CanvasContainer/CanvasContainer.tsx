@@ -15,13 +15,13 @@ interface TableWrapperProps {
   $canvasPadding: Padding;
   $isMobile: boolean;
 }
-
 const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
   outline: ${({ $isSelected, theme }) =>
     $isSelected
       ? `1px dashed ${theme.colors.primary}`
-      : "1px solid transparent"};
+      : "none"};
+      z-index: ${({ $isSelected }) => ($isSelected ? 1 : "auto")};
   position: relative;
 `;
 
@@ -84,6 +84,7 @@ const Canvas = () => {
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
       requestAnimationFrame(() => {
+        console.log("Dropped item on canvas", item);
         handleDropper(item, undefined!);
       });
     },

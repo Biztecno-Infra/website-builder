@@ -13,6 +13,8 @@ import { GridCellForm } from "./BlockInputs/GridCellForm"
 import { DividerBlockForm } from "./BlockInputs/DividerBlockForm"
 import { SpacerBlockForm } from "./BlockInputs/SpacerBlockForm"
 import { RootStylesForm } from "./BlockInputs/RootStylesForm"
+import { ShapeBlockForm } from "./BlockInputs/ShapeBlockForm"
+import { VideoBlockForm } from "./BlockInputs/VideoBlockForm"
 
 export enum PropertyTabView {
   Global = "Global",
@@ -27,6 +29,8 @@ const blockFormMapping: any = {
   [BlockType.GRIDCELL]: GridCellForm,
   [BlockType.DIVIDER]: DividerBlockForm,
   [BlockType.SPACER]: SpacerBlockForm,
+  [BlockType.SHAPE]: ShapeBlockForm ,
+  [BlockType.VIDEO]: VideoBlockForm ,
 }
 
 const PropertyPanelWrapper = styled.div`

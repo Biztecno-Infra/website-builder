@@ -29,8 +29,8 @@ const EditorWrapper = styled.div`
 const RichTextEditor = ({ textContent, handleChange }: Props) => {
   const [content, setContent] = useState(textContent);
   const isSettingContent = useRef(false);
+  const quillRef = useRef<ReactQuill>(null);
 
-  // Sync prop changes to internal state, but avoid triggering handleChange
   useEffect(() => {
     if (textContent !== content) {
       isSettingContent.current = true;
@@ -40,7 +40,6 @@ const RichTextEditor = ({ textContent, handleChange }: Props) => {
 
   const onChange = (val: string) => {
     setContent(val);
-    // If content update caused by prop sync, skip calling handleChange
     if (isSettingContent.current) {
       isSettingContent.current = false;
       return;
@@ -48,16 +47,45 @@ const RichTextEditor = ({ textContent, handleChange }: Props) => {
     handleChange("text", val);
   };
 
+  // Simple approach - always paste as plain text
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    
+    // Get only plain text from clipboard
+    const text = e.clipboardData.getData('text/plain');
+    
+    // Insert plain text at cursor position
+    const quill = quillRef.current?.getEditor();
+    if (quill) {
+      const range = quill.getSelection();
+      if (range) {
+        quill.insertText(range.index, text);
+      } else {
+        quill.setText(text);
+      }
+    }
+  };
+
+  const modules = {
+    toolbar: [
+      ["bold", "italic", "underline"], 
+      [{ color: [] }, { background: [] }], 
+      ["clean"]
+    ],
+    clipboard: {
+      matchVisual: false,
+    }
+  };
+
   return (
-    <EditorWrapper>
+    <EditorWrapper onPaste={handlePaste}>
       <ReactQuill
+        ref={quillRef}
         theme="snow"
         value={content}
         onChange={onChange}
         placeholder="Enter content..."
-        modules={{
-          toolbar: [["bold", "italic", "underline"], [{ color: [] }, { background: [] }], ["clean"]],
-        }}
+        modules={modules}
         formats={["bold", "italic", "underline", "color", "background"]}
       />
     </EditorWrapper>

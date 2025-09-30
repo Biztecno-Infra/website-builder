@@ -1,161 +1,145 @@
 import React, { useEffect, useState } from "react";
-import { Jimp } from "jimp";
-import styled from "styled-components";
-import { BlockFormProps } from "../types";
-import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
-import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
-import { ImageProps } from "../../../types";
+import { FormWrapper, FlexRow } from "../style";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
+import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
+import { BlockFormProps } from "../types";
+import { VideoProps } from "types";
+import BasePropertyWrapper from "@components/BasePropertyWrapper";
+import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
-const FormWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const WidthHeightContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  padding-bottom: 0.5rem;
+const Divider = styled.div`
   width: 100%;
-`;
-const PaddingContainer = styled.div`
-  display: flex;
-  flex-direction: row;
+  height: 1px;
+  background: #dddddd;
 `;
 
-export const ImageBlockForm: React.FC<BlockFormProps> = ({
-  selectedBlock,
-  updateBlock,
-}) => {
+export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =>{
   const {
-    imageUrl,
-    altText,
-    width,
+    videoUrl,
+    youtubeVideoUrl,
+    thumbnailUrl,
     height,
+    width,
+    layerName,
+    id,
     backgroundColor,
     padding,
-    alignment,
     borderWidth,
     borderStyle,
     borderColor,
     borderRadius,
-    navigateToUrl,
     customCss,
-    id: blockId,
-    layerName
-  } = selectedBlock as ImageProps;
+    alignment,
+    navigateToUrl,
+  } = selectedBlock as VideoProps;
 
   const [formData, setFormData] = useState({
-    imageUrl,
-    altText,
-    width,
+    videoUrl,
+    youtubeVideoUrl,
+    thumbnailUrl,
     height,
+    width,
+    layerName,
     backgroundColor,
     padding,
-    alignment,
     borderWidth,
     borderStyle,
     borderColor,
     borderRadius,
     customCss,
+    alignment,
     navigateToUrl,
-    layerName
   });
 
   useEffect(() => {
     setFormData({
-      imageUrl,
-      altText,
-      width,
+      videoUrl,
+      youtubeVideoUrl,
+      thumbnailUrl,
       height,
+      width,
+      layerName,
       backgroundColor,
       padding,
-      alignment,
       borderWidth,
       borderStyle,
       borderColor,
       borderRadius,
       customCss,
+      alignment,
       navigateToUrl,
-      layerName
     });
   }, [selectedBlock]);
 
-
-  const handleImageUrlChange = async (value: string) => {
-    setFormData((prev) => ({ ...prev, imageUrl: value }));
-    updateBlock(blockId, "imageUrl", value);
-  };
-
   const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => ({ ...prevData, [property]: value }));
-    updateBlock(blockId, property, value);
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [property]: value };
+      updateBlock(id, property, value);
+      return updatedData;
+    });
   };
 
   return (
     <FormWrapper>
-      <BasePropertyWrapper name="Edit Image">
+      <BasePropertyWrapper name="Edit Video">
+        {/* Layer Name */}
         <CustomInput
           name="layerName"
           placeholder="Enter Layer Name"
           value={formData.layerName || ""}
           onChange={(name, value) => handleChange("layerName", value)}
-          containerStyle={{
-            width: "100%",
-            marginBottom: "10px",
-          }}
+          containerStyle={{ width: "100%", marginBottom: "10px" }}
         />
+
+        {/* YouTube/Vimeo */}
+        {/* <label htmlFor="videoUrl">Video URL (YouTube/Vimeo)</label> */}
         <CustomInput
-          name="imageUrl"
-          placeholder="Add Image URL"
-          value={formData.imageUrl}
-          onChange={(name: string, value: string) =>
-            handleImageUrlChange(value)
-          }
-          containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
-          type="text"
+          name="youtubeVideoUrl"
+          placeholder="Enter YouTube or Vimeo URL"
+          value={formData.youtubeVideoUrl || ""}
+          onChange={(name, value) => handleChange("youtubeVideoUrl", value)}
+          containerStyle={{ width: "100%", marginBottom: "10px" }}
+          disabled={!!formData.videoUrl} // disabled if direct video is entered
         />
 
         <CustomInput
-          name="altText"
-          placeholder="Add Alt Text"
-          value={formData.altText}
-          onChange={(name: string, value: string) =>
-            handleChange("altText", value)
-          }
-          containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
-          type="text"
+          name="videoUrl"
+          placeholder="Enter direct video file URL"
+          value={formData.videoUrl || ""}
+          onChange={(name, value) => handleChange("videoUrl", value)}
+          containerStyle={{ width: "100%", marginBottom: "10px" }}
+          disabled={!!formData.youtubeVideoUrl} // disabled if YouTube/Vimeo URL is entered
         />
-        <CustomInput
+
+        {/* Thumbnail only if direct video entered */}
+        {formData.videoUrl && !formData.youtubeVideoUrl && (
+          <>
+            {/* <label htmlFor="thumbnailUrl">
+              Thumbnail (required for direct video)
+            </label> */}
+            <CustomInput
+              name="thumbnailUrl"
+              placeholder="Enter thumbnail image URL"
+              value={formData.thumbnailUrl || ""}
+              onChange={(name, value) => handleChange("thumbnailUrl", value)}
+              containerStyle={{ width: "100%", marginBottom: "10px" }}
+            />
+          </>
+        )}
+        {/* NavigateTo link */}
+        {/* <CustomInput
           name="navigateToUrl"
-          placeholder="Add URL to link image"
-          value={formData.navigateToUrl}
+          placeholder="Add URL to link video"
+          value={formData.navigateToUrl || ""}
           onChange={handleChange}
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
           type="text"
-        />
-        <WidthHeightContainer>
-          {/* <CustomInput
-            type="number"
-            name="height"
-            value={formData.height || ""}
-            placeholder="auto"
-            onChange={(name: string, value: string) =>
-              handleChange("height", value)
-            }
-            unitsLabel="%"
-            iconProps={{
-              name: CUSTOM_SVG_ICON.ImageHeight,
-            }}
-            containerStyle={{
-              padding: 2,
-              width: "45%",
-            }}
-            inputStyle={{ width: "35%" }}
-            isPercentageValidation
-          /> */}
+        /> */}
+
+        {/* Dimensions */}
+        <FlexRow>
           <CustomInput
             type="number"
             name="width"
@@ -169,36 +153,43 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageWidth,
             }}
             containerStyle={{
-              width: "55%",
-              // marginLeft: "1rem",
+              width: "45%",
+              marginLeft: "1rem",
               padding: 2,
             }}
             inputStyle={{ width: "35%" }}
             isPercentageValidation
           />
-        </WidthHeightContainer>
+        </FlexRow>
+
+        {/* Alignment */}
         <AlignmentSelector
           onChange={handleChange}
           value={formData.alignment}
-          containerStyle={{ width: "90%" }}
+          containerStyle={{ width: "60%" }}
         />
       </BasePropertyWrapper>
+
+      <Divider />
+
+      {/* Container properties */}
       <BasePropertyWrapper name="Edit Container">
-        <PaddingContainer>
+        <FlexRow>
           <ReactColorPicker
             onColorChange={(field, value) =>
               handleChange("backgroundColor", value)
             }
             selectedColor={formData.backgroundColor}
-            containerStyle={{ width: "55%" }}
+            containerStyle={{ width: "53%" }}
           />
-
           <PaddingInput
-            padding={formData.padding}
+            padding={
+              formData.padding || { top: 0, right: 0, bottom: 0, left: 0 }
+            }
             onChange={(padding: any) => handleChange("padding", padding)}
-            containerStylePopUp={{ width: "48%", paddingLeft: "1rem" }}
+            containerStylePopUp={{ width: "45%" }}
           />
-        </PaddingContainer>
+        </FlexRow>
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
@@ -206,7 +197,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             border: "none",
             padding: 0,
             width: "95%",
-            marginTop: "0.5rem",
+            margin: "0.5rem",
           }}
         >
           <BorderStyleDropdown
@@ -223,10 +214,16 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           />
         </BasePropertyWrapper>
       </BasePropertyWrapper>
+
+      {/* Border */}
+
+      <Divider />
+
+      {/* Additional CSS */}
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"
-          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          placeholder="Enter additional CSS e.g. font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
           onChange={(name: string, value: string) =>
@@ -236,4 +233,5 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       </BasePropertyWrapper>
     </FormWrapper>
   );
-};
+}
+

@@ -6,12 +6,14 @@ import {
   GridProps,
   IGridCellProps,
   ImageProps,
+  ShapeProps,
   SpacerProps,
   TextProps,
+  VideoProps,
 } from "../types";
 
 export const defaultTextColor: string = "";
-const defaultPlaceholderImage: string =
+export const defaultPlaceholderImage: string =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s";
 // const defaultPlaceholderImage : string = "https://t4.ftcdn.net/jpg/05/17/53/57/360_F_517535712_q7f9QC9X6TQxWi6xYZZbMmw5cnLMr279.jpg";
 
@@ -103,6 +105,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderRadius: 0,
       textContainerPadding: defaultGridPadding , 
       textContainerBackgroundColor: defaultBg ,
+      width: 150,
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -152,7 +155,40 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultPadding,
       backgroundColor: defaultBg,
     };
-  } else {
+  } else if (blockType === BlockType.VIDEO) {
+    return {
+      padding: defaultPadding,
+      backgroundColor: defaultBg,
+      videoUrl: "",
+      thumbnailUrl: defaultPlaceholderImage,
+      width: 100,
+      height: 100,
+      alignment: "left",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
+    };
+  }
+  else if (blockType === BlockType.SHAPE) {
+    return {
+      padding: defaultPadding,
+      backgroundColor: defaultBg,
+      shape: "rectangle",
+      text: "",
+      textColor: "#000000",
+      imageUrl: "",
+      width: 100,
+      height: 150,
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
+      shapeColor: "#E0B7F8",
+      alignment: "left",
+    };
+  }
+  else {
     return {};
   }
 };
@@ -440,6 +476,107 @@ export const generateSpacerBlock = (block: SpacerProps) => {
     },
   };
 };
+
+export const generateVideoBlock = (block: VideoProps) => {
+  const {
+    videoUrl,
+    youtubeVideoUrl,
+    thumbnailUrl,
+    width,
+    height,
+    alignment,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    id,
+    type,
+    parentId,
+    layerName,
+    ...rest
+  } = block || {};
+
+  const videoStyle = {
+    width,
+    height,
+    padding,
+    backgroundColor,
+    textAlign: alignment,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    ...rest,
+  };
+
+  return {
+    type: type,
+    layerName: layerName || "",
+    data: {
+      style: videoStyle,
+      props: {
+        videoUrl,         
+        youtubeVideoUrl,  
+        thumbnailUrl,    
+      },
+    },
+  };
+};
+ 
+export const generateShapeBlockData = (block: ShapeProps) => {
+  const {
+    shape,
+    text,
+    textColor,
+    imageUrl,
+    width,
+    height,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    layerName,
+    type,
+    shapeColor , 
+    alignment
+  } = block || {};
+
+  const style = {
+    width,
+    height,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    shapeColor,
+    alignment
+  };
+
+  return {
+    type,
+    layerName: layerName || "",
+    data: {
+      style,
+      props: {
+        shape,
+        text,
+        textColor,
+        imageUrl,
+      },
+    },
+  };
+};
+
 
 export const rgbToHex = (rgb: string): string => {
   const result = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);

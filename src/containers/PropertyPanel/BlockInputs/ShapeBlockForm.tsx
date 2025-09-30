@@ -1,78 +1,251 @@
 // ShapeBlockForm.tsx
 
-import React from "react";
-import { CustomInput, Dropdown } from "@components/lib";
-// import { ShapeProps } from "types";
-// import { Input, Select } from "antd";
+import React, { useState, useEffect } from "react";
+import {
+  CustomInput,
+  Dropdown,
+  ReactColorPicker,
+  TextArea,
+} from "@components/lib";
+import BasePropertyWrapper from "@components/BasePropertyWrapper";
+import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
+import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
+import { FormWrapper, FlexRow } from "../style";
+import styled from "styled-components";
+import { ShapeProps } from "types";
+import { BlockFormProps } from "../types";
+import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
-interface ShapeBlockFormProps {
-  selectedBlock: any;
-  updateBlock: (blockId: string, property: string, value: any) => void;
-}
+const Divider = styled.div`
+  width: 100%;
+  height: 1px;
+  background: #dddddd;
+`;
 
 const shapeOptions = [
-  { text: "Rectangle", value: "rectangle" },
-  { text: "Rounded Rectangle", value: "rounded" },
-  { text: "Circle", value: "circle" },
-  { text: "Oval", value: "oval" },
+  { text: "Rectangle", value: "rectangle", key: "rectangle" },
+  { text: "Rounded Rectangle", value: "rounded", key: "rounded" },
+  { text: "Circle", value: "circle", key: "circle" },
+  { text: "Oval", value: "oval", key: "oval" },
 ];
 
-const ShapeBlockForm: React.FC<ShapeBlockFormProps> = ({
+export const ShapeBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const handleChange = (key: keyof any, value: any) => {
-    // updateBlock(selectedBlock.id, key, value);
+  const {
+    shape,
+    text,
+    width,
+    height,
+    backgroundColor,
+    layerName,
+    padding,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    id: blockId,
+    imageUrl,
+    alignment,
+    shapeColor,
+  } = selectedBlock as ShapeProps;
+
+  const [formData, setFormData] = useState({
+    shape,
+    text,
+    width,
+    height,
+    backgroundColor,
+    layerName,
+    padding,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    imageUrl,
+    shapeColor,
+    alignment,
+  });
+
+  useEffect(() => {
+    setFormData({
+      shape,
+      text,
+      width,
+      height,
+      backgroundColor,
+      layerName,
+      padding,
+      borderWidth,
+      borderStyle,
+      borderColor,
+      borderRadius,
+      customCss,
+      imageUrl,
+      shapeColor,
+      alignment,
+    });
+  }, [selectedBlock]);
+
+  const handleChange = (property: string, value: any) => {
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, [property]: value };
+      updateBlock(blockId, property, value);
+      return updatedData;
+    });
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <label>Shape</label>
-      <Dropdown
-        // value={selectedBlock.shape}
-        options={shapeOptions as any}
-        onChange={(name , val) => handleChange("shape", val)}
-        containerStyle={{ width: "100%", marginBottom: "1rem" }}
-        name="shape"
-      />
+    <FormWrapper>
+      <BasePropertyWrapper name="Edit Shape">
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
+        <Dropdown
+          name="shape"
+          options={shapeOptions}
+          onChange={(name, value) => handleChange("shape", value)}
+          containerStyle={{ width: "100%", marginBottom: "1rem" }}
+          initialValue={formData.shape}
+        />
+        <CustomInput
+          name="text"
+          placeholder="Enter text"
+          value={formData.text || ""}
+          onChange={(name, value) => handleChange("text", value)}
+          containerStyle={{ marginBottom: "1rem" }}
+        />
+        <CustomInput
+          name="imageUrl"
+          placeholder="Enter Image URL"
+          value={formData.imageUrl || ""}
+          onChange={(name, value) => handleChange("imageUrl", value)}
+          containerStyle={{ marginBottom: "1rem" }}
+        />
 
-      <label>Text</label>
-      <CustomInput
-        value={selectedBlock.text}
-        onChange={(name , value) => handleChange("text",value)}
-        containerStyle={{ marginBottom: "1rem" }}
-        name="text"
-      />
+        <FlexRow>
+          <CustomInput
+            name="width"
+            placeholder="Width (px)"
+            value={formData.width || ""}
+            onChange={(name, value) => {
+              const num = Math.max(1, Number(value) || 0);
+              handleChange("width", num);
 
-      <label>Width</label>
-      <CustomInput
-        value={selectedBlock.width}
-        onChange={(name , value) => handleChange("width", value)}
-        containerStyle={{ marginBottom: "1rem" }}
-        placeholder="e.g. 200px"
-        name="width"
-        type="number"
-      />
+              // ✅ Auto-sync height for circle and oval
+              if (formData.shape === "circle") {
+                handleChange("height", num);
+              } else if (formData.shape === "oval") {
+                handleChange("height", Math.floor(num / 2));
+              }
+            }}
+            unitsLabel="px"
+            iconProps={{
+              name: CUSTOM_SVG_ICON.ImageWidth,
+            }}
+            inputStyle={{ width: "40%" }}
+            containerStyle={{
+              width: "45%",
+              padding: 2,
+            }}
+          />
+          <CustomInput
+            name="height"
+            placeholder="Height (px)"
+            value={formData.height || ""}
+            onChange={(name, value) => {
+              const num = Math.max(1, Number(value) || 0);
+              handleChange("height", num);
+            }}
+            unitsLabel="px"
+            iconProps={{
+              name: CUSTOM_SVG_ICON.ImageHeight,
+            }}
+            inputStyle={{ width: "40%" }}
+            containerStyle={{
+              width: "45%",
+              padding: 2,
+            }}
+            disabled={formData.shape === "circle" || formData.shape === "oval"} // ✅ disable manual height for circle & oval
+          />
+        </FlexRow>
+        <AlignmentSelector
+          onChange={handleChange}
+          value={formData.alignment}
+          containerStyle={{ width: "100%", marginBottom: "0.75rem" }}
+        />
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("shapeColor", value)}
+          selectedColor={formData.shapeColor || ""}
+          containerStyle={{ width: "100%", marginBottom: 10 }}
+        />
+      </BasePropertyWrapper>
+      <Divider />
+      <BasePropertyWrapper name="Edit Container">
+        <FlexRow>
+          <ReactColorPicker
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
+            selectedColor={formData.backgroundColor}
+            containerStyle={{ width: "53%" }}
+          />
+          <PaddingInput
+            padding={formData.padding}
+            onChange={(padding: any) => handleChange("padding", padding)}
+            containerStylePopUp={{ width: "45%" }}
+          />
+        </FlexRow>
+        <BasePropertyWrapper
+          name="Border Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <BorderStyleDropdown
+            onChange={handleChange}
+            borderWidth={formData.borderWidth}
+            borderStyle={formData.borderStyle}
+            borderColor={formData.borderColor}
+            borderRadius={formData.borderRadius}
+            containerStyle={{
+              border: "1px solid #DDDDDD",
+              borderRadius: "10px",
+              padding: "0.5rem",
+            }}
+            // showBorderRadius={formData.shape !== "circle" && formData.shape !== "oval"} // Hide for circle and oval`
+            showBorderRadius={false}
+          />
+        </BasePropertyWrapper>
+      </BasePropertyWrapper>
 
-      <label>Height</label>
-      <CustomInput
-        value={selectedBlock.height}
-        onChange={(name , value) => handleChange("height" , value)}
-        containerStyle={{ marginBottom: "1rem" }}
-        placeholder="e.g. 100px"
-        name="height"
-        type="number"
-      />
-
-      <label>Background Color</label>
-      <CustomInput
-        value={selectedBlock.backgroundColor}
-        onChange={(name , value ) => handleChange("backgroundColor" , value)}
-        placeholder="e.g. #FF5733"
-        name="backgroundColor"
-      />
-    </div>
+      <Divider />
+      <BasePropertyWrapper name="Additional Properties">
+        <TextArea
+          name="customCss"
+          placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
+          value={formData.customCss || ""}
+          rows={6}
+          onChange={(name: string, value: string) =>
+            handleChange("customCss", value)
+          }
+        />
+      </BasePropertyWrapper>
+    </FormWrapper>
   );
 };
 
-export default ShapeBlockForm;

@@ -1,6 +1,6 @@
-import { Block, TextProps, ImageProps, ButtonProps, GridProps, IGridCellProps } from "../../../types";
+import { TextProps, ImageProps, ButtonProps, GridProps, IGridCellProps, VideoProps, ShapeProps } from "../../../types";
 
 export interface BlockFormProps {
-  selectedBlock: TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps; 
+  selectedBlock: TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps |ShapeProps; 
   updateBlock: (blockId: string, property: string, value: any) => void; 
 }

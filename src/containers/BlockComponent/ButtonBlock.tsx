@@ -108,10 +108,11 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         paddingLeft: padding?.left,
         backgroundColor: backgroundColor,
         textAlign: alignment as TextAlign,
-        outline: `1px dashed ${
-          isSelected && block.parentId ? theme.colors.primary : "transparent"
+       outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
         }`,
         maxWidth: "100%",
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
         ...rest,
       }}

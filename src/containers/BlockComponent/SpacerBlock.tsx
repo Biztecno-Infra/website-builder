@@ -31,9 +31,10 @@ export const SpacerBlock: React.FC<SpacerBlockProps> = ({
         paddingBottom: `${padding.bottom}px`,
         paddingLeft: `${padding.left}px`,
         backgroundColor,
-        outline: `1px dashed ${
-          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
         }`,
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
         ...rest,
       }}

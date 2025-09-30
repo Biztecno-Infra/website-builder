@@ -125,7 +125,6 @@ export interface ButtonProps extends BaseBlock {
 }
 
 export interface IGridCellProps extends ICoreBlock {
-  // childBlocks: string[];
   padding?: {
     top: number;
     right: number;
@@ -149,7 +148,6 @@ export interface GridProps extends BaseBlock {
   columns: number;
   columnGap: number;
   cellWidths: Array<number>;
-  // childBlocks: Array<string>;
   borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
@@ -161,7 +159,46 @@ export interface GridProps extends BaseBlock {
   responsive?: boolean;
 }
 
-export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;
+export interface VideoProps extends BaseBlock {
+  youtubeVideoUrl?: string;
+  videoUrl?: string;
+  width?: number;
+  height?: number;
+  borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
+    padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  navigateToUrl?: string;
+  thumbnailUrl?: string;
+}
+
+export interface ShapeProps extends BaseBlock {
+  width?: number;
+  height?: number;
+  shapeColor: string;
+  shape: "rectangle" | "circle" | "oval" | "rounded" ;
+  borderRadius?: number;
+  imageUrl?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
+    padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  customCss?: any;
+  textColor?: string;
+}
+
+export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps | ShapeProps;
 
 export interface IBlocksState {
   [key: string]: Block;
@@ -305,6 +342,14 @@ export interface DividerBlockProps extends BaseBlockProps {
 
 export interface SpacerBlockProps extends BaseBlockProps {
   block: SpacerProps;
+}
+
+export interface ShapeBlockProps extends BaseBlockProps {
+  block: ShapeProps;
+}
+
+export interface VideoBlockProps extends BaseBlockProps {
+  block: VideoProps;
 }
 
 export interface Theme {
