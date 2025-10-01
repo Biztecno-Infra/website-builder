@@ -1010,9 +1010,15 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
     <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse;">
       <tr>
         <td align="center" style="padding:0; ${outerContainerStyles}">
-          <div style="display: inline-block; width: ${percentWidth}; max-width: ${cellWidthInPx}px; box-sizing: border-box;">
-            ${videoContent}
-          </div>
+         <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
+  align="center" 
+  style="margin:0 auto; max-width:${cellWidthInPx}px; width:${percentWidth}; border-collapse:collapse;">
+  <tr>
+    <td align="center" style="text-align:center; padding:0;">
+      ${videoContent}
+    </td>
+  </tr>
+</table>
         </td>
       </tr>
     </table>

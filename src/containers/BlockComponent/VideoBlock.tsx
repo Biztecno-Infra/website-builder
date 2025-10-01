@@ -193,13 +193,10 @@ const CustomVideo: React.FC<CustomVideoProps> = React.memo(
     if (isLoading) {
       return <LoadingSpinner size={50} color="#007bff" />;
     }
-    console.log("Rendering video with thumbnail:", resolvedThumbnail);
+
     return (
       <div ref={containerRef} style={wrapperStyle}>
-        <a
-          href={videoLink}
-          target="_blank"
-          rel="noopener noreferrer"
+        <div
           style={containerStyle}
         >
           <img
@@ -213,7 +210,7 @@ const CustomVideo: React.FC<CustomVideoProps> = React.memo(
           <div style={playButtonStyle}>
             <div style={triangleStyle}></div>
           </div>
-        </a>
+        </div>
       </div>
     );
   }
