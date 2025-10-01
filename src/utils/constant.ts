@@ -103,8 +103,8 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderStyle: "none",
       borderColor: "",
       borderRadius: 0,
-      textContainerPadding: defaultGridPadding , 
-      textContainerBackgroundColor: defaultBg ,
+      textContainerPadding: defaultGridPadding,
+      textContainerBackgroundColor: defaultBg,
       width: 150,
     };
   } else if (blockType === BlockType.BUTTON) {
@@ -169,8 +169,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderColor: "",
       borderRadius: 0,
     };
-  }
-  else if (blockType === BlockType.SHAPE) {
+  } else if (blockType === BlockType.SHAPE) {
     return {
       padding: defaultPadding,
       backgroundColor: defaultBg,
@@ -187,8 +186,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       shapeColor: "#E0B7F8",
       alignment: "left",
     };
-  }
-  else {
+  } else {
     return {};
   }
 };
@@ -405,9 +403,23 @@ export const generateGridBlock = (block: GridProps) => {
 };
 
 export const generateGridCellBlock = (block: IGridCellProps) => {
-  const { layerName , childBlocks , id , type ,  backgroundColor ,  padding , parentId , verticalAlign , backgroundImage , backgroundPosition , backgroundRepeat , backgroundSize , ...rest} = block || {};
+  const {
+    layerName,
+    childBlocks,
+    id,
+    type,
+    backgroundColor,
+    padding,
+    parentId,
+    verticalAlign,
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
+    ...rest
+  } = block || {};
 
-   const backgroundImageStyle = backgroundImage
+  const backgroundImageStyle = backgroundImage
     ? {
         backgroundImage: backgroundImage.startsWith("url")
           ? backgroundImage
@@ -426,8 +438,8 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
         padding: padding,
         backgroundColor: backgroundColor,
         verticalAlign: verticalAlign,
-        ...backgroundImageStyle, 
-        ...rest
+        ...backgroundImageStyle,
+        ...rest,
       },
     },
   };
@@ -519,14 +531,14 @@ export const generateVideoBlock = (block: VideoProps) => {
     data: {
       style: videoStyle,
       props: {
-        videoUrl,         
-        youtubeVideoUrl,  
-        thumbnailUrl,    
+        videoUrl,
+        youtubeVideoUrl,
+        thumbnailUrl,
       },
     },
   };
 };
- 
+
 export const generateShapeBlockData = (block: ShapeProps) => {
   const {
     shape,
@@ -544,8 +556,8 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     customCss,
     layerName,
     type,
-    shapeColor , 
-    alignment
+    shapeColor,
+    alignment,
   } = block || {};
 
   const style = {
@@ -559,7 +571,8 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     borderRadius,
     customCss,
     shapeColor,
-    alignment
+    textColor,
+    alignment,
   };
 
   return {
@@ -570,13 +583,11 @@ export const generateShapeBlockData = (block: ShapeProps) => {
       props: {
         shape,
         text,
-        textColor,
         imageUrl,
       },
     },
   };
 };
-
 
 export const rgbToHex = (rgb: string): string => {
   const result = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);

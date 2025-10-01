@@ -247,11 +247,12 @@ export const jsonToBlocks = (
           borderRadius: shapeBr,
           padding: shapePadding,
           customCss: shapeCss,
+          textColor: textColor,
           ...shapeRest
         } = layoutBlock.data.style || {};
         shape.shape = layoutBlock.data.props.shape;
         shape.text = layoutBlock.data.props.text;
-        shape.textColor = layoutBlock.data.props.textColor;
+        shape.textColor = textColor;
         shape.imageUrl = layoutBlock.data.props.imageUrl;
         shape.width = shapeWidth;
         shape.height = shapeHeight;
