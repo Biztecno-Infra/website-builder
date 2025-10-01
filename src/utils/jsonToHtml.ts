@@ -4,6 +4,7 @@ import {
 } from "@containers/BlockComponent/VideoBlock";
 import { Jimp } from "jimp";
 import { BlockType } from "email-builder-utils";
+import { extractBackgroundUrl } from "./common";
 interface Padding {
   top: number;
   right: number;
@@ -182,6 +183,8 @@ function convertTextBlock(blockData: IBlockData) {
     textContainerPadding,
     ...rest
   } = style;
+
+  // Inner text box (border + padding + inner background)
   const textBoxStyle = {
     width,
     backgroundColor,
@@ -684,14 +687,19 @@ function buildVMLShape({
   const bc = borderColor || "transparent";
   const hasBorder = bw > 0;
   const borderAttributes = hasBorder ? `strokeweight="${bw}px" strokecolor="${bc}"` : `stroked="false"`;
-
+  
+  console.log("Building VML shape:", { shape, widthPx, heightPx, imageUrl, backgroundColor, borderWidth, borderColor, borderRadius, text, textColor, msoHasBakedText });
   const fillColor = backgroundColor || "#2F80ED";
 
-  // choose tag and extra attributes
+  // Special handling for oval/circle shapes
   let tag = "rect";
   let extraAttr = "";
-  if (shape === "circle" || shape === "oval") tag = "oval";
-  if (shape === "rounded" || (borderRadius && borderRadius !== "0")) {
+  
+  if (shape === "circle" || shape === "oval") {
+    tag = "oval"; // Use oval tag for perfect ellipse/circle
+    // For oval, don't use arcsize - it's handled by the oval tag itself
+    extraAttr = "";
+  } else if (shape === "rounded" || (borderRadius && borderRadius !== "0")) {
     tag = "roundrect";
     extraAttr = ` arcsize="${computeArcSize(borderRadius, widthPx)}"`;
   }
@@ -756,7 +764,7 @@ async function convertShapeBlock(blockData: IBlockData, cellWidthInPx: number) {
     rectangle: "0",
     rounded: "10px",
     circle: "50%",
-    oval: "50%",
+    oval: "50%", // Keep this for modern browsers
   };
   let resolvedBorderRadius = borderRadius || borderRadiusMap[shape] || "0";
 
@@ -770,12 +778,14 @@ async function convertShapeBlock(blockData: IBlockData, cellWidthInPx: number) {
       ? height
       : parseInt(height.toString().replace("px", ""), 10) || 150;
 
-  // Force circle → square
+  // Special handling for different shapes
   if (shape === "circle") {
+    // Circle: make it a perfect square with 50% border radius
     const side = Math.min(resolvedWidthPx, resolvedHeightPx);
     resolvedWidthPx = side;
     resolvedHeightPx = side;
     resolvedBorderRadius = "50%";
+  } else if (shape === "oval") {
   }
 
   const finalWidthPx = resolvedWidthPx;
@@ -794,12 +804,15 @@ async function convertShapeBlock(blockData: IBlockData, cellWidthInPx: number) {
   // --- Modern clients content ---
   let nonMsoContent = "";
 
+  // For modern browsers, use CSS border-radius
+  const modernBorderRadius = shape === "oval" ? "50%" : resolvedBorderRadius;
+
   // Case 1: Image + Text → use background-image
   if (imageUrl && text) {
     nonMsoContent = `
 <div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${resolvedBorderRadius};
+  border-radius:${modernBorderRadius};
   background:${finalBackgroundColor} url('${imageUrl}') center/cover no-repeat;
   overflow:hidden;${alignmentStyle}${customCss || ""}">
   <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
@@ -815,11 +828,11 @@ async function convertShapeBlock(blockData: IBlockData, cellWidthInPx: number) {
     nonMsoContent = `
 <div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${resolvedBorderRadius};
+  border-radius:${modernBorderRadius};
   overflow:hidden;${alignmentStyle}${customCss || ""}">
   <img src="${imageUrl}" alt="${text || "Shape image"}"
        width="${finalWidthPx}" height="${finalHeightPx}"
-       style="width:100%;height:100%;object-fit:cover;border-radius:${resolvedBorderRadius};display:block;" />
+       style="width:100%;height:100%;object-fit:cover;border-radius:${modernBorderRadius};display:block;" />
 </div>`;
   }
   // Case 3: No image → solid background
@@ -828,7 +841,7 @@ async function convertShapeBlock(blockData: IBlockData, cellWidthInPx: number) {
 <div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
   background:${finalBackgroundColor};
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${resolvedBorderRadius};
+  border-radius:${modernBorderRadius};
   ${alignmentStyle}${customCss || ""}">
   <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;
     color:${textColor};text-align:center;padding:8px;box-sizing:border-box;word-break:break-word;">
