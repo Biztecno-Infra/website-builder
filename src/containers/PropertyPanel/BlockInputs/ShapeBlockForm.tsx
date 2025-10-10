@@ -138,7 +138,13 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             name="width"
             placeholder="Width (px)"
             value={formData.width || ""}
+            type="number"
             onChange={(name, value) => {
+              if (value === "") {
+                handleChange("width", ""); // allow empty input temporarily
+                return;
+              }
+
               const num = Math.max(1, Number(value) || 0);
               handleChange("width", num);
 
@@ -164,6 +170,11 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             placeholder="Height (px)"
             value={formData.height || ""}
             onChange={(name, value) => {
+              if (value === "") {
+                handleChange("height", "");
+                return;
+              }
+
               const num = Math.max(1, Number(value) || 0);
               handleChange("height", num);
             }}
@@ -248,4 +259,3 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
     </FormWrapper>
   );
 };
-
