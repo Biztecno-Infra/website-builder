@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { PaddingInput, VerticalAlignment } from "@components/StyleComponents";
 import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
@@ -9,6 +9,7 @@ import { CustomInput, ReactColorPicker } from "@components/lib";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { extractBackgroundUrl } from "@utils/common";
+import { useBlockForm } from "../useBlockForm";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -29,45 +30,8 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
     borderRadius,
   } = selectedBlock as IGridCellProps;
 
-  const [formData, setFormData] = useState({
-    padding: initialPadding || defaultGridPadding,
-    backgroundColor,
-    verticalAlign,
-    layerName,
-    backgroundImage,
-    backgroundPosition,
-    backgroundRepeat,
-    backgroundSize,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-  });
-
-  useEffect(() => {
-    setFormData({
-      padding: initialPadding || defaultGridPadding,
-      backgroundColor,
-      verticalAlign,
-      layerName,
-      backgroundImage,
-      backgroundPosition,
-      backgroundRepeat,
-      backgroundSize,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      borderRadius,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (field: string, value: any) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-    updateBlock(selectedBlock.id, field, value);
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
 
   return (
     <BasePropertyWrapper name="Edit Column" containerStyle={{ border: "none" }}>
@@ -83,9 +47,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
       />
       <FlexRow>
         <ReactColorPicker
-          onColorChange={(field, value) =>
-            handleChange("backgroundColor", value)
-          }
+          onColorChange={(field, value) => handleChange("backgroundColor", value)}
           label={"Select Background color"}
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "53%" }}

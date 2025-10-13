@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
@@ -17,6 +17,7 @@ import { fontOptions, fontWeightOptions } from "../constant";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import RichTextEditor from "./RichTextEditor";
+import { useBlockForm } from "../useBlockForm";
 
 const ColorPickerContainer = styled.div`
   width: 65%;
@@ -55,75 +56,15 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
     textContainerBackgroundColor,
   } = selectedBlock as TextProps;
 
-  const [formData, setFormData] = useState({
-    text,
-    fontFamily,
-    fontSize,
-    fontWeight,
-    padding,
-    color,
-    backgroundColor,
-    alignment,
-    backgroundImage,
-    customCss,
-    navigateToUrl,
-    lineHeight,
-    backgroundPosition,
-    backgroundRepeat,
-    backgroundSize,
-    layerName,
-    borderColor,
-    borderRadius,
-    borderWidth,
-    borderStyle,
-    width,
-    textContainerPadding,
-    textContainerBackgroundColor,
-  });
+  // Use the optimized form hook
+  const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock, updateBlock);
 
-  useEffect(() => {
-    setFormData({
-      text,
-      fontFamily,
-      fontSize,
-      fontWeight,
-      padding,
-      color,
-      backgroundColor,
-      alignment,
-      backgroundImage,
-      customCss,
-      navigateToUrl,
-      lineHeight,
-      backgroundPosition,
-      backgroundRepeat,
-      backgroundSize,
-      layerName,
-      borderColor,
-      borderRadius,
-      borderWidth,
-      borderStyle,
-      width,
-      textContainerBackgroundColor,
-      textContainerPadding,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const newFontSize =
-        property === "fontSize" ? parseFloat(value) : prevData.fontSize;
-      return {
-        ...prevData,
-        [property]: value,
-        ...(property === "fontSize" && { lineHeight: newFontSize }),
-      };
-    });
-
-    updateBlock(blockId, property, value);
-    if (property === "fontSize")
-      updateBlock(blockId, "lineHeight", parseFloat(value));
-  };
+  // Special handler for fontSize that also updates lineHeight
+  const handleFontSizeChange = useCallback((property: string, value: any) => {
+    const fontSizeValue = parseFloat(value);
+    handleImmediateChange(property, value);
+    handleImmediateChange("lineHeight", fontSizeValue);
+  }, [handleImmediateChange]);
 
   return (
     <FormWrapper>
@@ -138,26 +79,15 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             marginBottom: "10px",
           }}
         />
-        {/* <TextArea
-          name="content"
-          placeholder="Enter Content"
-          value={formData.text || ""}
-          rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("text", value)
-          }
-        /> */}
         <RichTextEditor
           textContent={text || ""}
-          handleChange={(name, value) => handleChange(name, value)}
+          handleChange={(name, value) => handleChange("text", value)}
         />
         <FlexRow style={{ marginTop: "10px" }}>
           <Dropdown
             name="fontFamily"
             options={fontOptions}
-            onChange={(name, value) =>
-              handleChange("fontFamily", value as string)
-            }
+            onChange={(name, value) => handleChange("fontFamily", value)}
             containerStyle={{ width: "65%" }}
             initialValue={formData.fontFamily}
           />
@@ -165,7 +95,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize}
-            onChange={(name, value) => handleChange("fontSize", value)}
+            onChange={handleFontSizeChange}
             containerStyle={{
               width: "30%",
             }}
@@ -183,7 +113,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           <Dropdown
             name="fontWeight"
             options={fontWeightOptions}
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("fontWeight", value)}
             initialValue={formData.fontWeight}
             containerStyle={{ width: "28%" }}
           />
@@ -200,7 +130,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             placeholder="Enter Line Height"
             value={formData.lineHeight}
             type="number"
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("lineHeight", value)}
             iconProps={{
               name: CUSTOM_SVG_ICON.LineHeight,
               size: SizeEnum.Small,
@@ -212,7 +142,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             name="navigateToUrl"
             placeholder="Add URL to link text"
             value={formData.navigateToUrl}
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("navigateToUrl", value)}
             containerStyle={{ width: "68%" }}
           />
         </FlexRow>
@@ -220,15 +150,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Text Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
@@ -238,9 +166,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           name="width"
           placeholder="Width"
           value={formData.width || ""}
-          onChange={(name: string, value: string) =>
-            handleChange("width", value)
-          }
+          onChange={(name, value) => handleChange("width", value)}
           unitsLabel="px"
           iconProps={{
             name: CUSTOM_SVG_ICON.ImageWidth,
@@ -278,17 +204,13 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("textContainerBackgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("textContainerBackgroundColor", value)}
             selectedColor={formData.textContainerBackgroundColor || ""}
             containerStyle={{ width: "53%" }}
           />
            <PaddingInput
             padding={formData.textContainerPadding}
-            onChange={(padding: any) =>
-              handleChange("textContainerPadding", padding)
-            }
+            onChange={(padding) => handleChange("textContainerPadding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
          
@@ -331,9 +253,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

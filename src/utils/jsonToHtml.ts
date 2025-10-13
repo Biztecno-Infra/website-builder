@@ -512,9 +512,9 @@ async function convertGridBlock(
 
   let html = `
   <!--[if mso]>
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" style="${tableCommonStyle}">
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" style="${tableCommonStyle}border-collapse: separate;border-spacing:${columnGap}px;">
   <![endif]-->
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" style="${tableCommonStyle} ${tableStyles}">
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" style="${tableCommonStyle} ${tableStyles}border-collapse: separate;border-spacing:${columnGap}px;">
   `;
 
   for (let r = 0; r < visualRows; r++) {
@@ -539,14 +539,14 @@ async function convertGridBlock(
    <td
     width="${widthPercent}%"
     ${responsive ? 'class="stack-column"' : ""}
-    style="vertical-align:${verticalAlign}; padding:0; word-break:break-word; ${styles}"
+    style="vertical-align:${verticalAlign}; word-break:break-word; ${styles} "
   >
     ${childHtml}
   </td>`;
       } else {
         html += `<td width="${widthPercent}%" ${
           responsive ? 'class="stack-column"' : ""
-        } style="padding:0;"></td>`;
+        } style=""></td>`;
       }
     }
     html += "</tr>";
@@ -943,6 +943,10 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
     {
       ...style,
       width: undefined,
+      borderColor: undefined,
+      borderRadius: undefined,
+      borderWidth: undefined,
+      borderStyle: undefined,
     },
     {
       perChanges: addPxOrPerToAttributes,
@@ -962,80 +966,98 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
   const vmlLeft = innerContainerWidth / 2 - playIconWidth / 2;
   const vmlTop = calculatedHeight / 2 - playIconHeight / 2;
 
-  const videoContent = `
-    <!--[if mso]>
-    <v:group xmlns:v="urn:schemas-microsoft-com:vml" coordsize="${innerContainerWidth},${calculatedHeight}"
-      coordorigin="0,0"
-      href="${videoLink}"
-      style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
-      <v:rect fill="t" stroked="f" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px;">
-        <v:fill src="${resolvedThumbnail}" type="frame"/>
-      </v:rect>
-      <v:shape type="#_x0000_t75"
-        style="position:absolute;
-               left:${vmlLeft.toFixed(1)}px;
-               top:${vmlTop.toFixed(1)}px;
-               width:${playIconWidth}px;
-               height:${playIconHeight}px;"
-        alt="Play" href="${videoLink}" title="${altText || "Video"}"
-        stroked="f" filled="t">
-        <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
-      </v:shape>
-    </v:group>
-    <![endif]-->
-
-    <!--[if !mso]><!-->
-    <table
-      width="${innerContainerWidth}"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      role="presentation"
-      style="
-        background-image: url('${resolvedThumbnail}');
-        background-size: cover;
-        background-position: center;
-        
-        max-width: ${innerContainerWidth}px;
-        height: ${calculatedHeight}px;
-        box-sizing: border-box;
-      "
-      align="center"
+const videoContent = `
+  <!--[if mso]>
+  <v:group xmlns:v="urn:schemas-microsoft-com:vml"
+    coordsize="${innerContainerWidth},${calculatedHeight}"
+    href="${videoLink}"
+    style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
+    <v:rect fill="t"  style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
+    strokeweight="${borderWidth}px"
+    strokecolor="${borderColor}"
+    ${borderRadius > 0 ? `arcsize="${Math.min(borderRadius / calculatedHeight, 1).toFixed(2)}"` : ""}
     >
-      <tr>
-        <td style="height: ${calculatedHeight}px; padding: 0; text-align: center; vertical-align: middle; border-radius: ${borderRadius}px;
-        border: ${borderWidth}px solid ${borderColor};" align="center" valign="middle">
-          <a href="${videoLink}" target="_blank" style="display:inline-block; border: 0; outline: none; text-decoration: none;">
-            <img
-              src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png"
-              width="${playIconWidth}"
-              alt="Play"
-              style="display: block; border: 0; outline: none; text-decoration: none; height: auto;"
-            />
-          </a>
-        </td>
-      </tr>
-    </table>
-    <!--<![endif]-->
-  `;
+      <v:fill src="${resolvedThumbnail}" type="frame" color="${style?.backgroundColor || "#FFFFFF"}"/>
+    </v:rect>
+    <v:shape type="#_x0000_t75"
+      style="position:absolute;
+             left:${vmlLeft.toFixed(1)}px;
+             top:${vmlTop.toFixed(1)}px;
+             width:${playIconWidth}px;
+             height:${playIconHeight}px;"
+      alt="Play" href="${videoLink}" title="${altText || "Video"}"
+      stroked="f" filled="t">
+      <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
+    </v:shape>
+  </v:group>
+  <![endif]-->
 
-  const wrapperHtml = `
-    <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse;">
-      <tr>
-        <td align="center" style="padding:0; ${outerContainerStyles}">
-         <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
-  align="center" 
-  style="margin:0 auto; max-width:${cellWidthInPx}px; width:${percentWidth}; border-collapse:collapse;">
-  <tr>
-    <td align="center" style="text-align:center; padding:0;">
-      ${videoContent}
-    </td>
-  </tr>
-</table>
-        </td>
-      </tr>
-    </table>
-  `;
+  <!--[if !mso]><!-->
+  <table
+    width="${innerContainerWidth}"
+    cellpadding="0"
+    cellspacing="0"
+    border="0"
+    role="presentation"
+    align="${style?.textAlign || "left"}"
+    style="
+      max-width: ${innerContainerWidth}px;
+      width: 100%;
+      height: ${calculatedHeight}px;
+      background-color: ${style?.backgroundColor || "#FFFFFF"};
+      background-image: url('${resolvedThumbnail}');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      box-sizing: border-box;
+        border: ${borderWidth}px ${style?.borderStyle || "solid"} ${borderColor};
+              border-radius: ${borderRadius}px;
+    "
+  >
+    <tr>
+      <td style="padding: 0; height: ${calculatedHeight}px; text-align: center; vertical-align: middle;" valign="middle">
+        <a href="${videoLink}" target="_blank" style="display:inline-block; border: 0; outline: none; text-decoration: none;">
+          <img
+            src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png"
+            width="${playIconWidth}"
+            alt="Play"
+            style="display: block;
+            border: 0;
+              outline: none;
+              text-decoration: none;
+              height: auto;"
+          />
+        </a>
+      </td>
+    </tr>
+  </table>
+  <!--<![endif]-->
+`;
+
+
+const wrapperHtml = `
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse;">
+    <tr>
+      <td align="${style?.textAlign || "left"}" style="padding:0; ${outerContainerStyles}">
+        <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
+          align="${style?.textAlign || "left"}"
+          style="
+            margin:0;
+            max-width:${cellWidthInPx}px;
+            width:${percentWidth};
+            border-collapse:collapse;
+          ">
+          <tr>
+            <td align="${style?.textAlign || "left"}" style="text-align:${style?.textAlign || "left"}; padding:0;">
+              ${videoContent}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+`;
+
 
   return wrapperHtml;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BlockFormProps } from "../types";
 import { PaddingInput, AlignmentSelector } from "@components/StyleComponents";
 import styled from "styled-components";
@@ -15,6 +15,7 @@ import {
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
+import { useBlockForm } from "../useBlockForm";
 
 const Divider = styled.div`
   width: 100%;
@@ -53,59 +54,8 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
     layerName,
   } = selectedBlock as ButtonProps;
 
-  const [formData, setFormData] = useState({
-    buttonText,
-    navigateToUrl,
-    color,
-    backgroundColor,
-    buttonColor,
-    fontFamily,
-    fontSize,
-    fontWeight,
-    alignment,
-    padding,
-    borderRadius,
-    borderColor,
-    borderWidth,
-    borderStyle,
-    customCss,
-    buttonPadding,
-    width,
-    height,
-    layerName,
-  });
-
-  useEffect(() => {
-    setFormData({
-      buttonText,
-      navigateToUrl,
-      color,
-      backgroundColor,
-      buttonColor,
-      fontFamily,
-      fontSize,
-      fontWeight,
-      alignment,
-      padding,
-      borderRadius,
-      borderColor,
-      borderWidth,
-      borderStyle,
-      customCss,
-      buttonPadding,
-      width,
-      height,
-      layerName,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(id, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
 
   return (
     <FormWrapper>
@@ -127,7 +77,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           name="buttonText"
           placeholder="Enter button text here"
           value={formData.buttonText}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("buttonText", value)}
           containerStyle={{ marginBottom: "0.75rem", width: "95%", padding: 2 }}
         />
 
@@ -144,7 +94,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize || ""}
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("fontSize", value)}
             type="number"
             containerStyle={{ width: "30%", padding: 3 }}
             inputStyle={{ width: "45%" }}
@@ -162,9 +112,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <Dropdown
             name="fontWeight"
             options={fontWeightOptions}
-            onChange={(name, value) =>
-              handleChange("fontWeight", value as string)
-            }
+            onChange={(name, value) => handleChange("fontWeight", value)}
             initialValue={formData.fontWeight}
             containerStyle={{ width: "26%", paddingLeft: "0.5rem" }}
           />
@@ -187,9 +135,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="width"
             placeholder="Enter Button Width"
             value={formData.width || ""}
-            onChange={(name: string, value: string) =>
-              handleChange("width", value)
-            }
+            onChange={(name, value) => handleChange("width", value)}
             unitsLabel="px"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageWidth,
@@ -205,9 +151,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="height"
             placeholder="Enter Button Height"
             value={formData.height || ""}
-            onChange={(name: string, value: string) =>
-              handleChange("height", value)
-            }
+            onChange={(name, value) => handleChange("height", value)}
             unitsLabel="px"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight,
@@ -224,7 +168,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           name="navigateToUrl"
           placeholder="Enter Button Navigation URL"
           value={formData.navigateToUrl}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("navigateToUrl", value)}
           containerStyle={{ marginBottom: "0.75rem", width: "90%", padding: 2 }}
         />
         <ReactColorPicker
@@ -241,7 +185,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           />
           <PaddingInput
             padding={formData.buttonPadding}
-            onChange={(value) => handleChange("buttonPadding", value)}
+            onChange={(padding) => handleChange("buttonPadding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
@@ -273,16 +217,14 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             label="Select Background Color"
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "58%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(value) => handleChange("padding", value)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%", paddingLeft: "0.5rem" }}
           />
         </FlexRow>
@@ -294,9 +236,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

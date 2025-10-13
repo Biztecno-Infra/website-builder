@@ -18,29 +18,8 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
     layerName,
   } = selectedBlock as SpacerProps;
 
-  const [formData, setFormData] = useState({
-    backgroundColor,
-    padding,
-    customCss,
-    layerName,
-  });
-
-  useEffect(() => {
-    setFormData({
-      backgroundColor,
-      padding,
-      customCss,
-      layerName,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
 
   return (
     <FormWrapper>
@@ -57,16 +36,14 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
         />
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
@@ -77,9 +54,7 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

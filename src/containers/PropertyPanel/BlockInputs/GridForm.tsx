@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { BlockFormProps } from "../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
@@ -8,6 +8,7 @@ import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { FlexRow, FormWrapper } from "../style";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { extractBackgroundUrl } from "@utils/common";
+import { useBlockForm } from "../useBlockForm";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
@@ -33,65 +34,22 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
     layerName,
   } = selectedBlock as GridProps;
 
-  const [formData, setFormData] = useState({
-    rows,
-    columns,
-    columnGap,
-    backgroundColor,
-    backgroundImage,
-    cellWidths,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    backgroundPosition,
-    backgroundRepeat,
-    backgroundSize,
-    responsive,
-    layerName,
-  });
+  // Use the optimized form hook
+  const { formData, handleChange, handleBatchChange } = useBlockForm(selectedBlock, updateBlock);
 
-  useEffect(() => {
-    setFormData({
-      rows,
-      columns,
-      columnGap,
-      backgroundColor,
-      backgroundImage,
-      cellWidths,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      borderRadius,
-      customCss,
-      backgroundPosition,
-      backgroundRepeat,
-      backgroundSize,
-      responsive,
-      layerName,
+  // Special handler for columns that also updates cellWidths
+  const handleColumnsChange = useCallback((name: string, value: string) => {
+    const newColumns = parseInt(value) || 1;
+    const newCellWidths = Array.from({ length: newColumns }, () =>
+      Math.round(100 / newColumns)
+    );
+    
+    // Use batch change for related properties
+    handleBatchChange({
+      columns: newColumns,
+      cellWidths: newCellWidths
     });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-
-      if (property === "columns") {
-        const newCellWidths = Array.from({ length: value }, () =>
-          Math.round(100 / value)
-        );
-        updatedData.cellWidths = newCellWidths;
-
-        updateBlock(blockId, "columns", value);
-        updateBlock(blockId, "cellWidths", newCellWidths);
-      } else {
-        updateBlock(blockId, property, value);
-      }
-
-      return updatedData;
-    });
-  };
+  }, [handleBatchChange]);
 
   return (
     <FormWrapper>
@@ -112,7 +70,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             placeholder="Cols"
             unitsLabel="Columns"
             value={formData.columns}
-            onChange={handleChange}
+            onChange={handleColumnsChange}
             type="number"
             containerStyle={{ width: "47%", padding: 4 }}
             inputStyle={{ width: "30%" }}
@@ -124,7 +82,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             type="number"
             unitsLabel="Column Gap"
             value={formData.columnGap}
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("columnGap", value)}
             containerStyle={{ width: "47%", padding: 4 }}
             inputStyle={{ width: "30%" }}
           />
@@ -138,29 +96,17 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             rows={formData.rows}
             columns={formData.columns}
             cellWidths={formData.cellWidths}
-            updateCellWidths={(newWidths) =>
-              handleChange("cellWidths", newWidths)
-            }
+            updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
           />
         </BasePropertyWrapper>
       </BasePropertyWrapper>
 
       <BasePropertyWrapper name="Edit Container">
         <ReactColorPicker
-          onColorChange={(field, value) =>
-            handleChange("backgroundColor", value)
-          }
+          onColorChange={(field, value) => handleChange("backgroundColor", value)}
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
         />
-        {/* <CustomInput
-          name="backgroundImage"
-          placeholder="Enter Background Image URL"
-          value={formData.backgroundImage || ""}
-          onChange={handleChange}
-          containerStyle={{ width: "90%", padding: 4 }}
-          inputStyle={{ width: "100%" }}
-        /> */}
         <label
           style={{
             display: "flex",
@@ -231,9 +177,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

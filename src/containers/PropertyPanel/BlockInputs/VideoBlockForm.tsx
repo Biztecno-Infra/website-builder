@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { FormWrapper, FlexRow } from "../style";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
@@ -8,6 +8,7 @@ import { VideoProps } from "types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import styled from "styled-components";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { useBlockForm } from "../useBlockForm";
 
 const Divider = styled.div`
   width: 100%;
@@ -35,51 +36,8 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
     navigateToUrl,
   } = selectedBlock as VideoProps;
 
-  const [formData, setFormData] = useState({
-    videoUrl,
-    youtubeVideoUrl,
-    thumbnailUrl,
-    height,
-    width,
-    layerName,
-    backgroundColor,
-    padding,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    alignment,
-    navigateToUrl,
-  });
-
-  useEffect(() => {
-    setFormData({
-      videoUrl,
-      youtubeVideoUrl,
-      thumbnailUrl,
-      height,
-      width,
-      layerName,
-      backgroundColor,
-      padding,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      borderRadius,
-      customCss,
-      alignment,
-      navigateToUrl,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(id, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
 
   return (
     <FormWrapper>
@@ -93,15 +51,13 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
           containerStyle={{ width: "100%", marginBottom: "10px" }}
         />
 
-        {/* YouTube/Vimeo */}
-        {/* <label htmlFor="videoUrl">Video URL (YouTube/Vimeo)</label> */}
         <CustomInput
           name="youtubeVideoUrl"
           placeholder="Enter YouTube or Vimeo URL"
           value={formData.youtubeVideoUrl || ""}
           onChange={(name, value) => handleChange("youtubeVideoUrl", value)}
           containerStyle={{ width: "100%", marginBottom: "10px" }}
-          disabled={!!formData.videoUrl} // disabled if direct video is entered
+          disabled={!!formData.videoUrl}
         />
 
         <CustomInput
@@ -110,7 +66,7 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
           value={formData.videoUrl || ""}
           onChange={(name, value) => handleChange("videoUrl", value)}
           containerStyle={{ width: "100%", marginBottom: "10px" }}
-          disabled={!!formData.youtubeVideoUrl} // disabled if YouTube/Vimeo URL is entered
+          disabled={!!formData.youtubeVideoUrl}
         />
 
         {/* Thumbnail only if direct video entered */}
@@ -145,9 +101,7 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
             name="width"
             placeholder="auto"
             value={formData.width || ""}
-            onChange={(name: string, value: string) =>
-              handleChange("width", value)
-            }
+            onChange={(name, value) => handleChange("width", value)}
             unitsLabel="%"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageWidth,
@@ -176,9 +130,7 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
@@ -186,7 +138,7 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
             padding={
               formData.padding || { top: 0, right: 0, bottom: 0, left: 0 }
             }
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
@@ -226,9 +178,7 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
           placeholder="Enter additional CSS e.g. font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

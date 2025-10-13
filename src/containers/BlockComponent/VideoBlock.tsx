@@ -15,6 +15,9 @@ interface CustomVideoProps {
   width?: number;
   height?: number;
   borderRadius?: number;
+  borderWidth?: number;
+  borderStyle?: string;
+  borderColor?: string;
 }
 
 export const extractYouTubeId = (url: string): string | null => {
@@ -55,10 +58,13 @@ const CustomVideo: React.FC<CustomVideoProps> = React.memo(
     alignment,
     width,
     borderRadius,
+    borderWidth,
+    borderStyle,
+    borderColor,
   }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [resolvedThumbnail, setResolvedThumbnail] = useState<string | null>(
-      defaultPlaceholderImage
+      ""
     );
     const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0 });
     const [containerWidth, setContainerWidth] = useState<number>(0);
@@ -158,6 +164,12 @@ const CustomVideo: React.FC<CustomVideoProps> = React.memo(
       height: "auto",
       position: "relative",
       cursor: "pointer",
+       borderRadius: borderRadius ? `${borderRadius}px` : undefined,
+        border: borderWidth
+          ? `${borderWidth}px ${borderStyle || "solid"} ${
+              borderColor || "#000"
+            }`
+          : undefined,
     };
 
     const imgStyle: React.CSSProperties = {
@@ -265,6 +277,7 @@ export const VideoBlock: React.FC<VideoBlockProps> = ({
             : "flex-start",
         width: "100%",
         height: "auto",
+        minHeight: 100,
         paddingTop: padding.top,
         paddingRight: padding.right,
         paddingBottom: padding.bottom,
@@ -276,12 +289,6 @@ export const VideoBlock: React.FC<VideoBlockProps> = ({
             ? `1px dashed ${theme.colors.primary}`
             : "none",
         zIndex: isSelected ? 10 : "auto",
-        borderRadius: borderRadius ? `${borderRadius}px` : undefined,
-        border: borderWidth
-          ? `${borderWidth}px ${borderStyle || "solid"} ${
-              borderColor || "#000"
-            }`
-          : undefined,
         ...convertedStyle,
         ...rest,
         position: "relative", // Ensure relative positioning for play button
@@ -296,6 +303,9 @@ export const VideoBlock: React.FC<VideoBlockProps> = ({
         height={undefined}
         borderRadius={borderRadius}
         youtubeVideoUrl={youtubeVideoUrl}
+        borderWidth={borderWidth}
+        borderStyle={borderStyle}
+        borderColor={borderColor}
       />
     </Droppable>
   );

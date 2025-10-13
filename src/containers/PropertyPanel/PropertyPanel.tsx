@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, memo } from "react"
 import styled from "styled-components"
 import { BlockType } from "email-builder-utils"
 import { TextBlockForm } from "./BlockInputs/TextForm"
@@ -46,7 +46,7 @@ const PropertyPanelWrapper = styled.div`
   border-bottom: none;
   `
 
-function PropertyPanel() {
+const PropertyPanel = memo(() => {
   const { updateBlock, selectedBlock, globalStyles, updateGlobalStyles } = useBlockHook()
 
   const [tabView, setTabView] = useState<PropertyTabView>(PropertyTabView.Global)
@@ -62,7 +62,7 @@ function PropertyPanel() {
       return <BlockFormComponent selectedBlock={selectedBlock} updateBlock={updateBlock} />
     }
     return null
-  }, [selectedBlock, tabView])
+  }, [selectedBlock?.id, selectedBlock?.type, globalStyles, updateGlobalStyles, updateBlock])
 
   useEffect(() => {
     if (selectedBlock) {
@@ -70,15 +70,15 @@ function PropertyPanel() {
     } else {
       setTabView(PropertyTabView.Global)
     }
-  }, [(selectedBlock as Block)?.id])
+  }, [selectedBlock?.id])
 
   useEffect(() => {
     if (selectedBlock && tabView === PropertyTabView.Global) {
       setTabView(PropertyTabView.Inspect)
     }
-  }, [selectedBlock])
+  }, [selectedBlock?.id, tabView])
 
   return <PropertyPanelWrapper>{renderBlockForm}</PropertyPanelWrapper>
-}
+})
 
 export default PropertyPanel

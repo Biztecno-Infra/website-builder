@@ -15,6 +15,7 @@
   "dependencies": {
     "classnames": "^2.5.1",
     "email-builder-react": "file:../dist",
+    "email-builder-utils": "^1.1.26",
     "immutability-helper": "^3.1.1",
     "jimp": "^1.6.0",
     "js-beautify": "^1.15.2",

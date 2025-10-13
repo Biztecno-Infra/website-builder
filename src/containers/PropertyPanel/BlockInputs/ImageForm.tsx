@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Jimp } from "jimp";
 import styled from "styled-components";
 import { BlockFormProps } from "../types";
@@ -8,6 +8,7 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { useBlockForm } from "../useBlockForm";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -47,52 +48,13 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
     layerName
   } = selectedBlock as ImageProps;
 
-  const [formData, setFormData] = useState({
-    imageUrl,
-    altText,
-    width,
-    height,
-    backgroundColor,
-    padding,
-    alignment,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    navigateToUrl,
-    layerName
-  });
+  // Use the optimized form hook
+  const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock, updateBlock);
 
-  useEffect(() => {
-    setFormData({
-      imageUrl,
-      altText,
-      width,
-      height,
-      backgroundColor,
-      padding,
-      alignment,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      borderRadius,
-      customCss,
-      navigateToUrl,
-      layerName
-    });
-  }, [selectedBlock]);
-
-
-  const handleImageUrlChange = async (value: string) => {
-    setFormData((prev) => ({ ...prev, imageUrl: value }));
-    updateBlock(blockId, "imageUrl", value);
-  };
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => ({ ...prevData, [property]: value }));
-    updateBlock(blockId, property, value);
-  };
+  // Special handler for imageUrl that needs immediate update
+  const handleImageUrlChange = useCallback(async (value: string) => {
+    handleImmediateChange("imageUrl", value);
+  }, [handleImmediateChange]);
 
   return (
     <FormWrapper>
@@ -132,7 +94,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("navigateToUrl", value)}
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
           type="text"
         />
@@ -186,16 +148,14 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <PaddingContainer>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
           />
 
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "48%", paddingLeft: "1rem" }}
           />
         </PaddingContainer>
@@ -229,9 +189,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

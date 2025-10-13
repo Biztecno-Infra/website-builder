@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
@@ -6,6 +6,7 @@ import { PaddingInput } from "@components/StyleComponents";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
+import { useBlockForm } from "../useBlockForm";
 
 
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
@@ -23,35 +24,8 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
     layerName
   } = selectedBlock as DividerProps;
 
-  const [formData, setFormData] = useState({
-    backgroundColor,
-    thickness,
-    alignment,
-    padding,
-    dividerColor,
-    customCss , 
-    layerName
-  });
-
-  useEffect(() => {
-    setFormData({
-      backgroundColor,
-      thickness,
-      alignment,
-      padding,
-      dividerColor,
-      customCss, 
-      layerName
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
 
 
   return (
@@ -94,16 +68,14 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "43%" }}
           />
         </FlexRow>
@@ -114,9 +86,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

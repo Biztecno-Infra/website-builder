@@ -79,18 +79,21 @@ export const useBlocks = (): IBlockContext => {
     redo: redoHistory,
     canUndo,
     canRedo,
+    resetHistory, // <-- add this
   } = useUndoRedo({
     blocks,
     rootOrder: rootBlockOrder,
     globalStyles,
   });
-console.log(selectedBlock , "selectedBlock")
-  // Debounced automatic history push
+  // Debounced automatic history push with better coalescing
   useEffect(() => {
     if (isApplyingHistory.current) return;
+    
     const handle = window.setTimeout(() => {
+      // Only push to history if there are actual changes
       push({ blocks, rootOrder: rootBlockOrder, globalStyles });
     }, HISTORY_COALESCE_MS);
+    
     return () => window.clearTimeout(handle);
   }, [blocks, rootBlockOrder, globalStyles, push]);
 
@@ -148,23 +151,34 @@ console.log(selectedBlock , "selectedBlock")
 
         setBlocks((prev) => ({ ...prev, ...processedData.blocks }));
         setRootBlockOrder((prev) => [...prev, ...processedData.childrenIds]);
+        setUndoLocked(true);
+
+        // After state is set, reset undo history
+        setTimeout(() => {
+          resetHistory({
+            blocks: { ...blocks, ...processedData.blocks },
+            rootOrder: [...rootBlockOrder, ...processedData.childrenIds],
+            globalStyles: processedData.style || globalStyles,
+          });
+        }, 0);
       };
 
       requestAnimationFrame(batchUpdate);
-      setUndoLocked(true);
     },
-    [rootBlockOrder]
+    [rootBlockOrder, blocks, globalStyles, resetHistory]
   );
 
   const updateGlobalStyles = (updatedStyles: any) => {
     setGlobalStyles(updatedStyles);
   };
 
-  const updateBlock = (blockId: any, property: any, value: any) => {
-    console.log("blockeeeeeee")
+  const updateBlock = useCallback((blockId: any, property: any, value: any) => {
     setBlocks((prevBlocks) => {
       const block = prevBlocks[blockId] as any;
       if (!block) return prevBlocks;
+
+      // Check if the value is actually different to avoid unnecessary updates
+      if (block[property] === value) return prevBlocks;
 
       let updatedBlocks = prevBlocks;
 
@@ -223,7 +237,7 @@ console.log(selectedBlock , "selectedBlock")
         [blockId]: { [property]: { $set: value } },
       });
     });
-  };
+  }, []);
 
   const onDeleteBlock = (blockId: string) => {
     const deleteBlock = blocks[blockId];
@@ -259,6 +273,16 @@ console.log(selectedBlock , "selectedBlock")
       setGlobalStyles(style);
       setRootBlockOrder(childrenIds || []);
       setUndoLocked(true);
+
+      // After state is set, reset undo history
+      setTimeout(() => {
+        resetHistory({
+          blocks,
+          rootOrder: childrenIds || [],
+          globalStyles: style,
+        });
+      }, 0);
+
       return { success: true, message: "Upload successful" };
     } catch (error) {
       return { success: false, message: "Error uploading JSON", error };
