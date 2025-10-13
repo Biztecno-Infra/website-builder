@@ -5,7 +5,7 @@ import { debounce } from "../../utils/debounce";
 export const useBlockForm = (selectedBlock: any, updateBlock: any) => {
   const [formData, setFormData] = useState<any>(selectedBlock || {});
   const pendingUpdates = useRef<Record<string, any>>({});
-  const debounceTimeoutRef = useRef<NodeJS.Timeout>(0);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize form data only when selectedBlock changes
   useEffect(() => {

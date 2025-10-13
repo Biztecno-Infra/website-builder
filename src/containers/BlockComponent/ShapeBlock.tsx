@@ -96,7 +96,7 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
     backgroundColor = "#2F80ED",
     borderRadius,
     text,
-    textColor = "#ffffff",
+    color = "#ffffff",
     padding,
     borderWidth,
     borderStyle,
@@ -105,6 +105,8 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
     imageUrl,
     shapeColor,
     alignment,
+    fontSize,
+    verticalAlign
   } = block;
   const theme = useTheme();
 
@@ -134,13 +136,13 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
           $width={"100%"}
           $height={"100%"}
         >
-          {text && <TextOverlay $textColor={textColor}>{text}</TextOverlay>}
+          {text && <TextOverlay $textColor={color}>{text}</TextOverlay>}
         </ImageContainer>
       );
     } else {
       return (
         <ContentContainer
-          $textColor={textColor}
+          $textColor={color}
           $backgroundColor={shapeColor || backgroundColor}
           $borderRadius={resolvedBorderRadius as string}
           $width={"100%"}
