@@ -6,12 +6,14 @@ import {
   GridProps,
   IGridCellProps,
   ImageProps,
+  ShapeProps,
   SpacerProps,
   TextProps,
+  VideoProps,
 } from "../types";
 
 export const defaultTextColor: string = "";
-const defaultPlaceholderImage: string =
+export const defaultPlaceholderImage: string =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s";
 // const defaultPlaceholderImage : string = "https://t4.ftcdn.net/jpg/05/17/53/57/360_F_517535712_q7f9QC9X6TQxWi6xYZZbMmw5cnLMr279.jpg";
 export const defaultPadding = {
@@ -40,9 +42,9 @@ export const initialGlobalStyle: GlobalStyles = {
   textColor: defaultTextColor,
   fontFamily: defaultFont,
   padding: defaultPadding,
-  borderColor: "", 
+  borderColor: "",
   borderRadius: 0,
-  borderWidth: 0, 
+  borderWidth: 0,
   borderStyle: "none",
 };
 
@@ -63,7 +65,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundSize: "cover",
       backgroundPosition: "center",
       backgroundRepeat: "no-repeat",
-      responsive : true
+      responsive: true,
     };
   } else if (blockType === BlockType.IMAGE) {
     return {
@@ -95,7 +97,14 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundImage: "",
       backgroundSize: "cover",
       backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",    
+      backgroundRepeat: "no-repeat",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
+      textContainerPadding: defaultGridPadding,
+      textContainerBackgroundColor: defaultBg,
+      width: 150,
     };
   } else if (blockType === BlockType.BUTTON) {
     return {
@@ -123,6 +132,14 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       padding: defaultGridPadding,
       verticalAlign: "middle",
       backgroundColor: defaultBg,
+      backgroundImage: "",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
     };
   } else if (blockType === BlockType.DIVIDER) {
     return {
@@ -136,6 +153,37 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
     return {
       padding: defaultPadding,
       backgroundColor: defaultBg,
+    };
+  } else if (blockType === BlockType.VIDEO) {
+    return {
+      padding: defaultPadding,
+      backgroundColor: defaultBg,
+      videoUrl: "",
+      thumbnailUrl: "",
+      width: 100,
+      height: 100,
+      alignment: "center",
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
+    };
+  } else if (blockType === BlockType.SHAPE) {
+    return {
+      padding: defaultPadding,
+      backgroundColor: defaultBg,
+      shape: "rectangle",
+      text: "",
+      textColor: "#000000",
+      imageUrl: "",
+      width: 100,
+      height: 150,
+      borderWidth: 0,
+      borderStyle: "none",
+      borderColor: "",
+      borderRadius: 0,
+      shapeColor: "#E0B7F8",
+      alignment: "left",
     };
   } else {
     return {};
@@ -169,10 +217,10 @@ export const generateTextBlock = (block: TextProps) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
@@ -196,6 +244,7 @@ export const generateTextBlock = (block: TextProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: textStyle,
       props: {
@@ -238,6 +287,7 @@ export const generateImageBlock = (block: ImageProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: imageStyle,
       props: {
@@ -283,6 +333,7 @@ export const generateButtonBlock = (block: ButtonProps) => {
   };
   return {
     type: block.type,
+    layerName: block.layerName || "",
     data: {
       style: buttonStyle,
       props: {
@@ -317,10 +368,10 @@ export const generateGridBlock = (block: GridProps) => {
 
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
@@ -336,26 +387,58 @@ export const generateGridBlock = (block: GridProps) => {
 
   return {
     type: block.type,
+    layerName: block.layerName || "",
+
     data: {
       style: gridStyle,
       props: {
         rows: rows || 1,
         columns: columns || 2,
         cellWidths: cellWidths || [50, 50],
-        responsive
+        responsive,
       },
     },
   };
 };
 
 export const generateGridCellBlock = (block: IGridCellProps) => {
+  const {
+    layerName,
+    childBlocks,
+    id,
+    type,
+    backgroundColor,
+    padding,
+    parentId,
+    verticalAlign,
+    backgroundImage,
+    backgroundPosition,
+    backgroundRepeat,
+    backgroundSize,
+    ...rest
+  } = block || {};
+
+  const backgroundImageStyle = backgroundImage
+    ? {
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
+    : {};
+
   return {
-    type: block.type,
+    type: type,
+    layerName: layerName || "",
     data: {
       style: {
-        padding: block.padding,
-        backgroundColor: block.backgroundColor,
-        verticalAlign: block.verticalAlign,
+        padding: padding,
+        backgroundColor: backgroundColor,
+        verticalAlign: verticalAlign,
+        ...backgroundImageStyle,
+        ...rest,
       },
     },
   };
@@ -374,6 +457,8 @@ export const generateDividerBlock = (block: DividerProps) => {
 
   return {
     type: type,
+    layerName: block.layerName || "",
+
     data: {
       style: {
         padding,
@@ -391,6 +476,7 @@ export const generateSpacerBlock = (block: SpacerProps) => {
   const { alignment, backgroundColor, padding, type, customCss } = block || {};
   return {
     type: type,
+    layerName: block.layerName || "",
     data: {
       style: {
         padding,

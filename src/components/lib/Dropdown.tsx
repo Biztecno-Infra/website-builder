@@ -17,13 +17,13 @@ const InputContainer = styled.div`
   width: 100%;
   display: flex;
   align-items: center;
-// height: 100%;
+  // height: 100%;
 `;
 
 const StyledInput = styled.input`
   &.ebr-styledInputDropdown {
     width: 100%;
-     height: 30px;
+    height: 30px;
     border-radius: 5px;
     font-family: Arial, sans-serif;
     font-size: 0.75rem;
@@ -53,7 +53,7 @@ const OptionsContainer = styled.div<{ $show: boolean }>`
   border: 1px solid #ccc;
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  display: ${({ $show }) => ($show ? "block" : "none")};  // Changed to $show
+  display: ${({ $show }) => ($show ? "block" : "none")};
   max-height: 150px;
   overflow-y: auto;
   z-index: 100;
@@ -106,7 +106,7 @@ export function Dropdown({
     if (initialValue) {
       setSelectedValue(initialValue);
     } else {
-      setSelectedValue("")
+      setSelectedValue("");
     }
   }, [initialValue]);
 
@@ -115,7 +115,9 @@ export function Dropdown({
       <InputContainer>
         <StyledInput
           className="ebr-styledInputDropdown"
-          value={selectedValue}
+          value={
+            options.find((option) => option.value === selectedValue)?.text || ""
+          }
           readOnly
           onClick={() => setShowOptions(!showOptions)}
           placeholder="Select"

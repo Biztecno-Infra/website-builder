@@ -3,8 +3,11 @@ import AddColumn from "./Icons/AddColumn";
 import AddColumns from "./Icons/AddColumns";
 import AddImage from "./Icons/AddImage";
 import AddLine from "./Icons/AddLine";
+import AddShape from "./Icons/AddShape";
 import AddSpacer from "./Icons/AddSpacer";
 import AddText from "./Icons/AddText";
+import AddVDivider from "./Icons/AddVDivider";
+import AddVideo from "./Icons/AddVideo";
 import ArrowDown from "./Icons/ArrowDown";
 import ArrowRight from "./Icons/ArrowRight";
 import BorderRadius from "./Icons/BorderRadius";
@@ -84,6 +87,9 @@ export enum CUSTOM_SVG_ICON {
   SearchIcon = "SearchIcon",
   UserIcon = "UserIcon",
   Globe = "Globe",
+  AddShape = "AddShape",
+  AddVideo = "AddVideo",
+  AddVDivider = "AddVDivider",
 }
 
 export const CustomIconRef: any = {
@@ -130,4 +136,7 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.SearchIcon]: SearchIcon,
   [CUSTOM_SVG_ICON.UserIcon]: UserIcon,
   [CUSTOM_SVG_ICON.Globe]: Globe,
+  [CUSTOM_SVG_ICON.AddShape]: AddShape, 
+  [CUSTOM_SVG_ICON.AddVideo]: AddVideo,
+  [CUSTOM_SVG_ICON.AddVDivider]: AddVDivider,
 };

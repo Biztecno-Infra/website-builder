@@ -38,6 +38,6 @@ export const fontOptions = [
 
 
 export const fontWeightOptions = [
-  { key: "normal", text: "Normal (400)", value: "400" },
-  { key: "bold", text: "Bold (700)", value: "700" },
+  { key: "normal", text: "Normal", value: "400" },
+  { key: "bold", text: "Bold", value: "700" },
 ];

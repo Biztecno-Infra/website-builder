@@ -122,38 +122,130 @@ const Sections: React.FC = () => {
     {
       type: BlockType.TEXT,
       name: "Add Text",
-      svgProps: { name: CUSTOM_SVG_ICON.AddText, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddText,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
     {
       type: BlockType.IMAGE,
       name: "Add Image",
-      svgProps: { name: CUSTOM_SVG_ICON.AddImage, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddImage,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
     {
       type: BlockType.BUTTON,
       name: "Add Button",
-      svgProps: { name: CUSTOM_SVG_ICON.AddButton, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddButton,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
     {
       type: BlockType.GRID,
       name: "Add Columns",
-      svgProps: { name: CUSTOM_SVG_ICON.AddColumns, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddColumns,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
     {
       type: BlockType.DIVIDER,
       name: "Add Divider",
-      svgProps: { name: CUSTOM_SVG_ICON.AddLine, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddLine,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
     {
       type: BlockType.SPACER,
       name: "Add Spacer",
-      svgProps: { name: CUSTOM_SVG_ICON.AddSpacer, color: colors.primary, size: SizeEnum.Medium, circular: true },
-      icon: (isHovered: any, colors: any) => <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} color={isHovered ? colors.secondary : colors.primary} />
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddSpacer,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
+    },
+    {
+      type: BlockType.VIDEO,
+      name: "Add Video",
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddVideo,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
+    },
+    {
+      type: BlockType.SHAPE,
+      name: "Add Shape",
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddShape,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
     },
   ];
 

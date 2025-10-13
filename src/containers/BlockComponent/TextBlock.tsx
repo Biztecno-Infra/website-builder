@@ -17,7 +17,7 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     fontFamily,
     fontSize,
     fontWeight,
-    padding,
+    padding , // ✅ fallback to empty object
     alignment,
     backgroundImage,
     lineHeight,
@@ -26,9 +26,12 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     backgroundPosition,
     backgroundRepeat,
     backgroundSize,
+    textContainerBackgroundColor,
+    textContainerPadding, // ✅ fallback to empty object
     ...rest
   } = block;
-   const theme = useTheme()
+
+  const theme = useTheme();
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -36,47 +39,68 @@ export const TextBlock: React.FC<TextBlockProps> = ({
     },
     [handleDropper]
   );
+
   const convertedStyle = convertStringtoStyle(customCss);
+
   const backgroundImageStyle = backgroundImage
     ? {
-      backgroundImage: backgroundImage.startsWith('url') 
-      ? backgroundImage 
-      : `url(${backgroundImage})`,
-            backgroundPosition: backgroundPosition,
+        backgroundImage: backgroundImage.startsWith("url")
+          ? backgroundImage
+          : `url(${backgroundImage})`,
+        backgroundPosition: backgroundPosition,
         backgroundRepeat: backgroundRepeat,
         backgroundSize: backgroundSize,
       }
     : {};
 
+  const sanitizedText = (text ?? "")
+    .replaceAll(/<p>/g, "<div>")
+    .replaceAll(/<\/p>/g, "</div>");
 
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
+        width: "100%",
+        maxWidth: "100%",
         color: color,
-        backgroundColor: backgroundColor,
         fontFamily: fontFamily,
         fontSize: `${fontSize}px`,
         fontWeight: fontWeight,
-        paddingTop: `${padding.top}px`,
-        paddingRight: `${padding.right}px`,
-        paddingBottom: `${padding.bottom}px`,
-        paddingLeft: `${padding.left}px`,
+        backgroundColor: textContainerBackgroundColor || "",
+        paddingTop: `${textContainerPadding?.top ?? 0}px`,
+        paddingRight: `${textContainerPadding?.right ?? 0}px`,
+        paddingBottom: `${textContainerPadding?.bottom ?? 0}px`,
+        paddingLeft: `${textContainerPadding?.left ?? 0}px`,
         textAlign: alignment as TextAlign,
         wordBreak: "break-word",
         whiteSpace: "pre-wrap",
         lineHeight: lineHeight ? `${lineHeight}px` : "16px",
-        border: `1px dashed ${
-          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
         }`,
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
-        ...backgroundImageStyle, 
-        ...rest,
+        ...backgroundImageStyle,
       }}
       onClick={handleBlockClick}
     >
-      {text}
+      <div
+        style={{
+          ...rest,
+          backgroundColor: backgroundColor,
+          display: "inline-block",
+          paddingTop: `${padding?.top ?? 0}px`,
+          paddingRight: `${padding?.right ?? 0}px`,
+          paddingBottom: `${padding?.bottom ?? 0}px`,
+          paddingLeft: `${padding?.left ?? 0}px`,
+          maxWidth: "100%",
+          boxSizing: "border-box",
+        }}
+        dangerouslySetInnerHTML={{ __html: sanitizedText }}
+      />
     </Droppable>
   );
 };

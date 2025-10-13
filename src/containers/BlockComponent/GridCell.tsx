@@ -1,15 +1,13 @@
 import React, { useCallback, useMemo } from "react";
 import styled, { useTheme } from "styled-components";
 import BlockComponent from "./BlockComponent";
-import { GridCellProps, IGridCellProps } from "../../types";
+import { GridCellProps, IGridCellProps, Padding } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import GridEmptyCell from "./GridEmptyCell";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 // Extend the `StyledCell` with `shouldForwardProp`
-const StyledCell = styled.td<{ $selected: boolean; $padding: IGridCellProps['padding']; $cellWidth: number; backgroundColor: string; $verticalAlign: string;  theme: any}>`
-  border: ${({ $selected , theme }) => ($selected ? `1px dashed ${theme.colors.primary}` : "none")};
-  // border: ${({ $selected }) => ($selected ? "1px dashed #006E75" : "none")};
+const StyledCell = styled.td<{ $selected: boolean; $padding: Padding; $cellWidth: number; backgroundColor: string; $verticalAlign: string;  theme: any}>`
   padding-top: ${(props) => props.$padding?.top ? props.$padding?.top : 0}px;
   padding-bottom: ${(props) => props.$padding?.bottom ? props.$padding?.bottom : 0}px;
   padding-right: ${(props) => props.$padding?.right ? props.$padding?.right : 0}px;
@@ -87,24 +85,42 @@ const GridCell: React.FC<GridCellProps> = ({
       </GridCellContainer>
     );
   };
+
+  const { backgroundImage  , backgroundPosition , backgroundRepeat , backgroundSize , padding , backgroundColor , verticalAlign , childBlocks , id , type , layerName , parentId , ...rest} = block as IGridCellProps;
+    const backgroundImageStyle = backgroundImage
+    ? {
+      backgroundImage: backgroundImage.startsWith('url') 
+      ? backgroundImage 
+      : `url(${backgroundImage})`,
+            backgroundPosition: backgroundPosition,
+        backgroundRepeat: backgroundRepeat,
+        backgroundSize: backgroundSize,
+      }
+    : {};
+
   return (
     <StyledCell
-      id={blockId}
-      $selected={isSelected} 
-      $padding={(block as any)?.padding || {}} 
+      id={`block-${block.id}`}
+      $selected={isSelected}
+      $padding={(padding as Padding) || {}}
       $cellWidth={cellWidth}
-      backgroundColor={block.backgroundColor}
-      $verticalAlign={(block as IGridCellProps).verticalAlign}
+      backgroundColor={backgroundColor}
+      $verticalAlign={verticalAlign}
       onClick={handleCellBlockClick}
       theme={theme}
+      style={{
+        ...backgroundImageStyle,
+        outline: `1px dashed ${
+          isSelected && block.parentId ? theme.colors.primary : "transparent"
+        }`,
+        ...rest,
+      }}
     >
-      {
-        block?.childBlocks?.map(renderGridCellChilds)
-      }
+      {block?.childBlocks?.map(renderGridCellChilds)}
 
-      {
-        block?.childBlocks?.length === 0 && <GridEmptyCell handleDropper={handleGridCellDropper}/>
-      }
+      {block?.childBlocks?.length === 0 && (
+        <GridEmptyCell handleDropper={handleGridCellDropper} />
+      )}
     </StyledCell>
   );
 };

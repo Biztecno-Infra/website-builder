@@ -1,5 +1,17 @@
+import {
+  extractYouTubeId,
+  extractVimeoId,
+} from "@containers/BlockComponent/VideoBlock";
+import { Jimp } from "jimp";
 import { BlockType } from "email-builder-utils";
-import { Padding } from "../types";
+import { extractBackgroundUrl } from "./common";
+interface Padding {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
 interface BlockJsonProps {
   columns: number;
   rows: number;
@@ -8,6 +20,7 @@ interface BlockJsonProps {
   text: string;
   altText: string;
   imageUrl: string;
+  responsive?: boolean;
 }
 
 interface IBlockData {
@@ -19,68 +32,90 @@ interface IBlockData {
   };
 }
 
-const addPxToAttributes = ["width", "height", "fontSize" , "lineHeight"];
+const addPxToAttributes = [
+  "fontSize",
+  "lineHeight",
+  "borderRadius",
+  "borderWidth",
+];
+
+const addPxOrPerToAttributes = ["width", "height"];
+const allPxAttributes = [...addPxToAttributes, ...addPxOrPerToAttributes];
+
 export const tableCommonStyle = "border-collapse:collapse; table-layout:fixed;";
 
 function cleanJson(obj: any): any {
   if (typeof obj !== "object" || obj === null) return obj;
-
-  if (Array.isArray(obj)) {
-    return obj.map(cleanJson);
-  }
+  if (Array.isArray(obj)) return obj.map(cleanJson);
 
   return Object.fromEntries(
     Object.entries(obj)
       .filter(
         ([_, value]) => value !== undefined && value !== null && value !== ""
       )
-      .map(([key, value]): any => [key, cleanJson(value)])
+      .map(([key, value]) => [key, cleanJson(value)])
   );
 }
 
 function jsonToPlainString(obj: any): string {
-  if (typeof obj !== 'object' || obj === null) return String(obj);
-
-  if (Array.isArray(obj)) {
-    return obj.map(jsonToPlainString).join(', ');
-  }
+  if (typeof obj !== "object" || obj === null) return String(obj);
+  if (Array.isArray(obj)) return obj.map(jsonToPlainString).join(", ");
 
   return Object.entries(obj)
     .map(([key, value]) => `${key}:${jsonToPlainString(value)}; `)
-    .join('');
+    .join("");
 }
 
+function buildStyles(
+  style: any,
+  { pxChanges, perChanges }: { pxChanges: string[]; perChanges: string[] }
+) {
+  if (!style) style = {};
+  const stylesObj: any = {};
 
-function buildStyles(style: any) {
-  const stylesObj: any = {}
   Object.entries(style).forEach(([key, value]) => {
-    const appendPx = addPxToAttributes.includes(key);
-    if (value === undefined || value === null || value === "") return null;
+    if (key === "customCss") return;
+    if (value === undefined || value === null || value === "") return;
+
     if (
       (key === "padding" || key === "buttonPadding") &&
-      typeof value === "object" &&
-      value !== null
+      typeof value === "object"
     ) {
       const padding = value as Padding;
       value = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
     }
+
     const cssKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
 
-    return stylesObj[cssKey] = appendPx ? `${value}px` : value;
+    if (pxChanges.includes(key)) {
+      stylesObj[cssKey] = typeof value === "number" ? `${value}px` : value;
+    } else if (perChanges.includes(key)) {
+      stylesObj[cssKey] = typeof value === "number" ? `${value}%` : value;
+    } else {
+      stylesObj[cssKey] = value;
+    }
   });
-  return jsonToPlainString(cleanJson(stylesObj)).trim();
+
+  return `${jsonToPlainString(cleanJson(stylesObj))}${
+    style.customCss || ""
+  }`.trim();
 }
 
-export function convertToHtml(blockData: IBlockData, rootData: any) {
+export async function convertToHtml(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthInPx: number
+) {
+  console.log("Converting block to HTML:", blockData);
   switch (blockData.type) {
     case BlockType.TEXT:
       return convertTextBlock(blockData);
     case BlockType.IMAGE:
-      return convertImageBlock(blockData);
+      return await convertImageBlock(blockData, cellWidthInPx);
     case BlockType.BUTTON:
       return convertButtonBlock(blockData);
     case BlockType.GRID:
-      return convertGridBlock(blockData, rootData);
+      return await convertGridBlock(blockData, rootData, cellWidthInPx);
     case BlockType.DIVIDER:
       return convertDividerBlockToHtml(blockData);
     case BlockType.SPACER:
@@ -96,101 +131,313 @@ export function convertToHtml(blockData: IBlockData, rootData: any) {
 
 function appendOutlookSupport(content: string, contentStyle: string) {
   return `
-  <table width="100%" style="${tableCommonStyle}">
-      <tr>
-        <td style="${contentStyle}">
-          ${content}
-         </td>
-      </tr>
-    </table>
-  `
+  <table width="100%" style="${tableCommonStyle}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+  `;
 }
 
+// function convertDividerBlockToHtml(blockData: IBlockData) {
+//   const { style } = blockData.data;
+//   const { thickness, dividerColor, ...rest } = style;
+//   const convertedStyle = buildStyles(rest, {perChanges: [], pxChanges: allPxAttributes});
+//   return appendOutlookSupport(`<hr style="height:${thickness}px; background-color: ${dividerColor};" />`, convertedStyle);
+// }
 function convertDividerBlockToHtml(blockData: IBlockData) {
   const { style } = blockData.data;
   const { thickness, dividerColor, ...rest } = style;
-  const convertedStyle = buildStyles(rest);
-  return appendOutlookSupport(`<hr style="height:${thickness}px; background-color: ${dividerColor};" />`, convertedStyle);
+  const convertedStyle = buildStyles(rest, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  const dividerContent = `
+    <table width="100%" cellpadding="0" cellspacing="0">
+      <tr>
+        <td height="${thickness}" style="font-size:1px; line-height:1px; background:${dividerColor};">&nbsp;</td>
+      </tr>
+    </table>
+  `;
+
+  return appendOutlookSupport(dividerContent, convertedStyle);
 }
 
 function convertSpacerBlockToHtml(blockData: IBlockData) {
   const { style } = blockData.data;
-  const styles = buildStyles(style);
+  const styles = buildStyles(style, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
   return appendOutlookSupport(``, styles);
 }
 
 function convertTextBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
-  const styles = buildStyles(style);
-  const text = props.text || "";
+  const {
+    width,
+    backgroundColor,
+    padding,
+    borderRadius,
+    borderStyle,
+    borderColor,
+    borderWidth,
+    textContainerBackgroundColor,
+    textContainerPadding,
+    ...rest
+  } = style;
+
+  // Inner text box (border + padding + inner background)
+  const textBoxStyle = {
+    width,
+    backgroundColor,
+    padding,
+    borderRadius,
+    borderStyle,
+    borderColor,
+    borderWidth,
+  };
+  const convertedTextStyle = buildStyles(textBoxStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+  const styles = buildStyles(
+    {
+      padding: textContainerPadding,
+      backgroundColor: textContainerBackgroundColor,
+      ...rest,
+    },
+    {
+      perChanges: [],
+      pxChanges: allPxAttributes,
+    }
+  );
+  const sanitizedText = (props.text ?? "")
+    .replaceAll(/<p>/g, "<div>")
+    .replaceAll(/<\/p>/g, "</div>");
   const navigateToUrl = props.navigateToUrl || "";
-  const textContent = appendOutlookSupport(text.replaceAll(/\n/g, '<br>'), styles);
+  const convertedTextBox = `<div style="display: inline-block; max-width: 100%; box-sizing: border-box; ${convertedTextStyle}">${sanitizedText.replaceAll(
+    /\n/g,
+    "<br>"
+  )}</div>`;
+  const textContent = appendOutlookSupport(convertedTextBox, styles);
 
   return navigateToUrl
-    ? `<a href="${navigateToUrl}" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>`
+    ? `<a href="${navigateToUrl}" rel="noreferrer noopener" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>`
     : textContent;
 }
 
-function appendOutlookForImage(content: string, imageStyle: string, imageUrl: string) {
+// --- improved appendOutlookForImage ---
+// Adds support for making the VML element clickable via href (for Outlook).
+async function appendOutlookForImage(
+  content: string,
+  outerContainerWidth: number,
+  innerContainerWidth: number,
+  imageUrl: string,
+  style: any = {},
+  href?: string // optional href to make VML clickable
+) {
+  const image = await Jimp.read(imageUrl);
+  const originalWidth = image.bitmap.width;
+  const originalHeight = image.bitmap.height;
+
+  const widthScalingFactor = Math.min(
+    outerContainerWidth / originalWidth,
+    innerContainerWidth / originalWidth
+  );
+
+  const scaledWidth = Math.round(originalWidth * widthScalingFactor);
+  const scaledHeight = Math.round(originalHeight * widthScalingFactor);
+
+  const borderWidth = parseInt(style?.borderWidth) || 0;
+  const borderColor = style?.borderColor || "transparent";
+  const borderRadius = parseInt(style?.borderRadius) || 0;
+
+  const useRoundRect = borderRadius > 0;
+  const arcsize = useRoundRect
+    ? Math.min(borderRadius / Math.max(scaledHeight, 1), 1).toFixed(2)
+    : "";
+
+  const borderAttributes =
+    borderWidth > 0
+      ? `strokeweight="${borderWidth}px" strokecolor="${borderColor}"`
+      : `stroked="false"`;
+
+  // Add href to VML element so it's clickable in Outlook
+  const hrefAttr = href ? `href="${href}"` : "";
+
+  const vmlTagName = useRoundRect ? "roundrect" : "rect";
+
+  const outlookImage = `<!--[if mso]><v:${vmlTagName} xmlns:v="urn:schemas-microsoft-com:vml"
+    style="width:${scaledWidth}px;height:${scaledHeight}px;"
+    ${hrefAttr}
+    ${borderAttributes}
+    ${useRoundRect ? `arcsize="${arcsize}"` : ""}
+    fill="true">
+      <v:fill type="frame" src="${imageUrl}" />
+      <v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>
+  </v:${vmlTagName}><![endif]-->`;
+
+  // non-MSO clients will get the given content (which can be the <a><img/></a> markup)
   return `
-  <!--[if mso]>
-    <v:rect xmlns:v="urn:schemas-microsoft-com:vml"
-      fill="t" stroke="f"
-      style="${imageStyle}">
-      <v:fill src="${imageUrl}" type="frame"/>
-    </v:rect>
-  <![endif]-->
-   <!--[if !mso]><!-->
-    ${content}
-  <!--<![endif]-->
-  `
+    ${outlookImage}
+    <!--[if !mso]><!-->
+      ${content}
+    <!--<![endif]-->
+  `;
 }
 
-function convertImageBlock(blockData: IBlockData) {
+// Shared helper: compute scaled dimensions without upscaling
+async function computeScaledDimensions(
+  imageUrl: string,
+  maxContainerWidthPx: number
+) {
+  const image = await Jimp.read(imageUrl);
+  const originalWidth = image.bitmap.width;
+  const originalHeight = image.bitmap.height;
+
+  const widthScalingFactor = Math.min(maxContainerWidthPx / originalWidth, 1);
+  const scaledWidth = Math.round(originalWidth * widthScalingFactor);
+  const scaledHeight = Math.round(originalHeight * widthScalingFactor);
+
+  return { originalWidth, originalHeight, scaledWidth, scaledHeight };
+}
+async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
   const { style, props } = blockData.data;
   const { altText, imageUrl, navigateToUrl } = props;
-  const { width, height, objectFit, ...containerStyle } = style;
-  const imageStyle = { width, height, objectFit };
-  const containerStyles = buildStyles(containerStyle);
-  const imageTagStyles = buildStyles(imageStyle);
+  const {
+    width,
+    height,
+    objectFit,
+    borderRadius,
+    borderWidth,
+    borderColor,
+    borderStyle,
+    ...containerStyle
+  } = style;
 
-  const imageElement = `<img src="${imageUrl}" alt="${altText}" style="${imageTagStyles}" />`;
+  // Ensure border styles are applied only to the container, not the image
+  const imageStyle = {
+    width,
+    height,
+    objectFit,
+    borderStyle,
+    borderRadius: borderRadius,
+    borderColor,
+  };
 
-  const imageContent = appendOutlookSupport(appendOutlookForImage(imageElement , imageTagStyles, imageUrl), containerStyles);
+  // Add border styles to container for fallback clients
+  const containerStyles = buildStyles(
+    {
+      ...containerStyle,
+    },
+    { perChanges: [], pxChanges: addPxToAttributes }
+  );
+
+  const imageTagStyles = buildStyles(imageStyle, {
+    perChanges: addPxOrPerToAttributes,
+    pxChanges: addPxToAttributes,
+  });
+
+  const innerContainerWidth =
+    (((typeof width === "string" ? parseInt(width.replace("%", "")) : width) ||
+      100) /
+      100) *
+    (cellWidthInPx -
+      (style?.padding?.left || 0) -
+      (style?.padding?.right || 0));
+
+  const { originalWidth, originalHeight, scaledWidth, scaledHeight } =
+    await computeScaledDimensions(imageUrl, innerContainerWidth);
+
+  const imageElement = `<img src="${imageUrl}" alt="${altText}" width="${scaledWidth}" height="${scaledHeight}" style="${imageTagStyles}; width:100%; height:auto; max-width:${originalWidth}px; max-height:${originalHeight}px;" />`;
+
+  const percentWidth =
+    typeof width === "string" && width.endsWith("%")
+      ? width
+      : typeof width === "number"
+      ? `${width}%`
+      : "100%";
+
+  const nonMsoWrapper = `<div style="display:inline-block; width:${percentWidth}; max-width:${originalWidth}px;">${imageElement}</div>`;
+
+  const outlookImage = await appendOutlookForImage(
+    nonMsoWrapper,
+    cellWidthInPx,
+    innerContainerWidth,
+    imageUrl,
+    style
+  );
+
+  const imageContent = appendOutlookSupport(outlookImage, containerStyles);
 
   return navigateToUrl
-    ? `<a href="${navigateToUrl}" target="_blank" style="display:block; text-decoration:none; cursor:pointer;">${imageContent}</a>`
+    ? `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener"  style="display:block; text-decoration:none; cursor:pointer;">${imageContent}</a>`
     : imageContent;
 }
 
-function appendOutlookForButton(content: string, buttonStyle: {
-  width?: number;
-  height?: number;
-  borderRadius?: number;
-  borderColor?: string;
-  borderWidth?: number;
-  buttonColor: string;
-  buttonPadding?: {top: number, bottom: number, right: number, left: number};
-  color?: string;
-  fontFamily?: string;
-  fontSize?: number;
-  fontWeight?: number;
-  backgroundColor?: string
-}, navigateToUrl: string, text: string) {
-  const {width, buttonColor, borderColor, borderRadius, borderWidth, height, buttonPadding, color, fontFamily, fontSize, fontWeight} = buttonStyle;
+function appendOutlookForButton(
+  content: string,
+  buttonStyle: {
+    width?: number;
+    height?: number;
+    borderRadius?: number;
+    borderColor?: string;
+    borderWidth?: number;
+    buttonColor: string;
+    buttonPadding?: {
+      top: number;
+      bottom: number;
+      right: number;
+      left: number;
+    };
+    color?: string;
+    fontFamily?: string;
+    fontSize?: number;
+    fontWeight?: number;
+    backgroundColor?: string;
+  },
+  navigateToUrl: string,
+  text: string
+) {
+  const {
+    width = 200,
+    height = 44,
+    borderRadius = 0,
+    borderColor = "transparent",
+    borderWidth = 0,
+    buttonColor = "none",
+    buttonPadding = { top: 0, bottom: 0, left: 0, right: 0 },
+    color = "#000000",
+    fontFamily = "Arial, sans-serif",
+    fontSize = 16,
+    fontWeight = 400,
+  } = buttonStyle;
+
+  const borderAttributes =
+    borderWidth > 0
+      ? `strokeweight="${borderWidth}px" strokecolor="${borderColor}"`
+      : `stroked="false"`;
+
   return `
-  <!--[if mso]>
-    <v:${borderRadius ? "roundrect": "rect"} xmlns:v="urn:schemas-microsoft-com:vml" href="${navigateToUrl}" xmlns:w="urn:schemas-microsoft-com:office:word" style="height:${height || 44}px;width:${width || 200}px;v-text-anchor:middle;" arcsize="${borderRadius || 0}px" strokeweight="${ borderWidth || 1}px" strokecolor="${borderColor || "transparent"}" fillcolor="${buttonColor || "none"}">
-    <w:anchorlock/>
-    <v:textbox inset="${buttonPadding?.top || 0}px, ${buttonPadding?.left || 0}px, ${buttonPadding?.bottom || 0}px, ${buttonPadding?.right || 0}px">
-      <center style="font-family:${fontFamily || ""};font-size:${fontSize}px;font-weight:${fontWeight};color:${color};">${text}</center>
-    </v:textbox>
-    </v:${borderRadius ? "roundrect": "rect"}>
-  <![endif]-->
-  <!--[if !mso]><!-->
-    ${content}
-  <!--<![endif]-->
-  `
+<!--[if mso]>
+<v:${
+    borderRadius ? "roundrect" : "rect"
+  } xmlns:v="urn:schemas-microsoft-com:vml" href="${navigateToUrl}"
+  style="height:${height}px;v-text-anchor:middle;width:${width}px;"
+  arcsize="${borderRadius / height}" ${borderAttributes}
+  fillcolor="${buttonColor}">
+  <w:anchorlock/>
+  <v:textbox inset="${buttonPadding.top}px,${buttonPadding.left}px,${
+    buttonPadding.bottom
+  }px,${buttonPadding.right}px">
+    <center style="font-family:${fontFamily};font-size:${fontSize}px;font-weight:${fontWeight};color:${color};">
+      ${text}
+    </center>
+  </v:textbox>
+</v:${borderRadius ? "roundrect" : "rect"}>
+<![endif]-->
+<!--[if !mso]><!-->
+  ${content}
+<!--<![endif]-->
+`;
 }
 
 function convertButtonBlock(blockData: IBlockData) {
@@ -205,11 +452,15 @@ function convertButtonBlock(blockData: IBlockData) {
     borderWidth,
     borderStyle,
     buttonPadding,
-    textColor,
+    color,
     buttonColor,
+    width,
+    height,
     ...rest
   } = style;
   const buttonStyle = {
+    width,
+    height,
     fontFamily,
     fontSize,
     fontWeight,
@@ -218,31 +469,112 @@ function convertButtonBlock(blockData: IBlockData) {
     borderWidth,
     borderStyle,
     padding: buttonPadding,
-    textColor,
-    backgroundColor : buttonColor,
+    color,
+    backgroundColor: buttonColor,
   };
-  const convertedButtonStyle = buildStyles(buttonStyle);
-  const convertedStyles = buildStyles(rest);
+  const convertedButtonStyle = buildStyles(buttonStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+  const convertedStyles = buildStyles(
+    { maxWidth: "100%", boxSizing: "border-box", ...rest },
+    {
+      perChanges: [],
+      pxChanges: allPxAttributes,
+    }
+  );
 
-  const buttonElement = `<a href="${navigateToUrl}" style="display:inline-block; text-decoration:none; cursor:pointer;"><button style="${convertedButtonStyle}">${text}</button></a>`;
-  const buttonContent  = appendOutlookSupport(appendOutlookForButton(buttonElement, style as any, navigateToUrl, text), convertedStyles);
+  const buttonElement = `<a href="${navigateToUrl}" rel="noreferrer noopener" style="display:inline-block; text-decoration:none; cursor:pointer;"><button style="${convertedButtonStyle}">${text}</button></a>`;
+  const buttonContent = appendOutlookSupport(
+    appendOutlookForButton(buttonElement, style as any, navigateToUrl, text),
+    convertedStyles
+  );
 
   return buttonContent;
 }
 
-function convertGridBlock(blockData: IBlockData, rootData: any) {
-  const { style, childrenIds = [], props } = blockData.data;
-  const { columnGap, ...rest } = style;
-  const { rows, columns, cellWidths } = props;
-  const styles = buildStyles(rest);
-  const gridItems: any[] = [];
+async function convertGridBlock(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthInPx: number
+) {
+  const { style = {}, childrenIds = [], props } = blockData.data;
+  const { columns = 1, cellWidths = [], responsive = true } = props;
+  const { columnGap = 0, ...restStyle } = style;
 
-  for (let colIndex = 0; colIndex < columns; colIndex++) {
-    const childId = childrenIds[colIndex];
-    const cellWidth = cellWidths ? cellWidths[colIndex] : 100 / columns;
-    const childBlockData = rootData[childId];
-    if(childBlockData) {
-      gridItems.push(convertGridCellBlock(childBlockData, rootData, cellWidth));
+  const tableStyles = buildStyles(restStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  const total = childrenIds.length;
+  const visualRows = Math.ceil(total / columns);
+
+  let html = `
+  <!--[if mso]>
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" style="${tableCommonStyle}border-collapse: separate;border-spacing:${columnGap}px;">
+  <![endif]-->
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" style="${tableCommonStyle} ${tableStyles}border-collapse: separate;border-spacing:${columnGap}px;">
+  `;
+
+  for (let r = 0; r < visualRows; r++) {
+    html += "<tr>";
+    for (let c = 0; c < columns; c++) {
+      const idx = r * columns + c;
+      const childId = childrenIds[idx];
+      const widthPercent = cellWidths[c] ?? 100 / columns;
+
+      if (childId) {
+        const child = rootData[childId];
+        const { style: cellStyle = {} } = child.data || {};
+        const verticalAlign = cellStyle.verticalAlign || "top";
+        const { html: childHtml, styles } = await convertGridCellBlock(
+          child,
+          rootData,
+          widthPercent,
+          cellWidthInPx
+        );
+
+        html += `
+   <td
+    width="${widthPercent}%"
+    ${responsive ? 'class="stack-column"' : ""}
+    style="vertical-align:${verticalAlign}; word-break:break-word; ${styles} "
+  >
+    ${childHtml}
+  </td>`;
+      } else {
+        html += `<td width="${widthPercent}%" ${
+          responsive ? 'class="stack-column"' : ""
+        } style=""></td>`;
+      }
+    }
+    html += "</tr>";
+  }
+
+  html += `</table><!--[if mso]></table><![endif]-->`;
+  return html;
+}
+
+async function convertGridCellBlock(
+  blockData: IBlockData,
+  rootData: any,
+  cellWidthPercent: number,
+  parentCellWidthPx: number
+) {
+  const { style = {}, childrenIds = [] } = blockData.data;
+
+  const styles = buildStyles(style, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  const innerHtmlParts: string[] = [];
+  for (const childId of childrenIds) {
+    const child = rootData[childId];
+    if (child) {
+      const cellWidthPx = parentCellWidthPx * (cellWidthPercent / 100);
+      innerHtmlParts.push(await convertToHtml(child, rootData, cellWidthPx));
     }
   }
 

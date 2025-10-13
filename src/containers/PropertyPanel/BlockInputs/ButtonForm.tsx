@@ -6,10 +6,16 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { defaultPadding } from "@utils/constant";
 import { ButtonProps } from "types";
-import { CustomInput, TextArea, Dropdown, ReactColorPicker } from "@components/lib";
+import {
+  CustomInput,
+  TextArea,
+  Dropdown,
+  ReactColorPicker,
+} from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
+import { useBlockForm } from "../useBlockForm";
 
 const Divider = styled.div`
   width: 100%;
@@ -35,10 +41,20 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
         containerStyle={{ padding: "1rem" }}
       >
         <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
+        <CustomInput
           name="buttonText"
           placeholder="Enter button text here"
           value={formData.buttonText}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("buttonText", value)}
           containerStyle={{ marginBottom: "0.75rem", width: "95%", padding: 2 }}
         />
 
@@ -55,7 +71,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="fontSize"
             placeholder="Enter font size"
             value={formData.fontSize || ""}
-            onChange={handleChange}
+            onChange={(name, value) => handleChange("fontSize", value)}
             type="number"
             containerStyle={{ width: "30%", padding: 3 }}
             inputStyle={{ width: "45%" }}
@@ -73,9 +89,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <Dropdown
             name="fontWeight"
             options={fontWeightOptions}
-            onChange={(name, value) =>
-              handleChange("fontWeight", value as string)
-            }
+            onChange={(name, value) => handleChange("fontWeight", value)}
             initialValue={formData.fontWeight}
             containerStyle={{ width: "26%", paddingLeft: "0.5rem" }}
           />
@@ -98,9 +112,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="width"
             placeholder="Enter Button Width"
             value={formData.width || ""}
-            onChange={(name: string, value: string) =>
-              handleChange("width", value)
-            }
+            onChange={(name, value) => handleChange("width", value)}
             unitsLabel="px"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageWidth,
@@ -108,7 +120,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             inputStyle={{ width: "35%" }}
             containerStyle={{
               width: "40%",
-              padding: 2
+              padding: 2,
             }}
           />
           <CustomInput
@@ -116,9 +128,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             name="height"
             placeholder="Enter Button Height"
             value={formData.height || ""}
-            onChange={(name: string, value: string) =>
-              handleChange("height", value)
-            }
+            onChange={(name, value) => handleChange("height", value)}
             unitsLabel="px"
             iconProps={{
               name: CUSTOM_SVG_ICON.ImageHeight,
@@ -127,7 +137,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             containerStyle={{
               width: "40%",
               marginLeft: "1rem",
-              padding: 2
+              padding: 2,
             }}
           />
         </WidthHeightContainer>
@@ -135,7 +145,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           name="navigateToUrl"
           placeholder="Enter Button Navigation URL"
           value={formData.navigateToUrl}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("navigateToUrl", value)}
           containerStyle={{ marginBottom: "0.75rem", width: "90%", padding: 2 }}
         />
         <ReactColorPicker
@@ -148,12 +158,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           <AlignmentSelector
             onChange={handleChange}
             value={formData.alignment}
-            containerStyle={{ width: "53%" , padding: 8 }}
+            containerStyle={{ width: "53%", padding: 8 }}
           />
           <PaddingInput
             padding={formData.buttonPadding}
-            onChange={(value) => handleChange("buttonPadding", value)}
-            containerStylePopUp={{ width: "45%", }}
+            onChange={(padding) => handleChange("buttonPadding", padding)}
+            containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
         <BasePropertyWrapper
@@ -163,7 +173,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             border: "none",
             padding: 0,
             width: "95%",
-            marginTop: "0.5rem"
+            marginTop: "0.5rem",
           }}
         >
           <BorderStyleDropdown
@@ -184,16 +194,14 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             label="Select Background Color"
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "58%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(value) => handleChange("padding", value)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%", paddingLeft: "0.5rem" }}
           />
         </FlexRow>
@@ -205,9 +213,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

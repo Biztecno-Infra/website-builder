@@ -21,7 +21,7 @@ export const borderStyleOptions = [
   { key: "solid", text: "Solid", value: "solid" },
   { key: "dashed", text: "Dashed", value: "dashed" },
   { key: "dotted", text: "Dotted", value: "dotted" },
-  { key: "double", text: "Double", value: "double" }
+  { key: "double", text: "Double", value: "double" },
 ];
 
 interface BorderStyleDropdownProps {
@@ -31,8 +31,8 @@ interface BorderStyleDropdownProps {
   borderColor: any;
   borderRadius: any;
   containerStyle?: React.CSSProperties;
+  showBorderRadius?: boolean;
 }
-
 export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   onChange,
   borderWidth,
@@ -40,6 +40,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   borderColor,
   borderRadius,
   containerStyle,
+  showBorderRadius = true, // <-- Default to true
 }) => {
   return (
     <Wrapper style={containerStyle}>
@@ -57,6 +58,20 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           containerStyle={{ width: "55%", padding: 2 }}
         />
         <CustomInput
+          name="borderWidth"
+          type="number"
+          value={borderWidth}
+          onChange={(name, value) => onChange("borderWidth", value)}
+          iconProps={{
+            name: CUSTOM_SVG_ICON.BorderRadius,
+          }}
+          unitsLabel="px"
+          inputStyle={{ width: "35%" }}
+          containerStyle={{ width: "40%" }}
+        />
+      </BorderContainer>
+      {showBorderRadius && (
+        <CustomInput
           name="borderRadius"
           type="number"
           value={borderRadius}
@@ -65,23 +80,10 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
             name: CUSTOM_SVG_ICON.BorderWidth,
           }}
           unitsLabel="px"
-          containerStyle={{ width: "40%" }}
+          containerStyle={{ width: "55%" }}
           inputStyle={{ width: "35%" }}
         />
-      </BorderContainer>
-
-      <CustomInput
-        name="borderWidth"
-        type="number"
-        value={borderWidth}
-        onChange={(name, value) => onChange("borderWidth", value)}
-        iconProps={{
-          name: CUSTOM_SVG_ICON.BorderRadius,
-        }}
-        unitsLabel="px"
-        inputStyle={{ width: "35%" }}
-        containerStyle={{ width: "40%" }}
-      />
+      )}
     </Wrapper>
   );
 };

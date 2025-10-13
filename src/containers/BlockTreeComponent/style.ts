@@ -4,14 +4,29 @@ export const BlockContainer = styled.div<{
   $isDragging: boolean;
   cursor: string;
   $isSelected: boolean;
+  $isAncestor?: boolean;
+  $isDescendant?: boolean;
+  $hasChildBlocks?: boolean;
 }>`
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   cursor: ${({ cursor }) => cursor};
-  padding-left: 8px;
-  background-color:  ${({ $isSelected }) => ($isSelected ? "#f5f5f5" : "none")};
-   &:hover {
-    background-color: #f5f5f5;
-  }
+  padding-bottom: 2px;
+  padding-left: 1px;
+  padding-right: 2px;
+  background-color: ${({
+    $isSelected,
+    $isAncestor,
+    $isDescendant,
+    $hasChildBlocks,
+    theme,
+  }) => {
+    if ($isSelected) return theme.colors.primary;
+    if ($isAncestor || $isDescendant) return theme.colors.secondary; // or some lighter blue
+    if ($hasChildBlocks) return "#ffffff"; // light green
+    return "none";
+  }};
+
+  color: ${({ $isSelected }) => ($isSelected ? "#FFFFFF" : "inherit")};
 `;
 
 export const BlockContent = styled.div<{ $hasChildBlocks: boolean }>`
@@ -19,28 +34,23 @@ export const BlockContent = styled.div<{ $hasChildBlocks: boolean }>`
   display: flex;
   align-items: center;
   width: 100%;
-  
 `;
 
-export const ChildNodesContainer = styled.div`
-  padding-left: 8px;
-`;
-
-export const BlockContentText = styled.div`
+export const BlockContentText = styled.div<{
+  $isSelected: boolean;
+}>`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: ${({ theme }) => theme.colors.primary}; // changed to use theme primary color
   width: 100%;
   padding: 0.75rem 0.5rem;
-  &:hover {
-    background-color: #f5f5f5;
-    display: flex;
-  flex-direction: row;
-  align-items: center;
-  }
-    font-family: Montserrat;
+  color: ${({ theme, $isSelected }) =>
+    $isSelected ? "#FFFFFF" : theme.colors.primary};
+`;
+
+export const ChildNodesContainer = styled.div`
+  padding-left: 1px;
 `;
 
 export const BlockTextIcon = styled.div`
@@ -57,25 +67,27 @@ export const ExpandIcon = styled.div`
 `;
 
 export const ChevronIcon = styled.samp`
-display: flex;
-flex-direction: row;
+  display: flex;
+  flex-direction: row;
   margin-right: 10px;
   cursor: pointer;
   font-size: 16px;
   padding-left: 8px;
 `;
 
-export const RootBlockContainer = styled.div`
+export const RootBlockContainer = styled.div<{
+  $isSelected?: boolean;
+}>`
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  color: #0B978E;
   width: 100%;
   font-size: 12px;
-  &:hover {
-    background-color: #f5f5f5;
-  }
+  background-color: ${({ $isSelected, theme }) =>
+    $isSelected ? theme.colors.primary : "none"};
+
+  color: ${({ $isSelected }) => ($isSelected ? "#FFFFFF" : "inherit")};
 `;
 
 export const HeaderContainer = styled.div`

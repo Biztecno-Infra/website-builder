@@ -21,7 +21,7 @@ const InputContainer = styled.div`
 
 const StyledInput = styled.input<{ width: string }>`
   width: ${(props) => props.width};
-   height: 30px ;
+  height: 30px;
   line-height: 0;
   border: 1px solid ${({ theme }) => theme.colors.inputColor};
   border-radius: 5px;
@@ -81,6 +81,7 @@ interface InputProps {
   };
   inputStyle?: React.CSSProperties;
   checkLessThanOne?: boolean;
+  isPercentageValidation?: boolean;
 }
 
 export function CustomInput({
@@ -97,20 +98,39 @@ export function CustomInput({
   iconProps,
   inputStyle,
   checkLessThanOne = false,
+  isPercentageValidation = false,
 }: InputProps) {
   const [error, setError] = useState<string>("");
 
   const validateInput = (value: string) => {
     if (value.trim() === "") return "Please enter a valid input";
-  
+
+    if (name === "layerName" && value.length > 40) {
+      return "Layer Name cannot be more than 40 characters";
+    }
+
     if (type === "number") {
       const numValue = Number(value);
       if (isNaN(numValue)) return "Please enter a valid number";
       if (numValue < 0) return "Value must be greater than or equal to 0";
       if (numValue < 1 && checkLessThanOne) return "Not less than 1";
+
+      if (isPercentageValidation && (name === "width" || name === "height")) {
+        if (numValue > 100) {
+          return "Percentage value cannot exceed 100";
+        }
+      }
+      if (
+        (name === "borderWidth" || name === "borderRadius") &&
+        numValue > 50
+      ) {
+        return `${
+          name === "borderWidth" ? "Border width" : "Border Radius"
+        } cannot be more than 50`;
+      }
     }
-  
-    return "";
+
+    return undefined;
   };
   
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,7 +138,7 @@ export function CustomInput({
   
     // Run validation on string value
     const errorMessage = validateInput(inputValue);
-    setError(errorMessage);
+    setError(errorMessage || "");
   
     // Call onChange with raw input value (or parsed number if needed)
     if (onChange) {
@@ -126,7 +146,6 @@ export function CustomInput({
       onChange(name, parsedValue);
     }
   };
-  
 
   return (
     <InputWrapper containerStyle={containerStyle}>

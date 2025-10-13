@@ -5,8 +5,10 @@ import {
   generateGridBlock,
   generateGridCellBlock,
   generateImageBlock,
+  generateShapeBlockData,
   generateSpacerBlock,
   generateTextBlock,
+  generateVideoBlock,
 } from "./constant";
 import {
   Block,
@@ -19,6 +21,8 @@ import {
   DividerProps,
   SpacerProps,
   Theme,
+  VideoProps,
+  ShapeProps,
 } from "../types";
 
 const generateBlockToJsonData = (block: Block) => {
@@ -46,6 +50,12 @@ const generateBlockToJsonData = (block: Block) => {
     case BlockType.SPACER:
       blockData = generateSpacerBlock(block as SpacerProps);
       break;
+    case BlockType.VIDEO:
+      blockData = generateVideoBlock(block as VideoProps)
+      break;
+    case BlockType.SHAPE:
+      blockData = generateShapeBlockData(block as ShapeProps);
+      break;
     default:
       blockData = null;
   }
@@ -59,8 +69,8 @@ export const processBlock = (
   layout: any,
   parentId: string | null
 ) => {
-  let blockData = generateBlockToJsonData(block);
 
+  let blockData = generateBlockToJsonData(block);
   if (blockData) {
     layout[block.id] = blockData;
 
@@ -99,6 +109,7 @@ export const jsonToBlocks = (
       type: layoutBlock.type,
       parentId: parentId || null,
       childBlocks: [],
+      layerName: layoutBlock?.layerName || "",
     };
 
     switch (block.type) {
@@ -194,10 +205,12 @@ export const jsonToBlocks = (
           padding,
           verticalAlign,
           backgroundColor: cellBackgroundColor,
+          ...rest
         } = layoutBlock.data.style || {};
         gridCellProp.padding = padding;
         gridCellProp.verticalAlign = verticalAlign;
         gridCellProp.backgroundColor = cellBackgroundColor;
+        Object.assign(gridCellProp, rest);
         break;
       case BlockType.DIVIDER:
         const dividerProps = block as DividerProps;
@@ -221,6 +234,67 @@ export const jsonToBlocks = (
         spacerProps.backgroundColor = layoutBlock.data.style.backgroundColor;
         spacerProps.padding = layoutBlock.data.style.padding;
         spacerProps.customCss = layoutBlock.data.style.customCss
+        break;
+      case BlockType.SHAPE:
+        const shape = block as any;
+        const {
+          width: shapeWidth,
+          height: shapeHeight,
+          backgroundColor: shapeBg,
+          borderWidth: shapeBw,
+          borderStyle: shapeBs,
+          borderColor: shapeBc,
+          borderRadius: shapeBr,
+          padding: shapePadding,
+          customCss: shapeCss,
+          textColor: textColor,
+          ...shapeRest
+        } = layoutBlock.data.style || {};
+        shape.shape = layoutBlock.data.props.shape;
+        shape.text = layoutBlock.data.props.text;
+        shape.textColor = textColor;
+        shape.imageUrl = layoutBlock.data.props.imageUrl;
+        shape.width = shapeWidth;
+        shape.height = shapeHeight;
+        shape.backgroundColor = shapeBg;
+        shape.borderWidth = shapeBw;
+        shape.borderStyle = shapeBs;
+        shape.borderColor = shapeBc;
+        shape.borderRadius = shapeBr;
+        shape.padding = shapePadding;
+        shape.customCss = shapeCss;
+        Object.assign(shape, shapeRest);
+        break;
+      case BlockType.VIDEO:
+        const videoProps = block as VideoProps;
+        const {
+          textAlign: videoTextAlign,
+          backgroundColor: videoBackgroundColor,
+          width: videoWidth,
+          height: videoHeight,
+          borderWidth: videoBorderWidth,
+          borderRadius: videoBorderRadius,
+          borderColor: videoBorderColor,
+          borderStyle: videoBorderStyle,
+          padding: videoPadding,
+          ...videoStyleRest
+        } = layoutBlock.data.style || {};
+
+        videoProps.youtubeVideoUrl = layoutBlock.data.props.youtubeVideoUrl;
+        videoProps.videoUrl = layoutBlock.data.props.videoUrl;
+        videoProps.thumbnailUrl = layoutBlock.data.props.thumbnailUrl;
+        videoProps.alignment = videoTextAlign;
+        videoProps.backgroundColor = videoBackgroundColor;
+        videoProps.width = videoWidth;
+        videoProps.height = videoHeight;
+        if (videoBorderWidth && videoBorderStyle && videoBorderColor) {
+          videoProps.borderWidth = videoBorderWidth;
+          videoProps.borderColor = videoBorderColor;
+          videoProps.borderStyle = videoBorderStyle;
+        }
+        videoProps.borderRadius = videoBorderRadius;
+        videoProps.padding = videoPadding;
+        Object.assign(videoProps, videoStyleRest);
         break;
       default:
         console.error(`Unknown block type: ${block.type}`);

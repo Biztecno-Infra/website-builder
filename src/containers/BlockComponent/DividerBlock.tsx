@@ -19,7 +19,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     customCss,
     ...rest
   } = block;
-   const theme = useTheme()
+  const theme = useTheme();
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -32,6 +32,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
 
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
@@ -41,10 +42,10 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         paddingLeft: `${padding.left}px`,
         backgroundColor,
         textAlign: alignment as TextAlign,
-        border: `1px dashed ${
-          isSelected && block.parentId ? theme.colors.primary : "transparent"
+     outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
         }`,
-        // borderRadius: 10,
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
         ...rest,
       }}

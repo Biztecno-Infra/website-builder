@@ -7,6 +7,7 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { useBlockForm } from "../useBlockForm";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -32,87 +33,24 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   // Use the optimized form hook
   const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock as ImageProps, updateBlock);
 
-  useEffect(() => {
-    setFormData({
-      imageUrl,
-      altText,
-      width,
-      height,
-      backgroundColor,
-      padding,
-      alignment,
-      borderWidth,
-      borderStyle,
-      borderColor,
-      borderRadius,
-      customCss,
-      navigateToUrl,
-    });
-  }, [selectedBlock]);
-
-  // useEffect(() => {
-  //   const loadImageDimensions = async () => {
-  //     if (imageUrl && !width && !height) {
-  //       try {
-  //         const image = await Jimp.read(imageUrl);
-  //         const { width, height } = image.bitmap;
-  //         setFormData((prev) => {
-  //           const updatedFormData = {
-  //             ...prev,
-  //             width,
-  //             height,
-  //           };
-  //           updateBlock(blockId, "width", width);
-  //           updateBlock(blockId, "height", height);
-  //           return updatedFormData;
-  //         });
-  //       } catch (error) {
-  //         console.error("Error loading image:", error);
-  //         // Reset width and height in case of an error
-  //       setFormData((prev) => {
-  //         const updatedFormData = {
-  //           ...prev,
-  //           width : 0,
-  //           height: 0,
-  //         };
-  //         return updatedFormData
-  //       });
-  //       }
-  //     }
-  //   };
-  //   loadImageDimensions();
-  // }, []); 
-
-  const handleImageUrlChange = async (value: string) => {
-    setFormData((prev) => ({ ...prev, imageUrl: value }));
-    updateBlock(blockId, "imageUrl", value);
-
-    // try {
-    //   const image = await Jimp.read(value);
-    //   const { width, height } = image.bitmap;
-    //   setFormData((prev) => {
-    //     const updatedFormData = {
-    //       ...prev,
-    //       width,
-    //       height,
-    //     };
-    //     updateBlock(blockId, "width", width);
-    //     updateBlock(blockId, "height", height);
-    //     return updatedFormData;
-    //   });
-    // } catch (error) {
-    //   console.error("Error loading image:", error);
-    // }
-  };
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => ({ ...prevData, [property]: value }));
-    updateBlock(blockId, property, value);
-  };
+  // Special handler for imageUrl that needs immediate update
+  const handleImageUrlChange = useCallback(async (value: string) => {
+    handleImmediateChange("imageUrl", value);
+  }, [handleImmediateChange]);
 
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Image">
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
         <CustomInput
           name="imageUrl"
           placeholder="Add Image URL"
@@ -138,12 +76,12 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           name="navigateToUrl"
           placeholder="Add URL to link image"
           value={formData.navigateToUrl}
-          onChange={handleChange}
+          onChange={(name, value) => handleChange("navigateToUrl", value)}
           containerStyle={{ marginBottom: "0.75rem", padding: 2 }}
           type="text"
         />
         <WidthHeightContainer>
-          <CustomInput
+          {/* <CustomInput
             type="number"
             name="height"
             value={formData.height || ""}
@@ -157,10 +95,11 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
             containerStyle={{
               padding: 2,
-              width: "45%"
+              width: "45%",
             }}
             inputStyle={{ width: "35%" }}
-          />
+            isPercentageValidation
+          /> */}
           <CustomInput
             type="number"
             name="width"
@@ -174,39 +113,43 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageWidth,
             }}
             containerStyle={{
-              width: "45%",
-              marginLeft: "1rem",
-              padding: 2
+              width: "55%",
+              // marginLeft: "1rem",
+              padding: 2,
             }}
             inputStyle={{ width: "35%" }}
+            isPercentageValidation
           />
         </WidthHeightContainer>
         <AlignmentSelector
           onChange={handleChange}
           value={formData.alignment}
-          containerStyle={{ width: "60%" }}
+          containerStyle={{ width: "90%" }}
         />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
         <PaddingContainer>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
           />
 
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "48%", paddingLeft: "1rem" }}
           />
         </PaddingContainer>
         <BasePropertyWrapper
           name="Border Properties"
           subLabel
-          containerStyle={{ border: "none", padding: 0, width: "95%", marginTop: "0.5rem" }}
+          containerStyle={{
+            border: "none",
+            padding: 0,
+            width: "95%",
+            marginTop: "0.5rem",
+          }}
         >
           <BorderStyleDropdown
             onChange={handleChange}
@@ -228,9 +171,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

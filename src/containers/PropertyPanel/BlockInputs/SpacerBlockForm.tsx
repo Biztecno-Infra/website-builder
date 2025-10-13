@@ -17,18 +17,26 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Spacer">
+        <CustomInput
+          name="layerName"
+          placeholder="Enter Layer Name"
+          value={formData.layerName || ""}
+          onChange={(name, value) => handleChange("layerName", value)}
+          containerStyle={{
+            width: "100%",
+            marginBottom: "10px",
+          }}
+        />
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("backgroundColor", value)
-            }
+            onColorChange={(field, value) => handleChange("backgroundColor", value)}
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
           <PaddingInput
             padding={formData.padding}
-            onChange={(padding: any) => handleChange("padding", padding)}
+            onChange={(padding) => handleChange("padding", padding)}
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
@@ -39,9 +47,7 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
           placeholder="Enter additional properties for e.g, font-size: 14px; {key}: {value};"
           value={formData.customCss || ""}
           rows={6}
-          onChange={(name: string, value: string) =>
-            handleChange("customCss", value)
-          }
+          onChange={(name, value) => handleChange("customCss", value)}
         />
       </BasePropertyWrapper>
     </FormWrapper>

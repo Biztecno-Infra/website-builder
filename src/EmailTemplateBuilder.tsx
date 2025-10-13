@@ -10,8 +10,7 @@ import { BlockHookRef, Theme } from "./types";
 import CustomThemeProvider from "@context/ThemeContext";
 import CanvasContainer from "@containers/CanvasContainer";
 import HeaderActions from "@containers/HeaderActions";
-import { ExportType } from "enum";
-import "./index.css"; // keep it only if it's scoped
+import "./index.css";
 
 interface Props {
   theme?: Theme;
@@ -66,6 +65,7 @@ const EmailTemplateBuilder = forwardRef<BlockHookRef, Props>(
 
 useEffect(() => {
   const handleKeyDown = (event: KeyboardEvent) => {
+    if(ref && "current" in ref && ref.current?.undoLocked) return;
     if (event.ctrlKey) {
       switch (event.key.toLowerCase()) {
         case "z":

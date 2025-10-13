@@ -1,14 +1,13 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useMemo, useEffect, useRef } from "react";
 import BlockComponent from "../BlockComponent";
 import Droppable from "../Droppable";
 import EmptyBlock from "./EmptyBlock";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
-import { Block, Padding } from "types";
+import type { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
 
-// import domtoimage from "dom-to-image";
 interface TableWrapperProps {
   $canvasColor: string;
   $canvasFont: string;
@@ -16,11 +15,13 @@ interface TableWrapperProps {
   $canvasPadding: Padding;
   $isMobile: boolean;
 }
-
 const BlockWrapper = styled.div<{ $isSelected: boolean; theme: any }>`
   cursor: pointer;
-  border: ${({ $isSelected, theme }) =>
-    $isSelected ? `1px dashed ${theme.colors.primary}` : "none"};
+  outline: ${({ $isSelected, theme }) =>
+    $isSelected
+      ? `1px dashed ${theme.colors.primary}`
+      : "none"};
+      z-index: ${({ $isSelected }) => ($isSelected ? 1 : "auto")};
   position: relative;
 `;
 
@@ -51,7 +52,6 @@ const TableWrapper = styled.table<TableWrapperProps>`
     background-color: ${({ $canvasColor }) => $canvasColor};
     font-family: ${({ $canvasFont }) => $canvasFont};
     color: ${({ $canvasFontColor }) => $canvasFontColor};
-    // border-collapse: collapse;
     table-layout: fixed;
     width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
     max-width: ${({ $isMobile }) => ($isMobile ? "360px" : "600px")};
@@ -73,54 +73,120 @@ const Canvas = () => {
     globalStyles,
     selectedView,
     canvasRef,
+    blocks,
   } = useBlockHook();
 
   const theme = useTheme();
-  // const canvasDropableRef = useRef<HTMLDivElement>(null);
+  const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>(
+    {}
+  );
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
-      handleDropper(item, undefined!);
+      requestAnimationFrame(() => {
+        console.log("Dropped item on canvas", item);
+        handleDropper(item, undefined!);
+      });
     },
     [handleDropper]
   );
 
-  const renderBlock = (blockId: string, index: number) => {
-    return (
-      <BlockWrapper
-        key={blockId}
-        id={blockId}
-        $isSelected={blockId === (selectedBlock as Block)?.id}
-        theme={theme}
+  // Function to render each block and assign a ref
+  const renderBlock = useCallback(
+    (blockId: string, index: number) => {
+      // Assign a ref to each block only if it doesn't exist already
+      if (!blockRefs.current[blockId]) {
+        blockRefs.current[blockId] = React.createRef<HTMLDivElement | any>();
+      }
+      const blockRef = blockRefs.current[blockId];
+
+      return (
+        <BlockWrapper
+          key={blockId}
+          id={`block-${blockId}`}
+          $isSelected={blockId === (selectedBlock as Block)?.id}
+          theme={theme}
+          ref={blockRef} // Assign the ref here
+        >
+          <BlockComponent blockId={blockId} />
+          {blockId === (selectedBlock as Block)?.id && (
+            <TrashIconWrapper
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteBlock(blockId);
+                setSelectedBlock(null);
+              }}
+            >
+              <DeleteWrapper>
+                <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+              </DeleteWrapper>
+            </TrashIconWrapper>
+          )}
+        </BlockWrapper>
+      );
+    },
+    [selectedBlock, theme, onDeleteBlock, setSelectedBlock]
+  );
+
+  useEffect(() => {
+    const selectedNodeId = (selectedBlock as Block)?.id;
+    if (!selectedNodeId) return;
+
+    const frame = requestAnimationFrame(() => {
+      const blockElement = canvasRef.current?.querySelector(
+        `#block-${selectedNodeId}`
+      );
+
+      if (blockElement) {
+        blockElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      } else {
+        console.log("Block not found within the canvas", selectedNodeId);
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [selectedBlock]);
+
+  const memoizedTableWrapper = useMemo(
+    () => (
+      <TableWrapper
+        className="ebr-tableWrapper"
+        $canvasColor={globalStyles.canvasColor}
+        $canvasFont={globalStyles.fontFamily}
+        $canvasFontColor={globalStyles.textColor}
+        $canvasPadding={globalStyles.padding}
+        $isMobile={selectedView === ScreenViews.MOBILE}
+        ref={canvasRef}
+        style={{
+          border: globalStyles.borderWidth
+            ? `${globalStyles.borderWidth}px ${globalStyles.borderStyle} ${globalStyles.borderColor}`
+            : "none",
+          borderRadius: globalStyles.borderRadius
+            ? `${globalStyles.borderRadius}px`
+            : "0",
+        }}
       >
-        <BlockComponent blockId={blockId} />
-        {blockId === (selectedBlock as Block)?.id && (
-          <TrashIconWrapper
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteBlock(blockId);
-              setSelectedBlock(null);
-            }}
-          >
-            <DeleteWrapper>
-              <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
-            </DeleteWrapper>
-          </TrashIconWrapper>
-        )}
-      </BlockWrapper>
-    );
-  };
-
-  // useEffect(() => {
-  //   if (typeof onSave === "function") {
-  //     const handleCaptureScreenshot = async () => {
-  //       const screenshot = await captureScreenshot();
-  //       onSave(screenshot); // Send the screenshot file back to onSave callback
-  //     };
-
-  //     handleCaptureScreenshot();
-  //   }
-  // }, [onSave]); // T
+        <tbody>
+          <tr style={{ padding: 0 }}>
+            <td
+              style={{
+                paddingTop: globalStyles?.padding?.top,
+                paddingRight: globalStyles?.padding?.right,
+                paddingBottom: globalStyles?.padding?.bottom,
+                paddingLeft: globalStyles?.padding?.left,
+              }}
+            >
+              {rootBlockOrder.map(renderBlock)}
+            </td>
+          </tr>
+        </tbody>
+      </TableWrapper>
+    ),
+    [globalStyles, selectedView, canvasRef, rootBlockOrder, renderBlock]
+  );
 
   return (
     <Droppable
@@ -145,41 +211,9 @@ const Canvas = () => {
             padding: rootBlockOrder.length === 0 ? 15 : 0,
             background: rootBlockOrder.length === 0 ? "#ffffff" : "none",
           }}
-          // ref={canvasRef}
         >
           {rootBlockOrder.length > 0 ? (
-            <TableWrapper
-              className="ebr-tableWrapper"
-              $canvasColor={globalStyles.canvasColor}
-              $canvasFont={globalStyles.fontFamily}
-              $canvasFontColor={globalStyles.textColor}
-              $canvasPadding={globalStyles.padding}
-              $isMobile={selectedView === ScreenViews.MOBILE}
-              ref={canvasRef}
-              style={{
-                border: globalStyles.borderWidth
-                  ? `${globalStyles.borderWidth}px ${globalStyles.borderStyle} ${globalStyles.borderColor}`
-                  : "none",
-                borderRadius: globalStyles.borderRadius
-                  ? `${globalStyles.borderRadius}px`
-                  : "0",
-              }}
-            >
-              <tbody>
-                <tr style={{ padding: 0 }}>
-                  <td
-                    style={{
-                      paddingTop: globalStyles?.padding?.top,
-                      paddingRight: globalStyles?.padding?.right,
-                      paddingBottom: globalStyles?.padding?.bottom,
-                      paddingLeft: globalStyles?.padding?.left,
-                    }}
-                  >
-                    {rootBlockOrder.map(renderBlock)}
-                  </td>
-                </tr>
-              </tbody>
-            </TableWrapper>
+            memoizedTableWrapper
           ) : (
             <EmptyBlock
               theme={theme!}

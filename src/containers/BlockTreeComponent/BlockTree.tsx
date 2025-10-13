@@ -1,7 +1,14 @@
-import React, { JSX, useCallback, useMemo, useState } from "react";
+import React, {
+  JSX,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { BlockType } from "email-builder-utils";
-import { GridProps, RootLayout } from "../../types";
+import { Block, GridProps, RootLayout } from "../../types";
 import { useBlockHook } from "context/BlockContext";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable";
@@ -24,22 +31,53 @@ interface BlockNodeProps {
   selectedBlock: any;
 }
 
-const getBlockTypeIcons = (color: string): Record<BlockType, JSX.Element | null> => ({
+const getBlockTypeIcons = (
+  color: string
+): Record<BlockType, JSX.Element | null> => ({
   [BlockType.TEXT]: <SvgIcon name={CUSTOM_SVG_ICON.AddText} color={color} />,
   [BlockType.IMAGE]: <SvgIcon name={CUSTOM_SVG_ICON.AddImage} color={color} />,
-  [BlockType.BUTTON]: <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color={color} />,
+  [BlockType.BUTTON]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddButton} color={color} />
+  ),
   [BlockType.GRID]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumns} color={color} />,
-  [BlockType.SPACER]: <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color={color} />,
-  [BlockType.GRIDCELL]: <SvgIcon name={CUSTOM_SVG_ICON.AddColumn} color={color} />,
+  [BlockType.SPACER]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddSpacer} color={color} />
+  ),
+  [BlockType.GRIDCELL]: (
+    <SvgIcon name={CUSTOM_SVG_ICON.AddColumn} color={color} />
+  ),
   [BlockType.DIVIDER]: <SvgIcon name={CUSTOM_SVG_ICON.AddLine} />,
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
+  [BlockType.SHAPE]: <SvgIcon name={CUSTOM_SVG_ICON.AddShape} />,
+  [BlockType.VIDEO]: <SvgIcon name={CUSTOM_SVG_ICON.AddVideo} />,
   [BlockType.EMAILLAYOUT]: null,
 });
+function isDescendant(
+  blocks: Record<string, any>,
+  ancestorId: string,
+  targetId: string
+): boolean {
+  const visited = new Set();
 
+  function dfs(currentId: string): boolean {
+    if (visited.has(currentId)) return false;
+    visited.add(currentId);
+
+    const block = blocks[currentId];
+    if (!block || !block.childBlocks) return false;
+
+    if (block.childBlocks.includes(targetId)) return true;
+
+    return block.childBlocks.some((childId: string) => dfs(childId));
+  }
+
+  return dfs(ancestorId);
+}
 const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const theme = useTheme();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const nodeRef = useRef<HTMLDivElement | null>(null);
 
   const { blocks, handleDropper, setSelectedBlock } = useBlockHook();
 
@@ -82,7 +120,7 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
   const handleClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
-      setSelectedBlock(block.id);
+      setSelectedBlock(blockId);
       setIsExpanded((prev) => !prev);
     },
     [block, setSelectedBlock]
@@ -100,26 +138,47 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
 
   const renderChildNodes = useCallback(
     (gridChildId: string, index: number) => (
-      <BlockNode key={gridChildId} blockId={gridChildId} selectedBlock={selectedBlock} />
+      <BlockNode
+        key={gridChildId}
+        blockId={gridChildId}
+        selectedBlock={selectedBlock}
+      />
     ),
     [selectedBlock]
   );
 
   const blockTypeIcons = getBlockTypeIcons(theme?.color?.buttonPrimary);
+  useEffect(() => {
+    if (selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id)) {
+      setIsExpanded(true);
+    }
+  }, [selectedBlock?.id, blockId, blocks]);
+  const isSelected = selectedBlock?.id === blockId;
+  const isAncestorOfSelected =
+    selectedBlock?.id && isDescendant(blocks, blockId, selectedBlock.id);
+  const isDescendantOfSelected =
+    selectedBlock?.id && isDescendant(blocks, selectedBlock.id, blockId);
+  const hasChildren =
+    Array.isArray(block?.childBlocks) && block.childBlocks.length > 0;
 
   return (
     <BlockContainer
+      id={block.id}
       ref={(node) => {
+        nodeRef.current = node;
         if (node) drag(drop(node));
       }}
       $isDragging={isDragging}
-      $isSelected={selectedBlock?.id === blockId}
+      $isSelected={isSelected}
+      $isAncestor={isAncestorOfSelected}
+      $isDescendant={isDescendantOfSelected}
+      $hasChildBlocks={hasChildren}
       cursor={block?.type === BlockType.EMPTY ? "not-allowed" : "move"}
       onDragStart={handleDragStart}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <BlockContent onClick={handleClick} $hasChildBlocks={hasChildBlocks} >
+      <BlockContent onClick={handleClick} $hasChildBlocks={hasChildBlocks}>
         {hasChildBlocks && (
           <ChevronIcon data-isexpanded={isExpanded}>
             {isExpanded ? (
@@ -129,15 +188,20 @@ const BlockNode = React.memo(({ blockId, selectedBlock }: BlockNodeProps) => {
             )}
           </ChevronIcon>
         )}
-        <BlockContentText>
+        <BlockContentText $isSelected={isSelected}>
           <BlockTextIcon style={{ width: "80%" }}>
             <BlockText style={{ width: "20%" }}>
               {blockTypeIcons[block?.type as BlockType]}
             </BlockText>
-            <div style={{ fontSize: "12px", width: "80%" }}>{block?.type}</div>
+            <div style={{ fontSize: "12px", width: "80%" }}>
+              {block?.layerName || block?.type}
+            </div>
           </BlockTextIcon>
           {isHovered && (
-            <SvgIcon name={CUSTOM_SVG_ICON.DragIcon} svgStyle={{ width: "20%" }} />
+            <SvgIcon
+              name={CUSTOM_SVG_ICON.DragIcon}
+              svgStyle={{ width: "20%" }}
+            />
           )}
         </BlockContentText>
       </BlockContent>
@@ -160,13 +224,14 @@ const EmptyTreeNodeContainer = styled(Droppable)`
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  color: #8D8D8D;
+  color: #8d8d8d;
   border-radius: 5px;
-  padding: 0.25rem 0;
+  padding: 1rem 0;
   font-size: 11px;
+  background-color: #ffffff;
 `;
 
-const EmptyTreeNode = ({ id , theme}: { id: string , theme: any}) => {
+const EmptyTreeNode = ({ id, theme }: { id: string; theme: any }) => {
   const { handleDropper } = useBlockHook();
 
   const handleDrop = useCallback(
@@ -177,7 +242,11 @@ const EmptyTreeNode = ({ id , theme}: { id: string , theme: any}) => {
   );
 
   return (
-    <EmptyTreeNodeContainer accept="TREE_BLOCK" onDrop={handleDrop} theme={theme}>
+    <EmptyTreeNodeContainer
+      accept="TREE_BLOCK"
+      onDrop={handleDrop}
+      theme={theme}
+    >
       Drag and drop a layer here
     </EmptyTreeNodeContainer>
   );
@@ -196,15 +265,62 @@ const ScrollHead = styled.div`
   height: calc(100% - 3rem);
   overflow-y: auto;
   /* z-index: -1; */
-`
+`;
 
 const NodeTree = () => {
   const theme = useTheme();
-  const { rootBlockOrder, handleDropper, setSelectedBlock, globalStyles, selectedBlock } =
-    useBlockHook();
+  const {
+    rootBlockOrder,
+    handleDropper,
+    setSelectedBlock,
+    globalStyles,
+    selectedBlock,
+  } = useBlockHook();
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const selectedNodeId = (selectedBlock as Block)?.id;
+    const scrollContainer = scrollContainerRef.current;
+    if (!selectedNodeId || !scrollContainer) return;
+
+    const tryScroll = () => {
+      const selectedNode = document.getElementById(selectedNodeId);
+      if (selectedNode) {
+        selectedNode.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        return true;
+      }
+      return false;
+    };
+    if (tryScroll()) return;
+
+    const observer = new MutationObserver(() => {
+      if (tryScroll()) {
+        observer.disconnect(); // Stop observing once successful
+      }
+    });
+
+    observer.observe(scrollContainer, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [(selectedBlock as Block)?.id]);
 
   const renderBlockNode = useCallback(
-    (blockId: string) => <BlockNode key={blockId} blockId={blockId} selectedBlock={selectedBlock} />,
+    (blockId: string) => (
+      <BlockNode
+        key={blockId}
+        blockId={blockId}
+        selectedBlock={selectedBlock}
+      />
+    ),
     [selectedBlock]
   );
 
@@ -229,14 +345,26 @@ const NodeTree = () => {
   return (
     <DroppableContainer accept="TREE_BLOCK" onDrop={handleDrop}>
       <HeaderContainer>Layers</HeaderContainer>
-      <ScrollHead>
-        <RootBlockContainer onClick={handleRootClick}>
+      <ScrollHead ref={scrollContainerRef} className="scroll-tree">
+        <RootBlockContainer
+          onClick={handleRootClick}
+          $isSelected={selectedBlock?.type === "EmailLayout"}
+        >
           <SvgIcon
             name={CUSTOM_SVG_ICON.GlobalSettings}
             size={SizeEnum.Small}
-            svgStyle={{ width: "20%" , color: theme.colors.primary }}
+            svgStyle={{
+              width: "20%",
+              color:
+                selectedBlock?.type === "EmailLayout"
+                  ? "#ffffff"
+                  : theme.colors.primary,
+            }}
           />
-          <BlockContentText style={{ width: "80%", cursor: "pointer" }}>
+          <BlockContentText
+            style={{ width: "80%", cursor: "pointer" }}
+            $isSelected={selectedBlock?.type === "EmailLayout"}
+          >
             Global Settings
           </BlockContentText>
         </RootBlockContainer>

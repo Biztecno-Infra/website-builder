@@ -14,6 +14,7 @@ interface ICoreBlock {
   type: BlockType;
   parentId?: string | null;
   childBlocks: Array<string>;
+  layerName?: string;
 }
 
 
@@ -50,7 +51,7 @@ export interface TextProps extends BaseBlock {
   fontFamily?: string;
   fontSize?: number;
   fontWeight?: string;
-  lineHeight?: any
+  lineHeight?: any;
   padding: {
     top: number;
     right: number;
@@ -62,6 +63,18 @@ export interface TextProps extends BaseBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
+  borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
+  width?: number;
+  textContainerPadding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  textContainerBackgroundColor?: string;
 }
 
 export interface ImageProps extends BaseBlock {
@@ -112,7 +125,6 @@ export interface ButtonProps extends BaseBlock {
 }
 
 export interface IGridCellProps extends ICoreBlock {
-  // childBlocks: string[];
   padding?: {
     top: number;
     right: number;
@@ -121,6 +133,14 @@ export interface IGridCellProps extends ICoreBlock {
   };
   backgroundColor?: any;
   verticalAlign?: any;
+  backgroundImage?: string;
+  backgroundSize?: string;
+  backgroundPosition?: string;
+  backgroundRepeat?: string;
+    borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
 }
 
 export interface GridProps extends BaseBlock {
@@ -128,7 +148,6 @@ export interface GridProps extends BaseBlock {
   columns: number;
   columnGap: number;
   cellWidths: Array<number>;
-  // childBlocks: Array<string>;
   borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
@@ -271,6 +290,7 @@ export interface IBlockContext {
   redo : () => void;
   canUndo: boolean;
   canRedo: boolean;
+  undoLocked: boolean;
   // captureScreenshot: any
 }
 export interface BlockHookRef {
@@ -281,6 +301,7 @@ export interface BlockHookRef {
   importTemplate: (templates: any[]) => void;
   undo: () => void;
   redo: () => void;
+  undoLocked: boolean;
 }
 
 
@@ -323,6 +344,14 @@ export interface DividerBlockProps extends BaseBlockProps {
 
 export interface SpacerBlockProps extends BaseBlockProps {
   block: SpacerProps;
+}
+
+export interface ShapeBlockProps extends BaseBlockProps {
+  block: ShapeProps;
+}
+
+export interface VideoBlockProps extends BaseBlockProps {
+  block: VideoProps;
 }
 
 export interface Theme {

@@ -6,10 +6,7 @@ import { ScreenViews } from "enum";
 import { useBlockHook } from "@context/BlockContext";
 import { useTheme } from "styled-components";
 
-const GridBlock: React.FC<GridBlockProps> = ({
-  block,
-  isSelected,
-}) => {
+const GridBlock: React.FC<GridBlockProps> = ({ block, isSelected }) => {
   const {
     columnGap,
     columns,
@@ -23,9 +20,10 @@ const GridBlock: React.FC<GridBlockProps> = ({
     responsive,
     ...rest
   } = block as GridProps;
- const { selectedView} = useBlockHook();
-   const theme = useTheme()
-  const shouldStack = responsive === true && selectedView === ScreenViews.MOBILE;
+  const { selectedView } = useBlockHook();
+  const theme = useTheme();
+  const shouldStack =
+    responsive === true && selectedView === ScreenViews.MOBILE;
   const convertedStyle = convertStringtoStyle(customCss);
 
   const backgroundImageStyle = backgroundImage
@@ -49,17 +47,17 @@ const GridBlock: React.FC<GridBlockProps> = ({
 
   return (
     <table
-      id={block.id}
+      id={`block-${block.id}`}
       cellSpacing={columnGap || 0}
       style={{
         width: "100%",
         backgroundColor,
         maxWidth: "100%",
         tableLayout: "fixed",
-        // border: `1px dashed ${
-        //   isSelected && block.parentId ? "#006E75" : backgroundColor
-        // }`,
-        border: isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none",
+       outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
+        }`,  
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
         ...backgroundImageStyle,
         ...rest,
@@ -68,10 +66,12 @@ const GridBlock: React.FC<GridBlockProps> = ({
       <tbody>
         {shouldStack ? (
           childBlocks?.map((blockId, index) => (
-            <tr style={{padding: 0}} key={blockId}>{renderCell(blockId, index)}</tr>
+            <tr style={{ padding: 0 }} key={blockId}>
+              {renderCell(blockId, index)}
+            </tr>
           ))
         ) : (
-          <tr style={{padding: 0}}>
+          <tr style={{ padding: 0 }}>
             {childBlocks?.map((blockId, index) => renderCell(blockId, index))}
           </tr>
         )}

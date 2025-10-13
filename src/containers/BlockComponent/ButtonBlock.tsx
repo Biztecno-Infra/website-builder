@@ -30,38 +30,41 @@ const CustomButton: React.FC<{
   borderWidth,
   borderStyle = "",
   buttonPadding,
-  width, height
+  width,
+  height,
 }) => {
-    const buttonStyle = {
-      color: textColor || "inherit",
-      backgroundColor: buttonColor,
-      fontFamily: fontFamily || "inherit",
-      fontSize: fontSize ? `${fontSize}px` : "14px",
-      fontWeight: fontWeight,
-      cursor: "pointer",
-      // wordBreak: "break-word", 
-      border: borderWidth
-        ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
-        : "none",
-      borderRadius: borderRadius ? `${borderRadius}px` : "",
-      paddingTop: buttonPadding?.top,
-      paddingRight: buttonPadding?.right,
-      paddingBottom: buttonPadding?.bottom,
-      paddingLeft: buttonPadding?.left,
-      width,
-      height
-    } as React.CSSProperties;
+  const buttonStyle = {
+    color: textColor || "inherit",
+    backgroundColor: buttonColor,
+    fontFamily: fontFamily || "inherit",
+    fontSize: fontSize ? `${fontSize}px` : "14px",
+    fontWeight: fontWeight,
+    cursor: "pointer",
+    // wordBreak: "break-word",
+    border: borderWidth
+      ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
+      : "none",
+    borderRadius: borderRadius ? `${borderRadius}px` : "",
+    paddingTop: buttonPadding?.top,
+    paddingRight: buttonPadding?.right,
+    paddingBottom: buttonPadding?.bottom,
+    paddingLeft: buttonPadding?.left,
+    width,
+    height,
+    maxWidth: "100%",
+    boxSizing: "border-box",
+  } as React.CSSProperties;
 
-    const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
+  const buttonContent = <button style={buttonStyle}>{buttonText}</button>;
 
-    return buttonContent;
-  };
+  return buttonContent;
+};
 
 export const ButtonBlock: React.FC<ButtonBlockProps> = ({
   block,
   handleBlockClick,
   handleDropper,
-  isSelected
+  isSelected,
 }) => {
   const {
     buttonText,
@@ -83,7 +86,7 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     height,
     ...rest
   } = block;
-   const theme = useTheme()
+  const theme = useTheme();
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -92,9 +95,10 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
     [handleDropper]
   );
 
-  const convertedStyle = convertStringtoStyle(customCss)
+  const convertedStyle = convertStringtoStyle(customCss);
   return (
     <Droppable
+      id={`block-${block.id}`}
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
@@ -104,10 +108,13 @@ export const ButtonBlock: React.FC<ButtonBlockProps> = ({
         paddingLeft: padding?.left,
         backgroundColor: backgroundColor,
         textAlign: alignment as TextAlign,
-        border: isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none",
-        // borderRadius: 10,
+       outline: ` ${
+          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
+        }`,
+        maxWidth: "100%",
+        zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
-        ...rest
+        ...rest,
       }}
       onClick={handleBlockClick}
     >

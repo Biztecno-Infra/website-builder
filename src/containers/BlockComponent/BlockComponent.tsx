@@ -1,12 +1,13 @@
 import React, { useMemo, useCallback } from "react";
-import {
+import type {
   ButtonProps,
   DividerProps,
   ImageProps,
   SpacerProps,
   TextProps,
   BlockComponentProps,
-  Block
+  Block,
+  VideoProps,
 } from "../../types";
 import { TextBlock } from "./TextBlock";
 import { ImageBlock } from "./ImageBlock";
@@ -16,6 +17,8 @@ import { useBlockHook } from "context/BlockContext";
 import { DividerBlock } from "./DividerBlock";
 import { SpacerBlock } from "./SpacerBlock";
 import { BlockType } from "email-builder-utils";
+import ShapeBlock from "./ShapeBlock";
+import VideoBlock from "./VideoBlock";
 
 const BlockComponent: React.FC<BlockComponentProps> = React.memo(
   ({ blockId }) => {
@@ -23,10 +26,9 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
       useBlockHook();
 
     const block = useMemo(() => blocks[blockId], [blocks, blockId]);
-
     const isSelected = useMemo(() => {
       return selectedBlock ? blockId === (selectedBlock as Block).id : false;
-    }, [selectedBlock, block]);
+    }, [selectedBlock, blockId]); // Optimized dependency array
 
     const handleBlockClick = useCallback(
       (e?: React.MouseEvent) => {
@@ -39,6 +41,7 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
     );
 
     const renderBlock = useMemo(() => {
+      if (!block) return null;
       switch (block?.type) {
         case BlockType.TEXT:
           return (
@@ -82,6 +85,24 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
           return (
             <SpacerBlock
               block={block as SpacerProps}
+              handleDropper={handleDropper}
+              handleBlockClick={handleBlockClick}
+              isSelected={isSelected}
+            />
+          );
+        case BlockType.SHAPE:
+          return (
+            <ShapeBlock
+              block={block as any}
+              handleDropper={handleDropper}
+              handleBlockClick={handleBlockClick}
+              isSelected={isSelected}
+            />
+          );
+        case BlockType.VIDEO:
+          return (
+            <VideoBlock
+              block={block as VideoProps}
               handleDropper={handleDropper}
               handleBlockClick={handleBlockClick}
               isSelected={isSelected}
