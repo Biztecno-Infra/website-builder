@@ -219,7 +219,7 @@ const Sections: React.FC = () => {
       type: BlockType.VIDEO,
       name: "Add Video",
       svgProps: {
-        name: CUSTOM_SVG_ICON.AddSpacer,
+        name: CUSTOM_SVG_ICON.AddVideo,
         color: colors.primary,
         size: SizeEnum.Medium,
         circular: true,
