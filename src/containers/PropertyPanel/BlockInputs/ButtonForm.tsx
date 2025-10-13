@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BlockFormProps } from "../types";
 import { PaddingInput, AlignmentSelector } from "@components/StyleComponents";
 import styled from "styled-components";
@@ -25,79 +25,8 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    id,
-    buttonText,
-    navigateToUrl,
-    color,
-    backgroundColor,
-    buttonColor,
-    fontFamily,
-    fontSize,
-    fontWeight,
-    alignment,
-    padding = defaultPadding,
-    borderRadius,
-    borderColor,
-    borderWidth = "",
-    borderStyle,
-    buttonPadding,
-    width,
-    height,
-    customCss,
-  } = selectedBlock as ButtonProps;
-
-  const [formData, setFormData] = useState({
-    buttonText,
-    navigateToUrl,
-    color,
-    backgroundColor,
-    buttonColor,
-    fontFamily,
-    fontSize,
-    fontWeight,
-    alignment,
-    padding,
-    borderRadius,
-    borderColor,
-    borderWidth,
-    borderStyle,
-    customCss,
-    buttonPadding,
-    width,
-    height,
-  });
-
-  useEffect(() => {
-    setFormData({
-      buttonText,
-      navigateToUrl,
-      color,
-      backgroundColor,
-      buttonColor,
-      fontFamily,
-      fontSize,
-      fontWeight,
-      alignment,
-      padding,
-      borderRadius,
-      borderColor,
-      borderWidth,
-      borderStyle,
-      customCss,
-      buttonPadding,
-      width,
-      height,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(id, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock as ButtonProps, updateBlock);
 
   return (
     <FormWrapper>

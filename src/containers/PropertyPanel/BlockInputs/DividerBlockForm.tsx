@@ -12,43 +12,9 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    backgroundColor,
-    thickness = 2,
-    alignment = "center",
-    padding,
-    dividerColor,
-    customCss,
-    id: blockId,
-  } = selectedBlock as DividerProps;
 
-  const [formData, setFormData] = useState({
-    backgroundColor,
-    thickness,
-    alignment,
-    padding,
-    dividerColor,
-    customCss
-  });
-
-  useEffect(() => {
-    setFormData({
-      backgroundColor,
-      thickness,
-      alignment,
-      padding,
-      dividerColor,
-      customCss
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock as DividerProps, updateBlock);
 
 
   return (

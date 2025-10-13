@@ -1,44 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow, FormWrapper } from "../style";
-import { ReactColorPicker, TextArea } from "@components/lib";
+import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
+import { useBlockForm } from "../useBlockForm";
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    id: blockId,
-    backgroundColor,
-    padding,
-    customCss,
-  } = selectedBlock as SpacerProps;
-
-  const [formData, setFormData] = useState({
-    backgroundColor,
-    padding,
-    customCss,
-  });
-
-  useEffect(() => {
-    setFormData({
-      backgroundColor,
-      padding,
-      customCss,
-    });
-  }, [selectedBlock]);
-
-  const handleChange = (property: string, value: any) => {
-
-    setFormData((prevData) => {
-      const updatedData = { ...prevData, [property]: value };
-      updateBlock(blockId, property, value);
-      return updatedData;
-    });
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock as SpacerProps, updateBlock);
 
   return (
     <FormWrapper>

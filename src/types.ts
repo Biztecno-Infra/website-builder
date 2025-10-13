@@ -140,7 +140,48 @@ export interface GridProps extends BaseBlock {
   responsive?: boolean;
 }
 
-export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps;
+export interface VideoProps extends BaseBlock {
+  youtubeVideoUrl?: string;
+  videoUrl?: string;
+  width?: number;
+  height?: number;
+  borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
+    padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  navigateToUrl?: string;
+  thumbnailUrl?: string;
+}
+
+export interface ShapeProps extends BaseBlock {
+  width?: number;
+  height?: number;
+  shapeColor: string;
+  shape: "rectangle" | "circle" | "oval" | "rounded" ;
+  borderRadius?: number;
+  imageUrl?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderStyle?: string;
+    padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+  customCss?: any;
+  color?: string;
+  verticalAlign?: "top" | "center" | "bottom";
+  fontSize?: number;
+}
+
+export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps | ShapeProps;
 
 export interface IBlocksState {
   [key: string]: Block;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { PaddingInput, VerticalAlignment } from "@components/StyleComponents";
 import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
@@ -11,29 +11,9 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const { padding: initialPadding, backgroundColor, verticalAlign } = selectedBlock as IGridCellProps;
 
-  const [formData, setFormData] = useState({
-    padding: initialPadding || defaultGridPadding,
-    backgroundColor,
-    verticalAlign
-  });
-
-  useEffect(() => {
-    setFormData(({
-      padding: initialPadding || defaultGridPadding,
-      backgroundColor,
-      verticalAlign
-    }));
-  }, [selectedBlock]);
-
-  const handleChange = (field: string, value: any) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-    updateBlock(selectedBlock.id, field, value);
-  };
+  // Use the optimized form hook
+  const { formData, handleChange } = useBlockForm(selectedBlock as IGridCellProps, updateBlock);
 
   return (
     <BasePropertyWrapper name="Edit Column" containerStyle={{ border: 'none' }}>

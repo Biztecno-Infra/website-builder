@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import { Jimp } from "jimp";
+import React, { useCallback } from "react";
 import styled from "styled-components";
 import { BlockFormProps } from "../types";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
@@ -29,38 +28,9 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    imageUrl,
-    altText,
-    width,
-    height,
-    backgroundColor,
-    padding,
-    alignment,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    navigateToUrl,
-    customCss,
-    id: blockId
-  } = selectedBlock as ImageProps;
 
-  const [formData, setFormData] = useState({
-    imageUrl,
-    altText,
-    width,
-    height,
-    backgroundColor,
-    padding,
-    alignment,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    navigateToUrl,
-  });
+  // Use the optimized form hook
+  const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock as ImageProps, updateBlock);
 
   useEffect(() => {
     setFormData({

@@ -12,6 +12,7 @@ import {
 import { jsonToBlocks, processBlock } from "utils";
 import { ScreenViews } from "enum";
 import { useUndoRedo } from "./useUndoRedo";
+import { isShallowEqual } from "@utils/common";
 
 const initializeBlock = (
   block: Block
@@ -71,29 +72,53 @@ export const useBlocks = (): IBlockContext => {
     return null;
   }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
 
+  // Memoize current state to prevent unnecessary effect triggers
+  const currentState = useMemo(() => ({
+    blocks,
+    rootOrder: rootBlockOrder,
+    globalStyles
+  }), [blocks, rootBlockOrder, globalStyles]);
+
+  const prevStateRef = useRef(currentState);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const {
     push,
     undo: undoHistory,
     redo: redoHistory,
     canUndo,
     canRedo,
-  } = useUndoRedo({
-    blocks,
-    rootOrder: rootBlockOrder,
-    globalStyles,
-  });
+    resetHistory,
+  } = useUndoRedo(currentState);
 
-  // Debounced automatic history push
+  // Optimized history management
   useEffect(() => {
-    if (isApplyingHistory.current) return;
-    const handle = window.setTimeout(() => {
-      push({ blocks, rootOrder: rootBlockOrder, globalStyles });
-    }, HISTORY_COALESCE_MS);
-    return () => window.clearTimeout(handle);
-  }, [blocks, rootBlockOrder, globalStyles, push]);
+    if (isApplyingHistory.current || undoLocked) return;
 
+    const hasChanges = !isShallowEqual(prevStateRef.current, currentState);
+
+    if (!hasChanges) return;
+
+    // Clear previous timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Debounce history pushes
+    timeoutRef.current = setTimeout(() => {
+      push(currentState);
+      prevStateRef.current = currentState;
+    }, HISTORY_COALESCE_MS);
+
+    // Proper cleanup
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [currentState, push, undoLocked]);
   const undo = async () => {
-    if (!canUndo) return;
+   if (!canUndo || undoLocked) return;
     const prevState = await undoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
     if (!prevState) return;
 
@@ -107,7 +132,7 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const redo = async () => {
-    if (!canRedo) return;
+     if (!canRedo || undoLocked) return;
     const nextState = await redoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
     if (!nextState) return;
 
@@ -146,6 +171,23 @@ export const useBlocks = (): IBlockContext => {
 
         setBlocks((prev) => ({ ...prev, ...processedData.blocks }));
         setRootBlockOrder((prev) => [...prev, ...processedData.childrenIds]);
+        
+        // Set undoLocked to true to prevent undo/redo for imported state
+        setUndoLocked(true);
+
+        // Reset history with the imported state as the starting point
+        setTimeout(() => {
+          resetHistory({
+            blocks: { ...blocks, ...processedData.blocks },
+            rootOrder: [...rootBlockOrder, ...processedData.childrenIds],
+            globalStyles: processedData.style || globalStyles,
+          });
+          
+          // Unlock undo/redo after a short delay to allow new changes
+          setTimeout(() => {
+            setUndoLocked(false);
+          }, 100);
+        }, 0);
       };
 
       requestAnimationFrame(batchUpdate);
@@ -153,11 +195,15 @@ export const useBlocks = (): IBlockContext => {
     [rootBlockOrder]
   );
 
+  console.log(undoLocked)
   const updateGlobalStyles = (updatedStyles: any) => {
+    if (undoLocked) return;
     setGlobalStyles(updatedStyles);
   };
 
-  const updateBlock = (blockId: any, property: any, value: any) => {
+
+  const updateBlock = useCallback((blockId: any, property: any, value: any) => {
+    if (undoLocked) return;
     setBlocks((prevBlocks) => {
       const block = prevBlocks[blockId] as any;
       if (!block) return prevBlocks;
@@ -219,9 +265,10 @@ export const useBlocks = (): IBlockContext => {
         [blockId]: { [property]: { $set: value } },
       });
     });
-  };
+  }, [undoLocked]);
 
   const onDeleteBlock = (blockId: string) => {
+      if (undoLocked) return;
     const deleteBlock = blocks[blockId];
     if (!deleteBlock) return;
 
@@ -251,16 +298,37 @@ export const useBlocks = (): IBlockContext => {
     try {
       const { blocks, rootBlock } = jsonToBlocks(jsonData);
       const { childrenIds, style } = rootBlock.data || {};
+      
+      // Set undoLocked before updating state
+      setUndoLocked(true);
+      
       setBlocks(blocks);
       setGlobalStyles(style);
       setRootBlockOrder(childrenIds || []);
+
+      // Reset history with the uploaded state as the starting point
+      setTimeout(() => {
+        resetHistory({
+          blocks,
+          rootOrder: childrenIds || [],
+          globalStyles: style,
+        });
+        
+        // Unlock undo/redo after a short delay
+        setTimeout(() => {
+          setUndoLocked(false);
+        }, 100);
+      }, 0);
+
       return { success: true, message: "Upload successful" };
     } catch (error) {
+      setUndoLocked(false);
       return { success: false, message: "Error uploading JSON", error };
     }
   };
 
   const handleSwappingV2 = (dragSrc: any, dropAreaId: string) => {
+        if (undoLocked) return;
     setBlocks((prvsBlockState) => {
       const insertOrDeleteBlock = (
         blockId: string,
@@ -518,6 +586,7 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
+        if (undoLocked) return;
     const blockID = generateUniqueId();
     const blockProps = { type: dragSrc.type as BlockType, id: blockID, parentId: undefined };
     const { defaultBlock, extraBlocks } = initializeBlock(blockProps as Block);
@@ -557,17 +626,19 @@ export const useBlocks = (): IBlockContext => {
     setSelectedBlockId(defaultBlock.id);
   };
 
-  const handleDropper = useCallback(
-    (dragSrc: any, dropAreaId: string) => {
-      if (dragSrc.id) {
-        handleSwappingV2(dragSrc, dropAreaId);
-      } else if (dragSrc.type) {
-        handleInsertion(dragSrc, dropAreaId);
-      }
-    },
-    [blocks, rootBlockOrder]
-  );
-
+const handleDropper = useCallback(
+  (dragSrc: any, dropAreaId: string) => {
+    // Add undoLocked check here
+    if (undoLocked) return;
+    
+    if (dragSrc.id) {
+      handleSwappingV2(dragSrc, dropAreaId);
+    } else if (dragSrc.type) {
+      handleInsertion(dragSrc, dropAreaId);
+    }
+  },
+  [blocks, rootBlockOrder, undoLocked] // Add undoLocked to dependencies
+);
   const blocksToJson = () => {
     const layout = {
       root: {

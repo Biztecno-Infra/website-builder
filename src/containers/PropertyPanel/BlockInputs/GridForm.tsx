@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback } from "react";
 import { BlockFormProps } from "../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidth";
@@ -13,42 +13,8 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    rows,
-    columns,
-    columnGap,
-    backgroundColor,
-    cellWidths,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    backgroundImage,
-    backgroundPosition,
-    backgroundRepeat,
-    backgroundSize,
-    responsive,
-    id: blockId,
-  } = selectedBlock as GridProps;
-
-  const [formData, setFormData] = useState({
-    rows,
-    columns,
-    columnGap,
-    backgroundColor,
-    backgroundImage,
-    cellWidths,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    backgroundPosition,
-    backgroundRepeat,
-    backgroundSize,
-    responsive,
-  });
+  // Use the optimized form hook
+  const { formData, handleChange, handleBatchChange } = useBlockForm(selectedBlock as GridProps, updateBlock);
 
   useEffect(() => {
     setFormData({

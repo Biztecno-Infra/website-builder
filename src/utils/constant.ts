@@ -14,7 +14,6 @@ export const defaultTextColor: string = "";
 const defaultPlaceholderImage: string =
   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRQNJgVPk88H7N4njkQXBGIBomyJly6uSngxQ&s";
 // const defaultPlaceholderImage : string = "https://t4.ftcdn.net/jpg/05/17/53/57/360_F_517535712_q7f9QC9X6TQxWi6xYZZbMmw5cnLMr279.jpg";
-
 export const defaultPadding = {
   top: 10,
   right: 10,
@@ -398,6 +397,109 @@ export const generateSpacerBlock = (block: SpacerProps) => {
         backgroundColor,
         alignment,
         customCss,
+      },
+    },
+  };
+};
+
+export const generateVideoBlock = (block: VideoProps) => {
+  const {
+    videoUrl,
+    youtubeVideoUrl,
+    thumbnailUrl,
+    width,
+    height,
+    alignment,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    id,
+    type,
+    parentId,
+    layerName,
+    ...rest
+  } = block || {};
+
+  const videoStyle = {
+    width,
+    height,
+    padding,
+    backgroundColor,
+    textAlign: alignment,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    ...rest,
+  };
+
+  return {
+    type: type,
+    layerName: layerName || "",
+    data: {
+      style: videoStyle,
+      props: {
+        videoUrl,
+        youtubeVideoUrl,
+        thumbnailUrl,
+      },
+    },
+  };
+};
+
+export const generateShapeBlockData = (block: ShapeProps) => {
+  const {
+    shape,
+    text,
+    color,
+    imageUrl,
+    width,
+    height,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    layerName,
+    type,
+    shapeColor,
+    alignment,
+    fontSize, 
+    verticalAlign = "center",
+  } = block as ShapeProps || {};
+
+  const style = {
+    width,
+    height,
+    padding,
+    backgroundColor,
+    borderWidth,
+    borderStyle,
+    borderColor,
+    borderRadius,
+    customCss,
+    shapeColor,
+    color,
+    alignment,
+     fontSize , verticalAlign
+  };
+
+  return {
+    type,
+    layerName: layerName || "",
+    data: {
+      style,
+      props: {
+        shape,
+        text,
+        imageUrl,
       },
     },
   };
