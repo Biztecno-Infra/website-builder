@@ -174,16 +174,18 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       backgroundColor: defaultBg,
       shape: "rectangle",
       text: "",
-      textColor: "#000000",
+      color: "#000000",
       imageUrl: "",
       width: 150,
-      height: 150,
+      height: 200,
       borderWidth: 0,
       borderStyle: "none",
       borderColor: "",
       borderRadius: 0,
       shapeColor: "#BEBEBE",
       alignment: "left",
+      verticalAlign: "middle",
+      fontSize: 16,
     };
   } else {
     return {};

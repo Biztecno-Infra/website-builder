@@ -89,6 +89,7 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
       borderWidth,
       borderRadius: borderRadius ? `${borderRadius}px` : undefined,
       display: "block",
+      maxWidth: "100%",
     };
 
     const wrapperStyle: React.CSSProperties = {

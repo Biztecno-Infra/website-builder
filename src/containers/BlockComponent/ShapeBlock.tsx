@@ -1,7 +1,7 @@
 import React, { useCallback } from "react";
 import styled, { useTheme } from "styled-components";
 import Droppable from "@containers/Droppable/Droppable";
-import { ShapeBlockProps, TextAlign } from "types";
+import { ShapeBlockProps } from "types";
 
 const ShapeWrapper = styled.div<{
   $width: string;
@@ -17,7 +17,7 @@ const ShapeWrapper = styled.div<{
   display: block;
   width: ${(p) => p.$width};
   height: ${(p) => p.$height};
-  max-width: 100%; 
+  max-width: 100%;
   border-radius: ${(p) => p.$borderRadius};
   overflow: hidden;
   box-sizing: border-box;
@@ -31,18 +31,26 @@ const ShapeWrapper = styled.div<{
   ${(p) => p.$customCss || ""};
 `;
 
+/* ✅ UPDATED: added font size + vertical alignment props */
 const ContentContainer = styled.div<{
   $textColor: string;
   $backgroundColor: string;
   $borderRadius: string;
   $width: string;
   $height: string;
+  $fontSize?: string | number;
+  $verticalAlign?: string;
 }>`
   width: ${(p) => p.$width};
   height: ${(p) => p.$height};
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: ${(p) =>
+    p.$verticalAlign === "top"
+      ? "flex-start"
+      : p.$verticalAlign === "bottom"
+      ? "flex-end"
+      : "center"};
   border-radius: ${(p) => p.$borderRadius};
   background-color: ${(p) => p.$backgroundColor};
   color: ${(p) => p.$textColor};
@@ -51,14 +59,18 @@ const ContentContainer = styled.div<{
   word-break: break-word;
   padding: 8px;
   box-sizing: border-box;
+  font-size: ${(p) =>
+    p.$fontSize ? (typeof p.$fontSize === "number" ? `${p.$fontSize}px` : p.$fontSize) : "inherit"};
 `;
 
+/* ✅ UPDATED: also respect verticalAlign + fontSize inside image overlay */
 const ImageContainer = styled.div<{
   $imageUrl: string;
   $borderRadius: string;
   $backgroundColor: string;
   $width: string;
   $height: string;
+  $verticalAlign?: string;
 }>`
   width: ${(p) => p.$width};
   height: ${(p) => p.$height};
@@ -66,13 +78,19 @@ const ImageContainer = styled.div<{
   border-radius: ${(p) => p.$borderRadius};
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: ${(p) =>
+    p.$verticalAlign === "top"
+      ? "flex-start"
+      : p.$verticalAlign === "bottom"
+      ? "flex-end"
+      : "center"};
   background-color: ${(p) => p.$backgroundColor};
   position: relative;
 `;
 
 const TextOverlay = styled.div<{
   $textColor: string;
+  $fontSize?: string | number;
 }>`
   color: ${(p) => p.$textColor};
   text-align: center;
@@ -81,6 +99,8 @@ const TextOverlay = styled.div<{
   position: relative;
   z-index: 2;
   width: 100%;
+  font-size: ${(p) =>
+    p.$fontSize ? (typeof p.$fontSize === "number" ? `${p.$fontSize}px` : p.$fontSize) : "inherit"};
 `;
 
 const ShapeBlock: React.FC<ShapeBlockProps> = ({
@@ -106,8 +126,9 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
     shapeColor,
     alignment,
     fontSize,
-    verticalAlign
+    verticalAlign,
   } = block;
+console.log("verticalAlign", verticalAlign);
   const theme = useTheme();
 
   const borderRadiusMap: Record<string, string> = {
@@ -135,8 +156,12 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
           $backgroundColor={shapeColor || "transparent"}
           $width={"100%"}
           $height={"100%"}
+          $verticalAlign={verticalAlign} // ✅ NEW
         >
-          {text && <TextOverlay $textColor={color}>{text}</TextOverlay>}
+          {text && (
+            <TextOverlay $textColor={color} $fontSize={fontSize} dangerouslySetInnerHTML={{ __html: text }} />
+            // </TextOverlay>
+          )}
         </ImageContainer>
       );
     } else {
@@ -147,14 +172,16 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
           $borderRadius={resolvedBorderRadius as string}
           $width={"100%"}
           $height={"100%"}
-        >
-          {text}
-        </ContentContainer>
+          $fontSize={fontSize}
+          $verticalAlign={verticalAlign} // ✅ NEW
+          dangerouslySetInnerHTML={{ __html: text || "" }}
+        />
+          // {text}
+        // </ContentContainer>
       );
     }
   };
 
-  // Circle / oval enforce equal width and height
   const isCircle = shape === "circle";
   const resolvedWidth =
     typeof width === "number"
@@ -171,13 +198,12 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
       accept="BLOCK"
       onDrop={handleDrop}
       style={{
-        outline: ` ${
+        outline:
           isSelected && block.parentId
             ? `1px dashed ${theme.colors.primary}`
-            : "none"
-        }`,
+            : "none",
         zIndex: isSelected ? 10 : "auto",
-        display: "flex", // ✅ Use flex to align shapes
+        display: "flex",
         justifyContent:
           alignment === "center"
             ? "center"

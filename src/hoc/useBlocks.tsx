@@ -679,9 +679,8 @@ const handleDropper = useCallback(
       const block = blocks[blockId];
       if (block) processBlock(block, blocks, layout, null);
     });
-    setUndoLocked(true);
     return layout;
-    
+
   };
 
   return {
@@ -704,6 +703,7 @@ const handleDropper = useCallback(
     redo,
     canUndo,
     canRedo,
-    undoLocked
+    undoLocked, 
+    setUndoLocked
   };
 };

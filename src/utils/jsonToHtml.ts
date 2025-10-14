@@ -331,10 +331,7 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     { perChanges: [], pxChanges: addPxToAttributes }
   );
 
-  const imageTagStyles = buildStyles(imageStyle, {
-    perChanges: addPxOrPerToAttributes,
-    pxChanges: addPxToAttributes,
-  });
+  
 
   const innerContainerWidth =
     (((typeof width === "string" ? parseInt(width.replace("%", "")) : width) ||
@@ -346,6 +343,12 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
 
   const { originalWidth, originalHeight, scaledWidth, scaledHeight } =
     await computeScaledDimensions(imageUrl, innerContainerWidth);
+
+    const imageTagStyles = buildStyles({maxWidth: `${originalWidth}px`, // Limit to original size
+    maxHeight: `${originalHeight}px`,...imageStyle}, {
+    perChanges: addPxOrPerToAttributes,
+    pxChanges: addPxToAttributes,
+  });
 
   const imageElement = `<img src="${imageUrl}" alt="${altText}" width="${scaledWidth}" height="${scaledHeight}" style="${imageTagStyles}; width:100%; height:auto; max-width:${originalWidth}px; max-height:${originalHeight}px;" />`;
 
@@ -602,14 +605,9 @@ function computeArcSize(borderRadius: string | number | undefined, widthPx: numb
 }
 
 // ---------- Updated convertShapeBlock function ----------
-// ---------- Updated convertShapeBlock function ----------
 async function convertShapeBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
-  const { 
-    shape, 
-    text, 
-    imageUrl
-  } = props as any;
+  const { shape, text, imageUrl } = props as any;
 
   const {
     width = "100",
@@ -623,8 +621,8 @@ async function convertShapeBlock(blockData: IBlockData) {
     customCss,
     shapeColor,
     alignment = "left",
-    msoBakeImageWithText, 
-    color = "#000000", 
+    msoBakeImageWithText,
+    color = "#000000",
     fontSize = 14,
     verticalAlign = "center",
   } = style || {};
@@ -635,105 +633,100 @@ async function convertShapeBlock(blockData: IBlockData) {
     circle: "50%",
     oval: "50%",
   };
-  
+
   let resolvedBorderRadius = borderRadius || borderRadiusMap[shape] || "0";
 
-  let resolvedWidthPx = typeof width === "number" ? width : parseInt(width.toString().replace("px", ""), 10) || 100;
-  let resolvedHeightPx = typeof height === "number" ? height : parseInt(height.toString().replace("px", ""), 10) || 150;
+  let resolvedWidthPx =
+    typeof width === "number"
+      ? width
+      : parseInt(width.toString().replace("px", ""), 10) || 100;
+  let resolvedHeightPx =
+    typeof height === "number"
+      ? height
+      : parseInt(height.toString().replace("px", ""), 10) || 150;
 
-  // Shape adjustments
+  // --- Shape specific constraints ---
   if (shape === "circle") {
     const side = Math.min(resolvedWidthPx, resolvedHeightPx);
     resolvedWidthPx = side;
     resolvedHeightPx = side;
     resolvedBorderRadius = "50%";
+  } else if (shape === "oval") {
+    resolvedBorderRadius = "50% / 50%";
   }
 
-  const finalWidthPx = resolvedWidthPx;
-  const finalHeightPx = resolvedHeightPx;
-
+  const finalBackgroundColor = shapeColor || backgroundColor;
   const alignmentStyles = {
     left: "margin-right:auto;margin-left:0;",
     center: "margin-left:auto;margin-right:auto;",
     right: "margin-left:auto;margin-right:0;",
   };
-  const alignmentStyle = alignmentStyles[alignment as keyof typeof alignmentStyles] || "";
+  const alignmentStyle =
+    alignmentStyles[alignment as keyof typeof alignmentStyles] || "";
 
-  const finalBackgroundColor = shapeColor || backgroundColor;
-
-  // Vertical alignment styles with better text containment
   const verticalAlignStyles = {
     top: "align-items:flex-start;padding-top:8px;",
     center: "align-items:center;",
-    bottom: "align-items:flex-end;padding-bottom:8px;"
+    bottom: "align-items:flex-end;padding-bottom:8px;",
   };
-  const verticalAlignStyle = verticalAlignStyles[verticalAlign as keyof typeof verticalAlignStyles] || verticalAlignStyles.center;
+  const verticalAlignStyle =
+    verticalAlignStyles[verticalAlign as keyof typeof verticalAlignStyles] ||
+    verticalAlignStyles.center;
 
-  const modernBorderRadius = shape === "oval" ? "50%" : resolvedBorderRadius;
+  // Text styling (safe across clients)
+  const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;text-align:center;color:${color};`;
 
-  // Text size styles with better overflow handling
-  const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;max-height:100%;overflow:hidden;`;
-
-  // --- Modern clients content ---
+  // ============================
+  // Modern HTML (non-MSO)
+  // ============================
   let nonMsoContent = "";
 
-  // Case 1: Image + Text → use background-image
   if (imageUrl && text) {
     nonMsoContent = `
-<div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
+<div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${modernBorderRadius};
+  border-radius:${resolvedBorderRadius};
   background:${finalBackgroundColor} url('${imageUrl}') center/cover no-repeat;
   overflow:hidden;${alignmentStyle}${customCss || ""}">
   <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;overflow:hidden;">
-    <div style="color:${color};${textSizeStyle}text-align:center;padding:6px;box-sizing:border-box;word-break:break-word;
-      max-width:90%;overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+    <div style="${textSizeStyle}padding:6px;max-width:90%;-webkit-line-clamp:3;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;">
       ${text}
     </div>
   </div>
 </div>`;
-  }
-  // Case 2: Image only → use <img>
-  else if (imageUrl) {
+  } else if (imageUrl) {
     nonMsoContent = `
-<div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
+<div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${modernBorderRadius};
+  border-radius:${resolvedBorderRadius};
   overflow:hidden;${alignmentStyle}${customCss || ""}">
-  <img src="${imageUrl}" alt="${text || "Shape image"}"
-       width="${finalWidthPx}" height="${finalHeightPx}"
-       style="width:100%;height:100%;object-fit:cover;border-radius:${modernBorderRadius};display:block;" />
+  <img src="${imageUrl}" alt="${text || "shape image"}"
+    width="${resolvedWidthPx}" height="${resolvedHeightPx}"
+    style="width:100%;height:100%;object-fit:cover;border-radius:${resolvedBorderRadius};display:block;" />
 </div>`;
-  }
-  // Case 3: No image → solid background
-  else {
-   const isCircle = shape === "circle";
-  const circlePadding = isCircle ? Math.round(finalHeightPx * 0.15) : 8; // 15% of height
-  const clipShape = isCircle
-    ? `border-radius:50%;clip-path:circle(50%);-webkit-clip-path:circle(50%);`
-    : `border-radius:${modernBorderRadius};`;
-
-  nonMsoContent = `
-<div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
+  } else {
+    const circlePadding = shape === "circle" ? Math.round(resolvedHeightPx * 0.15) : 8;
+    nonMsoContent = `
+<div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
   background:${finalBackgroundColor};
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  ${clipShape}
-  ${alignmentStyle}${customCss || ""}">
-  <div style="width:100%;height:100%;display:table;">
-    <div style="display:table-cell;vertical-align:${verticalAlign};text-align:center;padding:${circlePadding}px;">
-      <div style="color:${color};font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">
-        ${text || ""}
-      </div>
+  border-radius:${resolvedBorderRadius};
+  overflow:hidden;${alignmentStyle}${customCss || ""}">
+  <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;padding:${circlePadding}px;box-sizing:border-box;">
+    <div style="${textSizeStyle}max-width:90%;overflow:hidden;">
+      ${text || ""}
     </div>
   </div>
 </div>`;
   }
 
-  // --- Updated Outlook (MSO) VML with better text handling ---
+  // ============================
+  // Outlook (VML) version
+  // ============================
   const outlookContent = await appendOutlookForShape(
     nonMsoContent,
-    finalWidthPx,
-    finalWidthPx,
+    resolvedWidthPx,
+    resolvedWidthPx,
     {
       shape,
       imageUrl,
@@ -742,23 +735,24 @@ async function convertShapeBlock(blockData: IBlockData) {
       borderWidth,
       borderColor,
       borderRadius: resolvedBorderRadius,
-      heightPx: finalHeightPx,
+      heightPx: resolvedHeightPx,
       text,
       textColor: color,
       textSize: fontSize,
       verticalAlign,
       alignment,
       padding,
-      msoBakeImageWithText
+      msoBakeImageWithText,
     }
   );
 
-  // Wrap in container table
-  const containerTable = `
+  // ============================
+  // Final combined block
+  // ============================
+  return `
 <table width="100%" style="border-collapse:collapse;table-layout:fixed;">
   <tr>
-    <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${padding.bottom || 0}px ${padding.left || 0}px;
-      background-color:transparent;text-align:${alignment};">
+    <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${padding.bottom || 0}px ${padding.left || 0}px;text-align:${alignment};">
       ${outlookContent}
       <!--[if !mso]><!-->
       ${nonMsoContent}
@@ -766,11 +760,6 @@ async function convertShapeBlock(blockData: IBlockData) {
     </td>
   </tr>
 </table>`;
-
-  return appendOutlookSupport(containerTable, buildStyles(style, {
-    perChanges: addPxOrPerToAttributes,
-    pxChanges: allPxAttributes,
-  }));
 }
 
 // ---------- Updated VML builder with better text containment ----------
@@ -788,79 +777,59 @@ function buildVMLShape({
   textSize = 14,
   verticalAlign = "center",
   msoHasBakedText = false,
-}: {
-  shape: string;
-  widthPx: number;
-  heightPx: number;
-  imageUrl?: string;
-  backgroundColor?: string;
-  borderWidth?: number;
-  borderColor?: string;
-  borderRadius?: string | number;
-  text?: string;
-  textColor?: string;
-  textSize?: number;
-  verticalAlign?: string;
-  msoHasBakedText?: boolean;
-}) {
+}: any) {
+  // --- Basic setup ---
   const bw = borderWidth || 0;
   const bc = borderColor || "transparent";
-  const hasBorder = bw > 0;
-  const borderAttributes = hasBorder ? `strokeweight="${bw}px" strokecolor="${bc}"` : `stroked="false"`;
-
+  const borderAttrs =
+    bw > 0
+      ? `strokeweight="${bw}px" strokecolor="${bc}"`
+      : `stroked="false"`;
   const fillColor = backgroundColor || "#2F80ED";
+  const fillMarkup = `<v:fill ${
+    imageUrl ? `src="${imageUrl}" type="frame" aspect="atleast"` : ""
+  } color="${fillColor}" />`;
 
-  // choose tag and extra attributes
+  // --- Shape tag ---
   let tag = "rect";
   let extraAttr = "";
-  if (shape === "circle" || shape === "oval") tag = "oval";
-  if (shape === "rounded" || (borderRadius && borderRadius !== "0")) {
+  if (shape === "circle" || shape === "oval") {
+    tag = "oval";
+  } else if (shape === "rounded") {
     tag = "roundrect";
-    extraAttr = ` arcsize="${computeArcSize(borderRadius, widthPx)}"`;
+    extraAttr = `arcsize="${computeArcSize(borderRadius, widthPx)}"`;
   }
 
-  // image fill (if provided)
-  const fillMarkup = imageUrl ? `<v:fill src="${imageUrl}" type="frame" aspect="atleast" />` : "";
+  // --- Text alignment ---
+  const vAlignMap = { top: "top", center: "middle", bottom: "bottom" };
+  const vAlign = vAlignMap[verticalAlign as keyof typeof vAlignMap] || "middle";
+  const safeFontSize = Math.max(textSize, 10);
 
-  // Vertical alignment for Outlook VML
-  const verticalAlignMap = {
-    top: "top",
-    center: "middle", 
-    bottom: "bottom"
-  };
-  const vAlign = verticalAlignMap[verticalAlign as keyof typeof verticalAlignMap] || "middle";
-
-  // Text size handling for Outlook - ensure minimum font size for readability
-  const outlookTextSize = Math.max(textSize, 10); // Minimum 10px for Outlook readability
-
-  // Calculate max text width to prevent overflow (80% of container width)
-  const maxTextWidth = Math.floor(widthPx * 0.8);
-
-  // If MSO is given a baked image with text, don't produce a v:textbox overlay text
-  const includeTextbox = !!text && !msoHasBakedText;
-
-  // Updated v:textbox with better text containment for Outlook
-  const textboxInner = includeTextbox
-    ? `<v:textbox inset="0,0,0,0" style="mso-fit-shape-to-text:true;">
-         <div style="width:${widthPx}px;height:${heightPx}px;display:table;">
-           <div style="display:table-cell;vertical-align:${vAlign};text-align:center;padding:4px;">
-             <span style="font-family:Arial, sans-serif;font-size:${outlookTextSize}px;line-height:1.3;color:${textColor};word-break:break-word;max-width:${maxTextWidth}px;display:inline-block;overflow:hidden;">
-               ${text}
-             </span>
+  // --- Text inside shape ---
+  const textboxMarkup =
+    text && !msoHasBakedText
+      ? `<v:textbox inset="6pt,6pt,6pt,6pt" style="mso-fit-shape-to-text:false;">
+           <div style="display:table;width:100%;height:100%;">
+             <div style="display:table-cell;vertical-align:${vAlign};text-align:center;">
+               <div style="color:${textColor};font-family:Arial, sans-serif;font-size:${safeFontSize}px;line-height:1.3;word-wrap:break-word;">
+                 ${text}
+               </div>
+             </div>
            </div>
-         </div>
-       </v:textbox>`
-    : `<v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>`;
+         </v:textbox>`
+      : `<v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>`;
 
-  const fillAttr = imageUrl ? 'fill="true"' : `fill="true" fillcolor="${fillColor}"`;
-
+  // --- Final shape markup ---
   return `
-  <v:${tag} xmlns:v="urn:schemas-microsoft-com:vml"
-    style="width:${widthPx}px;height:${heightPx}px;position:relative;"
-    ${borderAttributes} ${fillAttr}${extraAttr}>
-    ${fillMarkup}
-    ${textboxInner}
-  </v:${tag}>`;
+<v:${tag} xmlns:v="urn:schemas-microsoft-com:vml"
+  style="width:${widthPx}px;height:${heightPx}px;
+         mso-position-horizontal:center;
+         mso-position-vertical:center;"
+  ${borderAttrs}
+  fill="true" fillcolor="${fillColor}"${extraAttr}>
+  ${fillMarkup}
+  ${textboxMarkup}
+</v:${tag}>`;
 }
 
 // ---------- Updated appendOutlookForShape ----------
@@ -880,9 +849,9 @@ async function appendOutlookForShape(
     text?: string;
     textColor?: string;
     textSize?: number;
-    verticalAlign?: string;
-    alignment?: string;
-    padding?: any;
+    verticalAlign?: "top" | "middle" | "bottom";
+    alignment?: "left" | "center" | "right";
+    padding?: { top?: number; right?: number; bottom?: number; left?: number };
     msoBakeImageWithText?: string;
   }
 ) {
@@ -901,22 +870,26 @@ async function appendOutlookForShape(
     text: opts.text,
     textColor: opts.textColor,
     textSize: opts.textSize,
-    verticalAlign: opts.verticalAlign,
     msoHasBakedText: Boolean(opts.msoBakeImageWithText),
   });
 
-  const outlookAlignment = opts.alignment === "center" ? "center" : opts.alignment === "right" ? "right" : "left";
+  const pad = opts.padding || {};
+  const align = opts.alignment || "left";
+  const valign = opts.verticalAlign || "middle";
 
   return `<!--[if mso]>
-  <table align="${outlookAlignment}" border="0" cellpadding="0" cellspacing="0" style="display:inline-block;width:${widthPx}px;height:${heightPx}px;">
+  <table align="${align}" border="0" cellpadding="0" cellspacing="0"
+         style="width:${widthPx}px;height:${heightPx}px;">
     <tr>
-      <td style="padding:${opts.padding?.top || 0}px ${opts.padding?.right || 0}px ${opts.padding?.bottom || 0}px ${opts.padding?.left || 0}px;vertical-align:middle;">
+      <td valign="${valign}"
+          style="padding:${pad.top || 0}px ${pad.right || 0}px ${pad.bottom || 0}px ${pad.left || 0}px;">
         ${vml}
       </td>
     </tr>
   </table>
   <![endif]-->`;
 }
+
 
 // Enhanced Video Block HTML Conversion with centered play button
 export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {

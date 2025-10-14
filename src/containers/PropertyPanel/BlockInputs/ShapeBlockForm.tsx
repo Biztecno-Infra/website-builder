@@ -105,7 +105,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "100%", marginBottom: "1rem" }}
           initialValue={formData.shape}
         />
-        {/* <BasePropertyWrapper
+        <BasePropertyWrapper
           name="Text Properties"
           subLabel
           containerStyle={{
@@ -151,7 +151,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             onChange={handleChange}
             containerStyle={{ width: "60%" }}
           />
-        </BasePropertyWrapper> */}
+        </BasePropertyWrapper>
 
         <CustomInput
           name="imageUrl"
@@ -182,9 +182,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             name="height"
             placeholder="Height (px)"
             value={
-              formData.shape === "circle" || formData.shape === "oval"
-                ? "" // show empty when disabled
-                : formData.height || ""
+            formData.height !== undefined ? formData.height : ""
             }
             onChange={(name, value) => {
               if (value === "") {
