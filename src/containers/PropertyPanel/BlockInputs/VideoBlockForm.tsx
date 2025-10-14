@@ -17,24 +17,6 @@ const Divider = styled.div`
 `;
 
 export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =>{
-  const {
-    videoUrl,
-    youtubeVideoUrl,
-    thumbnailUrl,
-    height,
-    width,
-    layerName,
-    id,
-    backgroundColor,
-    padding,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    alignment,
-    navigateToUrl,
-  } = selectedBlock as VideoProps;
 
   // Use the optimized form hook
   const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
@@ -108,20 +90,21 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
             }}
             containerStyle={{
               width: "45%",
-              marginLeft: "1rem",
+              marginRight: "1rem",
               padding: 2,
             }}
             inputStyle={{ width: "35%" }}
             isPercentageValidation
           />
-        </FlexRow>
-
-        {/* Alignment */}
-        <AlignmentSelector
+          <AlignmentSelector
           onChange={handleChange}
           value={formData.alignment}
           containerStyle={{ width: "60%" }}
         />
+        </FlexRow>
+
+        {/* Alignment */}
+        
       </BasePropertyWrapper>
 
       <Divider />

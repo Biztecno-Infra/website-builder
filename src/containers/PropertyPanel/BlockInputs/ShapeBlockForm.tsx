@@ -105,55 +105,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "100%", marginBottom: "1rem" }}
           initialValue={formData.shape}
         />
-        <BasePropertyWrapper
-          name="Text Properties"
-          subLabel
-          containerStyle={{
-            padding: 0,
-            width: "95%",
-            border: "none",
-            marginTop: "0.5rem",
-          }}
-        >
-          <RichTextEditor
-            handleChange={handleChange}
-            textContent={formData.text || ""}
-
-            // <CustomInput
-            // name="text"
-            // placeholder="Enter text"
-            // value={formData.text || ""}
-            // onChange={(name, value) => handleChange("text", value)}
-            // containerStyle={{ marginBottom: "1rem" }}
-          />
-          <FlexRow>
-            <ReactColorPicker
-              onColorChange={(field, value) => handleChange("color", value)}
-              selectedColor={formData.color || ""}
-              containerStyle={{ width: "65%" }}
-            />
-            <CustomInput
-              name="fontSize"
-              placeholder="Enter font size"
-              value={formData.fontSize}
-              onChange={(name, value) => handleChange("fontSize", value)}
-              containerStyle={{
-                width: "30%",
-              }}
-              inputStyle={{ width: "40%" }}
-              unitsLabel="px"
-              type="number"
-            />
-          </FlexRow>
-
-          <VerticalAlignment
-            value={formData.verticalAlign}
-            onChange={handleChange}
-            containerStyle={{ width: "60%" }}
-          />
-        </BasePropertyWrapper>
-
-        <CustomInput
+                <CustomInput
           name="imageUrl"
           placeholder="Enter Image URL"
           value={formData.imageUrl || ""}
@@ -215,6 +167,48 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           selectedColor={formData.shapeColor || ""}
           containerStyle={{ width: "100%", marginBottom: 10 }}
         />
+        <BasePropertyWrapper
+          name="Text Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <RichTextEditor
+            handleChange={handleChange}
+            textContent={formData.text || ""}
+          />
+          <FlexRow style={{ marginTop: "0.5rem", alignItems: "center" }}>
+            <ReactColorPicker
+              onColorChange={(field, value) => handleChange("color", value)}
+              selectedColor={formData.color || ""}
+              containerStyle={{ width: "65%" }}
+            />
+            <CustomInput
+              name="fontSize"
+              placeholder="Enter font size"
+              value={formData.fontSize}
+              onChange={(name, value) => handleChange("fontSize", value)}
+              containerStyle={{
+                width: "30%",
+              }}
+              inputStyle={{ width: "40%" }}
+              unitsLabel="px"
+              type="number"
+            />
+          </FlexRow>
+
+          <VerticalAlignment
+            value={formData.verticalAlign}
+            onChange={handleChange}
+            containerStyle={{ width: "60%" }}
+          />
+        </BasePropertyWrapper>
+
+
       </BasePropertyWrapper>
       <Divider />
       <BasePropertyWrapper name="Edit Container">
