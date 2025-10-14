@@ -176,13 +176,13 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       text: "",
       textColor: "#000000",
       imageUrl: "",
-      width: 100,
+      width: 150,
       height: 150,
       borderWidth: 0,
       borderStyle: "none",
       borderColor: "",
       borderRadius: 0,
-      shapeColor: "#E0B7F8",
+      shapeColor: "#BEBEBE",
       alignment: "left",
     };
   } else {

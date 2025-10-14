@@ -44,7 +44,7 @@ export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps
 
   useImperativeHandle(ref, () => ({
     getHTML: async (jsonData) => await convertJsonToHtml(jsonData),
-    updateJSON: (newJson,) => handleJsonUpload(newJson),
+    updateJSON: (newJson) => handleJsonUpload(newJson),
     getJSON: () => blocksToJson(blocks, rootBlockOrder),
     getScreenShot : () => captureScreenshot(), 
     importTemplate: (templates: any[]) => handleImportTemplates(templates),

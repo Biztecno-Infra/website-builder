@@ -624,8 +624,8 @@ async function convertShapeBlock(blockData: IBlockData) {
     shapeColor,
     alignment = "left",
     msoBakeImageWithText, 
-    textColor = "#000000", 
-    textSize = 14,
+    color = "#000000", 
+    fontSize = 14,
     verticalAlign = "center",
   } = style || {};
 
@@ -672,7 +672,7 @@ async function convertShapeBlock(blockData: IBlockData) {
   const modernBorderRadius = shape === "oval" ? "50%" : resolvedBorderRadius;
 
   // Text size styles with better overflow handling
-  const textSizeStyle = `font-size:${textSize}px;line-height:1.3;max-height:100%;overflow:hidden;`;
+  const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;max-height:100%;overflow:hidden;`;
 
   // --- Modern clients content ---
   let nonMsoContent = "";
@@ -686,7 +686,7 @@ async function convertShapeBlock(blockData: IBlockData) {
   background:${finalBackgroundColor} url('${imageUrl}') center/cover no-repeat;
   overflow:hidden;${alignmentStyle}${customCss || ""}">
   <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;overflow:hidden;">
-    <div style="color:${textColor};${textSizeStyle}text-align:center;padding:6px;box-sizing:border-box;word-break:break-word;
+    <div style="color:${color};${textSizeStyle}text-align:center;padding:6px;box-sizing:border-box;word-break:break-word;
       max-width:90%;overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
       ${text}
     </div>
@@ -707,16 +707,23 @@ async function convertShapeBlock(blockData: IBlockData) {
   }
   // Case 3: No image → solid background
   else {
-    nonMsoContent = `
+   const isCircle = shape === "circle";
+  const circlePadding = isCircle ? Math.round(finalHeightPx * 0.15) : 8; // 15% of height
+  const clipShape = isCircle
+    ? `border-radius:50%;clip-path:circle(50%);-webkit-clip-path:circle(50%);`
+    : `border-radius:${modernBorderRadius};`;
+
+  nonMsoContent = `
 <div style="display:inline-block;width:${finalWidthPx}px;height:${finalHeightPx}px;
   background:${finalBackgroundColor};
   border:${borderWidth}px ${borderStyle} ${borderColor};
-  border-radius:${modernBorderRadius};
+  ${clipShape}
   ${alignmentStyle}${customCss || ""}">
-  <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;overflow:hidden;">
-    <div style="color:${textColor};${textSizeStyle}text-align:center;padding:6px;box-sizing:border-box;word-break:break-word;
-      overflow-wrap:break-word;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;">
-      ${text || ""}
+  <div style="width:100%;height:100%;display:table;">
+    <div style="display:table-cell;vertical-align:${verticalAlign};text-align:center;padding:${circlePadding}px;">
+      <div style="color:${color};font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;">
+        ${text || ""}
+      </div>
     </div>
   </div>
 </div>`;
@@ -737,8 +744,8 @@ async function convertShapeBlock(blockData: IBlockData) {
       borderRadius: resolvedBorderRadius,
       heightPx: finalHeightPx,
       text,
-      textColor,
-      textSize,
+      textColor: color,
+      textSize: fontSize,
       verticalAlign,
       alignment,
       padding,

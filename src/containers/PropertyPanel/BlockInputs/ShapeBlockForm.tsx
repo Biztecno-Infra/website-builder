@@ -1,6 +1,4 @@
-// ShapeBlockForm.tsx
-
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   CustomInput,
   Dropdown,
@@ -8,7 +6,11 @@ import {
   TextArea,
 } from "@components/lib";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
+import {
+  AlignmentSelector,
+  PaddingInput,
+  VerticalAlignment,
+} from "@components/StyleComponents";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { FormWrapper, FlexRow } from "../style";
 import styled from "styled-components";
@@ -16,6 +18,7 @@ import { ShapeProps } from "types";
 import { BlockFormProps } from "../types";
 import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockForm } from "../useBlockForm";
+import RichTextEditor from "./RichTextEditor";
 
 const Divider = styled.div`
   width: 100%;
@@ -34,63 +37,53 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  const {
-    shape,
-    text,
-    width,
-    height,
-    backgroundColor,
-    layerName,
-    padding,
-    borderWidth,
-    borderStyle,
-    borderColor,
-    borderRadius,
-    customCss,
-    id: blockId,
-    imageUrl,
-    alignment,
-    shapeColor,
-  } = selectedBlock as ShapeProps;
-
   // Use the optimized form hook
-  const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock, updateBlock);
+  const { formData, handleChange, handleImmediateChange } = useBlockForm(
+    selectedBlock as ShapeProps,
+    updateBlock
+  );
 
   // Special handler for shape changes that affect dimensions
-  const handleShapeChange = useCallback((name: string, value: string | number) => {
-    const shapeValue = typeof value === "string" ? value : String(value);
-    handleChange("shape", shapeValue);
-    
-    // Reset or recalc dimensions when shape changes
-    if (shapeValue === "circle") {
-      const width = formData.width || 100;
-      handleImmediateChange("height", width);
-    } else if (shapeValue === "oval") {
-      const width = formData.width || 100;
-      handleImmediateChange("height", Math.floor(width / 2));
-    } else {
-      // For rectangle/rounded, restore normal manual editing
-      handleImmediateChange("height", formData.height || 100);
-    }
-  }, [handleChange, handleImmediateChange, formData.width, formData.height]);
+  const handleShapeChange = useCallback(
+    (name: string, value: string | number) => {
+      const shapeValue = typeof value === "string" ? value : String(value);
+      handleChange("shape", shapeValue);
+
+      // Reset or recalc dimensions when shape changes
+      if (shapeValue === "circle") {
+        const width = formData.width || 100;
+        handleImmediateChange("height", width);
+      } else if (shapeValue === "oval") {
+        const width = formData.width || 100;
+        handleImmediateChange("height", Math.floor(width / 2));
+      } else {
+        // For rectangle/rounded, restore normal manual editing
+        handleImmediateChange("height", 200);
+      }
+    },
+    [handleChange, handleImmediateChange, formData.width, formData.height]
+  );
 
   // Special handler for width changes that affect height for circle/oval
-  const handleWidthChange = useCallback((name: string, value: string) => {
-    if (value === "") {
-      handleChange("width", "");
-      return;
-    }
+  const handleWidthChange = useCallback(
+    (name: string, value: string) => {
+      if (value === "") {
+        handleChange("width", "");
+        return;
+      }
 
-    const num = Math.max(1, Number(value) || 0);
-    handleChange("width", num);
+      const num = Math.max(1, Number(value) || 0);
+      handleChange("width", num);
 
-    // Auto-sync height for circle and oval
-    if (formData.shape === "circle") {
-      handleImmediateChange("height", num);
-    } else if (formData.shape === "oval") {
-      handleImmediateChange("height", Math.floor(num / 2));
-    }
-  }, [handleChange, handleImmediateChange, formData.shape]);
+      // Auto-sync height for circle and oval
+      if (formData.shape === "circle") {
+        handleImmediateChange("height", num);
+      } else if (formData.shape === "oval") {
+        handleImmediateChange("height", Math.floor(num / 2));
+      }
+    },
+    [handleChange, handleImmediateChange, formData.shape]
+  );
 
   return (
     <FormWrapper>
@@ -112,14 +105,54 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "100%", marginBottom: "1rem" }}
           initialValue={formData.shape}
         />
+        {/* <BasePropertyWrapper
+          name="Text Properties"
+          subLabel
+          containerStyle={{
+            padding: 0,
+            width: "95%",
+            border: "none",
+            marginTop: "0.5rem",
+          }}
+        >
+          <RichTextEditor
+            handleChange={handleChange}
+            textContent={formData.text || ""}
 
-        <CustomInput
-          name="text"
-          placeholder="Enter text"
-          value={formData.text || ""}
-          onChange={(name, value) => handleChange("text", value)}
-          containerStyle={{ marginBottom: "1rem" }}
-        />
+            // <CustomInput
+            // name="text"
+            // placeholder="Enter text"
+            // value={formData.text || ""}
+            // onChange={(name, value) => handleChange("text", value)}
+            // containerStyle={{ marginBottom: "1rem" }}
+          />
+          <FlexRow>
+            <ReactColorPicker
+              onColorChange={(field, value) => handleChange("color", value)}
+              selectedColor={formData.color || ""}
+              containerStyle={{ width: "65%" }}
+            />
+            <CustomInput
+              name="fontSize"
+              placeholder="Enter font size"
+              value={formData.fontSize}
+              onChange={(name, value) => handleChange("fontSize", value)}
+              containerStyle={{
+                width: "30%",
+              }}
+              inputStyle={{ width: "40%" }}
+              unitsLabel="px"
+              type="number"
+            />
+          </FlexRow>
+
+          <VerticalAlignment
+            value={formData.verticalAlign}
+            onChange={handleChange}
+            containerStyle={{ width: "60%" }}
+          />
+        </BasePropertyWrapper> */}
+
         <CustomInput
           name="imageUrl"
           placeholder="Enter Image URL"
@@ -170,6 +203,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
               width: "45%",
               padding: 2,
             }}
+            type="number"
             disabled={formData.shape === "circle" || formData.shape === "oval"}
           />
         </FlexRow>
@@ -188,7 +222,9 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
@@ -237,5 +273,5 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
       </BasePropertyWrapper>
     </FormWrapper>
   );
-};  
+};
 export default React.memo(ShapeBlockForm);
