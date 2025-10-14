@@ -128,7 +128,6 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
     fontSize,
     verticalAlign,
   } = block;
-console.log("verticalAlign", verticalAlign);
   const theme = useTheme();
 
   const borderRadiusMap: Record<string, string> = {

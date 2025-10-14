@@ -106,7 +106,6 @@ export async function convertToHtml(
   rootData: any,
   cellWidthInPx: number
 ) {
-  console.log("Converting block to HTML:", blockData);
   switch (blockData.type) {
     case BlockType.TEXT:
       return convertTextBlock(blockData);

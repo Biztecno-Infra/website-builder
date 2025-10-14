@@ -197,7 +197,6 @@ export const useBlocks = (): IBlockContext => {
     [rootBlockOrder, blocks, globalStyles, resetHistory]
   );
 
-  console.log(undoLocked)
   const updateGlobalStyles = (updatedStyles: any) => {
     if (undoLocked) return;
     setGlobalStyles(updatedStyles);
