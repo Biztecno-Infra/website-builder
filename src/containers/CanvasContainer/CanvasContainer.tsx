@@ -7,6 +7,7 @@ import styled, { useTheme } from "styled-components";
 import type { Block, Padding } from "types";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { ScreenViews } from "enum";
+import DraggableBlock from "./DraggableBlock";
 
 interface TableWrapperProps {
   $canvasColor: string;
@@ -73,13 +74,10 @@ const Canvas = () => {
     globalStyles,
     selectedView,
     canvasRef,
-    blocks,
+    handleBlockSwap,
   } = useBlockHook();
 
   const theme = useTheme();
-  const blockRefs = useRef<{ [key: string]: React.RefObject<HTMLDivElement> }>(
-    {}
-  );
 
   const handleDrop = useCallback(
     (item: { type: string; name: string; id: number }) => {
@@ -91,41 +89,43 @@ const Canvas = () => {
     [handleDropper]
   );
 
-  // Function to render each block and assign a ref
-  const renderBlock = useCallback(
-    (blockId: string, index: number) => {
-      // Assign a ref to each block only if it doesn't exist already
-      if (!blockRefs.current[blockId]) {
-        blockRefs.current[blockId] = React.createRef<HTMLDivElement | any>();
-      }
-      const blockRef = blockRefs.current[blockId];
 
+  // Function to render each block and assign a ref
+ const renderBlock = useCallback(
+    (blockId: string) => {
       return (
-        <BlockWrapper
+        <Droppable
           key={blockId}
-          id={`block-${blockId}`}
-          $isSelected={blockId === (selectedBlock as Block)?.id}
-          theme={theme}
-          ref={blockRef} // Assign the ref here
+          accept="CANVAS_BLOCK"
+          onDrop={(item) => handleBlockSwap(item, blockId)}
+          style={{ margin: "4px 0" }}
         >
-          <BlockComponent blockId={blockId} />
-          {blockId === (selectedBlock as Block)?.id && (
-            <TrashIconWrapper
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteBlock(blockId);
-                setSelectedBlock(null);
-              }}
+          <DraggableBlock blockId={blockId}>
+            <BlockWrapper
+              id={`block-${blockId}`}
+              $isSelected={blockId === (selectedBlock as Block)?.id}
+              theme={theme}
             >
-              <DeleteWrapper>
-                <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
-              </DeleteWrapper>
-            </TrashIconWrapper>
-          )}
-        </BlockWrapper>
+              <BlockComponent blockId={blockId} />
+              {blockId === (selectedBlock as Block)?.id && (
+                <TrashIconWrapper
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteBlock(blockId);
+                    setSelectedBlock(null);
+                  }}
+                >
+                  <DeleteWrapper>
+                    <SvgIcon name={CUSTOM_SVG_ICON.DeleteBlock} />
+                  </DeleteWrapper>
+                </TrashIconWrapper>
+              )}
+            </BlockWrapper>
+          </DraggableBlock>
+        </Droppable>
       );
     },
-    [selectedBlock, theme, onDeleteBlock, setSelectedBlock]
+    [selectedBlock, theme, onDeleteBlock, setSelectedBlock, handleBlockSwap]
   );
 
   useEffect(() => {

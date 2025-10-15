@@ -51,7 +51,7 @@ const generateBlockToJsonData = (block: Block) => {
       blockData = generateSpacerBlock(block as SpacerProps);
       break;
     case BlockType.VIDEO:
-      blockData = generateVideoBlock(block as VideoProps)
+      blockData = generateVideoBlock(block as VideoProps);
       break;
     case BlockType.SHAPE:
       blockData = generateShapeBlockData(block as ShapeProps);
@@ -69,7 +69,6 @@ export const processBlock = (
   layout: any,
   parentId: string | null
 ) => {
-
   let blockData = generateBlockToJsonData(block);
   if (blockData) {
     layout[block.id] = blockData;
@@ -151,11 +150,9 @@ export const jsonToBlocks = (
         imageprops.height = height;
         imageprops.backgroundColor = imageBackgroundColor;
         imageprops.borderRadius = borderRadius;
-        if (borderWidth && borderStyle && borderColor) {
-          imageprops.borderWidth = borderWidth;
-          imageprops.borderColor = borderColor;
-          imageprops.borderStyle = borderStyle;
-        }
+        imageprops.borderWidth = borderWidth;
+        imageprops.borderColor = borderColor;
+        imageprops.borderStyle = borderStyle;
         Object.assign(imageprops, imageStyleRest);
         break;
 
@@ -178,23 +175,20 @@ export const jsonToBlocks = (
         buttonprops.alignment = buttonTextAlign;
         buttonprops.backgroundColor = buttonBackgroundColor;
         buttonprops.borderRadius = buttonBorderRadius;
-          buttonprops.borderWidth = buttonBorderWidth;
-          buttonprops.borderColor = buttonBorderColor;
-          buttonprops.borderStyle = buttonBorderStyle;
+        buttonprops.borderWidth = buttonBorderWidth;
+        buttonprops.borderColor = buttonBorderColor;
+        buttonprops.borderStyle = buttonBorderStyle;
         Object.assign(buttonprops, buttonStyleRest);
         break;
 
       case BlockType.GRID:
         const gridProps = block as GridProps;
-        const {
-          columnGap = 0,
-          ...gridStyleRest
-        } = layoutBlock.data.style;
+        const { columnGap = 0, ...gridStyleRest } = layoutBlock.data.style;
         gridProps.rows = layoutBlock.data.props.rows;
         gridProps.columns = layoutBlock.data.props.columns;
         gridProps.columnGap = columnGap;
         gridProps.cellWidths = layoutBlock.data.props.cellWidths;
-        gridProps.customCss = layoutBlock.data.props.customCss
+        gridProps.customCss = layoutBlock.data.props.customCss;
         gridProps.responsive = layoutBlock.data.props.responsive;
         Object.assign(gridProps, gridStyleRest);
         break;
@@ -220,7 +214,7 @@ export const jsonToBlocks = (
           backgroundColor: dividerbg,
           dividerColor,
           thickness,
-          customCss
+          customCss,
         } = layoutBlock.data.style || {};
         dividerProps.alignment = alignment;
         dividerProps.backgroundColor = dividerbg;
@@ -233,7 +227,7 @@ export const jsonToBlocks = (
         const spacerProps = block as SpacerProps;
         spacerProps.backgroundColor = layoutBlock.data.style.backgroundColor;
         spacerProps.padding = layoutBlock.data.style.padding;
-        spacerProps.customCss = layoutBlock.data.style.customCss
+        spacerProps.customCss = layoutBlock.data.style.customCss;
         break;
       case BlockType.SHAPE:
         const shape = block as any;
@@ -287,11 +281,9 @@ export const jsonToBlocks = (
         videoProps.backgroundColor = videoBackgroundColor;
         videoProps.width = videoWidth;
         videoProps.height = videoHeight;
-        if (videoBorderWidth && videoBorderStyle && videoBorderColor) {
-          videoProps.borderWidth = videoBorderWidth;
-          videoProps.borderColor = videoBorderColor;
-          videoProps.borderStyle = videoBorderStyle;
-        }
+        videoProps.borderWidth = videoBorderWidth;
+        videoProps.borderColor = videoBorderColor;
+        videoProps.borderStyle = videoBorderStyle;
         videoProps.borderRadius = videoBorderRadius;
         videoProps.padding = videoPadding;
         Object.assign(videoProps, videoStyleRest);
@@ -320,8 +312,10 @@ export const jsonToBlocks = (
   return { blocks, rootBlock: emailLayoutJson.root };
 };
 
-export const convertStringtoStyle = (cssString: string): React.CSSProperties => {
-  const styleObject: Record<string, string | number> = {};  
+export const convertStringtoStyle = (
+  cssString: string
+): React.CSSProperties => {
+  const styleObject: Record<string, string | number> = {};
 
   // Check if the input string is valid
   if (typeof cssString !== "string" || !cssString.trim()) {
@@ -330,7 +324,9 @@ export const convertStringtoStyle = (cssString: string): React.CSSProperties => 
   }
 
   // Clean the CSS string by removing excessive whitespaces and trimming
-  const cleanedCssString = cssString.replace(/(\r\n|\n|\r|\s{2,})+/g, " ").trim();
+  const cleanedCssString = cssString
+    .replace(/(\r\n|\n|\r|\s{2,})+/g, " ")
+    .trim();
 
   // Helper function to convert hyphenated CSS property names to camelCase
   const toCamelCase = (str: string) => {
@@ -360,14 +356,13 @@ export const convertStringtoStyle = (cssString: string): React.CSSProperties => 
     // Only add valid key-value pairs to the styleObject
     if (key && value) {
       // Convert hyphenated CSS property names to camelCase for React
-      const camelCaseKey  = toCamelCase(key);
+      const camelCaseKey = toCamelCase(key);
       styleObject[camelCaseKey] = value;
     }
   });
 
   return styleObject;
 };
-
 
 // const handleImportTemplates = (templates: any[]) => {
 //   try {
@@ -407,7 +402,6 @@ export const convertStringtoStyle = (cssString: string): React.CSSProperties => 
 //     return { success: false, message: "Error importing templates", error };
 //   }
 // };
-
 
 export const defaultTheme: Theme = {
   colors: {

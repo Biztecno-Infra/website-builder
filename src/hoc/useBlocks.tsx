@@ -652,7 +652,24 @@ export const useBlocks = (): IBlockContext => {
 
     setSelectedBlockId(defaultBlock.id);
   };
+const handleBlockSwap = useCallback(
+    (dragItem: { id: string }, dropTargetId: string) => {
+      if (dragItem.id === dropTargetId) return; // Don't swap with self
+      
+      setRootBlockOrder((prevOrder) => {
+        const dragIndex = prevOrder.findIndex(id => id === dragItem.id);
+        const dropIndex = prevOrder.findIndex(id => id === dropTargetId);
+        
+        if (dragIndex === -1 || dropIndex === -1) return prevOrder;
 
+        const newOrder = [...prevOrder];
+        // Swap positions
+        [newOrder[dragIndex], newOrder[dropIndex]] = [newOrder[dropIndex], newOrder[dragIndex]];
+        return newOrder;
+      });
+    },
+    []
+  );
 const handleDropper = useCallback(
   (dragSrc: any, dropAreaId: string) => {
     // Add undoLocked check here
@@ -703,6 +720,7 @@ const handleDropper = useCallback(
     canUndo,
     canRedo,
     undoLocked, 
-    setUndoLocked
+    setUndoLocked, 
+    handleBlockSwap
   };
 };

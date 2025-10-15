@@ -292,6 +292,7 @@ export interface IBlockContext {
   canRedo: boolean;
   undoLocked: boolean;
   setUndoLocked: (locked: boolean) => void;
+  handleBlockSwap: (sourceId: any, targetId: any) => void;
   // captureScreenshot: any
 }
 export interface BlockHookRef {
