@@ -247,6 +247,22 @@ const Sections: React.FC = () => {
         />
       ),
     },
+    {
+      type: BlockType.VDivider,
+      name: "Add Vertical Divider",
+      svgProps: {
+        name: CUSTOM_SVG_ICON.AddVDivider,
+        color: colors.primary,
+        size: SizeEnum.Medium,
+        circular: true,
+      },
+      icon: (isHovered: any, colors: any) => (
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DragIcon}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+      ),
+    },
   ];
 
   return (

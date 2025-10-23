@@ -50,6 +50,7 @@ const getBlockTypeIcons = (
   [BlockType.EMPTY]: <SvgIcon name={CUSTOM_SVG_ICON.Plus} />,
   [BlockType.SHAPE]: <SvgIcon name={CUSTOM_SVG_ICON.AddShape} />,
   [BlockType.VIDEO]: <SvgIcon name={CUSTOM_SVG_ICON.AddVideo} />,
+  [BlockType.VDivider]: <SvgIcon name={CUSTOM_SVG_ICON.AddVDivider} />,
   [BlockType.EMAILLAYOUT]: null,
 });
 function isDescendant(

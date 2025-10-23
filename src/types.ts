@@ -37,6 +37,18 @@ export interface DividerProps extends BaseBlock {
   };
 }
 
+export interface VDividerProps extends BaseBlock {
+  width: number;
+  height: number;
+  dividerColor: string;
+  padding: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+}
+
 export interface SpacerProps extends BaseBlock {
   padding: {
     top: number;
@@ -196,6 +208,7 @@ export interface ShapeProps extends BaseBlock {
   };
   customCss?: any;
   color?: string;
+  textAlign?: TextAlign;
   verticalAlign?: "top" | "center" | "bottom";
   fontSize?: number;
 }
@@ -343,6 +356,10 @@ export interface ButtonBlockProps extends BaseBlockProps {
 
 export interface DividerBlockProps extends BaseBlockProps {
   block: DividerProps;
+}
+
+export interface VDividerBlockProps extends BaseBlockProps {
+  block: VDividerProps;
 }
 
 export interface SpacerBlockProps extends BaseBlockProps {

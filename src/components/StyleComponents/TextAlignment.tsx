@@ -36,22 +36,31 @@ const AlignmentButton = styled.button<{ $active: boolean }>`
 interface AlignmentSelectorProps {
   value: string;
   onChange: (field: string, value: string) => void;
+  name?: string; // 👈 add this
   containerStyle?: React.CSSProperties;
 }
 
-export const AlignmentSelector: React.FC<AlignmentSelectorProps> = ({ value, onChange, containerStyle }) => {
+export const AlignmentSelector: React.FC<AlignmentSelectorProps> = ({
+  value,
+  onChange,
+  name,
+  containerStyle,
+}) => {
+  // choose which key to send in onChange
+  const fieldKey = name || "alignment"; // 👈 fallback to "alignment"
+
   return (
     <Container style={containerStyle}>
-      <AlignmentButton $active={value === "left"} onClick={() => onChange("alignment", "left")}>
+      <AlignmentButton $active={value === "left"} onClick={() => onChange(fieldKey, "left")}>
         <SvgIcon name={CUSTOM_SVG_ICON.LeftAlign} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton $active={value === "center"} onClick={() => onChange("alignment", "center")}>
+      <AlignmentButton $active={value === "center"} onClick={() => onChange(fieldKey, "center")}>
         <SvgIcon name={CUSTOM_SVG_ICON.CenterAlign} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton $active={value === "right"} onClick={() => onChange("alignment", "right")}>
+      <AlignmentButton $active={value === "right"} onClick={() => onChange(fieldKey, "right")}>
         <SvgIcon name={CUSTOM_SVG_ICON.RightAlign} size={SizeEnum.Small} />
       </AlignmentButton>
-      <AlignmentButton $active={value === "justify"} onClick={() => onChange("alignment", "justify")}>
+      <AlignmentButton $active={value === "justify"} onClick={() => onChange(fieldKey, "justify")}>
         <SvgIcon name={CUSTOM_SVG_ICON.JustifyAlign} size={SizeEnum.Small} />
       </AlignmentButton>
     </Container>

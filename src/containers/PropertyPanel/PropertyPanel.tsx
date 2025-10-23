@@ -13,6 +13,7 @@ import { RootStylesForm } from "./BlockInputs/RootStylesForm";
 import { ShapeBlockForm } from "./BlockInputs/ShapeBlockForm";
 import { VideoBlockForm } from "./BlockInputs/VideoBlockForm";
 import { Block } from "types";
+import { VerticalDividerForm } from "./BlockInputs/VerticalDividerForm";
 
 export enum PropertyTabView {
   Global = "Global",
@@ -29,6 +30,7 @@ const blockFormMapping: any = {
   [BlockType.SPACER]: SpacerBlockForm,
   [BlockType.SHAPE]: ShapeBlockForm,
   [BlockType.VIDEO]: VideoBlockForm,
+  [BlockType.VDivider]: VerticalDividerForm,
 };
 
 const PropertyPanelWrapper = styled.div`

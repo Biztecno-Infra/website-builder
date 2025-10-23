@@ -8,6 +8,7 @@ import {
   generateShapeBlockData,
   generateSpacerBlock,
   generateTextBlock,
+  generateVerticalDividerBlock,
   generateVideoBlock,
 } from "./constant";
 import {
@@ -23,6 +24,7 @@ import {
   Theme,
   VideoProps,
   ShapeProps,
+  VDividerProps,
 } from "../types";
 
 const generateBlockToJsonData = (block: Block) => {
@@ -55,6 +57,9 @@ const generateBlockToJsonData = (block: Block) => {
       break;
     case BlockType.SHAPE:
       blockData = generateShapeBlockData(block as ShapeProps);
+      break;
+    case BlockType.VDivider:
+      blockData = generateVerticalDividerBlock(block as VDividerProps);
       break;
     default:
       blockData = null;
@@ -287,6 +292,21 @@ export const jsonToBlocks = (
         videoProps.borderRadius = videoBorderRadius;
         videoProps.padding = videoPadding;
         Object.assign(videoProps, videoStyleRest);
+        break;
+      case BlockType.VDivider:
+        const vDividerProps = block as VDividerProps;
+        const {
+          height: vDividerHeight,
+          backgroundColor: vDividerBg,
+          width: vDividerWidth,
+          customCss: vDividerCss,
+          ...restVDivider
+        } = layoutBlock.data.style || {};
+        vDividerProps.height = vDividerHeight;
+        vDividerProps.backgroundColor = vDividerBg; 
+        vDividerProps.width = vDividerWidth;
+        vDividerProps.customCss = vDividerCss || "";
+        Object.assign(vDividerProps, restVDivider);
         break;
       default:
         console.error(`Unknown block type: ${block.type}`);

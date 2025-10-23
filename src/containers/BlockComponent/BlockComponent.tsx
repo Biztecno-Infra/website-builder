@@ -1,13 +1,14 @@
 import React, { useMemo, useCallback } from "react";
-import type {
-  ButtonProps,
-  DividerProps,
-  ImageProps,
-  SpacerProps,
-  TextProps,
-  BlockComponentProps,
-  Block,
-  VideoProps,
+import {
+  type ButtonProps,
+  type DividerProps,
+  type ImageProps,
+  type SpacerProps,
+  type TextProps,
+  type BlockComponentProps,
+  type Block,
+  type VideoProps,
+  type VDividerProps,
 } from "../../types";
 import { TextBlock } from "./TextBlock";
 import { ImageBlock } from "./ImageBlock";
@@ -19,6 +20,7 @@ import { SpacerBlock } from "./SpacerBlock";
 import { BlockType } from "email-builder-utils";
 import ShapeBlock from "./ShapeBlock";
 import VideoBlock from "./VideoBlock";
+import { VerticalDividerBlock } from "./VerticalDividerBlock";
 
 const BlockComponent: React.FC<BlockComponentProps> = React.memo(
   ({ blockId }) => {
@@ -103,6 +105,15 @@ const BlockComponent: React.FC<BlockComponentProps> = React.memo(
           return (
             <VideoBlock
               block={block as VideoProps}
+              handleDropper={handleDropper}
+              handleBlockClick={handleBlockClick}
+              isSelected={isSelected}
+            />
+          );
+           case BlockType.VDivider:
+          return (
+            <VerticalDividerBlock
+              block={block as VDividerProps}
               handleDropper={handleDropper}
               handleBlockClick={handleBlockClick}
               isSelected={isSelected}

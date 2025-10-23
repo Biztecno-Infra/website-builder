@@ -12,7 +12,7 @@ export default () => {
         y1="12.005"
         x2="0.494995"
         y2="0.0050049"
-        stroke="#0B978E"
+        stroke="currentColor"
       />
     </svg>
   );

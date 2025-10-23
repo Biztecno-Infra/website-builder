@@ -123,6 +123,8 @@ export async function convertToHtml(
       return convertVideoBlock(blockData, cellWidthInPx);
     case BlockType.SHAPE:
       return await convertShapeBlock(blockData);
+    case BlockType.VDivider:
+      return convertVerticalDividerBlockToHtml(blockData);
     default:
       return "";
   }
@@ -587,9 +589,6 @@ async function convertGridCellBlock(
 }
 
 // Enhanced Shape Block HTML Conversion
-// Enhanced Shape Block HTML Conversion with full email client support
-// Enhanced Shape Block HTML Conversion using appendOutlookForShape
-// ---------- helpers ----------
 function computeArcSize(borderRadius: string | number | undefined, widthPx: number) {
   if (!borderRadius) return "0";
   if (typeof borderRadius === "number") return Math.min(borderRadius / widthPx, 1).toFixed(2);
@@ -603,7 +602,7 @@ function computeArcSize(borderRadius: string | number | undefined, widthPx: numb
   return Math.min(px / widthPx, 1).toFixed(2);
 }
 
-// ---------- Updated convertShapeBlock function ----------
+// ---------- Final convertShapeBlock function ----------
 async function convertShapeBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { shape, text, imageUrl } = props as any;
@@ -623,6 +622,7 @@ async function convertShapeBlock(blockData: IBlockData) {
     msoBakeImageWithText,
     color = "#000000",
     fontSize = 14,
+    textAlign = "center",
     verticalAlign = "center",
   } = style || {};
 
@@ -638,7 +638,7 @@ async function convertShapeBlock(blockData: IBlockData) {
   let resolvedWidthPx =
     typeof width === "number"
       ? width
-      : parseInt(width.toString().replace("px", ""), 10) || 100;
+      : parseInt(width.toString().replace("px",""), 10) || 100;
   let resolvedHeightPx =
     typeof height === "number"
       ? height
@@ -719,9 +719,7 @@ async function convertShapeBlock(blockData: IBlockData) {
 </div>`;
   }
 
-  // ============================
-  // Outlook (VML) version
-  // ============================
+  // Outlook (VML) fallback
   const outlookContent = await appendOutlookForShape(
     nonMsoContent,
     resolvedWidthPx,
@@ -745,9 +743,7 @@ async function convertShapeBlock(blockData: IBlockData) {
     }
   );
 
-  // ============================
-  // Final combined block
-  // ============================
+  // Combine into table wrapper
   return `
 <table width="100%" style="border-collapse:collapse;table-layout:fixed;">
   <tr>
@@ -811,7 +807,7 @@ function buildVMLShape({
            <div style="display:table;width:100%;height:100%;">
              <div style="display:table-cell;vertical-align:${vAlign};text-align:center;">
                <div style="color:${textColor};font-family:Arial, sans-serif;font-size:${safeFontSize}px;line-height:1.3;word-wrap:break-word;">
-                 ${text}
+             ${text}
                </div>
              </div>
            </div>
@@ -858,19 +854,19 @@ async function appendOutlookForShape(
   const heightPx = Math.max(1, Math.round(opts.heightPx));
 
   const vml = buildVMLShape({
-    shape: opts.shape,
-    widthPx,
-    heightPx,
-    imageUrl: opts.msoBakeImageWithText || opts.imageUrl,
-    backgroundColor: opts.shapeColor || opts.backgroundColor,
-    borderWidth: opts.borderWidth,
-    borderColor: opts.borderColor,
-    borderRadius: opts.borderRadius,
-    text: opts.text,
-    textColor: opts.textColor,
-    textSize: opts.textSize,
-    msoHasBakedText: Boolean(opts.msoBakeImageWithText),
-  });
+      shape: opts.shape,
+      widthPx,
+      heightPx,
+      imageUrl: opts.msoBakeImageWithText || opts.imageUrl,
+      backgroundColor: opts.shapeColor || opts.backgroundColor,
+      borderWidth: opts.borderWidth,
+      borderColor: opts.borderColor,
+      borderRadius: opts.borderRadius,
+      text: opts.text,
+      textColor: opts.textColor,
+      textSize: opts.textSize,
+      msoHasBakedText: Boolean(opts.msoBakeImageWithText),
+    });
 
   const pad = opts.padding || {};
   const align = opts.alignment || "left";
@@ -886,7 +882,7 @@ async function appendOutlookForShape(
       </td>
     </tr>
   </table>
-  <![endif]-->`;
+<![endif]-->`;
 }
 
 
@@ -1057,6 +1053,35 @@ const wrapperHtml = `
 
 
   return wrapperHtml;
+}
+
+function convertVerticalDividerBlockToHtml(blockData: IBlockData) {
+  const { style } = blockData.data;
+  const { width, height, dividerColor, ...rest } = style;
+
+  // Convert other styles to inline-safe HTML attributes
+  const convertedStyle = buildStyles(rest, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
+
+  // Outlook-safe vertical divider
+  const dividerContent = `
+    <table cellpadding="0" cellspacing="0" border="0" align="center" style="width:auto; ${convertedStyle}">
+      <tr>
+        <td style="vertical-align: middle; text-align: center;">
+          <!--[if mso | IE]>
+          <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fillcolor="${dividerColor}" style="width:${width}px;height:${height}px;" stroke="f"></v:rect>
+          <![endif]-->
+          <!--[if !mso]><!-- -->
+          <div style="display:inline-block;width:${width}px;height:${height}px;background:${dividerColor};line-height:0;font-size:0;">&nbsp;</div>
+          <!--<![endif]-->
+        </td>
+      </tr>
+    </table>
+  `;
+
+  return appendOutlookSupport(dividerContent, convertedStyle);
 }
 
 export const convertJsonToHtml = async (jsonData: any) => {

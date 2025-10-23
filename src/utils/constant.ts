@@ -9,6 +9,7 @@ import {
   ShapeProps,
   SpacerProps,
   TextProps,
+  VDividerProps,
   VideoProps,
 } from "../types";
 
@@ -149,6 +150,15 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       dividerColor: "#808080",
       backgroundColor: defaultBg,
     };
+  } else if (blockType === BlockType.VDivider) {
+    return {
+      width: 5,
+      height: 100,
+      padding: defaultPadding,
+      alignment: "left",
+      dividerColor: "#808080",
+      backgroundColor: defaultBg,
+    };
   } else if (blockType === BlockType.SPACER) {
     return {
       padding: defaultPadding,
@@ -184,7 +194,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       borderRadius: 0,
       shapeColor: "#BEBEBE",
       alignment: "left",
-      verticalAlign: "middle",
+      textAlign: "center",
       fontSize: 16,
     };
   } else {
@@ -559,8 +569,8 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     type,
     shapeColor,
     alignment,
-    fontSize, 
-    verticalAlign = "center",
+    fontSize,
+    verticalAlign = "middle",
   } = block as ShapeProps || {};
 
   const style = {
@@ -592,6 +602,35 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     },
   };
 };
+
+export const generateVerticalDividerBlock = (block: VDividerProps) => {
+  const {
+    width,
+    height,
+    dividerColor,
+    padding,
+    alignment,
+    backgroundColor,
+    customCss,
+    layerName,
+    type,
+  } = block || {};
+  return {
+    type: type,
+    layerName: layerName || "",
+    data: {
+      style: {
+        width,
+        height,
+        dividerColor,
+        padding,
+        alignment,
+        backgroundColor,
+        customCss,
+      },
+    },
+  };
+}
 
 export const rgbToHex = (rgb: string): string => {
   const result = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
