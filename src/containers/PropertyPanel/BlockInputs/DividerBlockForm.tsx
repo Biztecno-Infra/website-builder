@@ -4,19 +4,22 @@ import { BlockFormProps } from "../types";
 import { DividerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
-import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { FlexRow, FormWrapper } from "../style";
 import { useBlockForm } from "../useBlockForm";
-
+import { ScreenViews } from "enum";
+import { useTheme } from "styled-components";
 
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-
+  const theme = useTheme();
   // Use the optimized form hook
-  const { formData, handleChange } = useBlockForm(selectedBlock as DividerProps, updateBlock);
-
+  const { formData, handleChange } = useBlockForm(
+    selectedBlock as DividerProps,
+    updateBlock
+  );
 
   return (
     <FormWrapper>
@@ -31,14 +34,25 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             marginBottom: "10px",
           }}
         />
+
         <FlexRow>
-          <ReactColorPicker
-            onColorChange={(field, value) =>
-              handleChange("dividerColor", value)
+          <CustomInput
+            type="number"
+            name="width"
+            placeholder="auto"
+            value={formData.width || ""}
+            onChange={(name: string, value: string) =>
+              handleChange("width", value)
             }
-            label={"Select Divider color"}
-            selectedColor={formData.dividerColor || ""}
-            containerStyle={{ width: "55%" }}
+            unitsLabel="%"
+            iconProps={{
+              name: CUSTOM_SVG_ICON.ImageWidth,
+            }}
+            containerStyle={{
+              width: "48%",
+            }}
+            inputStyle={{ width: "35%" }}
+            isPercentageValidation
           />
           <CustomInput
             name="thickness"
@@ -50,15 +64,23 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
               name: CUSTOM_SVG_ICON.ImageHeight,
             }}
             unitsLabel="px"
-            containerStyle={{ width: "40%" }}
+            containerStyle={{ width: "48%", marginLeft: "1rem" }}
             checkLessThanOne
           />
         </FlexRow>
+        <ReactColorPicker
+          onColorChange={(field, value) => handleChange("dividerColor", value)}
+          label={"Select Divider color"}
+          selectedColor={formData.dividerColor || ""}
+          containerStyle={{ width: "70%" }}
+        />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
@@ -70,6 +92,32 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           />
         </FlexRow>
       </BasePropertyWrapper>
+      <BasePropertyWrapper name="Hide Element">
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.DesktopIcon}
+          onClick={() => handleChange("hideOnDesktop", !formData.hideOnDesktop)}
+          svgStyle={{
+            cursor: "pointer",
+            marginRight: "10px",
+            padding: "0.5rem",
+            borderRadius: "5px",
+            color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+          }}
+          bgColor={formData.hideOnDesktop ? "#CCE2E3" : ""}
+        />
+        <SvgIcon
+          name={CUSTOM_SVG_ICON.MobileIcon}
+          onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+          svgStyle={{
+            cursor: "pointer",
+            padding: "0.5rem",
+            borderRadius: "5px",
+            color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+          }}
+          bgColor={formData.hideOnMobile ? "#CCE2E3" : ""}
+        />
+      </BasePropertyWrapper>
+
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"

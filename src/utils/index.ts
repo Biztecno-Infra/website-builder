@@ -114,6 +114,8 @@ export const jsonToBlocks = (
       parentId: parentId || null,
       childBlocks: [],
       layerName: layoutBlock?.layerName || "",
+      hideOnDesktop: layoutBlock?.hideOnDesktop || false,
+      hideOnMobile: layoutBlock?.hideOnMobile || false,
     };
 
     switch (block.type) {
@@ -220,6 +222,7 @@ export const jsonToBlocks = (
           dividerColor,
           thickness,
           customCss,
+          ...restDividerProps
         } = layoutBlock.data.style || {};
         dividerProps.alignment = alignment;
         dividerProps.backgroundColor = dividerbg;
@@ -227,6 +230,7 @@ export const jsonToBlocks = (
         dividerProps.thickness = thickness;
         dividerProps.padding = dividerPadding;
         dividerProps.customCss = customCss || "";
+        Object.assign(dividerProps, restDividerProps);
         break;
       case BlockType.SPACER:
         const spacerProps = block as SpacerProps;

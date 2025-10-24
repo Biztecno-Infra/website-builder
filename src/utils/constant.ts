@@ -149,6 +149,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       alignment: "left",
       dividerColor: "#808080",
       backgroundColor: defaultBg,
+      width: 100,
     };
   } else if (blockType === BlockType.VDivider) {
     return {
@@ -196,6 +197,7 @@ export const getDefaultBlockProperties = (blockType: BlockType) => {
       alignment: "left",
       textAlign: "center",
       fontSize: 16,
+      verticalAlign: "middle",
     };
   } else {
     return {};
@@ -224,6 +226,8 @@ export const generateTextBlock = (block: TextProps) => {
     backgroundPosition,
     backgroundRepeat,
     backgroundSize,
+    hideOnDesktop,
+    hideOnMobile,
     ...rest
   } = block;
 
@@ -262,6 +266,8 @@ export const generateTextBlock = (block: TextProps) => {
       props: {
         text: text || "",
         navigateToUrl,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -283,6 +289,8 @@ export const generateImageBlock = (block: ImageProps) => {
     type,
     cellIndex,
     customCss,
+    hideOnDesktop,
+    hideOnMobile,
     ...rest
   } = block || {};
 
@@ -306,6 +314,8 @@ export const generateImageBlock = (block: ImageProps) => {
         imageUrl,
         altText,
         navigateToUrl,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -329,6 +339,8 @@ export const generateButtonBlock = (block: ButtonProps) => {
     type,
     cellIndex,
     customCss,
+    hideOnDesktop,
+    hideOnMobile,
     ...rest
   } = block || {};
   const buttonStyle = {
@@ -352,6 +364,8 @@ export const generateButtonBlock = (block: ButtonProps) => {
         text: buttonText,
         navigateToUrl,
         textAlign: alignment,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -375,6 +389,8 @@ export const generateGridBlock = (block: GridProps) => {
     backgroundRepeat,
     backgroundSize,
     responsive,
+    hideOnDesktop,
+    hideOnMobile,
     ...rest
   } = block || {};
 
@@ -400,7 +416,6 @@ export const generateGridBlock = (block: GridProps) => {
   return {
     type: block.type,
     layerName: block.layerName || "",
-
     data: {
       style: gridStyle,
       props: {
@@ -408,6 +423,8 @@ export const generateGridBlock = (block: GridProps) => {
         columns: columns || 2,
         cellWidths: cellWidths || [50, 50],
         responsive,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -427,6 +444,8 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
     backgroundPosition,
     backgroundRepeat,
     backgroundSize,
+    hideOnDesktop,
+    hideOnMobile,
     ...rest
   } = block || {};
 
@@ -445,6 +464,10 @@ export const generateGridCellBlock = (block: IGridCellProps) => {
     type: type,
     layerName: layerName || "",
     data: {
+       props: {
+      hideOnDesktop,
+      hideOnMobile
+    },
       style: {
         padding: padding,
         backgroundColor: backgroundColor,
@@ -465,13 +488,19 @@ export const generateDividerBlock = (block: DividerProps) => {
     thickness,
     type,
     customCss,
+    width , 
+    hideOnDesktop,
+    hideOnMobile,
   } = block || {};
 
   return {
     type: type,
     layerName: block.layerName || "",
-
     data: {
+      props: {
+      hideOnDesktop,
+      hideOnMobile
+    },
       style: {
         padding,
         backgroundColor,
@@ -479,17 +508,22 @@ export const generateDividerBlock = (block: DividerProps) => {
         dividerColor,
         alignment,
         customCss,
+        width
       },
     },
   };
 };
 
 export const generateSpacerBlock = (block: SpacerProps) => {
-  const { alignment, backgroundColor, padding, type, customCss } = block || {};
+  const { alignment, backgroundColor, padding, type, customCss , hideOnDesktop , hideOnMobile } = block || {};
   return {
     type: type,
     layerName: block.layerName || "",
     data: {
+      props: {
+      hideOnDesktop,
+      hideOnMobile
+    },
       style: {
         padding,
         backgroundColor,
@@ -519,6 +553,8 @@ export const generateVideoBlock = (block: VideoProps) => {
     type,
     parentId,
     layerName,
+    hideOnDesktop ,
+    hideOnMobile,
     ...rest
   } = block || {};
 
@@ -545,6 +581,8 @@ export const generateVideoBlock = (block: VideoProps) => {
         videoUrl,
         youtubeVideoUrl,
         thumbnailUrl,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -571,6 +609,9 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     alignment,
     fontSize,
     verticalAlign = "middle",
+    textAlign,
+    hideOnDesktop,
+    hideOnMobile
   } = block as ShapeProps || {};
 
   const style = {
@@ -586,7 +627,9 @@ export const generateShapeBlockData = (block: ShapeProps) => {
     shapeColor,
     color,
     alignment,
-     fontSize , verticalAlign
+    fontSize,
+    textAlign,
+    verticalAlign,
   };
 
   return {
@@ -598,6 +641,8 @@ export const generateShapeBlockData = (block: ShapeProps) => {
         shape,
         text,
         imageUrl,
+        hideOnDesktop,
+        hideOnMobile
       },
     },
   };
@@ -614,6 +659,8 @@ export const generateVerticalDividerBlock = (block: VDividerProps) => {
     customCss,
     layerName,
     type,
+    hideOnDesktop,
+    hideOnMobile
   } = block || {};
   return {
     type: type,
@@ -628,6 +675,10 @@ export const generateVerticalDividerBlock = (block: VDividerProps) => {
         backgroundColor,
         customCss,
       },
+      props: {
+      hideOnDesktop,
+      hideOnMobile
+    }
     },
   };
 }

@@ -31,7 +31,7 @@ const ShapeWrapper = styled.div<{
   ${(p) => p.$customCss || ""};
 `;
 
-/* ✅ UPDATED: added font size + vertical alignment props */
+/* Updated ContentContainer stays mostly the same (ensure text-align reads from prop) */
 const ContentContainer = styled.div<{
   $textColor: string;
   $backgroundColor: string;
@@ -39,12 +39,18 @@ const ContentContainer = styled.div<{
   $width: string;
   $height: string;
   $fontSize?: string | number;
-  $verticalAlign?: string;
+  $textAlign?: "left" | "center" | "right" | "justify";
+  $verticalAlign?: "top" | "middle" | "bottom";
 }>`
   width: ${(p) => p.$width};
   height: ${(p) => p.$height};
   display: flex;
-  justify-content: center;
+  justify-content: ${(p) =>
+    p.$textAlign === "left"
+      ? "flex-start"
+      : p.$textAlign === "right"
+      ? "flex-end"
+      : "center"};
   align-items: ${(p) =>
     p.$verticalAlign === "top"
       ? "flex-start"
@@ -54,30 +60,41 @@ const ContentContainer = styled.div<{
   border-radius: ${(p) => p.$borderRadius};
   background-color: ${(p) => p.$backgroundColor};
   color: ${(p) => p.$textColor};
-  text-align: center;
+  /* Hierarchical text alignment for lines/paragraphs */
+  text-align: ${(p) => p.$textAlign || "center"};
   overflow: hidden;
   word-break: break-word;
   padding: 8px;
   box-sizing: border-box;
   font-size: ${(p) =>
-    p.$fontSize ? (typeof p.$fontSize === "number" ? `${p.$fontSize}px` : p.$fontSize) : "inherit"};
+    p.$fontSize
+      ? typeof p.$fontSize === "number"
+        ? `${p.$fontSize}px`
+        : p.$fontSize
+      : "inherit"};
 `;
 
-/* ✅ UPDATED: also respect verticalAlign + fontSize inside image overlay */
+/* Image container unchanged except will receive $textAlign and $verticalAlign */
 const ImageContainer = styled.div<{
   $imageUrl: string;
   $borderRadius: string;
   $backgroundColor: string;
   $width: string;
   $height: string;
-  $verticalAlign?: string;
+  $textAlign?: "left" | "center" | "right" | "justify";
+  $verticalAlign?: "top" | "middle" | "bottom";
 }>`
   width: ${(p) => p.$width};
   height: ${(p) => p.$height};
   background: ${(p) => `url('${p.$imageUrl}') center/cover no-repeat`};
   border-radius: ${(p) => p.$borderRadius};
   display: flex;
-  justify-content: center;
+  justify-content: ${(p) =>
+    p.$textAlign === "left"
+      ? "flex-start"
+      : p.$textAlign === "right"
+      ? "flex-end"
+      : "center"};
   align-items: ${(p) =>
     p.$verticalAlign === "top"
       ? "flex-start"
@@ -88,19 +105,29 @@ const ImageContainer = styled.div<{
   position: relative;
 `;
 
+/* ✅ Updated: overlay width no longer forced to 100% and respects textAlign */
 const TextOverlay = styled.div<{
   $textColor: string;
   $fontSize?: string | number;
+  $textAlign?: "left" | "center" | "right" | "justify";
 }>`
   color: ${(p) => p.$textColor};
-  text-align: center;
+  text-align: ${(p) => p.$textAlign || "center"};
   padding: 8px;
   word-break: break-word;
   position: relative;
   z-index: 2;
-  width: 100%;
+  /* allow parent flexbox to horizontally position the overlay */
+  width: auto;
+  max-width: 90%;
   font-size: ${(p) =>
-    p.$fontSize ? (typeof p.$fontSize === "number" ? `${p.$fontSize}px` : p.$fontSize) : "inherit"};
+    p.$fontSize
+      ? typeof p.$fontSize === "number"
+        ? `${p.$fontSize}px`
+        : p.$fontSize
+      : "inherit"};
+  /* keep multi-line containment safe */
+  overflow-wrap: break-word;
 `;
 
 const ShapeBlock: React.FC<ShapeBlockProps> = ({
@@ -126,6 +153,7 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
     shapeColor,
     alignment,
     fontSize,
+    textAlign,
     verticalAlign,
   } = block;
   const theme = useTheme();
@@ -153,32 +181,36 @@ const ShapeBlock: React.FC<ShapeBlockProps> = ({
           $imageUrl={imageUrl}
           $borderRadius={resolvedBorderRadius as string}
           $backgroundColor={shapeColor || "transparent"}
-          $width={"100%"}
-          $height={"100%"}
-          $verticalAlign={verticalAlign} // ✅ NEW
+          $width="100%"
+          $height="100%"
+          $textAlign={textAlign}
+          $verticalAlign={verticalAlign}
         >
           {text && (
-            <TextOverlay $textColor={color} $fontSize={fontSize} dangerouslySetInnerHTML={{ __html: text }} />
-            // </TextOverlay>
+            <TextOverlay
+              $textColor={color}
+              $fontSize={fontSize}
+              $textAlign={textAlign}
+              dangerouslySetInnerHTML={{ __html: text }}
+            />
           )}
         </ImageContainer>
       );
-    } else {
-      return (
-        <ContentContainer
-          $textColor={color}
-          $backgroundColor={shapeColor || backgroundColor}
-          $borderRadius={resolvedBorderRadius as string}
-          $width={"100%"}
-          $height={"100%"}
-          $fontSize={fontSize}
-          $verticalAlign={verticalAlign} // ✅ NEW
-          dangerouslySetInnerHTML={{ __html: text || "" }}
-        />
-          // {text}
-        // </ContentContainer>
-      );
     }
+
+    return (
+      <ContentContainer
+        $textColor={color}
+        $backgroundColor={shapeColor || backgroundColor}
+        $borderRadius={resolvedBorderRadius as string}
+        $width="100%"
+        $height="100%"
+        $fontSize={fontSize}
+        $textAlign={textAlign}
+        $verticalAlign={verticalAlign}
+        dangerouslySetInnerHTML={{ __html: text || "" }}
+      />
+    );
   };
 
   const isCircle = shape === "circle";

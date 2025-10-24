@@ -17,6 +17,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
     padding,
     dividerColor,
     customCss,
+    width,  // Added width prop
     ...rest
   } = block;
   const theme = useTheme();
@@ -42,8 +43,10 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
         paddingLeft: `${padding.left}px`,
         backgroundColor,
         textAlign: alignment as TextAlign,
-     outline: ` ${
-          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
+        outline: ` ${
+          isSelected && block.parentId
+            ? `1px dashed ${theme.colors.primary}`
+            : "none"
         }`,
         zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
@@ -56,6 +59,7 @@ export const DividerBlock: React.FC<DividerBlockProps> = ({
           height: thickness,
           backgroundColor: dividerColor,
           margin: 0,
+          width: `${width}%` || "100%", 
         }}
       />
     </Droppable>

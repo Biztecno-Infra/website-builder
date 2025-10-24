@@ -21,6 +21,8 @@ interface BlockJsonProps {
   altText: string;
   imageUrl: string;
   responsive?: boolean;
+    hideOnDesktop?: boolean;
+  hideOnMobile?: boolean
 }
 
 interface IBlockData {
@@ -143,23 +145,47 @@ function appendOutlookSupport(content: string, contentStyle: string) {
 //   return appendOutlookSupport(`<hr style="height:${thickness}px; background-color: ${dividerColor};" />`, convertedStyle);
 // }
 function convertDividerBlockToHtml(blockData: IBlockData) {
-  const { style } = blockData.data;
-  const { thickness, dividerColor, ...rest } = style;
+  const { style, props } = blockData.data;
+  const { hideOnMobile, hideOnDesktop } = props;
+  const { thickness, dividerColor, width, ...rest } = style;
+
   const convertedStyle = buildStyles(rest, {
     perChanges: [],
     pxChanges: allPxAttributes,
   });
 
+  const dividerWidth = width || "100%";
+
+  // Build class name based on visibility
+  const visibilityClass = [
+    hideOnMobile ? "hide-mobile" : "",
+    hideOnDesktop ? "hide-desktop" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   const dividerContent = `
-    <table width="100%" cellpadding="0" cellspacing="0">
+    <table
+      class="${visibilityClass}"
+      width="${dividerWidth}%"
+      cellpadding="0"
+      cellspacing="0"
+    >
       <tr>
-        <td height="${thickness}" style="font-size:1px; line-height:1px; background:${dividerColor};">&nbsp;</td>
+        <td
+          height="${thickness}"
+          style="font-size:1px; line-height:1px; background:${dividerColor}; width:${dividerWidth};"
+        >
+          &nbsp;
+        </td>
       </tr>
     </table>
   `;
 
   return appendOutlookSupport(dividerContent, convertedStyle);
 }
+
+
 
 function convertSpacerBlockToHtml(blockData: IBlockData) {
   const { style } = blockData.data;
@@ -623,7 +649,7 @@ async function convertShapeBlock(blockData: IBlockData) {
     color = "#000000",
     fontSize = 14,
     textAlign = "center",
-    verticalAlign = "center",
+    verticalAlign = "middle",
   } = style || {};
 
   const borderRadiusMap: Record<string, string> = {
@@ -638,13 +664,13 @@ async function convertShapeBlock(blockData: IBlockData) {
   let resolvedWidthPx =
     typeof width === "number"
       ? width
-      : parseInt(width.toString().replace("px",""), 10) || 100;
+      : parseInt(width.toString().replace("px", ""), 10) || 100;
   let resolvedHeightPx =
     typeof height === "number"
       ? height
       : parseInt(height.toString().replace("px", ""), 10) || 150;
 
-  // --- Shape specific constraints ---
+  // --- Shape-specific constraints ---
   if (shape === "circle") {
     const side = Math.min(resolvedWidthPx, resolvedHeightPx);
     resolvedWidthPx = side;
@@ -655,6 +681,8 @@ async function convertShapeBlock(blockData: IBlockData) {
   }
 
   const finalBackgroundColor = shapeColor || backgroundColor;
+
+  // --- Horizontal alignment for outer container ---
   const alignmentStyles = {
     left: "margin-right:auto;margin-left:0;",
     center: "margin-left:auto;margin-right:auto;",
@@ -663,23 +691,39 @@ async function convertShapeBlock(blockData: IBlockData) {
   const alignmentStyle =
     alignmentStyles[alignment as keyof typeof alignmentStyles] || "";
 
-  const verticalAlignStyles = {
-    top: "align-items:flex-start;padding-top:8px;",
-    center: "align-items:center;",
-    bottom: "align-items:flex-end;padding-bottom:8px;",
+  // --- Text + vertical alignment maps ---
+  const textAlignMap = {
+    left: "left",
+    center: "center",
+    right: "right",
+    justify: "justify",
   };
-  const verticalAlignStyle =
-    verticalAlignStyles[verticalAlign as keyof typeof verticalAlignStyles] ||
-    verticalAlignStyles.center;
+  const textAlignStyle =
+    textAlignMap[textAlign as keyof typeof textAlignMap] || "center";
 
-  // Text styling (safe across clients)
-  const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;text-align:center;color:${color};`;
+  const flexJustify =
+    textAlign === "left"
+      ? "flex-start"
+      : textAlign === "right"
+      ? "flex-end"
+      : "center";
+
+  const flexAlign =
+    verticalAlign === "top"
+      ? "flex-start"
+      : verticalAlign === "bottom"
+      ? "flex-end"
+      : "center";
+
+  // --- Text styling ---
+  const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;color:${color};`;
 
   // ============================
   // Modern HTML (non-MSO)
   // ============================
   let nonMsoContent = "";
 
+  // --- Case 1: Image + Text ---
   if (imageUrl && text) {
     nonMsoContent = `
 <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
@@ -687,13 +731,16 @@ async function convertShapeBlock(blockData: IBlockData) {
   border-radius:${resolvedBorderRadius};
   background:${finalBackgroundColor} url('${imageUrl}') center/cover no-repeat;
   overflow:hidden;${alignmentStyle}${customCss || ""}">
-  <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;overflow:hidden;">
-    <div style="${textSizeStyle}padding:6px;max-width:90%;-webkit-line-clamp:3;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;">
+  <div style="width:100%;height:100%;display:flex;justify-content:${flexJustify};align-items:${flexAlign};overflow:hidden;padding:6px;box-sizing:border-box;">
+    <div style="${textSizeStyle}text-align:${textAlignStyle};max-width:90%;overflow:hidden;">
       ${text}
     </div>
   </div>
 </div>`;
-  } else if (imageUrl) {
+  }
+
+  // --- Case 2: Image only ---
+  else if (imageUrl) {
     nonMsoContent = `
 <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
   border:${borderWidth}px ${borderStyle} ${borderColor};
@@ -703,16 +750,18 @@ async function convertShapeBlock(blockData: IBlockData) {
     width="${resolvedWidthPx}" height="${resolvedHeightPx}"
     style="width:100%;height:100%;object-fit:cover;border-radius:${resolvedBorderRadius};display:block;" />
 </div>`;
-  } else {
-    const circlePadding = shape === "circle" ? Math.round(resolvedHeightPx * 0.15) : 8;
+  }
+
+  // --- Case 3: Text only ---
+  else {
     nonMsoContent = `
 <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
   background:${finalBackgroundColor};
   border:${borderWidth}px ${borderStyle} ${borderColor};
   border-radius:${resolvedBorderRadius};
   overflow:hidden;${alignmentStyle}${customCss || ""}">
-  <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;padding:${circlePadding}px;box-sizing:border-box;">
-    <div style="${textSizeStyle}max-width:90%;overflow:hidden;">
+  <div style="width:100%;height:100%;display:flex;justify-content:${flexJustify};align-items:${flexAlign};padding:8px;box-sizing:border-box;">
+    <div style="${textSizeStyle}text-align:${textAlignStyle};max-width:90%;overflow:hidden;">
       ${text || ""}
     </div>
   </div>
@@ -737,6 +786,7 @@ async function convertShapeBlock(blockData: IBlockData) {
       textColor: color,
       textSize: fontSize,
       verticalAlign,
+      textAlign, // ✅ added
       alignment,
       padding,
       msoBakeImageWithText,
@@ -747,7 +797,9 @@ async function convertShapeBlock(blockData: IBlockData) {
   return `
 <table width="100%" style="border-collapse:collapse;table-layout:fixed;">
   <tr>
-    <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${padding.bottom || 0}px ${padding.left || 0}px;text-align:${alignment};">
+    <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${
+    padding.bottom || 0
+  }px ${padding.left || 0}px;text-align:${alignment};">
       ${outlookContent}
       <!--[if !mso]><!-->
       ${nonMsoContent}
@@ -757,7 +809,7 @@ async function convertShapeBlock(blockData: IBlockData) {
 </table>`;
 }
 
-// ---------- Updated VML builder with better text containment ----------
+// ---------- Updated VML builder ----------
 function buildVMLShape({
   shape,
   widthPx,
@@ -770,22 +822,21 @@ function buildVMLShape({
   text,
   textColor = "#000000",
   textSize = 14,
-  verticalAlign = "center",
+  verticalAlign = "middle",
+  textAlign = "center",
   msoHasBakedText = false,
 }: any) {
-  // --- Basic setup ---
   const bw = borderWidth || 0;
   const bc = borderColor || "transparent";
   const borderAttrs =
     bw > 0
       ? `strokeweight="${bw}px" strokecolor="${bc}"`
       : `stroked="false"`;
-  const fillColor = backgroundColor || "#2F80ED";
-  const fillMarkup = `<v:fill ${
-    imageUrl ? `src="${imageUrl}" type="frame" aspect="atleast"` : ""
-  } color="${fillColor}" />`;
 
-  // --- Shape tag ---
+  const fillColor = backgroundColor || "#2F80ED";
+  // Use frame for img fill so sizing is preserved
+  const fillMarkup = `<v:fill ${imageUrl ? `src="${imageUrl}" type="frame" aspect="atleast"` : ""} color="${fillColor}" />`;
+
   let tag = "rect";
   let extraAttr = "";
   if (shape === "circle" || shape === "oval") {
@@ -795,31 +846,31 @@ function buildVMLShape({
     extraAttr = `arcsize="${computeArcSize(borderRadius, widthPx)}"`;
   }
 
-  // --- Text alignment ---
-  const vAlignMap = { top: "top", center: "middle", bottom: "bottom" };
+  // maps for vml
+  const vAlignMap = { top: "top", middle: "middle", bottom: "bottom" };
+  const hAlignMap = { left: "left", center: "center", right: "right", justify: "left" }; // justify -> left fallback in VML
   const vAlign = vAlignMap[verticalAlign as keyof typeof vAlignMap] || "middle";
-  const safeFontSize = Math.max(textSize, 10);
+  const hAlign = hAlignMap[textAlign as keyof typeof hAlignMap] || "center";
+  const safeFontSize = Math.max(Math.round(textSize), 10);
 
-  // --- Text inside shape ---
+  // Build the textbox with table/cell for reliable vertical centering in Outlook
   const textboxMarkup =
     text && !msoHasBakedText
       ? `<v:textbox inset="6pt,6pt,6pt,6pt" style="mso-fit-shape-to-text:false;">
            <div style="display:table;width:100%;height:100%;">
-             <div style="display:table-cell;vertical-align:${vAlign};text-align:center;">
+             <div style="display:table-cell;vertical-align:${vAlign};text-align:${hAlign};padding:0 6px;">
                <div style="color:${textColor};font-family:Arial, sans-serif;font-size:${safeFontSize}px;line-height:1.3;word-wrap:break-word;">
-             ${text}
+                 ${text}
                </div>
              </div>
            </div>
          </v:textbox>`
       : `<v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>`;
 
-  // --- Final shape markup ---
+  // Return VML shape
   return `
 <v:${tag} xmlns:v="urn:schemas-microsoft-com:vml"
-  style="width:${widthPx}px;height:${heightPx}px;
-         mso-position-horizontal:center;
-         mso-position-vertical:center;"
+  style="width:${widthPx}px;height:${heightPx}px;display:inline-block;"
   ${borderAttrs}
   fill="true" fillcolor="${fillColor}"${extraAttr}>
   ${fillMarkup}
@@ -827,8 +878,7 @@ function buildVMLShape({
 </v:${tag}>`;
 }
 
-// ---------- Updated appendOutlookForShape ----------
-async function appendOutlookForShape(
+function appendOutlookForShape(
   content: string,
   outerContainerWidth: number,
   innerContainerWidth: number,
@@ -845,6 +895,7 @@ async function appendOutlookForShape(
     textColor?: string;
     textSize?: number;
     verticalAlign?: "top" | "middle" | "bottom";
+    textAlign?: "left" | "center" | "right" | "justify";
     alignment?: "left" | "center" | "right";
     padding?: { top?: number; right?: number; bottom?: number; left?: number };
     msoBakeImageWithText?: string;
@@ -854,27 +905,30 @@ async function appendOutlookForShape(
   const heightPx = Math.max(1, Math.round(opts.heightPx));
 
   const vml = buildVMLShape({
-      shape: opts.shape,
-      widthPx,
-      heightPx,
-      imageUrl: opts.msoBakeImageWithText || opts.imageUrl,
-      backgroundColor: opts.shapeColor || opts.backgroundColor,
-      borderWidth: opts.borderWidth,
-      borderColor: opts.borderColor,
-      borderRadius: opts.borderRadius,
-      text: opts.text,
-      textColor: opts.textColor,
-      textSize: opts.textSize,
-      msoHasBakedText: Boolean(opts.msoBakeImageWithText),
-    });
+    shape: opts.shape,
+    widthPx,
+    heightPx,
+    imageUrl: opts.msoBakeImageWithText || opts.imageUrl,
+    backgroundColor: opts.shapeColor || opts.backgroundColor,
+    borderWidth: opts.borderWidth,
+    borderColor: opts.borderColor,
+    borderRadius: opts.borderRadius,
+    text: opts.text,
+    textColor: opts.textColor,
+    textSize: opts.textSize,
+    verticalAlign: opts.verticalAlign,
+    textAlign: opts.textAlign,
+    msoHasBakedText: Boolean(opts.msoBakeImageWithText),
+  });
 
   const pad = opts.padding || {};
   const align = opts.alignment || "left";
   const valign = opts.verticalAlign || "middle";
 
+  // Outlook wrapper table ensures the cell's valign works if vml alone doesn't
   return `<!--[if mso]>
   <table align="${align}" border="0" cellpadding="0" cellspacing="0"
-         style="width:${widthPx}px;height:${heightPx}px;">
+         style="width:${widthPx}px;height:${heightPx}px;border-collapse:collapse;">
     <tr>
       <td valign="${valign}"
           style="padding:${pad.top || 0}px ${pad.right || 0}px ${pad.bottom || 0}px ${pad.left || 0}px;">
@@ -884,6 +938,7 @@ async function appendOutlookForShape(
   </table>
 <![endif]-->`;
 }
+
 
 
 // Enhanced Video Block HTML Conversion with centered play button
@@ -1134,6 +1189,31 @@ export const convertJsonToHtml = async (jsonData: any) => {
             max-width: 100% !important;
           }
         }
+          <style>
+  .hide-mobile {
+    display: block !important;
+  }
+  .hide-desktop {
+    display: block !important;
+  }
+
+  @media only screen and (max-width: 600px) {
+    .hide-mobile {
+      display: none !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+    }
+  }
+
+  @media only screen and (min-width: 601px) {
+    .hide-desktop {
+      display: none !important;
+      max-height: 0 !important;
+      overflow: hidden !important;
+    }
+  }
+</style>
+
       </style>
     </head>
     <body>

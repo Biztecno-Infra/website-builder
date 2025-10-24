@@ -105,7 +105,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "100%", marginBottom: "1rem" }}
           initialValue={formData.shape}
         />
-                <CustomInput
+        <CustomInput
           name="imageUrl"
           placeholder="Enter Image URL"
           value={formData.imageUrl || ""}
@@ -133,9 +133,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           <CustomInput
             name="height"
             placeholder="Height (px)"
-            value={
-            formData.height !== undefined ? formData.height : ""
-            }
+            value={formData.height !== undefined ? formData.height : ""}
             onChange={(name, value) => {
               if (value === "") {
                 handleChange("height", "");
@@ -200,15 +198,20 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
               type="number"
             />
           </FlexRow>
-
-          <VerticalAlignment
-            value={formData.verticalAlign}
-            onChange={handleChange}
-            containerStyle={{ width: "60%" }}
-          />
+          <FlexRow>
+            <AlignmentSelector
+              name="textAlign"
+              onChange={handleChange}
+              value={formData.textAlign}
+              containerStyle={{ width: "50%", marginRight: "1rem" }}
+            />
+            <VerticalAlignment
+              value={formData.verticalAlign}
+              onChange={handleChange}
+              containerStyle={{ width: "50%" }}
+            />
+          </FlexRow>
         </BasePropertyWrapper>
-
-
       </BasePropertyWrapper>
       <Divider />
       <BasePropertyWrapper name="Edit Container">

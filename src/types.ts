@@ -8,6 +8,7 @@ export interface Padding {
 }
 
 export type TextAlign = "left" | "center" | "right" | "justify";
+export type VerticalAlign = "top" | "middle" | "bottom";
 
 interface ICoreBlock {
   id: string;
@@ -15,6 +16,8 @@ interface ICoreBlock {
   parentId?: string | null;
   childBlocks: Array<string>;
   layerName?: string;
+  hideOnDesktop?: boolean;
+  hideOnMobile?: boolean;
 }
 
 
@@ -35,6 +38,7 @@ export interface DividerProps extends BaseBlock {
     bottom: number;
     left: number;
   };
+  width: number;
 }
 
 export interface VDividerProps extends BaseBlock {
@@ -144,7 +148,7 @@ export interface IGridCellProps extends ICoreBlock {
     left: number;
   };
   backgroundColor?: any;
-  verticalAlign?: any;
+  verticalAlign?: VerticalAlign;
   backgroundImage?: string;
   backgroundSize?: string;
   backgroundPosition?: string;
@@ -209,7 +213,7 @@ export interface ShapeProps extends BaseBlock {
   customCss?: any;
   color?: string;
   textAlign?: TextAlign;
-  verticalAlign?: "top" | "center" | "bottom";
+  verticalAlign?: VerticalAlign;
   fontSize?: number;
 }
 
