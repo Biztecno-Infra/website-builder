@@ -12,11 +12,11 @@ import {
   VerticalAlignment,
 } from "@components/StyleComponents";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
-import { FormWrapper, FlexRow } from "../style";
-import styled from "styled-components";
+import { FormWrapper, FlexRow, FlexContainer } from "../style";
+import styled, { useTheme } from "styled-components";
 import { ShapeProps } from "types";
 import { BlockFormProps } from "../types";
-import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockForm } from "../useBlockForm";
 import RichTextEditor from "./RichTextEditor";
 
@@ -37,7 +37,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  // Use the optimized form hook
+  const theme = useTheme();
   const { formData, handleChange, handleImmediateChange } = useBlockForm(
     selectedBlock as ShapeProps,
     updateBlock
@@ -256,7 +256,33 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
         </BasePropertyWrapper>
       </BasePropertyWrapper>
 
-      <Divider />
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
+      </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"

@@ -1,13 +1,14 @@
 import React, { useCallback } from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { BlockFormProps } from "../types";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { ImageProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
-import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockForm } from "../useBlockForm";
+import { FlexContainer } from "../style";
 
 const FormWrapper = styled.div`
   display: flex;
@@ -29,14 +30,19 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-
-  // Use the optimized form hook
-  const { formData, handleChange, handleImmediateChange } = useBlockForm(selectedBlock as ImageProps, updateBlock);
+  const theme = useTheme();
+  const { formData, handleChange, handleImmediateChange } = useBlockForm(
+    selectedBlock as ImageProps,
+    updateBlock
+  );
 
   // Special handler for imageUrl that needs immediate update
-  const handleImageUrlChange = useCallback(async (value: string) => {
-    handleImmediateChange("imageUrl", value);
-  }, [handleImmediateChange]);
+  const handleImageUrlChange = useCallback(
+    async (value: string) => {
+      handleImmediateChange("imageUrl", value);
+    },
+    [handleImmediateChange]
+  );
 
   return (
     <FormWrapper>
@@ -130,7 +136,9 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
       <BasePropertyWrapper name="Edit Container">
         <PaddingContainer>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
           />
@@ -164,6 +172,33 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </BasePropertyWrapper>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea

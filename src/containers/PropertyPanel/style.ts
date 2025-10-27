@@ -15,3 +15,12 @@ export const FlexRow = styled.div`
   margin-top: 5px;
   margin-bottom: 10px;
 `;
+
+export const FlexContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 30%;
+  background: #f1f1f1;
+  border-radius: 5px;
+`;

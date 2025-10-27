@@ -1,13 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { FormWrapper, FlexRow } from "../style";
+import { FormWrapper, FlexRow, FlexContainer } from "../style";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { AlignmentSelector, PaddingInput } from "@components/StyleComponents";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { BlockFormProps } from "../types";
 import { VideoProps } from "types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import styled from "styled-components";
-import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import styled, { useTheme } from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockForm } from "../useBlockForm";
 
 const Divider = styled.div`
@@ -16,10 +15,15 @@ const Divider = styled.div`
   background: #dddddd;
 `;
 
-export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =>{
-
-  // Use the optimized form hook
-  const { formData, handleChange } = useBlockForm(selectedBlock, updateBlock);
+export const VideoBlockForm = ({
+  selectedBlock,
+  updateBlock,
+}: BlockFormProps) => {
+  const theme = useTheme();
+  const { formData, handleChange } = useBlockForm(
+    selectedBlock as VideoProps,
+    updateBlock
+  );
 
   return (
     <FormWrapper>
@@ -97,14 +101,13 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
             isPercentageValidation
           />
           <AlignmentSelector
-          onChange={handleChange}
-          value={formData.alignment}
-          containerStyle={{ width: "60%" }}
-        />
+            onChange={handleChange}
+            value={formData.alignment}
+            containerStyle={{ width: "60%" }}
+          />
         </FlexRow>
 
         {/* Alignment */}
-        
       </BasePropertyWrapper>
 
       <Divider />
@@ -113,7 +116,9 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
           />
@@ -149,12 +154,33 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
           />
         </BasePropertyWrapper>
       </BasePropertyWrapper>
-
-      {/* Border */}
-
-      <Divider />
-
-      {/* Additional CSS */}
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
+      </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"
@@ -166,5 +192,4 @@ export const VideoBlockForm = ({ selectedBlock, updateBlock }: BlockFormProps) =
       </BasePropertyWrapper>
     </FormWrapper>
   );
-}
-
+};

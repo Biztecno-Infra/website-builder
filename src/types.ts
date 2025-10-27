@@ -84,12 +84,7 @@ export interface TextProps extends BaseBlock {
   borderWidth?: number;
   borderStyle?: string;
   width?: number;
-  textContainerPadding: {
-    top: number;
-    right: number;
-    bottom: number;
-    left: number;
-  };
+  textContainerPadding?: Padding;
   textContainerBackgroundColor?: string;
 }
 
@@ -217,7 +212,7 @@ export interface ShapeProps extends BaseBlock {
   fontSize?: number;
 }
 
-export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps | ShapeProps;
+export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps | ShapeProps | DividerProps | VDividerProps | SpacerProps;
 
 export interface IBlocksState {
   [key: string]: Block;

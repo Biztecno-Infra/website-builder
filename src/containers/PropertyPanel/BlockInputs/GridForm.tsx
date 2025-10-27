@@ -5,31 +5,39 @@ import ColumnCellWidthComponent from "@components/StyleComponents/ColumnCellWidt
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { GridProps } from "../../../types";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
-import { FlexRow, FormWrapper } from "../style";
+import { FlexContainer, FlexRow, FormWrapper } from "../style";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { extractBackgroundUrl } from "@utils/common";
 import { useBlockForm } from "../useBlockForm";
+import { useTheme } from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  // Use the optimized form hook
-  const { formData, handleChange, handleBatchChange } = useBlockForm(selectedBlock as GridProps, updateBlock);
+  const theme = useTheme();
+  const { formData, handleChange, handleBatchChange } = useBlockForm(
+    selectedBlock as GridProps,
+    updateBlock
+  );
 
   // Special handler for columns that also updates cellWidths
-  const handleColumnsChange = useCallback((name: string, value: string) => {
-    const newColumns = parseInt(value) || 1;
-    const newCellWidths = Array.from({ length: newColumns }, () =>
-      Math.round(100 / newColumns)
-    );
-    
-    // Use batch change for related properties
-    handleBatchChange({
-      columns: newColumns,
-      cellWidths: newCellWidths
-    });
-  }, [handleBatchChange]);
+  const handleColumnsChange = useCallback(
+    (name: string, value: string) => {
+      const newColumns = parseInt(value) || 1;
+      const newCellWidths = Array.from({ length: newColumns }, () =>
+        Math.round(100 / newColumns)
+      );
+
+      // Use batch change for related properties
+      handleBatchChange({
+        columns: newColumns,
+        cellWidths: newCellWidths,
+      });
+    },
+    [handleBatchChange]
+  );
 
   return (
     <FormWrapper>
@@ -76,14 +84,18 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             rows={formData.rows}
             columns={formData.columns}
             cellWidths={formData.cellWidths}
-            updateCellWidths={(newWidths) => handleChange("cellWidths", newWidths)}
+            updateCellWidths={(newWidths) =>
+              handleChange("cellWidths", newWidths)
+            }
           />
         </BasePropertyWrapper>
       </BasePropertyWrapper>
 
       <BasePropertyWrapper name="Edit Container">
         <ReactColorPicker
-          onColorChange={(field, value) => handleChange("backgroundColor", value)}
+          onColorChange={(field, value) =>
+            handleChange("backgroundColor", value)
+          }
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
         />
@@ -150,6 +162,33 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
             }}
           />
         </BasePropertyWrapper>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea

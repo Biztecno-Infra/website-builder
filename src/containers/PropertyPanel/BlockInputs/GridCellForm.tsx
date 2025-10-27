@@ -3,20 +3,20 @@ import { PaddingInput, VerticalAlignment } from "@components/StyleComponents";
 import { BlockFormProps } from "../types";
 import { IGridCellProps } from "../../../types";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
-import { defaultGridPadding } from "@utils/constant";
-import { FlexRow } from "../style";
+import { FlexContainer, FlexRow } from "../style";
 import { CustomInput, ReactColorPicker } from "@components/lib";
 import { BackgroundProperties } from "@components/StyleComponents/BackgroundStyle";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { extractBackgroundUrl } from "@utils/common";
 import { useBlockForm } from "../useBlockForm";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { useTheme } from "styled-components";
 
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-
-  // Use the optimized form hook
+  const theme = useTheme();
   const { formData, handleChange } = useBlockForm(selectedBlock as IGridCellProps, updateBlock);
 
   return (
@@ -96,6 +96,34 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
           }}
         />
       </BasePropertyWrapper>
+            <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
+      </BasePropertyWrapper>
+
     </BasePropertyWrapper>
   );
 };

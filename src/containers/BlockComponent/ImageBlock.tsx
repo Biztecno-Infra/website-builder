@@ -12,10 +12,10 @@ interface CustomImageProps {
   width?: number;
   height?: number;
   navigateToUrl?: string;
-  borderColor?: string ;
-  borderRadius?: number ;  
-  borderStyle?: string ; 
-  borderWidth?: number ;
+  borderColor?: string;
+  borderRadius?: number;
+  borderStyle?: string;
+  borderWidth?: number;
 }
 
 const CustomImage: React.FC<CustomImageProps> = React.memo(
@@ -77,7 +77,11 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
         ? (naturalSize.width * width) / 100
         : naturalSize.width;
 
-    const finalWidth = Math.min(calculatedWidth, naturalSize.width, containerWidth);
+    const finalWidth = Math.min(
+      calculatedWidth,
+      naturalSize.width,
+      containerWidth
+    );
 
     const imageStyle: React.CSSProperties = {
       width: finalWidth,
@@ -119,7 +123,6 @@ const CustomImage: React.FC<CustomImageProps> = React.memo(
   }
 );
 
-
 export const ImageBlock: React.FC<ImageBlockProps> = ({
   block,
   handleBlockClick,
@@ -136,7 +139,10 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
     padding,
     navigateToUrl,
     customCss,
-    borderColor , borderRadius , borderStyle , borderWidth ,
+    borderColor,
+    borderRadius,
+    borderStyle,
+    borderWidth,
     ...rest
   } = block;
   const theme = useTheme();
@@ -157,7 +163,12 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
       onDrop={handleDrop}
       style={{
         display: "flex",
-        justifyContent: (alignment as TextAlign) === "center" ? "center" : (alignment as TextAlign) === "right" ? "flex-end" : "flex-start",
+        justifyContent:
+          (alignment as TextAlign) === "center"
+            ? "center"
+            : (alignment as TextAlign) === "right"
+            ? "flex-end"
+            : "flex-start",
         width: "100%",
         paddingTop: padding.top,
         paddingRight: padding.right,
@@ -167,8 +178,10 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         lineHeight: 0,
         textAlign: (alignment as TextAlign) || "left",
         // borderRadius: borderRadius ? `${borderRadius}px` : "none",
-       outline: ` ${
-          isSelected && block.parentId ? `1px dashed ${theme.colors.primary}` : "none"
+        outline: ` ${
+          isSelected && block.parentId
+            ? `1px dashed ${theme.colors.primary}`
+            : "none"
         }`,
         zIndex: isSelected ? 10 : "auto",
         ...convertedStyle,
@@ -183,10 +196,10 @@ export const ImageBlock: React.FC<ImageBlockProps> = ({
         width={width}
         height={height}
         navigateToUrl={navigateToUrl}
-        borderColor = {borderColor}
-        borderRadius = {borderRadius}  
-        borderStyle ={borderStyle} 
-        borderWidth ={borderWidth}
+        borderColor={borderColor}
+        borderRadius={borderRadius}
+        borderStyle={borderStyle}
+        borderWidth={borderWidth}
       />
     </Droppable>
   );

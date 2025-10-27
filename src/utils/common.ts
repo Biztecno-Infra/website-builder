@@ -1,3 +1,5 @@
+import { ScreenViews } from "enum";
+
 export const getTableStyles = (globalStyles: any) => {
   return {
     margin: "0 auto",
@@ -44,3 +46,11 @@ export const isShallowEqual = (objA: any, objB: any): boolean => {
   
   return keysA.every(key => objA[key] === objB[key]);
 };
+
+export function shouldHideOnCanvas(props: any, selectedView: string): boolean {
+  if (!props) return false;
+  const { hideOnDesktop, hideOnMobile } = props;
+  if (selectedView === ScreenViews.DESKTOP && hideOnDesktop) return true;
+  if (selectedView ===  ScreenViews.MOBILE && hideOnMobile) return true;
+  return false;
+}

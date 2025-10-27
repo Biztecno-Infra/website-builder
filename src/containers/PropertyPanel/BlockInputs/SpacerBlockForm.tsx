@@ -3,16 +3,21 @@ import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BlockFormProps } from "../types";
 import { SpacerProps } from "../../../types";
 import { PaddingInput } from "@components/StyleComponents";
-import { FlexRow, FormWrapper } from "../style";
+import { FlexContainer, FlexRow, FormWrapper } from "../style";
 import { CustomInput, ReactColorPicker, TextArea } from "@components/lib";
 import { useBlockForm } from "../useBlockForm";
+import { useTheme } from "styled-components";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
-  // Use the optimized form hook
-  const { formData, handleChange } = useBlockForm(selectedBlock as SpacerProps, updateBlock);
+  const theme = useTheme();
+  const { formData, handleChange } = useBlockForm(
+    selectedBlock as SpacerProps,
+    updateBlock
+  );
 
   return (
     <FormWrapper>
@@ -29,7 +34,9 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
         />
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
@@ -40,6 +47,33 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
             containerStylePopUp={{ width: "45%" }}
           />
         </FlexRow>
+      </BasePropertyWrapper>
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea

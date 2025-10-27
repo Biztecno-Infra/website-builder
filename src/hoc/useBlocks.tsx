@@ -36,7 +36,7 @@ const initializeBlock = (
     });
   }
 
-  return { defaultBlock: { ...block, ...properties }, extraBlocks };
+  return { defaultBlock: { ...properties ,  ...block, hideOnDesktop: false , hideOnMobile: false} as Block, extraBlocks };
 };
 
 const getDistributtedLength = (length: number): Array<number> => {
@@ -513,7 +513,7 @@ export const useBlocks = (): IBlockContext => {
             updateParentOfBlock(dragBlock.id, newGridBlock?.id);
             prvsBlockState = update(prvsBlockState, {
               [newGridBlock.id]: { $set: newGridBlock },
-            });
+            } as any);
 
             if (
               prvsBlockState[dragBlock.parentId]?.type === BlockType.GRID &&

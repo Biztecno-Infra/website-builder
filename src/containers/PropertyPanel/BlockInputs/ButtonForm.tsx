@@ -1,7 +1,7 @@
 import React from "react";
 import { BlockFormProps } from "../types";
 import { PaddingInput, AlignmentSelector } from "@components/StyleComponents";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 import { defaultPadding } from "@utils/constant";
@@ -12,8 +12,8 @@ import {
   Dropdown,
   ReactColorPicker,
 } from "@components/lib";
-import { CUSTOM_SVG_ICON } from "@components/SvgIcon";
-import { FlexRow, FormWrapper } from "../style";
+import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
+import { FlexContainer, FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 import { useBlockForm } from "../useBlockForm";
 
@@ -31,8 +31,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
 }) => {
+  const theme = useTheme();
   // Use the optimized form hook
-  const { formData, handleChange } = useBlockForm(selectedBlock as ButtonProps, updateBlock);
+  const { formData, handleChange } = useBlockForm(
+    selectedBlock as ButtonProps,
+    updateBlock
+  );
 
   return (
     <FormWrapper>
@@ -101,7 +105,6 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           containerStyle={{ width: "60%" }}
         /> */}
       </BasePropertyWrapper>
-      <Divider />
       <BasePropertyWrapper
         name="Edit Button"
         containerStyle={{ padding: "1rem" }}
@@ -190,11 +193,12 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           />
         </BasePropertyWrapper>
       </BasePropertyWrapper>
-      <Divider />
       <BasePropertyWrapper name="Edit Container">
         <FlexRow>
           <ReactColorPicker
-            onColorChange={(field, value) => handleChange("backgroundColor", value)}
+            onColorChange={(field, value) =>
+              handleChange("backgroundColor", value)
+            }
             label="Select Background Color"
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "58%" }}
@@ -206,7 +210,33 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           />
         </FlexRow>
       </BasePropertyWrapper>
-      <Divider />
+      <BasePropertyWrapper name="Hide Element">
+        <FlexContainer>
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.DesktopIcon}
+            onClick={() =>
+              handleChange("hideOnDesktop", !formData.hideOnDesktop)
+            }
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              borderRight: " 1px solid #DDDDDD",
+              width: "50%",
+              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.MobileIcon}
+            onClick={() => handleChange("hideOnMobile", !formData.hideOnMobile)}
+            svgStyle={{
+              cursor: "pointer",
+              padding: "0.5rem",
+              width: "50%",
+              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+            }}
+          />
+        </FlexContainer>
+      </BasePropertyWrapper>
       <BasePropertyWrapper name="Additional Properties">
         <TextArea
           name="customCss"
