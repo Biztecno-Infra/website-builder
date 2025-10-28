@@ -32,30 +32,37 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
     setLocalWidths(cellWidths);
   }, [cellWidths]);
 
-  const handleWidthChange = (value: number, index: number) => {
-    let newWidths = [...localWidths];
+  // const handleWidthChange = (value: number, index: number) => {
+  //   let newWidths = [...localWidths];
 
-    const adjustedValue = Math.max(
-      0,
-      Math.min(100, Math.round(value * 100) / 100)
-    );
-    newWidths[index] = adjustedValue;
+  //   const adjustedValue = Math.max(
+  //     0,
+  //     Math.min(100, Math.round(value * 100) / 100)
+  //   );
+  //   newWidths[index] = adjustedValue;
 
-    const totalOtherWidths = 100 - adjustedValue;
-    const remainingColumns = Number(columns) - 1;
+  //   const totalOtherWidths = 100 - adjustedValue;
+  //   const remainingColumns = Number(columns) - 1;
 
-    if (remainingColumns > 0) {
-      const remainingWidths =
-        Math.round((totalOtherWidths / remainingColumns) * 100) / 100;
-      newWidths = newWidths.map((w, i) =>
-        i === index ? adjustedValue : remainingWidths
-      );
-    }
+  //   if (remainingColumns > 0) {
+  //     const remainingWidths =
+  //       Math.round((totalOtherWidths / remainingColumns) * 100) / 100;
+  //     newWidths = newWidths.map((w, i) =>
+  //       i === index ? adjustedValue : remainingWidths
+  //     );
+  //   }
 
-    setLocalWidths(newWidths);
-    updateCellWidths(newWidths);
-  };
+  //   setLocalWidths(newWidths);
+  //   updateCellWidths(newWidths);
+  // };
+const handleWidthChange = (value: number, index: number) => {
+  const newWidths = [...localWidths];
+  const adjustedValue = Math.max(0, Math.min(100, Math.round(value * 100) / 100));
+  newWidths[index] = adjustedValue;
 
+  setLocalWidths(newWidths);
+  updateCellWidths(newWidths);
+};
   return (
     <ColumnCellWidthContainer>
       {localWidths.map((width, index) => (

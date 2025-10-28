@@ -98,7 +98,6 @@ const Canvas = () => {
           key={blockId}
           accept="CANVAS_BLOCK"
           onDrop={(item) => handleBlockSwap(item, blockId)}
-          style={{ margin: "4px 0" }}
         >
           <DraggableBlock blockId={blockId}>
             <BlockWrapper

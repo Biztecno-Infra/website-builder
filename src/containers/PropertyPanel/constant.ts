@@ -18,22 +18,31 @@ export const fontOptions = [
   { key: "arial", text: "Arial", value: "Arial, sans-serif" },
   { key: "helvetica", text: "Helvetica", value: "Helvetica, Arial, sans-serif" },
   { key: "sans_serif", text: "Default Sans-serif", value: "sans-serif" },
-  { key: "times", text: "Times New Roman", value: "'Times New Roman', serif" },
+  { key: "times", text: "Times New Roman", value: "Times New Roman, serif" },
   { key: "courier", text: "Courier New", value: "'Courier New', monospace" },
   { key: "georgia", text: "Georgia", value: "Georgia, serif" },
   { key: "verdana", text: "Verdana", value: "Verdana, sans-serif" },
   { key: "tahoma", text: "Tahoma", value: "Tahoma, sans-serif" },
-  { key: "comic", text: "Comic Sans MS", value: "'Comic Sans MS', cursive, sans-serif" },
-  { key: "lucida", text: "Lucida Sans", value: "'Lucida Sans', sans-serif" },
-  { key: "palatino", text: "Palatino Linotype", value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif" },
+  { key: "comic", text: "Comic Sans MS", value: "Comic Sans MS, cursive, sans-serif" },
+  { key: "lucida", text: "Lucida Sans", value: "Lucida Sans, sans-serif" },
+  { key: "palatino", text: "Palatino Linotype", value: "Palatino Linotype, 'Book Antiqua', Palatino, serif" },
   { key: "trebuchet", text: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
 
-  // Additional modern web fonts
+  // Modern web fonts
   { key: "roboto", text: "Roboto", value: "Roboto, sans-serif" },
   { key: "opensans", text: "Open Sans", value: "'Open Sans', sans-serif" },
   { key: "segoe_ui", text: "Segoe UI", value: "'Segoe UI', sans-serif" },
   { key: "lato", text: "Lato", value: "Lato, sans-serif" },
-  { key: "merriweather", text: "Merriweather", value: "Merriweather, serif" }
+  { key: "merriweather", text: "Merriweather", value: "Merriweather, serif" },
+  { key: "henderson", text: "Henderson", value: "'Henderson', 'Georgia', serif" },
+
+  // Additional designer fonts
+  // { key: "ds_termina", text: "DS Termina", value: "'DS Termina', 'Helvetica Neue', Arial, sans-serif" },
+
+  // Optional extra popular choices
+  { key: "montserrat", text: "Montserrat", value: "Montserrat, sans-serif" },
+  { key: "poppins", text: "Poppins", value: "Poppins, sans-serif" },
+  { key: "inter", text: "Inter", value: "Inter, sans-serif" },
 ];
 
 

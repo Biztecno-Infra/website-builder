@@ -230,6 +230,7 @@ export const useBlocks = (): IBlockContext => {
                   type: BlockType.GRIDCELL,
                   parentId: blockId,
                   childBlocks: [],
+                  ...getDefaultBlockProperties(BlockType.GRIDCELL),
                 },
               },
             ])
