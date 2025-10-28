@@ -19,7 +19,12 @@ export interface IElements {
   icon: any;
 }
 
-const BlockItemContainer = styled.div<{ $isDragging: boolean, $elements: any, $isHovered: boolean, $colors: any }>`
+const BlockItemContainer = styled.div<{
+  $isDragging: boolean;
+  $elements: any;
+  $isHovered: boolean;
+  $colors: any;
+}>`
   opacity: ${({ $isDragging }) => ($isDragging ? 0.5 : 1)};
   margin-bottom: ${({ $elements }) => $elements.marginBottom};
   cursor: ${({ $elements }) => $elements.cursor};
@@ -29,24 +34,28 @@ const BlockItemContainer = styled.div<{ $isDragging: boolean, $elements: any, $i
   padding: ${({ $elements }) => $elements.padding};
   text-align: ${({ $elements }) => $elements.textAlign};
   background-color: ${({ $isDragging, $isHovered, $colors }) =>
-    $isDragging ? 'transparent' : ($isHovered ? $colors.buttonPrimary : $colors.secondary)};
+    $isDragging
+      ? "transparent"
+      : $isHovered
+      ? $colors.buttonPrimary
+      : $colors.secondary};
   display: flex;
   justify-content: space-between;
   align-items: center;
   transition: background-color 0.3s ease, color 0.3s ease;
 `;
 
-const BlockName = styled.div<{ $isHovered: boolean, $colors: any }>`
+const BlockName = styled.div<{ $isHovered: boolean; $colors: any }>`
   font-size: 11px;
-  padding-left: 1rem;
-  color: ${({ $isHovered, $colors }) => $isHovered ? $colors.secondary : $colors.buttonPrimary};
+  color: ${({ $isHovered, $colors }) =>
+    $isHovered ? $colors.secondary : $colors.buttonPrimary};
   transition: color 0.3s ease;
 `;
 
 const BlockIconText = styled.div`
-   display: flex;
-  align-Items: center;
-  justify-Content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const IconContainer = styled.div`
@@ -56,10 +65,16 @@ const IconContainer = styled.div`
   padding-right: 0.75rem;
 `;
 
-const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }) => {
+const BlockItem: React.FC<IElements> = ({
+  type,
+  name,
+  elements,
+  icon,
+  svgProps,
+}) => {
   const [isHovered, setIsHovered] = useState(false);
   const theme = useTheme();
-  const { colors } = theme as Theme || {};
+  const { colors } = (theme as Theme) || {};
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "BLOCK",
@@ -68,7 +83,7 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       isDragging: monitor.isDragging(),
     }),
   }));
-
+  const isVerticalDivider = name === "Add Vertical Divider";
   return (
     <BlockItemContainer
       ref={drag as any}
@@ -80,12 +95,25 @@ const BlockItem: React.FC<IElements> = ({ type, name, elements, icon, svgProps }
       onMouseLeave={() => setIsHovered(false)}
       style={{
         borderRadius: elements.borderRadius,
-        border: isDragging ? 'none' : `${elements.border} solid ${theme.colors.primary}`, // Remove border during drag
+        border: isDragging
+          ? "none"
+          : `${elements.border} solid ${theme.colors.primary}`, // Remove border during drag
       }}
     >
       <BlockIconText>
-        <SvgIcon {...svgProps} color={isHovered ? colors.secondary : colors.primary} />
-        <BlockName $isHovered={isHovered} $colors={colors}>{name}</BlockName>
+        <SvgIcon
+          {...svgProps}
+          color={isHovered ? colors.secondary : colors.primary}
+        />
+        <BlockName
+          $isHovered={isHovered}
+          $colors={colors}
+          style={{
+            paddingLeft: isVerticalDivider ? 0 : "1rem",
+          }}
+        >
+          {name}
+        </BlockName>
       </BlockIconText>
       {isHovered && <IconContainer>{icon(isHovered, colors)}</IconContainer>}
     </BlockItemContainer>
@@ -116,7 +144,7 @@ const Header = styled.div`
 
 const Sections: React.FC = () => {
   const theme = useTheme();
-  const { colors, fontSize, elementsPanel } = theme as Theme || {};
+  const { colors, fontSize, elementsPanel } = (theme as Theme) || {};
 
   const blockItems = [
     {
