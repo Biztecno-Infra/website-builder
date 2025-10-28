@@ -114,8 +114,8 @@ export const jsonToBlocks = (
       parentId: parentId || null,
       childBlocks: [],
       layerName: layoutBlock?.layerName || "",
-      hideOnDesktop: layoutBlock?.data.props.hideOnDesktop || false,
-      hideOnMobile: layoutBlock?.data.props.hideOnMobile || false,
+      hideOnDesktop: layoutBlock?.data?.props?.hideOnDesktop || false,
+      hideOnMobile: layoutBlock?.data?.props?.hideOnMobile || false,
     };
 
     switch (block.type) {
