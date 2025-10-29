@@ -185,7 +185,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               padding: "0.5rem",
               borderRight: " 1px solid #DDDDDD",
               width: "50%",
-              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnDesktop ? theme.colors.background :theme.colors.primary ,
             }}
           />
           <SvgIcon
@@ -195,7 +195,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
               cursor: "pointer",
               padding: "0.5rem",
               width: "50%",
-              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnMobile ? theme.colors.background :theme.colors.primary ,
             }}
           />
         </FlexContainer>

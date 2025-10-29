@@ -431,7 +431,7 @@ export const defaultTheme: Theme = {
   colors: {
     primary: "#006E75",
     secondary: "#FFFFFF",
-    background: "#f8f9fa",
+    background: "#DDDDDD",
     textPrimary: "#FFFFFF",
     textDefault: "#000000",
     textSecondary: "#212529",

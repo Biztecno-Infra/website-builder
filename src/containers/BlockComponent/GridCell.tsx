@@ -113,7 +113,10 @@ const GridCell: React.FC<GridCellProps> = ({ cellWidth, blockId }) => {
     type,
     layerName,
     parentId,
-    ...rest
+    borderColor,
+    borderRadius,
+    borderStyle,
+    borderWidth,
   } = block as IGridCellProps;
   const backgroundImageStyle = backgroundImage
     ? {
@@ -129,7 +132,6 @@ const GridCell: React.FC<GridCellProps> = ({ cellWidth, blockId }) => {
     // Option 1: fully hide
     // return null;
 
-    // ✅ Option 2: ghosted preview (recommended)
     return (
       <StyledCell
         id={`block-${block.id}`}
@@ -145,29 +147,13 @@ const GridCell: React.FC<GridCellProps> = ({ cellWidth, blockId }) => {
           outline: `1px dashed ${
             isSelected && block.parentId ? theme.colors.primary : "transparent"
           }`,
-          opacity: 0.4,
-          pointerEvents: "none",
-          position: "relative",
-          border: "1px dashed #ff9800",
-          background: "rgba(255, 152, 0, 0.05)",
-          ...rest,
+          border: borderWidth
+            ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
+            : "none",
+          borderRadius: borderRadius ? `${borderRadius}px` : "0px",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: 2,
-            right: 2,
-            background: "#ff9800",
-            color: "#fff",
-            fontSize: "10px",
-            padding: "2px 4px",
-            borderRadius: "2px",
-            zIndex: 1,
-          }}
-        >
-          Hidden on {selectedView}
-        </div>
+        {block?.childBlocks?.map(renderGridCellChilds)}
 
         {block?.childBlocks?.map(renderGridCellChilds)}
 
@@ -192,7 +178,10 @@ const GridCell: React.FC<GridCellProps> = ({ cellWidth, blockId }) => {
           outline: `1px dashed ${
             isSelected && block.parentId ? theme.colors.primary : "transparent"
           }`,
-          ...rest,
+          border: borderWidth
+            ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
+            : "none",
+          borderRadius: borderRadius ? `${borderRadius}px` : "0px",
         }}
       >
         {block?.childBlocks?.map(renderGridCellChilds)}

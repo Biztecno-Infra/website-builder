@@ -100,9 +100,9 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             svgStyle={{
               cursor: "pointer",
               padding: "0.5rem",
-              borderRight: " 1px solid #DDDDDD",
+              borderRight: `1px solid ${theme.colors.background}`,
               width: "50%",
-              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnDesktop ? theme.colors.background :theme.colors.primary ,
             }}
           />
           <SvgIcon
@@ -112,7 +112,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
               cursor: "pointer",
               padding: "0.5rem",
               width: "50%",
-              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnMobile ? theme.colors.background :theme.colors.primary ,
             }}
           />
         </FlexContainer>

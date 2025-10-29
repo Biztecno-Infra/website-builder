@@ -17,11 +17,6 @@ import { FlexContainer, FlexRow, FormWrapper } from "../style";
 import { fontOptions, fontWeightOptions } from "../constant";
 import { useBlockForm } from "../useBlockForm";
 
-const Divider = styled.div`
-  width: 100%;
-  height: 1px;
-  background: #dddddd;
-`;
 const WidthHeightContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -186,7 +181,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
             containerStyle={{
-              border: "1px solid #DDDDDD",
+              border: `1px solid ${theme.colors.background}`,
               borderRadius: "10px",
               padding: "0.5rem",
             }}
@@ -220,9 +215,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             svgStyle={{
               cursor: "pointer",
               padding: "0.5rem",
-              borderRight: " 1px solid #DDDDDD",
+              borderRight: `1px solid ${theme.colors.background}`,
               width: "50%",
-              color: formData.hideOnDesktop ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnDesktop ? theme.colors.background :theme.colors.primary  ,
             }}
           />
           <SvgIcon
@@ -232,7 +227,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
               cursor: "pointer",
               padding: "0.5rem",
               width: "50%",
-              color: formData.hideOnMobile ? theme.colors.primary : "#DDDDDD",
+              color: formData.hideOnMobile ? theme.colors.background :theme.colors.primary ,
             }}
           />
         </FlexContainer>
