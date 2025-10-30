@@ -14,7 +14,7 @@ interface BlockHookProviderProps {
 export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps>(({ children }: BlockHookProviderProps, ref) => {
   const customFunction = useBlocks();
 
-  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef , handleImportTemplates , setSelectedBlock , undo , redo , undoLocked , setUndoLocked } = customFunction;
+  const { handleJsonUpload, blocksToJson, blocks, rootBlockOrder , canvasRef , handleImportTemplates , setSelectedBlock , undo , redo , undoLocked , setUndoLocked , handleBrandingSelect } = customFunction;
 
   const captureScreenshot = async (): Promise<File | null> => {
     setSelectedBlock(null); 
@@ -52,11 +52,7 @@ export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps
     undo,
     undoLocked, 
     setUndoLocked, 
-    onBrandingSelect: (brands: any[], branding: any) => {
-      // Implement branding selection logic here
-      console.log("Brands:", brands);
-      console.log("Selected Branding:", branding);
-    }
+    onBrandingSelect: handleBrandingSelect
   }));
 
   return <BlockHookContext.Provider value={customFunction}>{children}</BlockHookContext.Provider>;

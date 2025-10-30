@@ -15,29 +15,6 @@ import { ScreenViews } from "enum";
 import { useUndoRedo } from "./useUndoRedo";
 import { isShallowEqual } from "@utils/common";
 
-const initializeBlock = (
-  block: Block
-): { defaultBlock: Block; extraBlocks: { [key: string]: Block } } => {
-  const { type } = block;
-  const extraBlocks: { [key: string]: any } = {};
-  let properties = getDefaultBlockProperties(type);
-
-  if (type === BlockType.GRID) {
-    [...new Array(properties.columns)].forEach(() => {
-      const blockID = generateUniqueId();
-      (properties as any).childBlocks.push(blockID);
-
-      extraBlocks[blockID] = {
-        type: BlockType.GRIDCELL,
-        id: blockID,
-        parentId: block.id,
-        ...getDefaultBlockProperties(BlockType.GRIDCELL),
-      };
-    });
-  }
-
-  return { defaultBlock: { ...properties ,  ...block, hideOnDesktop: false , hideOnMobile: false} as Block, extraBlocks };
-};
 
 const getDistributtedLength = (length: number): Array<number> => {
   return Array.from({ length }, () => 100 / length);
@@ -46,13 +23,44 @@ const getDistributtedLength = (length: number): Array<number> => {
 export const useBlocks = (): IBlockContext => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const HISTORY_COALESCE_MS = 250;
-
   const [globalStyles, setGlobalStyles] =
     useState<GlobalStyles>(initialGlobalStyle);
   const [selectedView, setSelectedView] = useState<ScreenViews>(
     ScreenViews.DESKTOP
   );
-
+  const [brandsList, setBrandsList] = useState<any>([]);
+  const [selectedBrand , setSelectedBrand] = useState<any>({
+    "name": "Google Material",
+    "colorPalette": [
+        {
+            "colorName": "Material Red",
+            "hex": "#F44336"
+        },
+        {
+            "colorName": "Material Blue",
+            "hex": "#2196F3"
+        },
+        {
+            "colorName": "Material Green",
+            "hex": "#4CAF50"
+        },
+        {
+            "colorName": "Material Yellow",
+            "hex": "#FFEB3B"
+        },
+        {
+            "colorName": "Material Purple",
+            "hex": "#9C27B0"
+        }
+    ],
+    "typography": [
+        {
+            "text": "Roboto",
+            "fontSize": 20,
+            "hex": "#fc2626ff"
+        }
+    ]
+});
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<
@@ -60,7 +68,7 @@ export const useBlocks = (): IBlockContext => {
   >(null);
   const isApplyingHistory = useRef<boolean>(false);
   const [undoLocked, setUndoLocked] = useState<boolean>(false);
-
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedBlock: Block | RootLayout | null = useMemo(() => {
     if (selectedBlockId === "EmailLayout") {
       return {
@@ -74,7 +82,6 @@ export const useBlocks = (): IBlockContext => {
     return null;
   }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
 
-  // Memoize current state to prevent unnecessary effect triggers
   const currentState = useMemo(() => ({
     blocks,
     rootOrder: rootBlockOrder,
@@ -82,8 +89,6 @@ export const useBlocks = (): IBlockContext => {
   }), [blocks, rootBlockOrder, globalStyles]);
 
   const prevStateRef = useRef(currentState);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const {
     push,
     undo: undoHistory,
@@ -96,11 +101,8 @@ export const useBlocks = (): IBlockContext => {
   // Optimized history management
   useEffect(() => {
     if (isApplyingHistory.current || undoLocked) return;
-
     const hasChanges = !isShallowEqual(prevStateRef.current, currentState);
-
     if (!hasChanges) return;
-
     // Clear previous timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -146,6 +148,62 @@ export const useBlocks = (): IBlockContext => {
       isApplyingHistory.current = false;
     }, 0);
   };
+const isTextBasedBlock = (blockType: BlockType): boolean => {
+  const textBasedBlocks = [
+    BlockType.TEXT,
+    BlockType.BUTTON,
+    BlockType.SHAPE // if it contains text
+  ];
+  return textBasedBlocks.includes(blockType);
+};
+const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [key: string]: Block } } => {
+  const { type } = block;
+  const extraBlocks: { [key: string]: any } = {};
+  let properties = getDefaultBlockProperties(type);
+
+  // Apply brand styles if available
+  if (selectedBrand?.typography?.length > 0 && isTextBasedBlock(type)) {
+    const typography = selectedBrand.typography[0];
+    properties = {
+      ...properties,
+      fontFamily: typography.text || properties.fontFamily,
+      fontSize: typography.fontSize || properties.fontSize,
+      lineHeight: typography.fontSize || properties.fontSize,
+      color: typography.hex || properties.color,
+    };
+  }
+
+  if (type === BlockType.GRID) {
+    [...new Array(properties.columns)].forEach(() => {
+      const blockID = generateUniqueId();
+      (properties as any).childBlocks.push(blockID);
+
+      extraBlocks[blockID] = {
+        type: BlockType.GRIDCELL,
+        id: blockID,
+        parentId: block.id,
+        ...getDefaultBlockProperties(BlockType.GRIDCELL),
+      };
+    });
+  }
+
+  return { 
+    defaultBlock: { 
+      ...properties,  
+      ...block, 
+      hideOnDesktop: false, 
+      hideOnMobile: false 
+    } as Block, 
+    extraBlocks 
+  };
+};
+  const handleBrandingSelect = (brands: any[], branding: any) => {
+    setBrandsList(brands);
+    setSelectedBrand(branding);
+    // Implement branding selection logic here
+    console.log("Brands:", brands);
+    console.log("Selected Branding:", branding);
+  }
 
   const handleImportTemplates = useCallback(
     (selectedTemplates: any[]) => {
@@ -722,6 +780,9 @@ const handleDropper = useCallback(
     canRedo,
     undoLocked, 
     setUndoLocked, 
-    handleBlockSwap
+    handleBlockSwap,
+    handleBrandingSelect, 
+    brandsList,
+    selectedBrand
   };
 };

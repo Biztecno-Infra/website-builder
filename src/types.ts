@@ -318,7 +318,9 @@ export interface IBlockContext {
   undoLocked: boolean;
   setUndoLocked: (locked: boolean) => void;
   handleBlockSwap: (sourceId: any, targetId: any) => void;
-  // captureScreenshot: any
+  handleBrandingSelect: (brands: any[], branding: any) => void;
+  brandsList: any[];
+  selectedBrand: any;
 }
 export interface BlockHookRef {
   getHTML: (json: any) => Promise<string>;

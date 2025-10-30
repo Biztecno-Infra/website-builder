@@ -11,6 +11,8 @@ import { BorderStyleDropdown } from "@components/StyleComponents/BorderStyle";
 interface GlobalStylesFormProps {
   globalStyles: GlobalStyles;
   updateGlobalStyles: (updatedStyles: any) => void;
+  brandsList?: any[];
+  selectedBrand?: any;
 }
 
 const FormWrapper = styled.div`
@@ -115,6 +117,21 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             padding: "0.5rem",
           }}
         />
+      </BasePropertyWrapper>
+      <BasePropertyWrapper
+        name="Choose Branding"
+        containerStyle={{borderTop: "1px solid #EEEEEE" , marginTop: "1rem"}}
+      >
+        <div style={{ display: "flex" , width: "100%"}}>
+          <div style={{width: "30%"}}>Name</div>
+          <div style={{ display: "flex" , justifyContent:"space-between" , width: "70%"}}>
+          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
+          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
+          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
+          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
+          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
+          </div>
+        </div>
       </BasePropertyWrapper>
     </FormWrapper>
   );

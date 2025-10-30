@@ -10,18 +10,18 @@ interface ColorPickerProps {
   label?: string;
   selectedColor: string;
   containerStyle?: React.CSSProperties;
-  defaultColor?: any
+  defaultColor?: any;
+  selectedBrand?: any; // Add selectedBrand prop
 }
 
 const ColorPickerContainer = styled.div`
   display: flex;
   flex-direction: column;
-      justify-content: center;
+  justify-content: center;
   position: relative;
   background-color: #f1f1f1;
   border-radius: 5px;
-padding: 4px;
-
+  padding: 4px;
 `;
 
 const PickerRow = styled.div`
@@ -43,8 +43,8 @@ const ColorHexInput = styled.input`
   &.ebr-colorHexInput {
     font-size: 0.8rem;
     border: none;
-     height: 30px;
-    line-height:0.5rem;
+    height: 30px;
+    line-height: 0.5rem;
     background: #f1f1f1;
     border-radius: 4px;
     width: calc(100% - 2rem);
@@ -65,6 +65,55 @@ const GradientPickerContainer = styled.div`
   border-radius: 5px;
 `;
 
+const BrandPaletteContainer = styled.div`
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #eee;
+`;
+
+const BrandPaletteHeader = styled.div`
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+`;
+
+const BrandPaletteRow = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
+`;
+
+const BrandName = styled.div`
+  width: 30%;
+  font-size: 11px;
+  color: #333;
+  font-weight: 500;
+`;
+
+const ColorSwatches = styled.div`
+  display: flex;
+  justify-content: space-between;
+  width: 70%;
+  gap: 4px;
+`;
+
+const ColorSwatch = styled.div<{ color: string }>`
+  width: 2rem;
+  height: 2rem;
+  background-color: ${props => props.color};
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    border: 1px solid #333;
+  }
+`;
+
 const rgbToHex = (color: string) => {
   if (color.startsWith("rgb")) {
     const rgbValues = color.match(/\d+/g);
@@ -83,6 +132,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
   selectedColor,
   containerStyle,
   defaultColor,
+  selectedBrand, // Destructure selectedBrand
 }) => {
   const [color, setColor] = useState<string>(defaultColor || "");
   const [isPickerVisible, setPickerVisible] = useState<boolean>(false);
@@ -102,15 +152,33 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
     onColorChange("color", hexColor);
   };
 
+  const handleSwatchClick = (hexColor: string) => {
+    setColor(hexColor);
+    onColorChange("color", hexColor);
+    setPickerVisible(false); // Close picker when swatch is clicked
+  };
+
   return (
     <ColorPickerContainer style={containerStyle}>
       <PickerRow>
-        {color && <ColorBox
-          $selectedColor={color}
-          onClick={() => setPickerVisible(!isPickerVisible)}
-        />}
-        {!color && <SvgIcon name={CUSTOM_SVG_ICON.Plus}  size={SizeEnum.Small} onClick={() => setPickerVisible(!isPickerVisible)} svgStyle={{padding: 3 , border: "1px solid" , borderRadius: 3 , marginLeft: 5}}/>}
-
+        {color ? (
+          <ColorBox
+            $selectedColor={color}
+            onClick={() => setPickerVisible(!isPickerVisible)}
+          />
+        ) : (
+          <SvgIcon 
+            name={CUSTOM_SVG_ICON.Plus}  
+            size={SizeEnum.Small} 
+            onClick={() => setPickerVisible(!isPickerVisible)} 
+            svgStyle={{
+              padding: 3, 
+              border: "1px solid", 
+              borderRadius: 3, 
+              marginLeft: 5
+            }}
+          />
+        )}
 
         <ColorHexInput
           className="ebr-colorHexInput"
@@ -121,6 +189,28 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           placeholder="Select Color"
         />
       </PickerRow>
+
+      {/* Brand Color Palette - Always visible */}
+      {selectedBrand?.colorPalette && selectedBrand.colorPalette.length > 0 && (
+        <BrandPaletteContainer>
+          <BrandPaletteHeader>
+            {selectedBrand.name} Colors
+          </BrandPaletteHeader>
+          <BrandPaletteRow>
+            <BrandName>{selectedBrand.name}</BrandName>
+            <ColorSwatches>
+              {selectedBrand.colorPalette.map((colorItem: any, index: number) => (
+                <ColorSwatch
+                  key={index}
+                  color={colorItem.hex}
+                  title={colorItem.colorName}
+                  onClick={() => handleSwatchClick(colorItem.hex)}
+                />
+              ))}
+            </ColorSwatches>
+          </BrandPaletteRow>
+        </BrandPaletteContainer>
+      )}
 
       {isPickerVisible && (
         <GradientPickerContainer ref={pickerRef}>
