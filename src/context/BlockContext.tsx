@@ -51,7 +51,12 @@ export const BlockHookProvider = forwardRef<BlockHookRef, BlockHookProviderProps
     redo,
     undo,
     undoLocked, 
-    setUndoLocked
+    setUndoLocked, 
+    onBrandingSelect: (brands: any[], branding: any) => {
+      // Implement branding selection logic here
+      console.log("Brands:", brands);
+      console.log("Selected Branding:", branding);
+    }
   }));
 
   return <BlockHookContext.Provider value={customFunction}>{children}</BlockHookContext.Provider>;

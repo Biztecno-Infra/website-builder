@@ -20,7 +20,6 @@ interface ICoreBlock {
   hideOnMobile?: boolean;
 }
 
-
 interface BaseBlock extends ICoreBlock {
   text?: string;
   backgroundColor: string;
@@ -148,7 +147,7 @@ export interface IGridCellProps extends ICoreBlock {
   backgroundSize?: string;
   backgroundPosition?: string;
   backgroundRepeat?: string;
-    borderRadius?: number;
+  borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
@@ -179,7 +178,7 @@ export interface VideoProps extends BaseBlock {
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
-    padding: {
+  padding: {
     top: number;
     right: number;
     bottom: number;
@@ -193,13 +192,13 @@ export interface ShapeProps extends BaseBlock {
   width?: number;
   height?: number;
   shapeColor: string;
-  shape: "rectangle" | "circle" | "oval" | "rounded" ;
+  shape: "rectangle" | "circle" | "oval" | "rounded";
   borderRadius?: number;
   imageUrl?: string;
   borderColor?: string;
   borderWidth?: number;
   borderStyle?: string;
-    padding: {
+  padding: {
     top: number;
     right: number;
     bottom: number;
@@ -212,7 +211,17 @@ export interface ShapeProps extends BaseBlock {
   fontSize?: number;
 }
 
-export type Block = TextProps | ImageProps | ButtonProps | GridProps | IGridCellProps | VideoProps | ShapeProps | DividerProps | VDividerProps | SpacerProps;
+export type Block =
+  | TextProps
+  | ImageProps
+  | ButtonProps
+  | GridProps
+  | IGridCellProps
+  | VideoProps
+  | ShapeProps
+  | DividerProps
+  | VDividerProps
+  | SpacerProps;
 
 export interface IBlocksState {
   [key: string]: Block;
@@ -229,7 +238,6 @@ export interface BlockItemProps {
 }
 
 export interface MultiViewContainerProps {
-
   onBlockClick: (block: Block) => void;
   onDeleteBlock: any;
   globalStyles: GlobalStyles;
@@ -256,7 +264,8 @@ export interface GlobalStyles {
   borderRadius?: number;
   borderColor: string;
   borderWidth?: number;
-  borderStyle?: string;}
+  borderStyle?: string;
+}
 
 export interface RootLayout {
   type: string;
@@ -289,7 +298,11 @@ export interface IBlockContext {
   updateBlock: (blockId: string, property: string, value: any) => void;
   onDeleteBlock: (blockId: string) => void;
   handleJsonUpload: (jsonData: any) => void;
-  handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
+  handleDropper: (
+    dragSrc: any,
+    dropAreaId: string,
+    dropExtraInfo?: any
+  ) => void;
   rootBlockOrder: string[];
   globalStyles: GlobalStyles;
   updateGlobalStyles: (styles: GlobalStyles) => void;
@@ -298,8 +311,8 @@ export interface IBlockContext {
   setSelectedView: any;
   handleImportTemplates: any;
   canvasRef: any;
-  undo : () => void;
-  redo : () => void;
+  undo: () => void;
+  redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
   undoLocked: boolean;
@@ -311,14 +324,14 @@ export interface BlockHookRef {
   getHTML: (json: any) => Promise<string>;
   updateJSON: (data: any) => void;
   getJSON: () => any;
-  getScreenShot:() => any;
+  getScreenShot: () => any;
   importTemplate: (templates: any[]) => void;
   undo: () => void;
   redo: () => void;
   undoLocked: boolean;
   setUndoLocked: (locked: boolean) => void;
+  onBrandingSelect: (brands: any[], branding: any) => void;
 }
-
 
 export interface BlockComponentProps {
   blockId: string;
@@ -330,12 +343,16 @@ export interface GridBlockProps {
 }
 
 export interface GridCellProps {
-  blockId: string
+  blockId: string;
   cellWidth: number;
 }
 
 interface BaseBlockProps {
-  handleDropper: (dragSrc: any, dropAreaId: string, dropExtraInfo?: any) => void;
+  handleDropper: (
+    dragSrc: any,
+    dropAreaId: string,
+    dropExtraInfo?: any
+  ) => void;
   handleBlockClick: (e: any) => void;
   isSelected: boolean;
 }
@@ -385,12 +402,12 @@ export interface Theme {
     buttonSecondary: string;
     inputColor: string;
     inputPlaceholderColor: string;
-  },
+  };
   spacing: {
     small: number;
     medium: number;
     large: number;
-  },
+  };
   elementsPanel: {
     background: string;
     padding: string;
@@ -412,6 +429,6 @@ export interface Theme {
   fontSize: {
     labelHeader: string;
     subHeader: string;
-  }
+  };
   borderRadius: number;
 }
