@@ -73,6 +73,7 @@ const PropertyPanel = memo(() => {
         <BlockFormComponent
           selectedBlock={selectedBlock}
           updateBlock={updateBlock}
+          selectedBrand={selectedBrand}
         />
       );
     }

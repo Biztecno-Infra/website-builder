@@ -68,7 +68,7 @@ export const useBlocks = (): IBlockContext => {
   >(null);
   const isApplyingHistory = useRef<boolean>(false);
   const [undoLocked, setUndoLocked] = useState<boolean>(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<any | null>(null);
   const selectedBlock: Block | RootLayout | null = useMemo(() => {
     if (selectedBlockId === "EmailLayout") {
       return {
@@ -168,7 +168,6 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
       ...properties,
       fontFamily: typography.text || properties.fontFamily,
       fontSize: typography.fontSize || properties.fontSize,
-      lineHeight: typography.fontSize || properties.fontSize,
       color: typography.hex || properties.color,
     };
   }

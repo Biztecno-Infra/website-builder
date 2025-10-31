@@ -25,6 +25,7 @@ const WidthHeightContainer = styled.div`
 export const ButtonBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand,
 }) => {
   const theme = useTheme();
   // Use the optimized form hook
