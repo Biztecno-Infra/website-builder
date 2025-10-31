@@ -29,6 +29,7 @@ const PaddingContainer = styled.div`
 export const ImageBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange, handleImmediateChange } = useBlockForm(
@@ -141,6 +142,7 @@ export const ImageBlockForm: React.FC<BlockFormProps> = ({
             }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
+            selectedBrand={selectedBrand}
           />
 
           <PaddingInput

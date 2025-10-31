@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import BasePropertyWrapper from "@components/BasePropertyWrapper";
 import { GlobalStyles } from "types";
-import { Dropdown, ReactColorPicker } from "@components/lib";
+import { Dropdown, ReactColorPicker, Tooltip } from "@components/lib";
 import { fontOptions } from "../constant";
 import { PaddingInput } from "@components/StyleComponents";
 import { FlexRow } from "../style";
@@ -13,6 +13,7 @@ interface GlobalStylesFormProps {
   updateGlobalStyles: (updatedStyles: any) => void;
   brandsList?: any[];
   selectedBrand?: any;
+  onBrandSelect: (brands: any[], branding: any) => void;
 }
 
 const FormWrapper = styled.div`
@@ -20,9 +21,73 @@ const FormWrapper = styled.div`
   flex-direction: column;
 `;
 
+const BrandContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+`;
+
+const BrandRow = styled.div<{ isSelected?: boolean }>`
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid ${(props) => (props.isSelected ? "#4169F3" : "#EEEEEE")};
+  background-color: ${(props) =>
+    props.isSelected ? "#F0F7FF" : "transparent"};
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f9f9f9;
+    border-color: #cccccc;
+  }
+`;
+
+const BrandName = styled.div`
+  width: 30%;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+`;
+
+const ColorSwatches = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  width: 80%;
+  flex-wrap: wrap;
+`;
+
+const ColorSwatch = styled.div<{ color: string }>`
+  width: 2rem;
+  height: 2rem;
+  background-color: ${(props) => props.color};
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+    border: 1px solid #333;
+  }
+`;
+
+const NoBrandsMessage = styled.div`
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
+`;
+
 export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
   globalStyles,
   updateGlobalStyles,
+  selectedBrand,
+  brandsList = [],
+  onBrandSelect,
 }) => {
   // Destructure the initial global styles and set up the state
   const {
@@ -60,7 +125,15 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
       return updatedStyles;
     });
   };
-
+  const getTooltipContent = (colorItem: any) => {
+    return `${colorItem.colorName} (${colorItem.hex})`;
+  };
+  // Handle brand selection
+  const handleBrandSelect = (brand: any) => {
+    if (onBrandSelect) {
+      onBrandSelect(brandsList, brand);
+    }
+  };
   return (
     <FormWrapper>
       <BasePropertyWrapper name="Edit Global Text Settings">
@@ -69,6 +142,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
           onColorChange={(field, value) => handleChange("textColor", value)}
           selectedColor={styles.textColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
+          selectedBrand={selectedBrand}
         />
         <Dropdown
           name="fontFamily"
@@ -85,6 +159,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
             onColorChange={(field, value) => handleChange("canvasColor", value)}
             selectedColor={styles.canvasColor}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={styles?.padding}
@@ -120,18 +195,38 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
       </BasePropertyWrapper>
       <BasePropertyWrapper
         name="Choose Branding"
-        containerStyle={{borderTop: "1px solid #EEEEEE" , marginTop: "1rem"}}
+        containerStyle={{ borderTop: "1px solid #EEEEEE", marginTop: "1rem" }}
       >
-        <div style={{ display: "flex" , width: "100%"}}>
-          <div style={{width: "30%"}}>Name</div>
-          <div style={{ display: "flex" , justifyContent:"space-between" , width: "70%"}}>
-          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
-          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
-          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
-          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
-          <div style={{backgroundColor: "#000000" , width: "2rem" , height: "2rem"}} />
-          </div>
-        </div>
+        <BrandContainer>
+          {brandsList.length === 0 ? (
+            <NoBrandsMessage>
+              No brands available. Please add brands to see them here.
+            </NoBrandsMessage>
+          ) : (
+            brandsList.map((brand) => (
+              <BrandRow
+                key={brand._id}
+                isSelected={selectedBrand?._id === brand._id}
+                onClick={() => handleBrandSelect(brand)}
+              >
+                <BrandName>{brand.name}</BrandName>
+                <ColorSwatches>
+                  {brand.colorPalette?.map((colorItem: any, index: number) => (
+                    <Tooltip key={index} content={getTooltipContent(colorItem)}>
+                      <ColorSwatch
+                        color={colorItem.hex}
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent triggering brand selection
+                          // You could add functionality to apply individual colors here
+                        }}
+                      />
+                    </Tooltip>
+                  ))}
+                </ColorSwatches>
+              </BrandRow>
+            ))
+          )}
+        </BrandContainer>
       </BasePropertyWrapper>
     </FormWrapper>
   );

@@ -84,6 +84,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             label="Select Text color"
             selectedColor={formData.color || ""}
             containerStyle={{ width: "60%" }}
+            selectedBrand={selectedBrand}
           />
 
           <Dropdown
@@ -151,6 +152,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) => handleChange("buttonColor", value)}
           selectedColor={formData.buttonColor || ""}
           containerStyle={{ width: "90%", marginBottom: 10 }}
+          selectedBrand={selectedBrand}
         />
 
         <FlexRow>
@@ -198,6 +200,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             label="Select Background Color"
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "58%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}
@@ -218,7 +221,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
               padding: "0.5rem",
               borderRight: `1px solid ${theme.colors.background}`,
               width: "50%",
-              color: formData.hideOnDesktop ? theme.colors.background :theme.colors.primary  ,
+              color: formData.hideOnDesktop
+                ? theme.colors.background
+                : theme.colors.primary,
             }}
           />
           <SvgIcon
@@ -228,7 +233,9 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
               cursor: "pointer",
               padding: "0.5rem",
               width: "50%",
-              color: formData.hideOnMobile ? theme.colors.background :theme.colors.primary ,
+              color: formData.hideOnMobile
+                ? theme.colors.background
+                : theme.colors.primary,
             }}
           />
         </FlexContainer>

@@ -28,6 +28,7 @@ const ColorPickerContainer = styled.div`
 export const TextBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange, handleImmediateChange } = useBlockForm(
@@ -87,6 +88,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             onColorChange={(field, value) => handleChange("color", value)}
             selectedColor={formData.color || ""}
             containerStyle={{ width: "65%" }}
+            selectedBrand={selectedBrand}
           />
           <Dropdown
             name="fontWeight"
@@ -133,6 +135,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}
@@ -189,6 +192,7 @@ export const TextBlockForm: React.FC<BlockFormProps> = ({
             }
             selectedColor={formData.textContainerBackgroundColor || ""}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.textContainerPadding}

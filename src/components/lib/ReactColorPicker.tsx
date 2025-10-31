@@ -4,6 +4,7 @@ import GradientColorPicker from "react-best-gradient-color-picker";
 import useClickOutside from "hoc/useClickOutside";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { SizeEnum } from "enum";
+import { Tooltip } from "./Tooltip";
 
 interface ColorPickerProps {
   onColorChange: (field: string, value: string) => void;
@@ -102,7 +103,7 @@ const ColorSwatches = styled.div`
 const ColorSwatch = styled.div<{ color: string }>`
   width: 2rem;
   height: 2rem;
-  background-color: ${props => props.color};
+  background-color: ${(props) => props.color};
   border-radius: 4px;
   cursor: pointer;
   border: 1px solid #ddd;
@@ -158,6 +159,10 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
     setPickerVisible(false); // Close picker when swatch is clicked
   };
 
+  const getTooltipContent = (colorItem: any) => {
+    return `${colorItem.colorName} (${colorItem.hex})`;
+  };
+
   return (
     <ColorPickerContainer style={containerStyle}>
       <PickerRow>
@@ -167,15 +172,15 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
             onClick={() => setPickerVisible(!isPickerVisible)}
           />
         ) : (
-          <SvgIcon 
-            name={CUSTOM_SVG_ICON.Plus}  
-            size={SizeEnum.Small} 
-            onClick={() => setPickerVisible(!isPickerVisible)} 
+          <SvgIcon
+            name={CUSTOM_SVG_ICON.Plus}
+            size={SizeEnum.Small}
+            onClick={() => setPickerVisible(!isPickerVisible)}
             svgStyle={{
-              padding: 3, 
-              border: "1px solid", 
-              borderRadius: 3, 
-              marginLeft: 5
+              padding: 3,
+              border: "1px solid",
+              borderRadius: 3,
+              marginLeft: 5,
             }}
           />
         )}
@@ -191,26 +196,6 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
       </PickerRow>
 
       {/* Brand Color Palette - Always visible */}
-      {selectedBrand?.colorPalette && selectedBrand.colorPalette.length > 0 && (
-        <BrandPaletteContainer>
-          <BrandPaletteHeader>
-            {selectedBrand.name} Colors
-          </BrandPaletteHeader>
-          <BrandPaletteRow>
-            <BrandName>{selectedBrand.name}</BrandName>
-            <ColorSwatches>
-              {selectedBrand.colorPalette.map((colorItem: any, index: number) => (
-                <ColorSwatch
-                  key={index}
-                  color={colorItem.hex}
-                  title={colorItem.colorName}
-                  onClick={() => handleSwatchClick(colorItem.hex)}
-                />
-              ))}
-            </ColorSwatches>
-          </BrandPaletteRow>
-        </BrandPaletteContainer>
-      )}
 
       {isPickerVisible && (
         <GradientPickerContainer ref={pickerRef}>
@@ -222,13 +207,39 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
             hideGradientStop
             hideAdvancedSliders
             hideOpacity
-            height={150}
-            width={220}
+            height={200}
+            width={250}
             hideColorGuide
             hideGradientAngle
             hideEyeDrop
             hideControls
           />
+          {selectedBrand?.colorPalette &&
+            selectedBrand.colorPalette.length > 0 && (
+              <BrandPaletteContainer>
+                <BrandPaletteHeader>
+                  {selectedBrand.name} Colors
+                </BrandPaletteHeader>
+                <BrandPaletteRow>
+                  <BrandName>{selectedBrand.name}</BrandName>
+                  <ColorSwatches>
+                    {selectedBrand.colorPalette.map(
+                      (colorItem: any, index: number) => (
+                        <Tooltip
+                          key={index}
+                          content={getTooltipContent(colorItem)}
+                        >
+                          <ColorSwatch
+                            color={colorItem.hex}
+                            onClick={() => handleSwatchClick(colorItem.hex)}
+                          />
+                        </Tooltip>
+                      )
+                    )}
+                  </ColorSwatches>
+                </BrandPaletteRow>
+              </BrandPaletteContainer>
+            )}
         </GradientPickerContainer>
       )}
     </ColorPickerContainer>

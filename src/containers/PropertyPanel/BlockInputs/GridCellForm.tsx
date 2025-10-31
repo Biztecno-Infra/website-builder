@@ -15,6 +15,7 @@ import { useTheme } from "styled-components";
 export const GridCellForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange } = useBlockForm(selectedBlock as IGridCellProps, updateBlock);
@@ -37,6 +38,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
           label={"Select Background color"}
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "53%" }}
+          selectedBrand={selectedBrand}
         />
         <PaddingInput
           padding={formData.padding}

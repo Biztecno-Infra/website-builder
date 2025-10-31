@@ -15,6 +15,7 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 export const GridBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange, handleBatchChange } = useBlockForm(
@@ -98,6 +99,7 @@ export const GridBlockForm: React.FC<BlockFormProps> = ({
           }
           selectedColor={formData.backgroundColor}
           containerStyle={{ width: "80%", marginBottom: 10 }}
+          selectedBrand={selectedBrand}
         />
         <label
           style={{

@@ -47,7 +47,7 @@ const PropertyPanelWrapper = styled.div`
 `;
 
 const PropertyPanel = memo(() => {
-  const { updateBlock, selectedBlock, globalStyles, updateGlobalStyles , brandsList , selectedBrand } = useBlockHook();
+  const { updateBlock, selectedBlock, globalStyles, updateGlobalStyles , brandsList , selectedBrand , handleBrandingSelect  } = useBlockHook();
 
   const [tabView, setTabView] = useState<PropertyTabView>(
     PropertyTabView.Global
@@ -63,6 +63,7 @@ const PropertyPanel = memo(() => {
           updateGlobalStyles={updateGlobalStyles}
           brandsList={brandsList}
           selectedBrand={selectedBrand}
+          onBrandSelect={handleBrandingSelect}
         />
       );
 

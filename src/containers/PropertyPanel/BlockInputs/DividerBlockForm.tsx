@@ -12,6 +12,7 @@ import { useTheme } from "styled-components";
 export const DividerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange } = useBlockForm(
@@ -71,6 +72,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
           label={"Select Divider color"}
           selectedColor={formData.dividerColor || ""}
           containerStyle={{ width: "70%" }}
+          selectedBrand={selectedBrand}
         />
       </BasePropertyWrapper>
       <BasePropertyWrapper name="Edit Container">
@@ -82,6 +84,7 @@ export const DividerBlockForm: React.FC<BlockFormProps> = ({
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}

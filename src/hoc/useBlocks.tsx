@@ -15,9 +15,61 @@ import { ScreenViews } from "enum";
 import { useUndoRedo } from "./useUndoRedo";
 import { isShallowEqual } from "@utils/common";
 
+const initializeBlock = (
+  block: Block,
+  selectedBrand: any
+): { defaultBlock: Block; extraBlocks: { [key: string]: Block } } => {
+  const { type } = block;
+  const extraBlocks: { [key: string]: any } = {};
+  let properties = getDefaultBlockProperties(type);
+  console.log("Selected Brand in initializeBlock:", selectedBrand);
+  // Apply brand styles if available
+  if (selectedBrand?.typography?.length > 0 && isTextBasedBlock(type)) {
+    const typography = selectedBrand.typography[0];
+    properties = {
+      ...properties,
+      fontFamily: typography.text || properties.fontFamily,
+      fontSize: typography.fontSize || properties.fontSize,
+      color: typography.hex || properties.color,
+    };
+  }
+
+  if (type === BlockType.GRID) {
+    [...new Array(properties.columns)].forEach(() => {
+      const blockID = generateUniqueId();
+      (properties as any).childBlocks.push(blockID);
+
+      extraBlocks[blockID] = {
+        type: BlockType.GRIDCELL,
+        id: blockID,
+        parentId: block.id,
+        ...getDefaultBlockProperties(BlockType.GRIDCELL),
+      };
+    });
+  }
+
+  return {
+    defaultBlock: {
+      ...properties,
+      ...block,
+      hideOnDesktop: false,
+      hideOnMobile: false,
+    } as Block,
+    extraBlocks,
+  };
+};
 
 const getDistributtedLength = (length: number): Array<number> => {
   return Array.from({ length }, () => 100 / length);
+};
+
+const isTextBasedBlock = (blockType: BlockType): boolean => {
+  const textBasedBlocks = [
+    BlockType.TEXT,
+    BlockType.BUTTON,
+    BlockType.SHAPE, // if it contains text
+  ];
+  return textBasedBlocks.includes(blockType);
 };
 
 export const useBlocks = (): IBlockContext => {
@@ -29,38 +81,7 @@ export const useBlocks = (): IBlockContext => {
     ScreenViews.DESKTOP
   );
   const [brandsList, setBrandsList] = useState<any>([]);
-  const [selectedBrand , setSelectedBrand] = useState<any>({
-    "name": "Google Material",
-    "colorPalette": [
-        {
-            "colorName": "Material Red",
-            "hex": "#F44336"
-        },
-        {
-            "colorName": "Material Blue",
-            "hex": "#2196F3"
-        },
-        {
-            "colorName": "Material Green",
-            "hex": "#4CAF50"
-        },
-        {
-            "colorName": "Material Yellow",
-            "hex": "#FFEB3B"
-        },
-        {
-            "colorName": "Material Purple",
-            "hex": "#9C27B0"
-        }
-    ],
-    "typography": [
-        {
-            "text": "Roboto",
-            "fontSize": 20,
-            "hex": "#fc2626ff"
-        }
-    ]
-});
+  const [selectedBrand, setSelectedBrand] = useState<any>({});
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<
@@ -82,11 +103,14 @@ export const useBlocks = (): IBlockContext => {
     return null;
   }, [selectedBlockId, blocks, globalStyles, rootBlockOrder]);
 
-  const currentState = useMemo(() => ({
-    blocks,
-    rootOrder: rootBlockOrder,
-    globalStyles
-  }), [blocks, rootBlockOrder, globalStyles]);
+  const currentState = useMemo(
+    () => ({
+      blocks,
+      rootOrder: rootBlockOrder,
+      globalStyles,
+    }),
+    [blocks, rootBlockOrder, globalStyles]
+  );
 
   const prevStateRef = useRef(currentState);
   const {
@@ -122,8 +146,12 @@ export const useBlocks = (): IBlockContext => {
     };
   }, [currentState, push, undoLocked]);
   const undo = async () => {
-   if (!canUndo || undoLocked) return;
-    const prevState = await undoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!canUndo || undoLocked) return;
+    const prevState = await undoHistory({
+      blocks,
+      rootOrder: rootBlockOrder,
+      globalStyles,
+    });
     if (!prevState) return;
 
     isApplyingHistory.current = true;
@@ -136,8 +164,12 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const redo = async () => {
-     if (!canRedo || undoLocked) return;
-    const nextState = await redoHistory({ blocks, rootOrder: rootBlockOrder, globalStyles });
+    if (!canRedo || undoLocked) return;
+    const nextState = await redoHistory({
+      blocks,
+      rootOrder: rootBlockOrder,
+      globalStyles,
+    });
     if (!nextState) return;
 
     isApplyingHistory.current = true;
@@ -148,61 +180,15 @@ export const useBlocks = (): IBlockContext => {
       isApplyingHistory.current = false;
     }, 0);
   };
-const isTextBasedBlock = (blockType: BlockType): boolean => {
-  const textBasedBlocks = [
-    BlockType.TEXT,
-    BlockType.BUTTON,
-    BlockType.SHAPE // if it contains text
-  ];
-  return textBasedBlocks.includes(blockType);
-};
-const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [key: string]: Block } } => {
-  const { type } = block;
-  const extraBlocks: { [key: string]: any } = {};
-  let properties = getDefaultBlockProperties(type);
 
-  // Apply brand styles if available
-  if (selectedBrand?.typography?.length > 0 && isTextBasedBlock(type)) {
-    const typography = selectedBrand.typography[0];
-    properties = {
-      ...properties,
-      fontFamily: typography.text || properties.fontFamily,
-      fontSize: typography.fontSize || properties.fontSize,
-      color: typography.hex || properties.color,
-    };
-  }
-
-  if (type === BlockType.GRID) {
-    [...new Array(properties.columns)].forEach(() => {
-      const blockID = generateUniqueId();
-      (properties as any).childBlocks.push(blockID);
-
-      extraBlocks[blockID] = {
-        type: BlockType.GRIDCELL,
-        id: blockID,
-        parentId: block.id,
-        ...getDefaultBlockProperties(BlockType.GRIDCELL),
-      };
-    });
-  }
-
-  return { 
-    defaultBlock: { 
-      ...properties,  
-      ...block, 
-      hideOnDesktop: false, 
-      hideOnMobile: false 
-    } as Block, 
-    extraBlocks 
-  };
-};
   const handleBrandingSelect = (brands: any[], branding: any) => {
+    console.log("Handling Branding Select:", branding);
     setBrandsList(brands);
     setSelectedBrand(branding);
     // Implement branding selection logic here
-    console.log("Brands:", brands);
-    console.log("Selected Branding:", branding);
-  }
+    console.log("Brands on Builder:", brands);
+    console.log("Selected Branding on Builder:", branding);
+  };
 
   const handleImportTemplates = useCallback(
     (selectedTemplates: any[]) => {
@@ -230,7 +216,7 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
 
         setBlocks((prev) => ({ ...prev, ...processedData.blocks }));
         setRootBlockOrder((prev) => [...prev, ...processedData.childrenIds]);
-        
+
         // Set undoLocked to true to prevent undo/redo for imported state
         setUndoLocked(true);
 
@@ -241,7 +227,7 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
             rootOrder: [...rootBlockOrder, ...processedData.childrenIds],
             globalStyles: processedData.style || globalStyles,
           });
-          
+
           // Unlock undo/redo after a short delay to allow new changes
           setTimeout(() => {
             setUndoLocked(false);
@@ -259,78 +245,83 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
     setGlobalStyles(updatedStyles);
   };
 
+  const updateBlock = useCallback(
+    (blockId: any, property: any, value: any) => {
+      if (undoLocked) return;
+      setBlocks((prevBlocks) => {
+        const block = prevBlocks[blockId] as any;
+        if (!block) return prevBlocks;
 
-  const updateBlock = useCallback((blockId: any, property: any, value: any) => {
-    if (undoLocked) return;
-    setBlocks((prevBlocks) => {
-      const block = prevBlocks[blockId] as any;
-      if (!block) return prevBlocks;
+        // Check if the value is actually different to avoid unnecessary updates
+        if (block[property] === value) return prevBlocks;
 
-      // Check if the value is actually different to avoid unnecessary updates
-      if (block[property] === value) return prevBlocks;
+        let updatedBlocks = prevBlocks;
 
-      let updatedBlocks = prevBlocks;
+        if (block.type === BlockType.GRID && property === "columns") {
+          const { columns: prevColumns, childBlocks = [] } = block;
+          const newColumns = value;
+          const columnDiff = newColumns - prevColumns;
 
-      if (block.type === BlockType.GRID && property === "columns") {
-        const { columns: prevColumns, childBlocks = [] } = block;
-        const newColumns = value;
-        const columnDiff = newColumns - prevColumns;
-
-        if (columnDiff > 0) {
-          const newGridCellIds = Array.from({ length: columnDiff }, generateUniqueId);
-          const newGridCells = Object.fromEntries(
-            newGridCellIds.map((id) => [
-              id,
-              {
-                $set: {
-                  id,
-                  type: BlockType.GRIDCELL,
-                  parentId: blockId,
-                  childBlocks: [],
-                  ...getDefaultBlockProperties(BlockType.GRIDCELL),
+          if (columnDiff > 0) {
+            const newGridCellIds = Array.from(
+              { length: columnDiff },
+              generateUniqueId
+            );
+            const newGridCells = Object.fromEntries(
+              newGridCellIds.map((id) => [
+                id,
+                {
+                  $set: {
+                    id,
+                    type: BlockType.GRIDCELL,
+                    parentId: blockId,
+                    childBlocks: [],
+                    ...getDefaultBlockProperties(BlockType.GRIDCELL),
+                  },
                 },
+              ])
+            );
+
+            updatedBlocks = update(prevBlocks, {
+              [blockId]: {
+                columns: { $set: newColumns },
+                childBlocks: { $push: newGridCellIds },
+                cellWidths: { $set: getDistributtedLength(newColumns) },
               },
-            ])
-          );
+              ...newGridCells,
+            });
+            return updatedBlocks;
+          }
 
-          updatedBlocks = update(prevBlocks, {
-            [blockId]: {
-              columns: { $set: newColumns },
-              childBlocks: { $push: newGridCellIds },
-              cellWidths: { $set: getDistributtedLength(newColumns) },
-            },
-            ...newGridCells,
-          });
-          return updatedBlocks;
+          if (columnDiff < 0) {
+            const updatedGridCells = childBlocks.slice(0, newColumns);
+            const removedGridCells = childBlocks.slice(newColumns);
+            const removeUpdates = Object.fromEntries(
+              removedGridCells.map((id: any) => [id, { $unset: [id] }])
+            );
+
+            updatedBlocks = update(prevBlocks, {
+              [blockId]: {
+                columns: { $set: newColumns },
+                childBlocks: { $set: updatedGridCells },
+                cellWidths: { $set: getDistributtedLength(newColumns) },
+              },
+              ...removeUpdates,
+            });
+            return updatedBlocks;
+          }
         }
 
-        if (columnDiff < 0) {
-          const updatedGridCells = childBlocks.slice(0, newColumns);
-          const removedGridCells = childBlocks.slice(newColumns);
-          const removeUpdates = Object.fromEntries(
-            removedGridCells.map((id: any) => [id, { $unset: [id] }])
-          );
-
-          updatedBlocks = update(prevBlocks, {
-            [blockId]: {
-              columns: { $set: newColumns },
-              childBlocks: { $set: updatedGridCells },
-              cellWidths: { $set: getDistributtedLength(newColumns) },
-            },
-            ...removeUpdates,
-          });
-          return updatedBlocks;
-        }
-      }
-
-      return update(prevBlocks, {
-        [blockId]: { [property]: { $set: value } },
+        return update(prevBlocks, {
+          [blockId]: { [property]: { $set: value } },
+        });
       });
-    });
-  }, [undoLocked]);
+    },
+    [undoLocked]
+  );
 
   const onDeleteBlock = (blockId: string) => {
-      if (undoLocked) return;
+    if (undoLocked) return;
     const deleteBlock = blocks[blockId];
     if (!deleteBlock) return;
 
@@ -360,10 +351,10 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
     try {
       const { blocks, rootBlock } = jsonToBlocks(jsonData);
       const { childrenIds, style } = rootBlock.data || {};
-      
+
       // Set undoLocked before updating state
       setUndoLocked(true);
-      
+
       setBlocks(blocks);
       setGlobalStyles(style);
       setRootBlockOrder(childrenIds || []);
@@ -375,7 +366,7 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
           rootOrder: childrenIds || [],
           globalStyles: style,
         });
-        
+
         // Unlock undo/redo after a short delay
         setTimeout(() => {
           setUndoLocked(false);
@@ -390,7 +381,7 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
   };
 
   const handleSwappingV2 = (dragSrc: any, dropAreaId: string) => {
-        if (undoLocked) return;
+    if (undoLocked) return;
     setBlocks((prvsBlockState) => {
       const insertOrDeleteBlock = (
         blockId: string,
@@ -544,14 +535,14 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
 
           const newGridBlock = isGridCell
             ? {
-              type: BlockType.GRID,
-              id: generateUniqueId(),
-              parentId: undefined,
-              ...getDefaultBlockProperties(BlockType.GRID),
-              columns: 1,
-              cellWidths: [100],
-              childBlocks: [dragBlock.id],
-            }
+                type: BlockType.GRID,
+                id: generateUniqueId(),
+                parentId: undefined,
+                ...getDefaultBlockProperties(BlockType.GRID),
+                columns: 1,
+                cellWidths: [100],
+                childBlocks: [dragBlock.id],
+              }
             : undefined;
 
           setRootBlockOrder((prevs) => {
@@ -648,7 +639,8 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
   };
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
-        if (undoLocked) return;
+    console.log("Handling Insertion:", dragSrc, dropAreaId);
+    if (undoLocked) return;
     const blockID = generateUniqueId();
     const blockProprtys = {
       type: dragSrc.type as BlockType,
@@ -656,7 +648,8 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
       parentId: undefined,
     };
     const { defaultBlock, extraBlocks } = initializeBlock(
-      blockProprtys as Block
+      blockProprtys as Block,
+      selectedBrand
     );
 
     setBlocks((prevsBlocks) => {
@@ -710,37 +703,40 @@ const initializeBlock = (block: Block): { defaultBlock: Block; extraBlocks: { [k
 
     setSelectedBlockId(defaultBlock.id);
   };
-const handleBlockSwap = useCallback(
+  const handleBlockSwap = useCallback(
     (dragItem: { id: string }, dropTargetId: string) => {
       if (dragItem.id === dropTargetId) return; // Don't swap with self
-      
+
       setRootBlockOrder((prevOrder) => {
-        const dragIndex = prevOrder.findIndex(id => id === dragItem.id);
-        const dropIndex = prevOrder.findIndex(id => id === dropTargetId);
-        
+        const dragIndex = prevOrder.findIndex((id) => id === dragItem.id);
+        const dropIndex = prevOrder.findIndex((id) => id === dropTargetId);
+
         if (dragIndex === -1 || dropIndex === -1) return prevOrder;
 
         const newOrder = [...prevOrder];
         // Swap positions
-        [newOrder[dragIndex], newOrder[dropIndex]] = [newOrder[dropIndex], newOrder[dragIndex]];
+        [newOrder[dragIndex], newOrder[dropIndex]] = [
+          newOrder[dropIndex],
+          newOrder[dragIndex],
+        ];
         return newOrder;
       });
     },
     []
   );
-const handleDropper = useCallback(
-  (dragSrc: any, dropAreaId: string) => {
-    // Add undoLocked check here
-    if (undoLocked) return;
-    
-    if (dragSrc.id) {
-      handleSwappingV2(dragSrc, dropAreaId);
-    } else if (dragSrc.type) {
-      handleInsertion(dragSrc, dropAreaId);
-    }
-  },
-  [blocks, rootBlockOrder, undoLocked] // Add undoLocked to dependencies
-);
+  const handleDropper = useCallback(
+    (dragSrc: any, dropAreaId: string) => {
+      // Add undoLocked check here
+      if (undoLocked) return;
+
+      if (dragSrc.id) {
+        handleSwappingV2(dragSrc, dropAreaId);
+      } else if (dragSrc.type) {
+        handleInsertion(dragSrc, dropAreaId);
+      }
+    },
+    [blocks, rootBlockOrder, undoLocked , selectedBrand] // Add undoLocked to dependencies
+  );
   const blocksToJson = () => {
     const layout = {
       root: {
@@ -754,7 +750,6 @@ const handleDropper = useCallback(
       if (block) processBlock(block, blocks, layout, null);
     });
     return layout;
-
   };
 
   return {
@@ -777,11 +772,11 @@ const handleDropper = useCallback(
     redo,
     canUndo,
     canRedo,
-    undoLocked, 
-    setUndoLocked, 
+    undoLocked,
+    setUndoLocked,
     handleBlockSwap,
-    handleBrandingSelect, 
+    handleBrandingSelect,
     brandsList,
-    selectedBrand
+    selectedBrand,
   };
 };
