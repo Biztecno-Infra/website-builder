@@ -64,6 +64,7 @@ const GradientPickerContainer = styled.div`
   padding: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
+  width: 240px;
 `;
 
 const BrandPaletteContainer = styled.div`
@@ -212,7 +213,7 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
             hideAdvancedSliders
             hideOpacity
             height={200}
-            width={250}
+            width={220}
             hideColorGuide
             hideGradientAngle
             hideEyeDrop

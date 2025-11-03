@@ -34,9 +34,9 @@ const BrandRow = styled.div<{ isSelected?: boolean }>`
   width: 100%;
   padding: 8px;
   border-radius: 6px;
-  border: 1px solid ${(props) => (props.isSelected ? "#4169F3" : "#EEEEEE")};
+  border: 1px solid ${(props) => (props.isSelected ? "#0B978E" : "#EEEEEE")};
   background-color: ${(props) =>
-    props.isSelected ? "#F0F7FF" : "transparent"};
+    props.isSelected ? "#0B978E29" : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
   justify-content: space-between;
