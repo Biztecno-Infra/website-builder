@@ -88,20 +88,20 @@ const BrandPaletteRow = styled.div`
 `;
 
 const BrandName = styled.div`
-  width: 30%;
-  font-size: 11px;
+  width: 100%;
+  font-size: 12px;
   color: #333;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-right: 0.25rem;
+  margin-right: 0.125rem;
 `;
 
 const ColorSwatches = styled.div`
   display: flex;
   justify-content: space-between;
-  width: 70%;
+  width: 75%;
   gap: 3px;
 `;
 
@@ -226,7 +226,9 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
                   {selectedBrand.name} Colors
                 </BrandPaletteHeader> */}
                 <BrandPaletteRow>
-                  <BrandName>{selectedBrand.name}sswsddsds</BrandName>
+                <Tooltip content={selectedBrand.name} style={{ width:"25%" }}>
+                  <BrandName>{selectedBrand.name}</BrandName>
+                </Tooltip>
                   <ColorSwatches>
                     {selectedBrand.colorPalette.map(
                       (colorItem: any, index: number) => (
