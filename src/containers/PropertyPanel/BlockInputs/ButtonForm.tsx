@@ -183,6 +183,7 @@ export const ButtonBlockForm: React.FC<BlockFormProps> = ({
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
+            selectedBrand={selectedBrand}
             containerStyle={{
               border: `1px solid ${theme.colors.background}`,
               borderRadius: "10px",

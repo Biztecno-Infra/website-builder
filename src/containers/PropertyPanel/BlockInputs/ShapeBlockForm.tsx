@@ -36,6 +36,7 @@ const shapeOptions = [
 export const ShapeBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange, handleImmediateChange } = useBlockForm(
@@ -164,6 +165,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
           onColorChange={(field, value) => handleChange("shapeColor", value)}
           selectedColor={formData.shapeColor || ""}
           containerStyle={{ width: "100%", marginBottom: 10 }}
+          selectedBrand={selectedBrand}
         />
         <BasePropertyWrapper
           name="Text Properties"
@@ -184,6 +186,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
               onColorChange={(field, value) => handleChange("color", value)}
               selectedColor={formData.color || ""}
               containerStyle={{ width: "65%" }}
+              selectedBrand={selectedBrand}
             />
             <CustomInput
               name="fontSize"
@@ -222,6 +225,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}
@@ -245,6 +249,7 @@ export const ShapeBlockForm: React.FC<BlockFormProps> = ({
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
+            selectedBrand={selectedBrand}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",

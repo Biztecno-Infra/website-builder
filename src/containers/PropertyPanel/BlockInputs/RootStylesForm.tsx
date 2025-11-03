@@ -190,6 +190,7 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
           borderStyle={styles.borderStyle}
           borderColor={styles.borderColor}
           borderRadius={styles.borderRadius}
+          selectedBrand={selectedBrand}
           containerStyle={{
             border: "1px solid #DDDDDD",
             borderRadius: "10px",

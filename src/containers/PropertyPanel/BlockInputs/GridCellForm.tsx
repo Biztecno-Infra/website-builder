@@ -91,6 +91,7 @@ export const GridCellForm: React.FC<BlockFormProps> = ({
           borderStyle={formData.borderStyle}
           borderColor={formData.borderColor}
           borderRadius={formData.borderRadius}
+          selectedBrand={selectedBrand}
           containerStyle={{
             border: "1px solid #DDDDDD",
             borderRadius: "10px",

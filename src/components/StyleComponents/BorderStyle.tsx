@@ -32,6 +32,7 @@ interface BorderStyleDropdownProps {
   borderRadius: any;
   containerStyle?: React.CSSProperties;
   showBorderRadius?: boolean;
+  selectedBrand?: any;
 }
 export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   onChange,
@@ -41,6 +42,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
   borderRadius,
   containerStyle,
   showBorderRadius = true, // <-- Default to true
+  selectedBrand = {}
 }) => {
   return (
     <Wrapper style={containerStyle}>
@@ -56,6 +58,7 @@ export const BorderStyleDropdown: React.FC<BorderStyleDropdownProps> = ({
           label="Select Border Color"
           selectedColor={borderColor}
           containerStyle={{ width: "55%", padding: 2 }}
+          selectedBrand={selectedBrand}
         />
         <CustomInput
           name="borderWidth"

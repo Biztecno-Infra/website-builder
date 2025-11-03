@@ -19,6 +19,7 @@ const WidthHeightContainer = styled.div`
 export const VerticalDividerForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange } = useBlockForm(
@@ -47,6 +48,7 @@ export const VerticalDividerForm: React.FC<BlockFormProps> = ({
             label={"Select Divider color"}
             selectedColor={formData.dividerColor || ""}
             containerStyle={{ width: "55%" }}
+            selectedBrand={selectedBrand}
           />
         </FlexRow>
         <WidthHeightContainer>
@@ -100,6 +102,7 @@ export const VerticalDividerForm: React.FC<BlockFormProps> = ({
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "55%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}

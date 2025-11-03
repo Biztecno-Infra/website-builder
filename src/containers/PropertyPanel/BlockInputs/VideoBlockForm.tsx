@@ -18,6 +18,7 @@ const Divider = styled.div`
 export const VideoBlockForm = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }: BlockFormProps) => {
   const theme = useTheme();
   const { formData, handleChange } = useBlockForm(
@@ -121,6 +122,7 @@ export const VideoBlockForm = ({
             }
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={
@@ -146,6 +148,7 @@ export const VideoBlockForm = ({
             borderStyle={formData.borderStyle}
             borderColor={formData.borderColor}
             borderRadius={formData.borderRadius}
+            selectedBrand={selectedBrand}
             containerStyle={{
               border: "1px solid #DDDDDD",
               borderRadius: "10px",

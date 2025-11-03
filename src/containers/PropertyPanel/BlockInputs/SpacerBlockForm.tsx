@@ -12,6 +12,7 @@ import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 export const SpacerBlockForm: React.FC<BlockFormProps> = ({
   selectedBlock,
   updateBlock,
+  selectedBrand
 }) => {
   const theme = useTheme();
   const { formData, handleChange } = useBlockForm(
@@ -40,6 +41,7 @@ export const SpacerBlockForm: React.FC<BlockFormProps> = ({
             label={"Select Background color"}
             selectedColor={formData.backgroundColor}
             containerStyle={{ width: "53%" }}
+            selectedBrand={selectedBrand}
           />
           <PaddingInput
             padding={formData.padding}
