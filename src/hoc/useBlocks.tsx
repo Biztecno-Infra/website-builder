@@ -80,8 +80,134 @@ export const useBlocks = (): IBlockContext => {
   const [selectedView, setSelectedView] = useState<ScreenViews>(
     ScreenViews.DESKTOP
   );
-  const [brandsList, setBrandsList] = useState<any>([]);
-  const [selectedBrand, setSelectedBrand] = useState<any>({});
+  const [brandsList, setBrandsList] = useState<any>([
+    {
+        "_id": "69034b29265ec70f07cd4a6a",
+        "name": "Testing Brand",
+        "colorPalette": [
+            {
+                "colorName": "Red",
+                "hex": "#F63C3C"
+            },
+            {
+                "colorName": "Yellow",
+                "hex": "#FFFF3F"
+            },
+            {
+                "colorName": "Blue",
+                "hex": "#4169F3"
+            },
+            {
+                "colorName": "Pink",
+                "hex": "#FFC9C9"
+            },
+            {
+                "colorName": "Green",
+                "hex": "#70EA52"
+            },
+            {
+                "colorName": "White",
+                "hex": "#F4F4F4"
+            }
+        ],
+        "typography": [
+            {
+                "text": "Georgia",
+                "fontSize": 18,
+                "hex": "#706E6E"
+            }
+        ],
+        "isDeleted": false,
+        "createdBy": "67d2ba9b78f6c3a41dd9e164",
+        "createdAt": "2025-10-30T11:25:29.800Z",
+        "updatedAt": "2025-10-30T11:25:29.800Z",
+        "__v": 0
+    },
+    {
+        "_id": "69089746265ec70f07cd539f",
+        "name": "Amazon",
+        "colorPalette": [
+            {
+                "colorName": "Color 1",
+                "hex": "#C13535"
+            },
+            {
+                "colorName": "Color 2",
+                "hex": "#A34D4D"
+            },
+            {
+                "colorName": "Color 3",
+                "hex": "#E52799"
+            },
+            {
+                "colorName": "Color 4",
+                "hex": "#192E78"
+            },
+            {
+                "colorName": "Color 5",
+                "hex": "#7CD765"
+            },
+            {
+                "colorName": "Color 6",
+                "hex": "#D6B611"
+            }
+        ],
+        "typography": [
+            {
+                "text": "Helvetica, Arial, sans-serif",
+                "fontSize": 20,
+                "hex": "#2241E2"
+            }
+        ],
+        "isDeleted": false,
+        "createdBy": "67d2ba9b78f6c3a41dd9e164",
+        "createdAt": "2025-11-03T11:51:34.250Z",
+        "updatedAt": "2025-11-03T11:51:34.250Z",
+        "__v": 0
+    }
+]);
+  const [selectedBrand, setSelectedBrand] = useState<any>({
+    "_id": "69089746265ec70f07cd539f",
+    "name": "Amazon",
+    "colorPalette": [
+        {
+            "colorName": "Color 1",
+            "hex": "#C13535"
+        },
+        {
+            "colorName": "Color 2",
+            "hex": "#A34D4D"
+        },
+        {
+            "colorName": "Color 3",
+            "hex": "#E52799"
+        },
+        {
+            "colorName": "Color 4",
+            "hex": "#192E78"
+        },
+        {
+            "colorName": "Color 5",
+            "hex": "#7CD765"
+        },
+        {
+            "colorName": "Color 6",
+            "hex": "#D6B611"
+        }
+    ],
+    "typography": [
+        {
+            "text": "Helvetica, Arial, sans-serif",
+            "fontSize": 20,
+            "hex": "#2241E2"
+        }
+    ],
+    "isDeleted": false,
+    "createdBy": "67d2ba9b78f6c3a41dd9e164",
+    "createdAt": "2025-11-03T11:51:34.250Z",
+    "updatedAt": "2025-11-03T11:51:34.250Z",
+    "__v": 0
+});
   const [blocks, setBlocks] = useState<IBlocksState>({});
   const [rootBlockOrder, setRootBlockOrder] = useState<string[]>([]);
   const [selectedBlockId, setSelectedBlockId] = useState<

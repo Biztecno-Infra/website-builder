@@ -39,6 +39,7 @@ const BrandRow = styled.div<{ isSelected?: boolean }>`
     props.isSelected ? "#F0F7FF" : "transparent"};
   cursor: pointer;
   transition: all 0.2s ease;
+  justify-content: space-between;
 
   &:hover {
     background-color: #f9f9f9;
@@ -47,22 +48,25 @@ const BrandRow = styled.div<{ isSelected?: boolean }>`
 `;
 
 const BrandName = styled.div`
-  width: 30%;
+  width: 100%;
   font-size: 14px;
   font-weight: 500;
   color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const ColorSwatches = styled.div`
   display: flex;
-  justify-content: flex-start;
-  width: 80%;
+  justify-content: space-between;
+  width: 70%;
   flex-wrap: wrap;
 `;
 
 const ColorSwatch = styled.div<{ color: string }>`
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   background-color: ${(props) => props.color};
   border-radius: 4px;
   border: 1px solid #ddd;
@@ -209,7 +213,10 @@ export const RootStylesForm: React.FC<GlobalStylesFormProps> = ({
                 isSelected={selectedBrand?._id === brand._id}
                 onClick={() => handleBrandSelect(brand)}
               >
-                <BrandName>{brand.name}</BrandName>
+                <Tooltip content={brand.name} style={{ width: "30%"}}>
+                  <BrandName>{brand.name}</BrandName>
+                </Tooltip>
+
                 <ColorSwatches>
                   {brand.colorPalette?.map((colorItem: any, index: number) => (
                     <Tooltip key={index} content={getTooltipContent(colorItem)}>

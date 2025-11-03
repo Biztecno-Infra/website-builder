@@ -47,11 +47,12 @@ const TooltipContent = styled.div`
 interface TooltipProps {
   content: string;
   children: React.ReactNode;
+  style?: any;
 }
 
-export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
+export const Tooltip: React.FC<TooltipProps> = ({ content, children , style }) => {
   return (
-    <TooltipContainer>
+    <TooltipContainer style={style|| {}}>
       {children}
       <TooltipContent>
         {content}

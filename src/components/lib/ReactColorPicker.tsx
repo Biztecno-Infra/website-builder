@@ -91,18 +91,22 @@ const BrandName = styled.div`
   font-size: 11px;
   color: #333;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 0.25rem;
 `;
 
 const ColorSwatches = styled.div`
   display: flex;
   justify-content: space-between;
   width: 70%;
-  gap: 4px;
+  gap: 3px;
 `;
 
 const ColorSwatch = styled.div<{ color: string }>`
-  width: 2rem;
-  height: 2rem;
+  width: 1.5rem;
+  height: 1.5rem;
   background-color: ${(props) => props.color};
   border-radius: 4px;
   cursor: pointer;
@@ -217,11 +221,11 @@ export const ReactColorPicker: React.FC<ColorPickerProps> = ({
           {selectedBrand?.colorPalette &&
             selectedBrand.colorPalette.length > 0 && (
               <BrandPaletteContainer>
-                <BrandPaletteHeader>
+                {/* <BrandPaletteHeader>
                   {selectedBrand.name} Colors
-                </BrandPaletteHeader>
+                </BrandPaletteHeader> */}
                 <BrandPaletteRow>
-                  <BrandName>{selectedBrand.name}</BrandName>
+                  <BrandName>{selectedBrand.name}sswsddsds</BrandName>
                   <ColorSwatches>
                     {selectedBrand.colorPalette.map(
                       (colorItem: any, index: number) => (
