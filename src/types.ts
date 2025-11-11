@@ -333,6 +333,7 @@ export interface BlockHookRef {
   undoLocked: boolean;
   setUndoLocked: (locked: boolean) => void;
   onBrandingSelect: (brands: any[], branding: any) => void;
+  selectedBrand: any;
 }
 
 export interface BlockComponentProps {

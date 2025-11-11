@@ -67,7 +67,7 @@ const isTextBasedBlock = (blockType: BlockType): boolean => {
   const textBasedBlocks = [
     BlockType.TEXT,
     BlockType.BUTTON,
-    BlockType.SHAPE, // if it contains text
+    BlockType.SHAPE, 
   ];
   return textBasedBlocks.includes(blockType);
 };
@@ -777,6 +777,6 @@ export const useBlocks = (): IBlockContext => {
     handleBlockSwap,
     handleBrandingSelect,
     brandsList,
-    selectedBrand,
+    selectedBrand
   };
 };
