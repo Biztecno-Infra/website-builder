@@ -32,6 +32,8 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
     setLocalWidths(cellWidths);
   }, [cellWidths]);
 
+  console.log(columns)
+
   // const handleWidthChange = (value: number, index: number) => {
   //   let newWidths = [...localWidths];
 
@@ -56,6 +58,7 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
   //   updateCellWidths(newWidths);
   // };
 const handleWidthChange = (value: number, index: number) => {
+  if (columns === 1) return;
   const newWidths = [...localWidths];
   const adjustedValue = Math.max(0, Math.min(100, Math.round(value * 100) / 100));
   newWidths[index] = adjustedValue;
@@ -70,12 +73,13 @@ const handleWidthChange = (value: number, index: number) => {
           key={index}
           name={`cell-width-${index}`}
           type="number"
+          disabled={columns === 1}
           // label={`Width (Column ${index + 1})`}
           value={width}
           onChange={(name, value) => handleWidthChange(Number(value), index)}
           placeholder="Enter width in percentage"
           unitsLabel="%"
-          containerStyle={{ width: "28%", padding: 4, marginBottom: 5, marginRight: 3 }}
+          containerStyle={{ width: "30%", padding: 4, marginBottom: 5, marginRight: 3 }}
           inputStyle={{ width: "60%" }}
         />
       ))}

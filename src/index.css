@@ -1,3 +1,153 @@
+/* BCG Henderson Sans Font Family */
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansThin.ttf') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansThinItalic.ttf') format('truetype');
+  font-weight: 100;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansLightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansItalic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansBoldIta.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* BCG Henderson Serif Font Family */
+/* @font-face {
+  font-family: 'BCGHenSerif';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSerifRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'BCGHenSerif';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSerifItalic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'BCGHenSerif';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSerifBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'BCGHenSerif';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSerifBoldIta.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'BCGHenSerif';
+  src: url('./assets/fonts/BCGHendersonFonts/BCGHenSerifHead.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+} */
+
+/* DS Termina Font Family */
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-ExtraLight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Demi.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DSTermina';
+  src: url('./assets/fonts/DS Termina/DSTermina-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
 .email-template-builder html,
 body {
   height: 100%;

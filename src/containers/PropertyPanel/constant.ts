@@ -34,12 +34,13 @@ export const fontOptions = [
   { key: "segoe_ui", text: "Segoe UI", value: "'Segoe UI', sans-serif" },
   { key: "lato", text: "Lato", value: "Lato, sans-serif" },
   { key: "merriweather", text: "Merriweather", value: "Merriweather, serif" },
-  { key: "henderson", text: "Henderson", value: "'Henderson', 'Georgia', serif" },
+  { key: "henderson", text: "Henderson", value: "'Henderson', Georgia, serif" },
 
-  // Additional designer fonts
-  // { key: "ds_termina", text: "DS Termina", value: "'DS Termina', 'Helvetica Neue', Arial, sans-serif" },
+  // New client-requested fonts
+  { key: "henderson_bcg_sans", text: "Henderson BCG Sans", value: "'Henderson BCG Sans', sans-serif" },
+  { key: "ds_termina", text: "DS Termina", value: "DS Termina, 'Helvetica Neue', Arial, sans-serif" },
 
-  // Optional extra popular choices
+  // Extra popular choices
   { key: "montserrat", text: "Montserrat", value: "Montserrat, sans-serif" },
   { key: "poppins", text: "Poppins", value: "Poppins, sans-serif" },
   { key: "inter", text: "Inter", value: "Inter, sans-serif" },
@@ -47,6 +48,13 @@ export const fontOptions = [
 
 
 export const fontWeightOptions = [
-  { key: "normal", text: "Normal", value: "400" },
-  { key: "bold", text: "Bold", value: "700" },
+  { key: "100", text: "Thin", value: "100" },
+  { key: "200", text: "Extra Light", value: "200" },
+  { key: "300", text: "Light", value: "300" },
+  { key: "400", text: "Regular", value: "400" },
+  { key: "500", text: "Medium", value: "500" },
+  { key: "600", text: "Demi", value: "600" },
+  { key: "700", text: "Bold", value: "700" },
+  { key: "800", text: "Extra Bold", value: "800" },
+  { key: "900", text: "Heavy", value: "900" },
 ];

@@ -27,17 +27,19 @@ const EditorWrapper = styled.div`
 `;
 
 const RichTextEditor = ({ textContent, handleChange }: Props) => {
-  const [content, setContent] = useState(textContent);
+  const [content, setContent] = useState(textContent ?? "");
+  const quillRef = useRef<ReactQuill | null>(null);
   const isSettingContent = useRef(false);
-  const quillRef = useRef<ReactQuill>(null);
 
+  /** Sync external value */
   useEffect(() => {
     if (textContent !== content) {
       isSettingContent.current = true;
-      setContent(textContent);
+      setContent(textContent ?? "");
     }
   }, [textContent]);
 
+  /** Controlled change handler */
   const onChange = (val: string) => {
     setContent(val);
     if (isSettingContent.current) {
@@ -47,38 +49,53 @@ const RichTextEditor = ({ textContent, handleChange }: Props) => {
     handleChange("text", val);
   };
 
-  // Simple approach - always paste as plain text
-  const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    
-    // Get only plain text from clipboard
-    const text = e.clipboardData.getData('text/plain');
-    
-    // Insert plain text at cursor position
-    const quill = quillRef.current?.getEditor();
-    if (quill) {
-      const range = quill.getSelection();
-      if (range) {
-        quill.insertText(range.index, text);
-      } else {
-        quill.setText(text);
-      }
-    }
-  };
+  /** 🟩 PURE PLAIN TEXT PASTE — NO HTML, NO FORMATTING */
+  useEffect(() => {
+    const editor = quillRef.current?.getEditor();
+    if (!editor) return;
 
+    const root = editor.root;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+
+      const text = e.clipboardData?.getData("text/plain") ?? "";
+      if (!text) return;
+
+      const range = editor.getSelection(true) || { index: editor.getLength(), length: 0 };
+
+      // Insert clean text
+      editor.insertText(range.index, text);
+
+      // Move cursor to the end
+      editor.setSelection({
+        index: range.index + text.length,
+        length: 0,
+      });
+    };
+
+    root.addEventListener("paste", handlePaste);
+
+    return () => {
+      root.removeEventListener("paste", handlePaste);
+    };
+  }, []);
+
+  /** Editor toolbar config */
   const modules = {
     toolbar: [
-      ["bold", "italic", "underline"], 
-      [{ color: [] }, { background: [] }], 
-      ["clean"]
+      ["bold", "italic", "underline"],
+      [{ color: [] }, { background: [] }],
+      ["clean"],
     ],
     clipboard: {
       matchVisual: false,
-    }
+      matchers: [], // Prevent Quill from injecting formatting
+    },
   };
 
   return (
-    <EditorWrapper onPaste={handlePaste}>
+    <EditorWrapper>
       <ReactQuill
         ref={quillRef}
         theme="snow"
