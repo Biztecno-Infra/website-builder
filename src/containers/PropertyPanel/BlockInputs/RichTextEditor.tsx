@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import ReactQuill from "react-quill";
+import ReactQuill, { Quill } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import styled from "styled-components";
 
@@ -49,38 +49,22 @@ const RichTextEditor = ({ textContent, handleChange }: Props) => {
     handleChange("text", val);
   };
 
-  /** 🟩 PURE PLAIN TEXT PASTE — NO HTML, NO FORMATTING */
+
+  /** 🟩 ADDING CLIPBOARD MATCHER TO STRIP ALL FORMATTING RELIABLY */
   useEffect(() => {
     const editor = quillRef.current?.getEditor();
     if (!editor) return;
 
-    const root = editor.root;
+    // Use Quill's internal Delta for reliable content handling
+    const Delta = Quill.import('delta');
 
-    const handlePaste = (e: ClipboardEvent) => {
-      e.preventDefault();
-
-      const text = e.clipboardData?.getData("text/plain") ?? "";
-      if (!text) return;
-
-      const range = editor.getSelection(true) || { index: editor.getLength(), length: 0 };
-
-      // Insert clean text
-      editor.insertText(range.index, text);
-
-      // Move cursor to the end
-      editor.setSelection({
-        index: range.index + text.length,
-        length: 0,
-      });
-    };
-
-    root.addEventListener("paste", handlePaste);
-
-    return () => {
-      root.removeEventListener("paste", handlePaste);
-    };
-  }, []);
-
+    // Add a matcher that intercepts paste events and forces plain text
+    editor.clipboard.addMatcher(Node.ELEMENT_NODE, (node, delta) => {
+      // Map over all operations in the paste Delta and remove attributes (formatting)
+      const ops = delta?.ops?.map((op) => ({ insert: op.insert }));
+      return new Delta(ops);
+    });
+  }, []); 
   /** Editor toolbar config */
   const modules = {
     toolbar: [
@@ -89,10 +73,13 @@ const RichTextEditor = ({ textContent, handleChange }: Props) => {
       ["clean"],
     ],
     clipboard: {
-      matchVisual: false,
-      matchers: [], // Prevent Quill from injecting formatting
+      // Keep matchVisual false to prevent other truncation issues
+      matchVisual: false, 
+      // We are managing matchers via useEffect now, so we can leave this empty
+      // or remove it. The useEffect hook takes precedence.
     },
   };
+
 
   return (
     <EditorWrapper>

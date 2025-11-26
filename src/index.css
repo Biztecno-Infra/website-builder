@@ -1,6 +1,13 @@
 /* BCG Henderson Sans Font Family */
 @font-face {
   font-family: 'Henderson BCG Sans';
+  src: url('data:application/octet-stream;base64,') format('truetype');
+  font-weight: 100;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Henderson BCG Sans';
   src: url('./assets/fonts/BCGHendersonFonts/BCGHenSansThin.ttf') format('truetype');
   font-weight: 100;
   font-style: normal;
