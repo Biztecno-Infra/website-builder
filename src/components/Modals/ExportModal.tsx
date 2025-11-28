@@ -65,14 +65,19 @@ const Button = styled.button<{ $primary?: boolean }>`
     cursor: not-allowed;
   }
 `;
+export enum OutputFormat {
+  JSON = "JSON",
+  HTML = "HTML",
+  TEXT = "TEXT",
+}
 
 interface ExportModalProps {
   onClose: () => void;
-  onExport: (format: 'JSON' | 'HTML') => void;
+  onExport: (format: OutputFormat) => void;
 }
 
 const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
-  const [selectedFormat, setSelectedFormat] = useState<'JSON' | 'HTML' | null>(null);
+  const [selectedFormat, setSelectedFormat] = useState<OutputFormat | null>(null);
 
   const handleExportFormat = () => {
     if (selectedFormat) {
@@ -92,20 +97,29 @@ const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport }) => {
           <StyledRadioInput
             name="exportFormat"
             value="JSON"
-            onChange={() => setSelectedFormat("JSON")}
+            onChange={() => setSelectedFormat(OutputFormat.JSON)}
             $selected={selectedFormat === "JSON"}
             checked={selectedFormat === "JSON"}
           />
         </Option>
-
         <Option selected={selectedFormat === "HTML"}>
-          <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} size={SizeEnum.Medium} />
+          <SvgIcon name={CUSTOM_SVG_ICON.HtmlTextFile} size={SizeEnum.Medium} />
           <StyledRadioInput
             name="exportFormat"
             value="HTML"
-            onChange={() => setSelectedFormat("HTML")}
+            onChange={() => setSelectedFormat(OutputFormat.HTML)}
             $selected={selectedFormat === "HTML"}
             checked={selectedFormat === "HTML"}
+          />
+        </Option>
+         <Option selected={selectedFormat === "TEXT"}>
+          <SvgIcon name={CUSTOM_SVG_ICON.HtmlFile} size={SizeEnum.Medium} />
+          <StyledRadioInput
+            name="exportFormat"
+            value="TEXT"
+            onChange={() => setSelectedFormat(OutputFormat.TEXT)}
+            $selected={selectedFormat === "TEXT"}
+            checked={selectedFormat === "TEXT"}
           />
         </Option>
       </OptionsContainer>

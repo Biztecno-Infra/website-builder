@@ -28,6 +28,7 @@ import FileTypeHtml from "./Icons/FileTypeHtml";
 import FileTypeJson from "./Icons/FileTypeJson";
 import GlobalSettings from "./Icons/GlobalSettings";
 import Globe from "./Icons/Globe";
+import HtmlTextFile from "./Icons/HtmlTextFile";
 import ImageHeight from "./Icons/ImageHeight";
 import ImageWidth from "./Icons/ImageWidth";
 import JustifyAlign from "./Icons/JustifyAlign";
@@ -90,6 +91,7 @@ export enum CUSTOM_SVG_ICON {
   AddShape = "AddShape",
   AddVideo = "AddVideo",
   AddVDivider = "AddVDivider",
+  HtmlTextFile = "HtmlTextFile",
 }
 
 export const CustomIconRef: any = {
@@ -139,4 +141,5 @@ export const CustomIconRef: any = {
   [CUSTOM_SVG_ICON.AddShape]: AddShape, 
   [CUSTOM_SVG_ICON.AddVideo]: AddVideo,
   [CUSTOM_SVG_ICON.AddVDivider]: AddVDivider,
+  [CUSTOM_SVG_ICON.HtmlTextFile]: HtmlTextFile,
 };

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled, { useTheme } from "styled-components";
 import { ButtonComponent } from "@components/lib";
 import CustomDropdownButton from "@components/lib/ButtonWithDropdown";
-import ExportModal from "@components/Modals/ExportModal";
+import ExportModal, { OutputFormat } from "@components/Modals/ExportModal";
 import SendTestModal from "@components/Modals/SendFileModal";
 import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
@@ -35,7 +35,7 @@ const RightActions = styled.div`
   align-items: center;
 `;
 interface Props {
-  onExport: (format: "JSON" | "HTML", data: any) => void;
+  onExport: (format: OutputFormat, data: any) => void;
   onImport: () => void;
 }
 
@@ -88,7 +88,7 @@ function HeaderActions({ onExport, onImport }: Props) {
     setSelectedView(view);
   };
 
-  const handleExport = async (format: "JSON" | "HTML") => {
+  const handleExport = async (format: OutputFormat) => {
     const convertedData =
       format === "JSON"
         ? blocksToJson()
@@ -96,7 +96,6 @@ function HeaderActions({ onExport, onImport }: Props) {
     if (typeof onExport === "function") {
       console.log("Exporting data:", convertedData);
       onExport(format, convertedData);
-      console.log(convertedData)
     }
   };
 

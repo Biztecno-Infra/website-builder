@@ -216,7 +216,7 @@ const Canvas = () => {
           ) : (
             <EmptyBlock
               theme={theme!}
-              text="Drag & drop elements here to start building "
+              text="Drag & drop elements here to start building"
             />
           )}
         </div>

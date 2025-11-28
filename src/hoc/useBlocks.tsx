@@ -22,7 +22,6 @@ const initializeBlock = (
   const { type } = block;
   const extraBlocks: { [key: string]: any } = {};
   let properties = getDefaultBlockProperties(type);
-  console.log("Selected Brand in initializeBlock:", selectedBrand);
   // Apply brand styles if available
   if (selectedBrand?.typography?.length > 0 && isTextBasedBlock(type)) {
     const typography = selectedBrand.typography[0];
@@ -182,7 +181,6 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const handleBrandingSelect = (brands: any[], branding: any) => {
-    console.log("Handling Branding Select:", branding);
     setBrandsList(brands);
     setSelectedBrand(branding);
     // Implement branding selection logic here
@@ -639,7 +637,6 @@ export const useBlocks = (): IBlockContext => {
   };
 
   const handleInsertion = (dragSrc: any, dropAreaId: string) => {
-    console.log("Handling Insertion:", dragSrc, dropAreaId);
     if (undoLocked) return;
     const blockID = generateUniqueId();
     const blockProprtys = {

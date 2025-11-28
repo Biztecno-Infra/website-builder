@@ -32,7 +32,6 @@ const ColumnCellWidthComponent: React.FC<ColumnCellWidthProps> = ({
     setLocalWidths(cellWidths);
   }, [cellWidths]);
 
-  console.log(columns)
 
   // const handleWidthChange = (value: number, index: number) => {
   //   let newWidths = [...localWidths];

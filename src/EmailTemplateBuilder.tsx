@@ -11,10 +11,11 @@ import CustomThemeProvider from "@context/ThemeContext";
 import CanvasContainer from "@containers/CanvasContainer";
 import HeaderActions from "@containers/HeaderActions";
 import "./index.css";
+import { OutputFormat } from "@components/Modals";
 
 interface Props {
   theme?: Theme;
-  onExport: (format: "JSON" | "HTML", data: any) => void;
+  onExport: (format: OutputFormat, data: any) => void;
   onImport: () => void;
 }
 

@@ -16,7 +16,7 @@ const EmptyBlockContainer = styled.div`
 `;
 
 const MessageText = styled.div<{ theme: DefaultTheme }>`
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 400;
   color: ${({ theme }) => theme.colors.primary};
   padding-bottom: 1rem;
