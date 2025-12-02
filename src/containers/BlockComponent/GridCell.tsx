@@ -151,10 +151,11 @@ const GridCell: React.FC<GridCellProps> = ({ cellWidth, blockId }) => {
             ? `${borderWidth}px ${borderStyle} ${borderColor ?? ""}`
             : "none",
           borderRadius: borderRadius ? `${borderRadius}px` : "0px",
+          opacity: isHidden ? 0.4 : 1 ,
+          pointerEvents: isHidden ? "none" : "auto",
+          zIndex: 1,
         }}
       >
-        {block?.childBlocks?.map(renderGridCellChilds)}
-
         {block?.childBlocks?.map(renderGridCellChilds)}
 
         {block?.childBlocks?.length === 0 && (

@@ -91,31 +91,62 @@ function buildStyles(
 
   Object.entries(style).forEach(([key, value]) => {
     if (key === "customCss") return;
+const INVALID_KEYS = [
+  "columns",
+  "cellWidths",
+  "cellWidth",
+  "childWidth",
+  "visibility",
+  "hideOnMobile",
+  "hideOnDesktop"
+];
+
+if (INVALID_KEYS.includes(key)) return;
+    // Prevent null/undefined/"" from leaking into CSS
     if (value === undefined || value === null || value === "") return;
 
+    // FIX 1 — SANITIZE padding objects
     if (
       (key === "padding" || key === "buttonPadding") &&
       typeof value === "object"
     ) {
-      const padding = value as Padding;
-      value = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
+      const pad = value as any;
+      const safePad = {
+        top: Number.isFinite(pad.top) ? pad.top : 0,
+        right: Number.isFinite(pad.right) ? pad.right : 0,
+        bottom: Number.isFinite(pad.bottom) ? pad.bottom : 0,
+        left: Number.isFinite(pad.left) ? pad.left : 0,
+      };
+
+      value = `${safePad.top}px ${safePad.right}px ${safePad.bottom}px ${safePad.left}px`;
     }
 
     const cssKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
 
+    // FIX 2 — Sanitize invalid px/per values
     if (pxChanges.includes(key)) {
-      stylesObj[cssKey] = typeof value === "number" ? `${value}px` : value;
+      if (typeof value === "number") {
+        stylesObj[cssKey] = `${value}px`;
+      } else if (typeof value === "string" && value.includes("null")) {
+        // Skip invalid styles
+        return;
+      } else {
+        stylesObj[cssKey] = value;
+      }
     } else if (perChanges.includes(key)) {
-      stylesObj[cssKey] = typeof value === "number" ? `${value}%` : value;
+      if (typeof value === "number") {
+        stylesObj[cssKey] = `${value}%`;
+      } else {
+        stylesObj[cssKey] = value;
+      }
     } else {
       stylesObj[cssKey] = value;
     }
   });
 
-  return `${jsonToPlainString(cleanJson(stylesObj))}${
-    style.customCss || ""
-  }`.trim();
+  return `${jsonToPlainString(cleanJson(stylesObj))}${style.customCss || ""}`.trim();
 }
+
 
 export async function convertToHtml(
   blockData: IBlockData,
@@ -644,6 +675,7 @@ async function convertGridBlock(
   const { columnGap = 0, ...restStyle } = style;
   const gridVisibilityClass = getVisibilityClass(props);
 
+  // FIX: avoid table-layout:fixed – causes shrink in many clients
   const tableStyles = buildStyles(restStyle, {
     perChanges: [],
     pxChanges: allPxAttributes,
@@ -652,88 +684,95 @@ async function convertGridBlock(
   const total = childrenIds.length;
   const visualRows = Math.ceil(total / columns);
 
-  // Fix: Calculate visible cells per row to adjust widths
   let html = `
   <!--[if mso]>
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" 
-    style="${tableCommonStyle}border-collapse: separate;border-spacing:${columnGap}px;" class="${gridVisibilityClass}">
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%"
+     style="border-collapse:separate;border-spacing:${columnGap}px;"
+     class="${gridVisibilityClass}">
   <![endif]-->
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" 
-    style="${tableCommonStyle} ${tableStyles}border-collapse: separate;border-spacing:${columnGap}px;" class="${gridVisibilityClass}">
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" 
+     role="presentation"
+     style="border-collapse:separate;border-spacing:${columnGap}px; ${tableStyles}"
+     class="${gridVisibilityClass}">
   `;
 
   for (let r = 0; r < visualRows; r++) {
     html += "<tr>";
 
-    // Count visible cells in this row
-    let visibleCellsInRow = 0;
-    const rowCellVisibility: boolean[] = [];
+    // COUNT visible cells only
+    let visibleCells = 0;
+    const rowIds: (string | null)[] = [];
 
     for (let c = 0; c < columns; c++) {
       const idx = r * columns + c;
-      const childId = childrenIds[idx];
-      if (childId) {
-        const child = rootData[childId];
-        const { props: childProps = {} } = child.data || {};
-        const isVisible = !childProps.hideOnDesktop; // Check if cell is visible
-        rowCellVisibility.push(isVisible);
-        if (isVisible) visibleCellsInRow++;
-      } else {
-        rowCellVisibility.push(false);
+      const id = childrenIds[idx] ?? null;
+      rowIds.push(id);
+
+      if (id) {
+        const child = rootData[id];
+        const isHidden = child?.data?.props?.hideOnDesktop;
+        if (!isHidden) visibleCells++;
       }
     }
 
-    // Calculate width per visible cell
-    const widthPerVisibleCell = visibleCellsInRow > 0 ? 100 / visibleCellsInRow : 100 / columns;
+    // FIX: fallback safe-width
+    const safeWidth = visibleCells > 0 ? 100 / visibleCells : 100 / columns;
 
     for (let c = 0; c < columns; c++) {
       const idx = r * columns + c;
-      const childId = childrenIds[idx];
-      
-      // Use predefined cell width or calculate based on visible cells
-      const widthPercent = cellWidths[c] ?? widthPerVisibleCell;
+      const id = rowIds[c];
 
-      if (childId) {
-        const child = rootData[childId];
-        const { style: cellStyle = {}, props: childProps = {} } = child.data || {};
+      let widthPercent = cellWidths[c] ?? safeWidth;
+
+      // FIX: never exceed reasonable width
+      if (widthPercent <= 0 || widthPercent > 100) {
+        widthPercent = safeWidth;
+      }
+
+      if (id) {
+        const child = rootData[id];
+        const { style: cellStyle = {}, props: childProps = {} } = child.data;
+
         const verticalAlign = cellStyle.verticalAlign || "top";
+        const childVisible = !childProps.hideOnDesktop;
 
-        // Generate HTML for this cell
-        const { html: childHtml, styles } = await convertGridCellBlock(
-          child,
-          rootData,
-          widthPercent,
-          cellWidthInPx
-        );
+        const visibilityClass = getVisibilityClass(childProps);
 
-        // Determine if this cell should hide on mobile/desktop
-        const cellVisibilityClass = getVisibilityClass(childProps);
+        // Only render if visible
+        if (childVisible) {
+          const { html: childHtml, styles } = await convertGridCellBlock(
+            child,
+            rootData,
+            widthPercent,
+            cellWidthInPx
+          );
 
-        // Only add cell if it's visible in desktop
-        if (!childProps.hideOnDesktop) {
           html += `
-            <td
-              width="${widthPercent}%"
-              class="${[responsive ? "stack-column" : "", cellVisibilityClass]
-                .filter(Boolean)
-                .join(" ")}"
-              style="vertical-align:${verticalAlign}; word-break:break-word; ${styles}"
-            >
-              ${childHtml}
-            </td>`;
+          <td
+            width="${Math.round(widthPercent)}%"
+            class="${[
+              responsive ? "stack-column" : "",
+              visibilityClass,
+            ].filter(Boolean).join(" ")}"
+            style="vertical-align:${verticalAlign};word-break:break-word;${styles}"
+          >
+            ${childHtml}
+          </td>`;
         }
       } else {
-        // Empty cell placeholder - only add if we're not hiding empty cells
-        html += `<td width="${widthPercent}%" ${
-          responsive ? 'class="stack-column"' : ""
-        } style=""></td>`;
+        // SAFE empty cell (keeps layout stable)
+        html += `
+        <td width="${Math.round(widthPercent)}%" 
+            ${responsive ? 'class="stack-column"' : ""}
+            style="vertical-align:top;">
+        </td>`;
       }
     }
 
     html += "</tr>";
   }
 
-  html += `</table><!--[if mso]></table><![endif]-->`;
+  html += "</table><!--[if mso]></table><![endif]-->";
 
   return html;
 }
@@ -752,20 +791,20 @@ async function convertGridCellBlock(
     pxChanges: allPxAttributes,
   });
 
-  const innerHtmlParts: string[] = [];
+  const parts = [];
+
+  // FIX: do NOT re-calc px based on parent → causes shrinking
+  const safeCellWidthPx = Math.max(parentCellWidthPx, 20);
+
   for (const childId of childrenIds) {
     const child = rootData[childId];
     if (child) {
-      const cellWidthPx = parentCellWidthPx * (cellWidthPercent / 100);
-      innerHtmlParts.push(await convertToHtml(child, rootData, cellWidthPx));
+      parts.push(await convertToHtml(child, rootData, safeCellWidthPx));
     }
   }
 
-  // Fix: Wrap grid cell content in proper visibility handling
-  const cellContent = innerHtmlParts.join("");
-  
   return {
-    html: cellContent,
+    html: parts.join(""),
     styles,
   };
 }
