@@ -195,13 +195,20 @@ function appendOutlookSupport(
   if (shouldHideInOutlook) {
     return `
     <!--[if !mso]><!-->
-    <table width="100%" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+    <table width="600" cellpadding="0" cellspacing="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
     <!--<![endif]-->
     `;
   }
 
+  // Use conditional comments to provide fixed 600px width for Outlook (MSO)
+  // while using responsive width for other clients
   return `
+  <!--[if mso]>
+  <table width="600" cellpadding="0" cellspacing="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+  <![endif]-->
+  <!--[if !mso]><!-->
   <table width="100%" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+  <!--<![endif]-->
   `;
 }
 // function convertDividerBlockToHtml(blockData: IBlockData) {
@@ -1709,6 +1716,7 @@ export const convertJsonToHtml = async (jsonData: any) => {
       <style>
         .responsive-table {
           width: 100%;
+          width: 600px;
           max-width: 600px;
         }
         @media only screen and (max-width: 600px) {
@@ -1758,6 +1766,7 @@ export const convertJsonToHtml = async (jsonData: any) => {
         <table
           class="responsive-table"
           bgcolor="${canvasColor}"
+          width="600"
           style="
             font-family: ${fontFamily};
             margin: 0 auto;
