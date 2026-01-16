@@ -1,10 +1,7 @@
-import {
-  extractYouTubeId,
-  extractVimeoId,
-} from "@containers/BlockComponent/VideoBlock";
+import { BlockType, extractVimeoId, extractYouTubeId, getVisibilityClass } from "email-builder-utils";
 import { Jimp } from "jimp";
-import { BlockType } from "email-builder-utils";
-import { extractBackgroundUrl } from "./common";
+
+
 interface Padding {
   top: number;
   right: number;
@@ -21,6 +18,10 @@ interface BlockJsonProps {
   altText: string;
   imageUrl: string;
   responsive?: boolean;
+  videoUrl?: string;
+  youtubeVideoUrl?: string;
+  thumbnailUrl?: string;
+  shape?: string;
   hideOnDesktop?: boolean;
   hideOnMobile?: boolean;
 }
@@ -43,20 +44,6 @@ const addPxToAttributes = [
 
 const addPxOrPerToAttributes = ["width", "height"];
 const allPxAttributes = [...addPxToAttributes, ...addPxOrPerToAttributes];
-
-function getVisibilityClass(props?: {
-  hideOnDesktop?: boolean;
-  hideOnMobile?: boolean;
-}) {
-  if (!props) return "";
-  const { hideOnDesktop, hideOnMobile } = props;
-  return [
-    hideOnMobile ? "hide-mobile" : "",
-    hideOnDesktop ? "hide-desktop" : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
 
 export const tableCommonStyle = "border-collapse:collapse; table-layout:fixed;";
 
@@ -147,7 +134,6 @@ if (INVALID_KEYS.includes(key)) return;
   return `${jsonToPlainString(cleanJson(stylesObj))}${style.customCss || ""}`.trim();
 }
 
-
 export async function convertToHtml(
   blockData: IBlockData,
   rootData: any,
@@ -177,42 +163,38 @@ export async function convertToHtml(
   }
 }
 
+// function appendOutlookSupport(content: string, contentStyle: string) {
+//   return `
+//   <table width="100%" style="${tableCommonStyle}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+//   `;
+// }
+
 function appendOutlookSupport(
   content: string,
   contentStyle: string,
   className?: string
 ) {
   const visibilityClass = className || "";
+
   const shouldHideInOutlook = visibilityClass.includes("hide-desktop");
 
-  const tableHtml = `
-  <table
-    width="100%"
-    cellpadding="0"
-    cellspacing="0"
-    role="presentation"
- style="border-collapse:collapse;width:100%;max-width:100%;"  class="${visibilityClass}"
-  >
-    <tr>
-      <td style="${contentStyle}">
-        ${content}
-      </td>
-    </tr>
-  </table>
-  `;
-
   if (shouldHideInOutlook) {
-    return `<!--[if !mso]><!-->${tableHtml}<!--<![endif]-->`;
+    return `
+    <!--[if !mso]><!-->
+    <table width="100%" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+    <!--<![endif]-->
+    `;
   }
 
-  return tableHtml;
+  return `
+  <table width="100%" style="${tableCommonStyle}; max-width:600px;" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+  `;
 }
 
 function convertDividerBlockToHtml(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { hideOnMobile, hideOnDesktop } = props;
   const { thickness, dividerColor, width, ...rest } = style;
-
   const convertedStyle = buildStyles(rest, {
     perChanges: [],
     pxChanges: allPxAttributes,
@@ -258,6 +240,24 @@ function convertSpacerBlockToHtml(blockData: IBlockData) {
   return appendOutlookSupport(``, styles, visibilityClass);
 }
 
+// function convertTextBlock(blockData: IBlockData) {
+//   const { style, props } = blockData.data;
+//   const styles = buildStyles(style, {
+//     perChanges: [],
+//     pxChanges: allPxAttributes,
+//   });
+//   const text = props.text || "";
+//   const navigateToUrl = props.navigateToUrl || "";
+//   const textContent = appendOutlookSupport(
+//     text.replaceAll(/\n/g, "<br>"),
+//     styles
+//   );
+
+//   return navigateToUrl
+//     ? `<a href="${navigateToUrl}" rel="noreferrer noopener" style="color:inherit; text-decoration:none; cursor:pointer;">${textContent}</a>`
+//     : textContent;
+// }
+
 function convertTextBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const visibilityClass = getVisibilityClass(props);
@@ -274,7 +274,6 @@ function convertTextBlock(blockData: IBlockData) {
     ...rest
   } = style;
 
-  // Inner text box (border + padding + inner background)
   const textBoxStyle = {
     width,
     backgroundColor,
@@ -317,15 +316,12 @@ function convertTextBlock(blockData: IBlockData) {
     : textContent;
 }
 
-// --- improved appendOutlookForImage ---
-// Adds support for making the VML element clickable via href (for Outlook).
 async function appendOutlookForImage(
   content: string,
   outerContainerWidth: number,
   innerContainerWidth: number,
   imageUrl: string,
-  style: any = {},
-  href?: string // optional href to make VML clickable
+  style: any = {}
 ) {
   const image = await Jimp.read(imageUrl);
   const originalWidth = image.bitmap.width;
@@ -345,7 +341,7 @@ async function appendOutlookForImage(
 
   const useRoundRect = borderRadius > 0;
   const arcsize = useRoundRect
-    ? Math.min(borderRadius / Math.max(scaledHeight, 1), 1).toFixed(2)
+    ? Math.min(borderRadius / scaledHeight, 1).toFixed(2)
     : "";
 
   const borderAttributes =
@@ -353,22 +349,19 @@ async function appendOutlookForImage(
       ? `strokeweight="${borderWidth}px" strokecolor="${borderColor}"`
       : `stroked="false"`;
 
-  // Add href to VML element so it's clickable in Outlook
-  const hrefAttr = href ? `href="${href}"` : "";
-
-  const vmlTagName = useRoundRect ? "roundrect" : "rect";
-
-  const outlookImage = `<!--[if mso]><v:${vmlTagName} xmlns:v="urn:schemas-microsoft-com:vml"
-style="width:${scaledWidth}px;height:${scaledHeight}px;max-width:${scaledWidth}px;"
-    ${hrefAttr}
+  const outlookImage = `<!--[if mso]>
+  <v:${
+    useRoundRect ? "roundrect" : "rect"
+  } xmlns:v="urn:schemas-microsoft-com:vml"
+    style="width:${scaledWidth}px;height:${scaledHeight}px;"
     ${borderAttributes}
     ${useRoundRect ? `arcsize="${arcsize}"` : ""}
-    fill="true">
-      <v:fill type="frame" src="${imageUrl}" />
-      <v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>
-  </v:${vmlTagName}><![endif]-->`;
+    fill="true" fillcolor="none">
+    <v:fill src="${imageUrl}" type="frame" />
+    <v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>
+  </v:${useRoundRect ? "roundrect" : "rect"}>
+  <![endif]-->`;
 
-  // non-MSO clients will get the given content (which can be the <a><img/></a> markup)
   return `
     ${outlookImage}
     <!--[if !mso]><!-->
@@ -377,7 +370,6 @@ style="width:${scaledWidth}px;height:${scaledHeight}px;max-width:${scaledWidth}p
   `;
 }
 
-// Shared helper: compute scaled dimensions without upscaling
 async function computeScaledDimensions(
   imageUrl: string,
   maxContainerWidthPx: number
@@ -392,12 +384,11 @@ async function computeScaledDimensions(
 
   return { originalWidth, originalHeight, scaledWidth, scaledHeight };
 }
+
 async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
-  const { style = {}, props } = blockData.data;
+  const { style, props } = blockData.data;
   const { altText, imageUrl, navigateToUrl } = props;
   const visibilityClass = getVisibilityClass(props);
-
-  // Image styles
   const {
     width,
     height,
@@ -409,47 +400,76 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     ...containerStyle
   } = style;
 
-  const containerStyles = buildStyles(containerStyle, { perChanges: [], pxChanges: addPxToAttributes });
+  // Ensure border styles are applied only to the container, not the image
+  const imageStyle = {
+    width,
+    height,
+    objectFit,
+    borderStyle,
+    borderRadius: borderRadius,
+    borderColor,
+  };
 
-  // Compute inner width
+  // Add border styles to container for fallback clients
+  const containerStyles = buildStyles(
+    {
+      ...containerStyle,
+    },
+    { perChanges: [], pxChanges: addPxToAttributes }
+  );
+
   const innerContainerWidth =
-    ((typeof width === "string" ? parseInt(width.replace("%", "")) : width || 100) / 100) *
-    cellWidthInPx;
+    (((typeof width === "string" ? parseInt(width.replace("%", "")) : width) ||
+      100) /
+      100) *
+    (cellWidthInPx -
+      (style?.padding?.left || 0) -
+      (style?.padding?.right || 0));
 
   const { originalWidth, originalHeight, scaledWidth, scaledHeight } =
     await computeScaledDimensions(imageUrl, innerContainerWidth);
 
-  // Non-Outlook image element
-  const imageElement = `<img 
-    src="${imageUrl}" 
-    alt="${altText}" 
-    width="${scaledWidth}" 
-    height="${scaledHeight}" 
-    style="display:block; width:${scaledWidth}px; max-width:${originalWidth}px; height:auto; border-radius:${borderRadius || 0}px; border:${borderWidth || 0}px solid ${borderColor || 'transparent'};"
-  />`;
+  const imageTagStyles = buildStyles(
+    {
+      maxWidth: `${originalWidth}px`, // Limit to original size
+      maxHeight: `${originalHeight}px`,
+      ...imageStyle,
+    },
+    {
+      perChanges: addPxOrPerToAttributes,
+      pxChanges: addPxToAttributes,
+    }
+  );
 
-  // Wrap inside a table to prevent Outlook expansion
-  const nonMsoWrapper = `
-<table width="${scaledWidth}" cellpadding="0" cellspacing="0" role="presentation"
-  style="border-collapse:collapse; width:${scaledWidth}px; table-layout:fixed;">
-  <tr>
-    <td style="padding:0;">${imageElement}</td>
-  </tr>
-</table>
-`;
+  const imageElement = `<img src="${imageUrl}" alt="${altText}" width="${scaledWidth}" height="${scaledHeight}" style="${imageTagStyles}; width:100%; height:auto; max-width:${originalWidth}px; max-height:${originalHeight}px;" />`;
 
-  // VML for Outlook
-  const outlookImage = await appendOutlookForImage(nonMsoWrapper, cellWidthInPx, innerContainerWidth, imageUrl, style, navigateToUrl);
+  const percentWidth =
+    typeof width === "string" && width.endsWith("%")
+      ? width
+      : typeof width === "number"
+      ? `${width}%`
+      : "100%";
 
-  const imageContent = appendOutlookSupport(outlookImage, containerStyles, visibilityClass);
+  const nonMsoWrapper = `<div style="display:inline-block; width:${percentWidth}; max-width:${originalWidth}px;">${imageElement}</div>`;
 
-  if (navigateToUrl) {
-    return `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener" style="display:block;">${imageContent}</a>`;
-  }
+  const outlookImage = await appendOutlookForImage(
+    nonMsoWrapper,
+    cellWidthInPx,
+    innerContainerWidth,
+    imageUrl,
+    style
+  );
 
-  return imageContent;
+  const imageContent = appendOutlookSupport(
+    outlookImage,
+    containerStyles,
+    visibilityClass
+  );
+
+  return navigateToUrl
+    ? `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener" style="display:block;">${imageContent}</a>`
+    : imageContent;
 }
-
 
 function appendOutlookForButton(
   content: string,
@@ -572,70 +592,7 @@ function convertButtonBlock(blockData: IBlockData) {
 
   return buttonContent;
 }
-//grid hide
-// async function convertGridBlock(
-//   blockData: IBlockData,
-//   rootData: any,
-//   cellWidthInPx: number
-// ) {
-//   const { style = {}, childrenIds = [], props } = blockData.data;
-//   const { columns = 1, cellWidths = [], responsive = true } = props;
-//   const { columnGap = 0, ...restStyle } = style;
-//   const visibilityClass = getVisibilityClass(props);
 
-//   const tableStyles = buildStyles(restStyle, {
-//     perChanges: [],
-//     pxChanges: allPxAttributes,
-//   });
-
-//   const total = childrenIds.length;
-//   const visualRows = Math.ceil(total / columns);
-
-//   let html = `
-//   <!--[if mso]>
-//   <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" style="${tableCommonStyle}border-collapse: separate;border-spacing:${columnGap}px;">
-//   <![endif]-->
-//   <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation" style="${tableCommonStyle} ${tableStyles}border-collapse: separate;border-spacing:${columnGap}px;">
-//   `;
-
-//   for (let r = 0; r < visualRows; r++) {
-//     html += "<tr>";
-//     for (let c = 0; c < columns; c++) {
-//       const idx = r * columns + c;
-//       const childId = childrenIds[idx];
-//       const widthPercent = cellWidths[c] ?? 100 / columns;
-
-//       if (childId) {
-//         const child = rootData[childId];
-//         const { style: cellStyle = {} } = child.data || {};
-//         const verticalAlign = cellStyle.verticalAlign || "top";
-//         const { html: childHtml, styles } = await convertGridCellBlock(
-//           child,
-//           rootData,
-//           widthPercent,
-//           cellWidthInPx
-//         );
-
-//         html += `
-//    <td
-//     width="${widthPercent}%"
-//     ${responsive ? 'class="stack-column"' : ""}
-//     style="vertical-align:${verticalAlign}; word-break:break-word; ${styles} "
-//   >
-//     ${childHtml}
-//   </td>`;
-//       } else {
-//         html += `<td width="${widthPercent}%" ${
-//           responsive ? 'class="stack-column"' : ""
-//         } style=""></td>`;
-//       }
-//     }
-//     html += "</tr>";
-//   }
-
-//   html += `</table><!--[if mso]></table><![endif]-->`;
-//   return `<div class="${visibilityClass}">${html}</div>`;
-// }
 async function convertGridBlock(
   blockData: IBlockData,
   rootData: any,
@@ -646,57 +603,99 @@ async function convertGridBlock(
   const { columnGap = 0, ...restStyle } = style;
   const gridVisibilityClass = getVisibilityClass(props);
 
-  const tableStyles = buildStyles(restStyle, { perChanges: [], pxChanges: allPxAttributes });
+  // FIX: avoid table-layout:fixed – causes shrink in many clients
+  const tableStyles = buildStyles(restStyle, {
+    perChanges: [],
+    pxChanges: allPxAttributes,
+  });
 
   const total = childrenIds.length;
-  const rows = Math.ceil(total / columns);
+  const visualRows = Math.ceil(total / columns);
 
   let html = `
-<!--[if mso]>
-<table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%"
-  style="border-collapse:separate;border-spacing:${columnGap}px;"
-  class="${gridVisibilityClass}">
-<![endif]-->
-<table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation"
-  style="border-collapse:separate;border-spacing:${columnGap}px; ${tableStyles}"
-  class="${gridVisibilityClass}">
-`;
+  <!--[if mso]>
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%"
+     style="border-collapse:separate;border-spacing:${columnGap}px;"
+     class="${gridVisibilityClass}">
+  <![endif]-->
+  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" 
+     role="presentation"
+     style="border-collapse:separate;border-spacing:${columnGap}px; ${tableStyles}; max-width:600px;"
+     class="${gridVisibilityClass}">
+  `;
 
-  for (let r = 0; r < rows; r++) {
+  for (let r = 0; r < visualRows; r++) {
     html += "<tr>";
+
+    // COUNT visible cells only
+    let visibleCells = 0;
+    const rowIds: (string | null)[] = [];
 
     for (let c = 0; c < columns; c++) {
       const idx = r * columns + c;
       const id = childrenIds[idx] ?? null;
+      rowIds.push(id);
 
-      let widthPercent = cellWidths[c] ?? 100 / columns;
-      if (widthPercent <= 0 || widthPercent > 100) widthPercent = 100 / columns;
+      if (id) {
+        const child = rootData[id];
+        const isHidden = child?.data?.props?.hideOnDesktop;
+        if (!isHidden) visibleCells++;
+      }
+    }
+
+    // FIX: fallback safe-width
+    const safeWidth = visibleCells > 0 ? Math.min(100 / visibleCells, 50) : Math.min(100 / columns, 50);
+
+    for (let c = 0; c < columns; c++) {
+      const idx = r * columns + c;
+      const id = rowIds[c];
+
+      let widthPercent = cellWidths[c] ?? safeWidth;
+
+      // FIX: never exceed reasonable width
+      if (widthPercent <= 0 || widthPercent > 100) {
+        widthPercent = safeWidth;
+      }
+      // FIX: Cap width percent to prevent overflow in Outlook
+      widthPercent = Math.min(widthPercent, 50);
 
       if (id) {
         const child = rootData[id];
         const { style: cellStyle = {}, props: childProps = {} } = child.data;
+
         const verticalAlign = cellStyle.verticalAlign || "top";
+        const childVisible = !childProps.hideOnDesktop;
+
         const visibilityClass = getVisibilityClass(childProps);
 
-        // ✅ Use convertGridCellBlock here to stack children vertically
-        const { html: innerHtml, styles: innerStyles } = await convertGridCellBlock(
-          child,
-          rootData,
-          widthPercent,
-          cellWidthInPx
-        );
+        // Only render if visible
+        if (childVisible) {
+          const { html: childHtml, styles } = await convertGridCellBlock(
+            child,
+            rootData,
+            widthPercent,
+            cellWidthInPx
+          );
 
-        html += `
-<td
-  width="${Math.round(widthPercent)}%"
-  class="${[responsive ? "stack-column" : "", visibilityClass].filter(Boolean).join(" ")}"
-  style="vertical-align:${verticalAlign}; word-break:break-word; ${innerStyles}"
->
-  ${innerHtml}
-</td>
-`;
+          html += `
+          <td
+            width="${Math.round(widthPercent)}%"
+            class="${[
+              responsive ? "stack-column" : "",
+              visibilityClass,
+            ].filter(Boolean).join(" ")}"
+            style="vertical-align:${verticalAlign};word-break:break-word;${styles}"
+          >
+            ${childHtml}
+          </td>`;
+        }
       } else {
-        html += `<td width="${Math.round(widthPercent)}%" style="vertical-align:top;"></td>`;
+        // SAFE empty cell (keeps layout stable)
+        html += `
+        <td width="${Math.round(widthPercent)}%" 
+            ${responsive ? 'class="stack-column"' : ""}
+            style="vertical-align:top;">
+        </td>`;
       }
     }
 
@@ -707,7 +706,6 @@ async function convertGridBlock(
 
   return html;
 }
-
 
 async function convertGridCellBlock(
   blockData: IBlockData,
@@ -723,27 +721,214 @@ async function convertGridCellBlock(
     pxChanges: allPxAttributes,
   });
 
-  // Each child inside this <td> gets stacked
-  const parts: string[] = [];
+  const parts = [];
 
-  const safeCellWidthPx = Math.floor((parentCellWidthPx * cellWidthPercent) / 100);
+  // FIX: do NOT re-calc px based on parent → causes shrinking
+  const safeCellWidthPx = Math.max(parentCellWidthPx, 20);
 
   for (const childId of childrenIds) {
     const child = rootData[childId];
     if (child) {
-      // Pass full TD width to child
       parts.push(await convertToHtml(child, rootData, safeCellWidthPx));
     }
   }
 
   return {
-    html: parts.join(""), // stacked vertically
+    html: parts.join(""),
     styles,
   };
 }
 
+// Enhanced Video Block HTML Conversion with centered play button
+export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
+  const { style, props } = blockData.data;
+  const visibilityClass = getVisibilityClass(props);
+  const { hideOnDesktop } = props; // Get the hideOnDesktop prop
+  const { videoUrl, youtubeVideoUrl, thumbnailUrl, altText } = props;
 
-// Enhanced Shape Block HTML Conversion
+  const videoLink = youtubeVideoUrl || videoUrl || "#";
+
+  let resolvedThumbnail = thumbnailUrl || "https://via.placeholder.com/480x360?text=No+Thumbnail";
+  if (youtubeVideoUrl) {
+    const youtubeId = extractYouTubeId(youtubeVideoUrl);
+    const vimeoId = extractVimeoId(youtubeVideoUrl);
+    if (youtubeId) {
+      resolvedThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
+    } else if (vimeoId) {
+      try {
+        const res = await fetch(`https://vimeo.com/api/v2/video/${vimeoId}.json`);
+        if (res.ok) {
+          const data = await res.json();
+          resolvedThumbnail = data?.[0]?.thumbnail_large || resolvedThumbnail;
+        }
+      } catch (_) {}
+    }
+  }
+
+  // Determine width logic
+  let percentWidth: string;
+  if (typeof style?.width === "string" && style.width.trim().endsWith("%")) {
+    percentWidth = style.width.trim();
+  } else if (typeof style?.width === "number") {
+    percentWidth = `${style.width}%`;
+  } else {
+    percentWidth = "100%";
+  }
+
+  const innerContainerWidth = (parseFloat(percentWidth) / 100) * (cellWidthInPx - (style?.padding?.left || 0) - (style?.padding?.right || 0));
+
+  const aspectRatio = 16 / 9;
+  const calculatedHeight = innerContainerWidth / aspectRatio;
+
+  const outerContainerStyles = buildStyles(
+    {
+      ...style,
+      width: undefined,
+      borderColor: undefined,
+      borderRadius: undefined,
+      borderWidth: undefined,
+      borderStyle: undefined,
+    },
+    {
+      perChanges: addPxOrPerToAttributes,
+      pxChanges: addPxToAttributes,
+    }
+  );
+
+  const borderRadius = parseInt(style?.borderRadius) || 0;
+  const borderWidth = parseInt(style?.borderWidth) || 0;
+  const borderColor = style?.borderColor || "transparent";
+
+  // Play icon size
+  const playIconWidth = 65;
+  const playIconHeight = 46;
+
+  // VML centering math (for Outlook)
+  const vmlLeft = innerContainerWidth / 2 - playIconWidth / 2;
+  const vmlTop = calculatedHeight / 2 - playIconHeight / 2;
+
+  const shouldHideInOutlook = hideOnDesktop;
+  const outlookVideoContent = shouldHideInOutlook 
+    ? `<!--[if !mso]><!-->
+       <v:group xmlns:v="urn:schemas-microsoft-com:vml"
+         coordsize="${innerContainerWidth},${calculatedHeight}"
+         href="${videoLink}"
+         style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
+         <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px;" stroked="t"
+           strokeweight="${borderWidth}px"
+           strokecolor="${borderColor}"
+           ${borderRadius > 0 ? `arcsize="${Math.min(borderRadius / calculatedHeight, 1).toFixed(2)}"` : ""}
+         >
+           <v:fill src="${resolvedThumbnail}" type="frame" color="${style?.backgroundColor || "#FFFFFF"}"/>
+         </v:rect>
+         <v:shape type="#_x0000_t75"
+           style="position:absolute;
+                  left:${vmlLeft.toFixed(1)}px;
+                  top:${vmlTop.toFixed(1)}px;
+                  width:${playIconWidth}px;
+                  height:${playIconHeight}px;"
+           alt="Play" href="${videoLink}" title="${altText || "Video"}"
+           stroked="f" filled="t">
+           <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
+         </v:shape>
+       </v:group>
+       <!--<![endif]-->`
+    : `<!--[if mso]>
+       <v:group xmlns:v="urn:schemas-microsoft-com:vml"
+         coordsize="${innerContainerWidth},${calculatedHeight}"
+         href="${videoLink}"
+         style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
+         <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
+           strokeweight="${borderWidth}px"
+           strokecolor="${borderColor}"
+           ${borderRadius > 0 ? `arcsize="${Math.min(borderRadius / calculatedHeight, 1).toFixed(2)}"` : ""}
+         >
+           <v:fill src="${resolvedThumbnail}" type="frame" color="${style?.backgroundColor || "#FFFFFF"}"/>
+         </v:rect>
+         <v:shape type="#_x0000_t75"
+           style="position:absolute;
+                  left:${vmlLeft.toFixed(1)}px;
+                  top:${vmlTop.toFixed(1)}px;
+                  width:${playIconWidth}px;
+                  height:${playIconHeight}px;"
+           alt="Play" href="${videoLink}" title="${altText || "Video"}"
+           stroked="f" filled="t">
+           <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
+         </v:shape>
+       </v:group>
+       <![endif]-->`;
+
+  const nonOutlookVideoContent = `<!--[if !mso]><!-->
+    <table
+      width="${innerContainerWidth}"
+      cellpadding="0"
+      cellspacing="0"
+      border="0"
+      role="presentation"
+      align="${style?.textAlign || "left"}"
+      style="
+        max-width: ${innerContainerWidth}px;
+        width: 100%;
+        height: ${calculatedHeight}px;
+        background-color: ${style?.backgroundColor || "#FFFFFF"};
+        background-image: url('${resolvedThumbnail}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        box-sizing: border-box;
+        border: ${borderWidth}px ${style?.borderStyle || "solid"} ${borderColor};
+        border-radius: ${borderRadius}px;
+      "
+    >
+      <tr>
+        <td style="padding: 0; height: ${calculatedHeight}px; text-align: center; vertical-align: middle;" valign="middle">
+          <a href="${videoLink}" target="_blank" style="display:inline-block; border: 0; outline: none; text-decoration: none;">
+            <img
+              src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png"
+              width="${playIconWidth}"
+              alt="Play"
+              style="display: block;
+              border: 0;
+                outline: none;
+                text-decoration: none;
+                height: auto;"
+            />
+          </a>
+        </td>
+      </tr>
+    </table>
+    <!--<![endif]-->`;
+
+  const videoContent = `${outlookVideoContent}${nonOutlookVideoContent}`;
+
+  const wrapperHtml = `
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse; max-width:600px;" class="${visibilityClass}">
+    <tr>
+      <td align="${style?.textAlign || "left"}" style="padding:0; ${outerContainerStyles}">
+        <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
+          align="${style?.textAlign || "left"}"
+          style="
+            margin:0;
+            max-width:${cellWidthInPx}px;
+            width:${percentWidth};
+            border-collapse:collapse;
+          ">
+          <tr>
+            <td align="${style?.textAlign || "left"}" style="text-align:${style?.textAlign || "left"}; padding:0;">
+              ${videoContent}
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+`;
+
+  return wrapperHtml;
+}
+
+// Enhanced Shape Block HTML Conversion using appendOutlookForShape
+// ---------- helpers ----------
 function computeArcSize(
   borderRadius: string | number | undefined,
   widthPx: number
@@ -761,298 +946,6 @@ function computeArcSize(
   return Math.min(px / widthPx, 1).toFixed(2);
 }
 
-// ---------- Updated convertShapeBlock function ----------
-// async function convertShapeBlock(blockData: IBlockData) {
-//   const { style, props } = blockData.data;
-//   const { shape, text, imageUrl } = props as any;
-
-//   const {
-//     width = "100",
-//     height = "150",
-//     padding = {},
-//     backgroundColor = "#2F80ED",
-//     borderRadius,
-//     borderWidth = 0,
-//     borderStyle = "solid",
-//     borderColor = "transparent",
-//     customCss,
-//     shapeColor,
-//     alignment = "left",
-//     msoBakeImageWithText,
-//     color = "#000000",
-//     fontSize = 14,
-//     verticalAlign = "center",
-//   } = style || {};
-
-//   const borderRadiusMap: Record<string, string> = {
-//     rectangle: "0",
-//     rounded: "10px",
-//     circle: "50%",
-//     oval: "50%",
-//   };
-
-//   let resolvedBorderRadius = borderRadius || borderRadiusMap[shape] || "0";
-
-//   let resolvedWidthPx =
-//     typeof width === "number"
-//       ? width
-//       : parseInt(width.toString().replace("px", ""), 10) || 100;
-//   let resolvedHeightPx =
-//     typeof height === "number"
-//       ? height
-//       : parseInt(height.toString().replace("px", ""), 10) || 150;
-
-//   // --- Shape specific constraints ---
-//   if (shape === "circle") {
-//     const side = Math.min(resolvedWidthPx, resolvedHeightPx);
-//     resolvedWidthPx = side;
-//     resolvedHeightPx = side;
-//     resolvedBorderRadius = "50%";
-//   } else if (shape === "oval") {
-//     resolvedBorderRadius = "50% / 50%";
-//   }
-
-//   const finalBackgroundColor = shapeColor || backgroundColor;
-//   const alignmentStyles = {
-//     left: "margin-right:auto;margin-left:0;",
-//     center: "margin-left:auto;margin-right:auto;",
-//     right: "margin-left:auto;margin-right:0;",
-//   };
-//   const alignmentStyle =
-//     alignmentStyles[alignment as keyof typeof alignmentStyles] || "";
-
-//   const verticalAlignStyles = {
-//     top: "align-items:flex-start;padding-top:8px;",
-//     center: "align-items:center;",
-//     bottom: "align-items:flex-end;padding-bottom:8px;",
-//   };
-//   const verticalAlignStyle =
-//     verticalAlignStyles[verticalAlign as keyof typeof verticalAlignStyles] ||
-//     verticalAlignStyles.center;
-
-//   // Text styling (safe across clients)
-//   const textSizeStyle = `font-size:${fontSize}px;line-height:1.3;word-break:break-word;overflow-wrap:break-word;text-align:center;color:${color};`;
-
-//   // ============================
-//   // Modern HTML (non-MSO)
-//   // ============================
-//   let nonMsoContent = "";
-
-//   if (imageUrl && text) {
-//     nonMsoContent = `
-// <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
-//   border:${borderWidth}px ${borderStyle} ${borderColor};
-//   border-radius:${resolvedBorderRadius};
-//   background:${finalBackgroundColor} url('${imageUrl}') center/cover no-repeat;
-//   overflow:hidden;${alignmentStyle}${customCss || ""}">
-//   <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;overflow:hidden;">
-//     <div style="${textSizeStyle}padding:6px;max-width:90%;-webkit-line-clamp:3;-webkit-box-orient:vertical;display:-webkit-box;overflow:hidden;">
-//       ${text}
-//     </div>
-//   </div>
-// </div>`;
-//   } else if (imageUrl) {
-//     nonMsoContent = `
-// <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
-//   border:${borderWidth}px ${borderStyle} ${borderColor};
-//   border-radius:${resolvedBorderRadius};
-//   overflow:hidden;${alignmentStyle}${customCss || ""}">
-//   <img src="${imageUrl}" alt="${text || "shape image"}"
-//     width="${resolvedWidthPx}" height="${resolvedHeightPx}"
-//     style="width:100%;height:100%;object-fit:cover;border-radius:${resolvedBorderRadius};display:block;" />
-// </div>`;
-//   } else {
-//     const circlePadding =
-//       shape === "circle" ? Math.round(resolvedHeightPx * 0.15) : 8;
-//     nonMsoContent = `
-// <div style="display:inline-block;width:${resolvedWidthPx}px;height:${resolvedHeightPx}px;
-//   background:${finalBackgroundColor};
-//   border:${borderWidth}px ${borderStyle} ${borderColor};
-//   border-radius:${resolvedBorderRadius};
-//   overflow:hidden;${alignmentStyle}${customCss || ""}">
-//   <div style="width:100%;height:100%;display:flex;${verticalAlignStyle}justify-content:center;padding:${circlePadding}px;box-sizing:border-box;">
-//     <div style="${textSizeStyle}max-width:90%;overflow:hidden;">
-//       ${text || ""}
-//     </div>
-//   </div>
-// </div>`;
-//   }
-
-//   // ============================
-//   // Outlook (VML) version
-//   // ============================
-//   const outlookContent = await appendOutlookForShape(
-//     nonMsoContent,
-//     resolvedWidthPx,
-//     resolvedWidthPx,
-//     {
-//       shape,
-//       imageUrl,
-//       backgroundColor,
-//       shapeColor,
-//       borderWidth,
-//       borderColor,
-//       borderRadius: resolvedBorderRadius,
-//       heightPx: resolvedHeightPx,
-//       text,
-//       textColor: color,
-//       textSize: fontSize,
-//       verticalAlign,
-//       alignment,
-//       padding,
-//       msoBakeImageWithText,
-//     }
-//   );
-
-//   // ============================
-//   // Final combined block
-//   // ============================
-//   return `
-// <table width="100%" style="border-collapse:collapse;table-layout:fixed;">
-//   <tr>
-//     <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${
-//     padding.bottom || 0
-//   }px ${padding.left || 0}px;text-align:${alignment};">
-//       ${outlookContent}
-//       <!--[if !mso]><!-->
-//       ${nonMsoContent}
-//       <!--<![endif]-->
-//     </td>
-//   </tr>
-// </table>`;
-// }
-
-// // ---------- Updated VML builder with better text containment ----------
-// function buildVMLShape({
-//   shape,
-//   widthPx,
-//   heightPx,
-//   imageUrl,
-//   backgroundColor,
-//   borderWidth,
-//   borderColor,
-//   borderRadius,
-//   text,
-//   textColor = "#000000",
-//   textSize = 14,
-//   verticalAlign = "center",
-//   msoHasBakedText = false,
-// }: any) {
-//   // --- Basic setup ---
-//   const bw = borderWidth || 0;
-//   const bc = borderColor || "transparent";
-//   const borderAttrs =
-//     bw > 0 ? `strokeweight="${bw}px" strokecolor="${bc}"` : `stroked="false"`;
-//   const fillColor = backgroundColor || "#2F80ED";
-//   const fillMarkup = `<v:fill ${
-//     imageUrl ? `src="${imageUrl}" type="frame" aspect="atleast"` : ""
-//   } color="${fillColor}" />`;
-
-//   // --- Shape tag ---
-//   let tag = "rect";
-//   let extraAttr = "";
-//   if (shape === "circle" || shape === "oval") {
-//     tag = "oval";
-//   } else if (shape === "rounded") {
-//     tag = "roundrect";
-//     extraAttr = `arcsize="${computeArcSize(borderRadius, widthPx)}"`;
-//   }
-
-//   // --- Text alignment ---
-//   const vAlignMap = { top: "top", center: "middle", bottom: "bottom" };
-//   const vAlign = vAlignMap[verticalAlign as keyof typeof vAlignMap] || "middle";
-//   const safeFontSize = Math.max(textSize, 10);
-
-//   // --- Text inside shape ---
-//   const textboxMarkup =
-//     text && !msoHasBakedText
-//       ? `<v:textbox inset="6pt,6pt,6pt,6pt" style="mso-fit-shape-to-text:false;">
-//            <div style="display:table;width:100%;height:100%;">
-//              <div style="display:table-cell;vertical-align:${vAlign};text-align:center;">
-//                <div style="color:${textColor};font-family:Arial, sans-serif;font-size:${safeFontSize}px;line-height:1.3;word-wrap:break-word;">
-//                  ${text}
-//                </div>
-//              </div>
-//            </div>
-//          </v:textbox>`
-//       : `<v:textbox inset="0,0,0,0"><div style="display:none;">.</div></v:textbox>`;
-
-//   // --- Final shape markup ---
-//   return `
-// <v:${tag} xmlns:v="urn:schemas-microsoft-com:vml"
-//   style="width:${widthPx}px;height:${heightPx}px;
-//          mso-position-horizontal:center;
-//          mso-position-vertical:center;"
-//   ${borderAttrs}
-//   fill="true" fillcolor="${fillColor}"${extraAttr}>
-//   ${fillMarkup}
-//   ${textboxMarkup}
-// </v:${tag}>`;
-// }
-
-// // ---------- Updated appendOutlookForShape ----------
-// async function appendOutlookForShape(
-//   content: string,
-//   outerContainerWidth: number,
-//   innerContainerWidth: number,
-//   opts: {
-//     shape: string;
-//     imageUrl?: string;
-//     backgroundColor?: string;
-//     shapeColor?: string;
-//     borderWidth?: number;
-//     borderColor?: string;
-//     borderRadius?: string | number;
-//     heightPx: number;
-//     text?: string;
-//     textColor?: string;
-//     textSize?: number;
-//     verticalAlign?: "top" | "middle" | "bottom";
-//     alignment?: "left" | "center" | "right";
-//     padding?: { top?: number; right?: number; bottom?: number; left?: number };
-//     msoBakeImageWithText?: string;
-//   }
-// ) {
-//   const widthPx = Math.round(
-//     Math.min(outerContainerWidth, innerContainerWidth)
-//   );
-//   const heightPx = Math.max(1, Math.round(opts.heightPx));
-
-//   const vml = buildVMLShape({
-//     shape: opts.shape,
-//     widthPx,
-//     heightPx,
-//     imageUrl: opts.msoBakeImageWithText || opts.imageUrl,
-//     backgroundColor: opts.shapeColor || opts.backgroundColor,
-//     borderWidth: opts.borderWidth,
-//     borderColor: opts.borderColor,
-//     borderRadius: opts.borderRadius,
-//     text: opts.text,
-//     textColor: opts.textColor,
-//     textSize: opts.textSize,
-//     msoHasBakedText: Boolean(opts.msoBakeImageWithText),
-//   });
-
-//   const pad = opts.padding || {};
-//   const align = opts.alignment || "left";
-//   const valign = opts.verticalAlign || "middle";
-
-//   return `<!--[if mso]>
-//   <table align="${align}" border="0" cellpadding="0" cellspacing="0"
-//          style="width:${widthPx}px;height:${heightPx}px;">
-//     <tr>
-//       <td valign="${valign}"
-//           style="padding:${pad.top || 0}px ${pad.right || 0}px ${
-//     pad.bottom || 0
-//   }px ${pad.left || 0}px;">
-//         ${vml}
-//       </td>
-//     </tr>
-//   </table>
-//   <![endif]-->`;
-// }
-
-// ---------- Final convertShapeBlock function ----------
 async function convertShapeBlock(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { shape, text, imageUrl } = props as any;
@@ -1221,7 +1114,7 @@ async function convertShapeBlock(blockData: IBlockData) {
 
   // Combine into table wrapper
   return `
-<table width="100%" style="border-collapse:collapse;table-layout:fixed;" class="${visibilityClass}">
+<table width="100%" style="border-collapse:collapse;table-layout:fixed;max-width:600px;" class="${visibilityClass}">
   <tr>
     <td style="padding:${padding.top || 0}px ${padding.right || 0}px ${
     padding.bottom || 0
@@ -1387,198 +1280,6 @@ function appendOutlookForShape(
 <![endif]-->`;
 }
 
-// Enhanced Video Block HTML Conversion with centered play button
-export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
-  const { style, props } = blockData.data;
-  const visibilityClass = getVisibilityClass(props);
-  const { hideOnDesktop } = props; // Get the hideOnDesktop prop
-  const { videoUrl, youtubeVideoUrl, thumbnailUrl, altText } = props;
-
-  const videoLink = youtubeVideoUrl || videoUrl || "#";
-
-  let resolvedThumbnail = thumbnailUrl || "https://via.placeholder.com/480x360?text=No+Thumbnail";
-  if (youtubeVideoUrl) {
-    const youtubeId = extractYouTubeId(youtubeVideoUrl);
-    const vimeoId = extractVimeoId(youtubeVideoUrl);
-    if (youtubeId) {
-      resolvedThumbnail = `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`;
-    } else if (vimeoId) {
-      try {
-        const res = await fetch(`https://vimeo.com/api/v2/video/${vimeoId}.json`);
-        if (res.ok) {
-          const data = await res.json();
-          resolvedThumbnail = data?.[0]?.thumbnail_large || resolvedThumbnail;
-        }
-      } catch (_) {}
-    }
-  }
-
-  // Determine width logic
-  let percentWidth: string;
-  if (typeof style?.width === "string" && style.width.trim().endsWith("%")) {
-    percentWidth = style.width.trim();
-  } else if (typeof style?.width === "number") {
-    percentWidth = `${style.width}%`;
-  } else {
-    percentWidth = "100%";
-  }
-
-  const innerContainerWidth = (parseFloat(percentWidth) / 100) * (cellWidthInPx - (style?.padding?.left || 0) - (style?.padding?.right || 0));
-
-  const aspectRatio = 16 / 9;
-  const calculatedHeight = innerContainerWidth / aspectRatio;
-
-  const outerContainerStyles = buildStyles(
-    {
-      ...style,
-      width: undefined,
-      borderColor: undefined,
-      borderRadius: undefined,
-      borderWidth: undefined,
-      borderStyle: undefined,
-    },
-    {
-      perChanges: addPxOrPerToAttributes,
-      pxChanges: addPxToAttributes,
-    }
-  );
-
-  const borderRadius = parseInt(style?.borderRadius) || 0;
-  const borderWidth = parseInt(style?.borderWidth) || 0;
-  const borderColor = style?.borderColor || "transparent";
-
-  // Play icon size
-  const playIconWidth = 65;
-  const playIconHeight = 46;
-
-  // VML centering math (for Outlook)
-  const vmlLeft = innerContainerWidth / 2 - playIconWidth / 2;
-  const vmlTop = calculatedHeight / 2 - playIconHeight / 2;
-
-  // Fix: Wrap VML content in conditional comments based on visibility
-  const shouldHideInOutlook = hideOnDesktop;
-
-  const outlookVideoContent = shouldHideInOutlook 
-    ? `<!--[if !mso]><!-->
-       <v:group xmlns:v="urn:schemas-microsoft-com:vml"
-         coordsize="${innerContainerWidth},${calculatedHeight}"
-         href="${videoLink}"
-         style="width:${Math.min(innerContainerWidth, cellWidthInPx)}px;
-       height:${calculatedHeight}px;">
-         <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
-           strokeweight="${borderWidth}px"
-           strokecolor="${borderColor}"
-           ${borderRadius > 0 ? `arcsize="${Math.min(borderRadius / calculatedHeight, 1).toFixed(2)}"` : ""}
-         >
-           <v:fill src="${resolvedThumbnail}" type="frame" color="${style?.backgroundColor || "#FFFFFF"}"/>
-         </v:rect>
-         <v:shape type="#_x0000_t75"
-           style="position:absolute;
-                  left:${vmlLeft.toFixed(1)}px;
-                  top:${vmlTop.toFixed(1)}px;
-                  width:${playIconWidth}px;
-                  height:${playIconHeight}px;"
-           alt="Play" href="${videoLink}" title="${altText || "Video"}"
-           stroked="f" filled="t">
-           <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
-         </v:shape>
-       </v:group>
-       <!--<![endif]-->`
-    : `<!--[if mso]>
-       <v:group xmlns:v="urn:schemas-microsoft-com:vml"
-         coordsize="${innerContainerWidth},${calculatedHeight}"
-         href="${videoLink}"
-         style="width:${Math.min(innerContainerWidth, cellWidthInPx)}px;
-       height:${calculatedHeight}px;">
-         <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
-           strokeweight="${borderWidth}px"
-           strokecolor="${borderColor}"
-           ${borderRadius > 0 ? `arcsize="${Math.min(borderRadius / calculatedHeight, 1).toFixed(2)}"` : ""}
-         >
-           <v:fill src="${resolvedThumbnail}" type="frame" color="${style?.backgroundColor || "#FFFFFF"}"/>
-         </v:rect>
-         <v:shape type="#_x0000_t75"
-           style="position:absolute;
-                  left:${vmlLeft.toFixed(1)}px;
-                  top:${vmlTop.toFixed(1)}px;
-                  width:${playIconWidth}px;
-                  height:${playIconHeight}px;"
-           alt="Play" href="${videoLink}" title="${altText || "Video"}"
-           stroked="f" filled="t">
-           <v:imagedata src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png" />
-         </v:shape>
-       </v:group>
-       <![endif]-->`;
-
-  const nonOutlookVideoContent = `<!--[if !mso]><!-->
-    <table
-      width="${innerContainerWidth}"
-      cellpadding="0"
-      cellspacing="0"
-      border="0"
-      role="presentation"
-      align="${style?.textAlign || "left"}"
-      style="
-        max-width: ${innerContainerWidth}px;
-        width: 100%;
-        height: ${calculatedHeight}px;
-        background-color: ${style?.backgroundColor || "#FFFFFF"};
-        background-image: url('${resolvedThumbnail}');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        box-sizing: border-box;
-        border: ${borderWidth}px ${style?.borderStyle || "solid"} ${borderColor};
-        border-radius: ${borderRadius}px;
-      "
-    >
-      <tr>
-        <td style="padding: 0; height: ${calculatedHeight}px; text-align: center; vertical-align: middle;" valign="middle">
-          <a href="${videoLink}" target="_blank" style="display:inline-block; border: 0; outline: none; text-decoration: none;">
-            <img
-              src="https://app-rsrc.getbee.io/public/resources/components/widgetBar/video-content-icon-sets/light/type-01.png"
-              width="${playIconWidth}"
-              alt="Play"
-              style="display: block;
-              border: 0;
-                outline: none;
-                text-decoration: none;
-                height: auto;"
-            />
-          </a>
-        </td>
-      </tr>
-    </table>
-    <!--<![endif]-->`;
-
-  const videoContent = `${outlookVideoContent}${nonOutlookVideoContent}`;
-
-  const wrapperHtml = `
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse;" class="${visibilityClass}">
-    <tr>
-      <td align="${style?.textAlign || "left"}" style="padding:0; box-sizing:border-box; ${outerContainerStyles}">
-        <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
-          align="${style?.textAlign || "left"}"
-          style="
-            margin:0;
-            max-width:${cellWidthInPx}px;
-            width:${percentWidth};
-            border-collapse:collapse;
-          ">
-          <tr>
-            <td align="${style?.textAlign || "left"}" style="text-align:${style?.textAlign || "left"}; padding:0;">
-              ${videoContent}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-`;
-
-  return wrapperHtml;
-}
-
 function convertVerticalDividerBlockToHtml(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { width, height, dividerColor, ...rest } = style;
@@ -1607,121 +1308,3 @@ function convertVerticalDividerBlockToHtml(blockData: IBlockData) {
   `;
   return appendOutlookSupport(dividerContent, convertedStyle, visibilityClass);
 }
-
-export const convertJsonToHtml = async (jsonData: any) => {
-  const rootData = jsonData?.root?.data;
-  const blocksHtml = [];
-  for (const childId of rootData?.childrenIds) {
-    blocksHtml.push(
-      await convertToHtml(
-        jsonData[childId],
-        jsonData,
-        600 -
-          (rootData.style?.padding?.left || 0) -
-          (rootData.style?.padding?.right || 0)
-      )
-    );
-  }
-
-  const {
-    fontFamily,
-    canvasColor,
-    textColor,
-    padding = {},
-    borderColor,
-    borderRadius,
-    borderWidth,
-    borderStyle,
-  } = rootData.style || {};
-
-  const { top = 0, right = 0, bottom = 0, left = 0 } = padding;
-
-  const rawHtml = `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <meta name="x-apple-disable-message-reformatting" />
-      <style>
-        .responsive-table {
-          width: 100%;
-          width: 600px;
-          max-width: 600px;
-        }
-        @media only screen and (max-width: 600px) {
-          .responsive-table {
-            width: 100% !important;
-          }
-          .stack-column,
-          .stack-column td {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-          }
-        }
- .hide-mobile {
-  display: block !important;
-  mso-hide: all !important; /* Hide in Outlook */
-}
-
-.hide-desktop {
-  display: block !important;
-  mso-hide: all !important; /* Hide in Outlook */
-}
-
-@media only screen and (max-width: 600px) {
-  .hide-mobile {
-    display: none !important;
-    max-height: 0 !important;
-    overflow: hidden !important;
-    mso-hide: all !important;
-  }
-}
-
-@media only screen and (min-width: 601px) {
-  .hide-desktop {
-    display: none !important;
-    max-height: 0 !important;
-    overflow: hidden !important;
-    mso-hide: all !important;
-  }
-}
-
-
-      </style>
-    </head>
-    <body>
-   <center>
-        <table
-          class="responsive-table"
-          cellpadding="0"
-          width="600"
-          cellspacing="0"
-          style="
-            width:100%;
-            max-width:600px;
-            font-family:${fontFamily};
-            margin:0 auto;
-            table-layout:fixed;
-            background-color:${canvasColor};
-            color:${textColor};
-             padding: ${top}px ${right}px ${bottom}px ${left}px;
-            border:${borderWidth}px ${borderStyle} ${borderColor};
-            border-radius:${borderRadius}px;
-             border-collapse:collapse;
-          "
-        >
-          <tbody>
-            <tr>
-              <td style="padding: 0;">
-                ${blocksHtml.join("")}
-              </td>
-            </tr>
-          </tbody>
-  </table>
-</center>
-    </body>
-  </html>`;
-
-  return rawHtml;
-};

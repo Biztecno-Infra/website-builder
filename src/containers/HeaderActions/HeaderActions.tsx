@@ -11,7 +11,7 @@ import { ScreenViews } from "enum";
 // import { convertJsonToHtml } from "email-builder-utils";
 import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
 import PerviewTemplateModal from "@components/Modals/PerviewTemplateModal";
-import { convertJsonToHtml } from "@utils/jsonToHtml";
+import { convertJsonToHtml } from "@utils/convertJsonToHtml";
 
 const StyledHeader = styled.div`
   width: 100%;
