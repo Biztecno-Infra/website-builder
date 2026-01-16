@@ -195,20 +195,13 @@ function appendOutlookSupport(
   if (shouldHideInOutlook) {
     return `
     <!--[if !mso]><!-->
-    <table width="600" cellpadding="0" cellspacing="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
+    <table width="600" cellpadding="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
     <!--<![endif]-->
     `;
   }
 
-  // Use conditional comments to provide fixed 600px width for Outlook (MSO)
-  // while using responsive width for other clients
   return `
-  <!--[if mso]>
-  <table width="600" cellpadding="0" cellspacing="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
-  <![endif]-->
-  <!--[if !mso]><!-->
   <table width="100%" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
-  <!--<![endif]-->
   `;
 }
 // function convertDividerBlockToHtml(blockData: IBlockData) {
