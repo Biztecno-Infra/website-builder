@@ -177,39 +177,37 @@ export async function convertToHtml(
   }
 }
 
-// function appendOutlookSupport(content: string, contentStyle: string , className?:string) {
-//   return `
-//   <table width="100%" style="${tableCommonStyle}" class="${className || ""}"><tr><td style="${contentStyle}">${content}</td></tr></table>
-//   `;
-// }
 function appendOutlookSupport(
   content: string,
   contentStyle: string,
   className?: string
 ) {
   const visibilityClass = className || "";
-
-  // Check if this should be hidden in Outlook
   const shouldHideInOutlook = visibilityClass.includes("hide-desktop");
 
+  const tableHtml = `
+  <table
+    width="100%"
+    cellpadding="0"
+    cellspacing="0"
+    role="presentation"
+ style="border-collapse:collapse;width:100%;max-width:100%;"  class="${visibilityClass}"
+  >
+    <tr>
+      <td style="${contentStyle}">
+        ${content}
+      </td>
+    </tr>
+  </table>
+  `;
+
   if (shouldHideInOutlook) {
-    return `
-    <!--[if !mso]><!-->
-    <table width="600" cellpadding="0" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
-    <!--<![endif]-->
-    `;
+    return `<!--[if !mso]><!-->${tableHtml}<!--<![endif]-->`;
   }
 
-  return `
-  <table width="100%" style="${tableCommonStyle}" class="${visibilityClass}"><tr><td style="${contentStyle}">${content}</td></tr></table>
-  `;
+  return tableHtml;
 }
-// function convertDividerBlockToHtml(blockData: IBlockData) {
-//   const { style } = blockData.data;
-//   const { thickness, dividerColor, ...rest } = style;
-//   const convertedStyle = buildStyles(rest, {perChanges: [], pxChanges: allPxAttributes});
-//   return appendOutlookSupport(`<hr style="height:${thickness}px; background-color: ${dividerColor};" />`, convertedStyle);
-// }
+
 function convertDividerBlockToHtml(blockData: IBlockData) {
   const { style, props } = blockData.data;
   const { hideOnMobile, hideOnDesktop } = props;
@@ -361,7 +359,7 @@ async function appendOutlookForImage(
   const vmlTagName = useRoundRect ? "roundrect" : "rect";
 
   const outlookImage = `<!--[if mso]><v:${vmlTagName} xmlns:v="urn:schemas-microsoft-com:vml"
-    style="width:${scaledWidth}px;height:${scaledHeight}px;"
+style="width:${scaledWidth}px;height:${scaledHeight}px;max-width:${scaledWidth}px;"
     ${hrefAttr}
     ${borderAttributes}
     ${useRoundRect ? `arcsize="${arcsize}"` : ""}
@@ -395,9 +393,11 @@ async function computeScaledDimensions(
   return { originalWidth, originalHeight, scaledWidth, scaledHeight };
 }
 async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
-  const { style, props } = blockData.data;
+  const { style = {}, props } = blockData.data;
   const { altText, imageUrl, navigateToUrl } = props;
   const visibilityClass = getVisibilityClass(props);
+
+  // Image styles
   const {
     width,
     height,
@@ -409,76 +409,47 @@ async function convertImageBlock(blockData: IBlockData, cellWidthInPx: number) {
     ...containerStyle
   } = style;
 
-  // Ensure border styles are applied only to the container, not the image
-  const imageStyle = {
-    width,
-    height,
-    objectFit,
-    borderStyle,
-    borderRadius: borderRadius,
-    borderColor,
-  };
+  const containerStyles = buildStyles(containerStyle, { perChanges: [], pxChanges: addPxToAttributes });
 
-  // Add border styles to container for fallback clients
-  const containerStyles = buildStyles(
-    {
-      ...containerStyle,
-    },
-    { perChanges: [], pxChanges: addPxToAttributes }
-  );
-
+  // Compute inner width
   const innerContainerWidth =
-    (((typeof width === "string" ? parseInt(width.replace("%", "")) : width) ||
-      100) /
-      100) *
-    (cellWidthInPx -
-      (style?.padding?.left || 0) -
-      (style?.padding?.right || 0));
+    ((typeof width === "string" ? parseInt(width.replace("%", "")) : width || 100) / 100) *
+    cellWidthInPx;
 
   const { originalWidth, originalHeight, scaledWidth, scaledHeight } =
     await computeScaledDimensions(imageUrl, innerContainerWidth);
 
-  const imageTagStyles = buildStyles(
-    {
-      maxWidth: `${originalWidth}px`, // Limit to original size
-      maxHeight: `${originalHeight}px`,
-      ...imageStyle,
-    },
-    {
-      perChanges: addPxOrPerToAttributes,
-      pxChanges: addPxToAttributes,
-    }
-  );
+  // Non-Outlook image element
+  const imageElement = `<img 
+    src="${imageUrl}" 
+    alt="${altText}" 
+    width="${scaledWidth}" 
+    height="${scaledHeight}" 
+    style="display:block; width:${scaledWidth}px; max-width:${originalWidth}px; height:auto; border-radius:${borderRadius || 0}px; border:${borderWidth || 0}px solid ${borderColor || 'transparent'};"
+  />`;
 
-  const imageElement = `<img src="${imageUrl}" alt="${altText}" width="${scaledWidth}" height="${scaledHeight}" style="${imageTagStyles}; width:100%; height:auto; max-width:${originalWidth}px; max-height:${originalHeight}px;" />`;
+  // Wrap inside a table to prevent Outlook expansion
+  const nonMsoWrapper = `
+<table width="${scaledWidth}" cellpadding="0" cellspacing="0" role="presentation"
+  style="border-collapse:collapse; width:${scaledWidth}px; table-layout:fixed;">
+  <tr>
+    <td style="padding:0;">${imageElement}</td>
+  </tr>
+</table>
+`;
 
-  const percentWidth =
-    typeof width === "string" && width.endsWith("%")
-      ? width
-      : typeof width === "number"
-      ? `${width}%`
-      : "100%";
+  // VML for Outlook
+  const outlookImage = await appendOutlookForImage(nonMsoWrapper, cellWidthInPx, innerContainerWidth, imageUrl, style, navigateToUrl);
 
-  const nonMsoWrapper = `<div style="display:inline-block; width:${percentWidth}; max-width:${originalWidth}px;">${imageElement}</div>`;
+  const imageContent = appendOutlookSupport(outlookImage, containerStyles, visibilityClass);
 
-  const outlookImage = await appendOutlookForImage(
-    nonMsoWrapper,
-    cellWidthInPx,
-    innerContainerWidth,
-    imageUrl,
-    style
-  );
+  if (navigateToUrl) {
+    return `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener" style="display:block;">${imageContent}</a>`;
+  }
 
-  const imageContent = appendOutlookSupport(
-    outlookImage,
-    containerStyles,
-    visibilityClass
-  );
-
-  return navigateToUrl
-    ? `<a href="${navigateToUrl}" target="_blank" rel="noreferrer noopener" style="display:block;">${imageContent}</a>`
-    : imageContent;
+  return imageContent;
 }
+
 
 function appendOutlookForButton(
   content: string,
@@ -675,97 +646,57 @@ async function convertGridBlock(
   const { columnGap = 0, ...restStyle } = style;
   const gridVisibilityClass = getVisibilityClass(props);
 
-  // FIX: avoid table-layout:fixed – causes shrink in many clients
-  const tableStyles = buildStyles(restStyle, {
-    perChanges: [],
-    pxChanges: allPxAttributes,
-  });
+  const tableStyles = buildStyles(restStyle, { perChanges: [], pxChanges: allPxAttributes });
 
   const total = childrenIds.length;
-  const visualRows = Math.ceil(total / columns);
+  const rows = Math.ceil(total / columns);
 
   let html = `
-  <!--[if mso]>
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%"
-     style="border-collapse:separate;border-spacing:${columnGap}px;"
-     class="${gridVisibilityClass}">
-  <![endif]-->
-  <table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" 
-     role="presentation"
-     style="border-collapse:separate;border-spacing:${columnGap}px; ${tableStyles}"
-     class="${gridVisibilityClass}">
-  `;
+<!--[if mso]>
+<table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%"
+  style="border-collapse:separate;border-spacing:${columnGap}px;"
+  class="${gridVisibilityClass}">
+<![endif]-->
+<table border="0" cellpadding="0" cellspacing="${columnGap}" width="100%" role="presentation"
+  style="border-collapse:separate;border-spacing:${columnGap}px; ${tableStyles}"
+  class="${gridVisibilityClass}">
+`;
 
-  for (let r = 0; r < visualRows; r++) {
+  for (let r = 0; r < rows; r++) {
     html += "<tr>";
-
-    // COUNT visible cells only
-    let visibleCells = 0;
-    const rowIds: (string | null)[] = [];
 
     for (let c = 0; c < columns; c++) {
       const idx = r * columns + c;
       const id = childrenIds[idx] ?? null;
-      rowIds.push(id);
 
-      if (id) {
-        const child = rootData[id];
-        const isHidden = child?.data?.props?.hideOnDesktop;
-        if (!isHidden) visibleCells++;
-      }
-    }
-
-    // FIX: fallback safe-width
-    const safeWidth = visibleCells > 0 ? 100 / visibleCells : 100 / columns;
-
-    for (let c = 0; c < columns; c++) {
-      const idx = r * columns + c;
-      const id = rowIds[c];
-
-      let widthPercent = cellWidths[c] ?? safeWidth;
-
-      // FIX: never exceed reasonable width
-      if (widthPercent <= 0 || widthPercent > 100) {
-        widthPercent = safeWidth;
-      }
+      let widthPercent = cellWidths[c] ?? 100 / columns;
+      if (widthPercent <= 0 || widthPercent > 100) widthPercent = 100 / columns;
 
       if (id) {
         const child = rootData[id];
         const { style: cellStyle = {}, props: childProps = {} } = child.data;
-
         const verticalAlign = cellStyle.verticalAlign || "top";
-        const childVisible = !childProps.hideOnDesktop;
-
         const visibilityClass = getVisibilityClass(childProps);
 
-        // Only render if visible
-        if (childVisible) {
-          const { html: childHtml, styles } = await convertGridCellBlock(
-            child,
-            rootData,
-            widthPercent,
-            cellWidthInPx
-          );
+        // ✅ Use convertGridCellBlock here to stack children vertically
+        const { html: innerHtml, styles: innerStyles } = await convertGridCellBlock(
+          child,
+          rootData,
+          widthPercent,
+          cellWidthInPx
+        );
 
-          html += `
-          <td
-            width="${Math.round(widthPercent)}%"
-            class="${[
-              responsive ? "stack-column" : "",
-              visibilityClass,
-            ].filter(Boolean).join(" ")}"
-            style="vertical-align:${verticalAlign};word-break:break-word;${styles}"
-          >
-            ${childHtml}
-          </td>`;
-        }
-      } else {
-        // SAFE empty cell (keeps layout stable)
         html += `
-        <td width="${Math.round(widthPercent)}%" 
-            ${responsive ? 'class="stack-column"' : ""}
-            style="vertical-align:top;">
-        </td>`;
+<td
+  width="${Math.round(widthPercent)}%"
+  class="${[responsive ? "stack-column" : "", visibilityClass].filter(Boolean).join(" ")}"
+  style="vertical-align:${verticalAlign}; word-break:break-word; ${innerStyles}"
+>
+  ${innerHtml}
+</td>
+`;
+      } else {
+        html += `<td width="${Math.round(widthPercent)}%" style="vertical-align:top;"></td>`;
       }
     }
 
@@ -776,6 +707,7 @@ async function convertGridBlock(
 
   return html;
 }
+
 
 async function convertGridCellBlock(
   blockData: IBlockData,
@@ -791,23 +723,25 @@ async function convertGridCellBlock(
     pxChanges: allPxAttributes,
   });
 
-  const parts = [];
+  // Each child inside this <td> gets stacked
+  const parts: string[] = [];
 
-  // FIX: do NOT re-calc px based on parent → causes shrinking
-  const safeCellWidthPx = Math.max(parentCellWidthPx, 20);
+  const safeCellWidthPx = Math.floor((parentCellWidthPx * cellWidthPercent) / 100);
 
   for (const childId of childrenIds) {
     const child = rootData[childId];
     if (child) {
+      // Pass full TD width to child
       parts.push(await convertToHtml(child, rootData, safeCellWidthPx));
     }
   }
 
   return {
-    html: parts.join(""),
+    html: parts.join(""), // stacked vertically
     styles,
   };
 }
+
 
 // Enhanced Shape Block HTML Conversion
 function computeArcSize(
@@ -1529,7 +1463,8 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
        <v:group xmlns:v="urn:schemas-microsoft-com:vml"
          coordsize="${innerContainerWidth},${calculatedHeight}"
          href="${videoLink}"
-         style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
+         style="width:${Math.min(innerContainerWidth, cellWidthInPx)}px;
+       height:${calculatedHeight}px;">
          <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
            strokeweight="${borderWidth}px"
            strokecolor="${borderColor}"
@@ -1553,7 +1488,8 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
        <v:group xmlns:v="urn:schemas-microsoft-com:vml"
          coordsize="${innerContainerWidth},${calculatedHeight}"
          href="${videoLink}"
-         style="width:${innerContainerWidth}px;height:${calculatedHeight}px;">
+         style="width:${Math.min(innerContainerWidth, cellWidthInPx)}px;
+       height:${calculatedHeight}px;">
          <v:rect fill="t" style="position:absolute;width:${innerContainerWidth}px;height:${calculatedHeight}px; stroked="t"
            strokeweight="${borderWidth}px"
            strokecolor="${borderColor}"
@@ -1620,7 +1556,7 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
   const wrapperHtml = `
   <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="margin:0; padding:0; border-collapse: collapse;" class="${visibilityClass}">
     <tr>
-      <td align="${style?.textAlign || "left"}" style="padding:0; ${outerContainerStyles}">
+      <td align="${style?.textAlign || "left"}" style="padding:0; box-sizing:border-box; ${outerContainerStyles}">
         <table border="0" cellpadding="0" cellspacing="0" role="presentation" 
           align="${style?.textAlign || "left"}"
           style="
@@ -1755,20 +1691,25 @@ export const convertJsonToHtml = async (jsonData: any) => {
       </style>
     </head>
     <body>
-      <center>
+   <center>
         <table
           class="responsive-table"
-          bgcolor="${canvasColor}"
+          cellpadding="0"
           width="600"
+          cellspacing="0"
           style="
-            font-family: ${fontFamily};
-            margin: 0 auto;
+            width:100%;
+            max-width:600px;
+            font-family:${fontFamily};
+            margin:0 auto;
             table-layout:fixed;
-            background-color: ${canvasColor};
-            color: ${textColor};
-            padding: ${top}px ${right}px ${bottom}px ${left}px;
-            border: ${borderWidth}px ${borderStyle} ${borderColor};
-            border-radius: ${borderRadius}px; "
+            background-color:${canvasColor};
+            color:${textColor};
+             padding: ${top}px ${right}px ${bottom}px ${left}px;
+            border:${borderWidth}px ${borderStyle} ${borderColor};
+            border-radius:${borderRadius}px;
+             border-collapse:collapse;
+          "
         >
           <tbody>
             <tr>
@@ -1777,8 +1718,8 @@ export const convertJsonToHtml = async (jsonData: any) => {
               </td>
             </tr>
           </tbody>
-        </table>
-      </center>
+  </table>
+</center>
     </body>
   </html>`;
 
