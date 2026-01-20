@@ -872,7 +872,7 @@ export async function convertVideoBlock(blockData: any, cellWidthInPx: number) {
         height: ${calculatedHeight}px;
         background-color: ${style?.backgroundColor || "#FFFFFF"};
         background-image: url('${resolvedThumbnail}');
-        background-size: cover;
+        background-size: contain;
         background-position: center;
         background-repeat: no-repeat;
         box-sizing: border-box;

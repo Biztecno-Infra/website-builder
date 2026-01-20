@@ -8,10 +8,10 @@ import UploadModal from "@components/Modals/UploadJsonModal";
 import SvgIcon, { CUSTOM_SVG_ICON } from "@components/SvgIcon";
 import { useBlockHook } from "@context/BlockContext";
 import { ScreenViews } from "enum";
-// import { convertJsonToHtml } from "email-builder-utils";
+import { convertJsonToHtml } from "email-builder-utils";
 import ImportTemplateModal from "@components/Modals/ImportTemplateModal";
 import PerviewTemplateModal from "@components/Modals/PerviewTemplateModal";
-import { convertJsonToHtml } from "@utils/convertJsonToHtml";
+// import { convertJsonToHtml } from "@utils/convertJsonToHtml";
 
 const StyledHeader = styled.div`
   width: 100%;
@@ -150,11 +150,11 @@ function HeaderActions({ onExport, onImport }: Props) {
           text="Export"
         />
         <ButtonComponent $buttonPrimary handleClick={onImport} text="Import" />
-        <ButtonComponent
+        {/* <ButtonComponent
           $buttonPrimary
           handleClick={() => setSelectedOption("Upload")}
           text="Upload"
-        />
+        /> */}
 
         {/* <CustomDropdownButton
           options={["Export","Upload"]}
