@@ -1,56 +1,23 @@
 {
-  "name": "email-builder-react",
-  "version": "1.1.7",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
-  "assets": [
-    "dist/assets"
-  ],
+  "name": "page-builder",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsup",
-    "watch": "tsup --watch",
-    "prepublishOnly": "npm run build"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "sideEffects": false,
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "classnames": "^2.5.1",
-    "email-builder-utils": "^1.1.35",
-    "immutability-helper": "^3.1.1",
-    "jimp": "^1.6.0",
-    "js-beautify": "^1.15.2",
     "react": "^18 || ^19",
-    "react-best-gradient-color-picker": "^3.0.14",
-    "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^18 || ^19",
-    "react-quill": "^2.0.0",
-    "react-toastify": "^11.0.3",
-    "styled-components": "^6.1.15",
-    "typescript": "^5.7.3"
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1"
   },
   "devDependencies": {
-    "@types/js-beautify": "^1.14.3",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "esbuild-sass-plugin": "^3.3.1",
-    "rollup": "^4.34.6",
-    "rollup-plugin-scss": "^4.0.1",
-    "sass": "^1.84.0",
-    "tsup": "^8.3.6",
+    "typescript": "^5.7.3",
     "vite": "^6.1.0"
-  },
-  "peerDependencies": {
-    "react": "^18 || ^19",
-    "react-dom": "^18 || ^19"
   }
 }
