@@ -5,11 +5,12 @@ import { Canvas } from './components/Canvas';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
-import { useBuilderStore } from './hooks/useBuilderStore';
+import { useBuilderStore, makeEmpty } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
+import { makeDemoState } from './data/demoState';
 import { exportHtml } from './utils/exportHtml';
 import { serializeState } from './utils/serializeState';
-import type { Breakpoint } from './types';
+import type { Breakpoint, GridCell } from './types';
 
 export default function App() {
   const {
@@ -29,6 +30,7 @@ export default function App() {
     addElement,
     addElementAt,
     addSection,
+    addGridSection,
     deleteSection,
     updateSection,
     duplicateSection,
@@ -57,6 +59,13 @@ export default function App() {
     importState,
     updateTheme,
     updateResponsive,
+    selectedGridCellId,
+    setSelectedGridCellId,
+    addGridCell,
+    updateGridCell,
+    deleteGridCell,
+    addElementToCell,
+    moveGridElement,
   } = useBuilderStore();
 
   const [snapEnabled, setSnapEnabled] = useState(true);
@@ -71,6 +80,12 @@ export default function App() {
   const importRef = useRef<HTMLInputElement>(null);
 
   const selectedElement = selectedId ? (elements[selectedId] ?? null) : null;
+  const selectedGridCell = !selectedElement && selectedGridCellId
+    ? (nodes[selectedGridCellId] as GridCell | undefined ?? null)
+    : null;
+  const isInGridCell = selectedElement
+    ? nodes[selectedElement.parent]?.type === 'grid-cell'
+    : false;
   const selectedSection =
     selectedSectionId === header.id ? header :
     selectedSectionId === footer.id ? footer :
@@ -147,7 +162,7 @@ export default function App() {
 
       if (e.key === 'Escape') {
         if (previewMode) { setPreviewMode(false); return; }
-        setSelectedIds([]); setSelectedSectionId(null); return;
+        setSelectedIds([]); setSelectedSectionId(null); setSelectedGridCellId(null); return;
       }
 
       if (previewMode) return;
@@ -261,9 +276,13 @@ export default function App() {
         <LeftSidebar
           nodes={nodes}
           onAdd={addElement}
+          onAddFreeSection={addSection}
+          onAddGridSection={addGridSection}
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
+          selectedGridCellId={selectedGridCellId}
           onSelect={setSelectedId}
+          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); }}
           onReorderSection={reorderSection}
           onReorderElement={reorderElement}
           onMoveElementToSection={moveElementToSection}
@@ -284,10 +303,33 @@ export default function App() {
 
         <div className="middle-container">
           <header className="toolbar">
-            <div className="toolbar-left">
+            {/* <div className="toolbar-left">
               <span className="app-name">Page Builder</span>
               <span className="active-page-name">{activePage.name}</span>
-            </div>
+              <div className="toolbar-divider" />
+              <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Replace canvas with the built-in demo page (undoable)"
+                onClick={() => {
+                  if (window.confirm('Load demo page? This replaces the current canvas (you can Ctrl+Z to undo).')) {
+                    importState(makeDemoState());
+                  }
+                }}
+              >
+                ⊞ Load Demo
+              </button>
+              <button
+                className="toolbar-btn toolbar-btn--danger"
+                title="Clear canvas and start with an empty page (undoable)"
+                onClick={() => {
+                  if (window.confirm('Clear the canvas and start with an empty page? (Ctrl+Z to undo)')) {
+                    importState(makeEmpty());
+                  }
+                }}
+              >
+                ✕ Clear Page
+              </button>
+            </div> */}
             <div className="toolbar-center">
               <button className="toolbar-btn" onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
                 ↩ Undo
@@ -370,9 +412,11 @@ export default function App() {
               selectedId={selectedId}
               selectedIds={selectedIds}
               selectedSectionId={selectedSectionId}
+              selectedGridCellId={selectedGridCellId}
               onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); }}
               onSelectElement={(id, shift) => shift ? toggleSelectedId(id) : setSelectedId(id)}
-              onDeselect={() => { setSelectedIds([]); setSelectedSectionId(null); }}
+              onSelectGridCell={id => { setSelectedGridCellId(id); }}
+              onDeselect={() => { setSelectedIds([]); setSelectedSectionId(null); setSelectedGridCellId(null); }}
               onUpdate={updateElement}
               onCommit={pushSnapshot}
               snapshot={state}
@@ -391,15 +435,25 @@ export default function App() {
               onDuplicateElement={duplicateElement}
               onDeleteElement={deleteElement}
               onMoveElementToSection={(id, toSectionId, x, y) => moveElementToSection(id, toSectionId, 999, { x, y })}
+              onUpdateGridCell={updateGridCell}
+              onAddGridCell={addGridCell}
+              onDeleteGridCell={deleteGridCell}
+              onAddElementToCell={addElementToCell}
+              onMoveGridElement={moveGridElement}
               zoom={zoom}
             />
 
             <RightSidebar
               element={selectedElement}
-              section={selectedElement ? null : selectedSection}
+              section={selectedElement ? null : (selectedGridCell ? null : selectedSection)}
+              gridCell={selectedGridCell}
+              nodes={nodes}
+              isInGridCell={isInGridCell}
               snapshot={state}
               onUpdate={updateElement}
               onUpdateSection={updateSection}
+              onUpdateGridCell={updateGridCell}
+              onAddGridCell={addGridCell}
               onPushSnapshot={pushSnapshot}
               onDelete={deleteElement}
               breakpoint={breakpoint}

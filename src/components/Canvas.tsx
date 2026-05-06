@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SectionView } from './SectionView';
 import { canvasDragShared } from './CanvasElement';
-import type { Breakpoint, BreakpointOverride, Section, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
+import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
 export { CANVAS_W };
@@ -19,14 +19,16 @@ interface Props {
   selectedId: string | null;
   selectedIds: string[];
   selectedSectionId: string | null;
+  selectedGridCellId?: string | null;
   onSelectSection: (id: string) => void;
   onSelectElement: (id: string, shift: boolean) => void;
+  onSelectGridCell?: (id: string | null) => void;
   onDeselect: () => void;
   onUpdate: (id: string, updates: Partial<El>) => void;
   onCommit: (prevSnapshot: BuilderState) => void;
   snapshot: BuilderState;
   onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
-  onUpdateSection: (id: string, updates: Partial<Section>) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSection: (afterId?: string, atStart?: boolean) => void;
   onDeleteSection: (id: string) => void;
   onDuplicateSection: (id: string) => void;
@@ -42,13 +44,18 @@ interface Props {
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
   onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
+  onDeleteGridCell?: (id: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
   zoom?: number;
 }
 
 export function Canvas({
   header, sections, footer, nodes,
-  selectedId, selectedIds, selectedSectionId,
-  onSelectSection, onSelectElement, onDeselect,
+  selectedId, selectedIds, selectedSectionId, selectedGridCellId = null,
+  onSelectSection, onSelectElement, onSelectGridCell, onDeselect,
   onUpdate, onCommit, snapshot,
   onDrop, onUpdateSection, onAddSection, onDeleteSection,
   onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
@@ -56,6 +63,8 @@ export function Canvas({
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
   onMoveElementToSection,
+  onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
+  onMoveGridElement,
   zoom = 1,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
@@ -133,12 +142,14 @@ export function Canvas({
 
   const commonProps = {
     nodes,
-    selectedId, selectedIds, canvasWidth,
-    onSelectElement, onUpdateElement: onUpdate,
+    selectedId, selectedIds, selectedGridCellId, canvasWidth,
+    onSelectElement, onSelectGridCell, onUpdateElement: onUpdate,
     onCommit, snapshot, snapEnabled, onContextMenu,
     onDrop, onUpdateSection, previewMode,
     breakpoint, onUpdateResponsive,
     onDuplicateElement, onDeleteElement,
+    onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
+    onMoveGridElement,
   };
 
   const bpClass = breakpoint !== 'desktop' ? ` bp-${breakpoint}` : '';

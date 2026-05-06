@@ -106,6 +106,61 @@ button {
   color: #8a8a8a;
 }
 
+/* ─── Section type buttons ─── */
+.section-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 12px 8px;
+}
+
+.section-type-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #0b978e;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.section-type-btn:hover {
+  background: #0b978e;
+  color: #ffffff;
+}
+
+.section-type-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.section-type-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.section-type-label {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.section-type-desc {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.section-type-btn:hover .section-type-desc {
+  opacity: 0.85;
+}
+
 /* ─── Palette items ─── */
 .palette-list {
   display: flex;
@@ -414,16 +469,16 @@ button {
   to   { opacity: 1; }
 }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(40px) rotate(var(--el-rotate, 0deg)); }
-  to   { opacity: 1; transform: translateY(0)    rotate(var(--el-rotate, 0deg)); }
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideLeft {
-  from { opacity: 0; transform: translateX(-40px) rotate(var(--el-rotate, 0deg)); }
-  to   { opacity: 1; transform: translateX(0)     rotate(var(--el-rotate, 0deg)); }
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 @keyframes zoomIn {
-  from { opacity: 0; transform: scale(0.75) rotate(var(--el-rotate, 0deg)); }
-  to   { opacity: 1; transform: scale(1)    rotate(var(--el-rotate, 0deg)); }
+  from { opacity: 0; transform: scale(0.75); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
 .anim-pending { opacity: 0 !important; }
@@ -622,6 +677,58 @@ button {
   border-radius: 4px;
 }
 
+/* ─── Toolbar demo / clear buttons ─── */
+.toolbar-btn--demo {
+  background: #e8f5f5;
+  color: #006e75;
+  border-color: #b2dede;
+  font-weight: 600;
+}
+.toolbar-btn--demo:hover:not(:disabled) {
+  background: #006e75 !important;
+  color: #fff !important;
+  border-color: #006e75 !important;
+}
+.toolbar-btn--danger {
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+.toolbar-btn--danger:hover:not(:disabled) {
+  background: #fef2f2 !important;
+  color: #b91c1c !important;
+  border-color: #f87171 !important;
+}
+
+/* ─── Flex preset grid ─── */
+.flex-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  padding: 4px 0 8px;
+}
+.flex-preset-btn {
+  padding: 5px 2px;
+  font-size: 10px;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #f9fafb;
+  color: #374151;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.flex-preset-btn:hover {
+  background: #e8f5f5;
+  border-color: #006e75;
+  color: #006e75;
+}
+.flex-preset-btn.active {
+  background: #006e75;
+  border-color: #006e75;
+  color: #fff;
+}
+
 /* ─── Toolbar primary button ─── */
 .toolbar-btn.primary {
   background: #006e75;
@@ -784,6 +891,16 @@ button {
 }
 .canvas-wrapper.preview-mode .canvas-column {
   box-shadow: none;
+}
+/* Grid section surface padding is editor-only (badge/toolbar clearance).
+   Preview and export have no such padding. */
+.canvas-wrapper.preview-mode .grid-section-surface {
+  padding: 0;
+}
+/* Free section elements that overflow section bounds are clipped in export.
+   Preview matches export: section surface clips overflow. */
+.canvas-wrapper.preview-mode .section-surface {
+  overflow: hidden;
 }
 
 /* ─── Canvas elements ─── */
@@ -1207,6 +1324,53 @@ button {
   font-style: italic;
 }
 
+/* ─── Grid cell group in layer panel ─── */
+.layer-grid-cell-group {
+  border-left: 2px solid #b2dada;
+  margin-left: 12px;
+  margin-bottom: 2px;
+}
+
+.layer-grid-cell-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px 4px 6px;
+  font-size: 10px;
+  color: #555;
+  background: #f0fafa;
+  border-bottom: 1px solid #daeaea;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+
+.layer-grid-cell-header:hover {
+  background: #e0f5f5;
+}
+
+.layer-grid-cell-header.selected {
+  background: #cceee8;
+  color: #006e75;
+  border-left: 2px solid #006e75;
+  margin-left: -2px;
+}
+
+.layer-grid-cell-span {
+  font-size: 9px;
+  font-weight: 700;
+  color: #0b978e;
+  background: rgba(11, 151, 142, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: auto;
+  margin-right: 2px;
+}
+
+.layer-row--grid-el {
+  padding-left: 24px;
+}
+
 .layer-el-drag-handle {
   color: #bbb;
   cursor: grab;
@@ -1620,4 +1784,487 @@ button {
 .el-quick-btn.danger:hover {
   background: #ef4444;
   color: #fff;
+}
+
+/* ─── Grid section ─── */
+.grid-section-surface {
+  padding: 16px 0 8px;
+}
+
+.section-col-usage {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.section-col-usage.full {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.section-col-usage.over {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ─── Grid area wrapper ─── */
+.grid-area-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+
+.grid-cells-row {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Empty grid state (no cells yet) ─── */
+.grid-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0 24px;
+  color: #94a3b8;
+  font-size: 12px;
+  user-select: none;
+}
+
+.grid-empty-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+
+/* ─── Grid cell ─── */
+.grid-cell {
+  border-radius: 4px;
+  transition: outline 0.1s, background 0.1s;
+  outline: 1px dashed transparent;
+  position: relative;
+}
+
+.grid-cell:not(.grid-cell--selected):hover {
+  outline: 1px dashed #0b978e;
+}
+
+.grid-cell--selected {
+  outline: 2px solid #006e75;
+}
+
+.grid-cell--drop-over {
+  background: rgba(0, 110, 117, 0.06) !important;
+  outline: 2px dashed #006e75;
+}
+
+
+/* ─── Empty cell ─── */
+.grid-cell-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 80px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #a8c5c5;
+  border: 1.5px dashed #c8dede;
+  border-radius: 4px;
+  user-select: none;
+  transition: border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+
+.grid-cell:hover .grid-cell-empty {
+  border-color: #0b978e;
+  color: #0b978e;
+}
+
+.grid-cell-empty-icon {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+/* ─── Cell toolbar ─── */
+.grid-cell-toolbar {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 4px 6px;
+  z-index: 10000;
+  white-space: nowrap;
+  pointer-events: all;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+}
+
+.grid-cell-span-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
+  padding: 0 3px;
+  min-width: 44px;
+  text-align: center;
+}
+
+.grid-cell-span-btn {
+  background: transparent;
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  font-size: 13px;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.grid-cell-span-btn:hover:not(:disabled) {
+  background: #006e75;
+  border-color: #006e75;
+  color: #fff;
+}
+
+.grid-cell-span-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.grid-cell-toolbar-sep {
+  width: 1px;
+  height: 16px;
+  background: #334155;
+  margin: 0 2px;
+}
+
+.grid-cell-delete-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.grid-cell-delete-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ─── Grid element (inside grid cell) ─── */
+.grid-el {
+  position: relative;
+  border-radius: 4px;
+  transition: outline 0.1s;
+  outline: 1px dashed transparent;
+  cursor: pointer;
+}
+
+.grid-el:not(.grid-el--selected):hover {
+  outline: 1px dashed #0b978e;
+}
+
+.grid-el--selected {
+  outline: 2px solid #006e75;
+}
+
+.grid-el-quick-bar {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 3px 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  z-index: 10000;
+  white-space: nowrap;
+}
+
+/* ─── Grid cell direction buttons ─── */
+.grid-direction-btn {
+  flex: 1;
+  padding: 4px 6px;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  background: #f1f1f1;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.grid-direction-btn:hover {
+  border-color: #0b978e;
+  color: #0b978e;
+}
+
+.grid-direction-btn.active {
+  border-color: #006e75;
+  background: #e8f5f5;
+  color: #006e75;
+}
+
+/* ─── Layout mode toggle (Free / Grid) ─── */
+.layout-mode-toggle {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+}
+
+.layout-mode-btn {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid #dddddd;
+  border-radius: 5px;
+  background: #f1f1f1;
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.layout-mode-btn:hover {
+  border-color: #0b978e;
+  color: #0b978e;
+}
+
+.layout-mode-btn.active {
+  border-color: #006e75;
+  background: #e8f5f5;
+  color: #006e75;
+}
+
+/* ─── Grid column manager (right sidebar) ─── */
+.grid-col-manager {
+  margin: 0 0 4px;
+}
+
+.grid-col-manager-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 4px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.grid-col-manager-count {
+  background: #e8f5f5;
+  color: #006e75;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.grid-col-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.grid-col-manager-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  background: #f8fafa;
+  border: 1px solid #e2eeee;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.grid-col-manager-num {
+  font-weight: 600;
+  color: #475569;
+  min-width: 36px;
+  flex-shrink: 0;
+}
+
+.grid-col-manager-bar {
+  flex: 1;
+  height: 6px;
+  background: #e2eeee;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.grid-col-manager-fill {
+  height: 100%;
+  background: #0b978e;
+  border-radius: 3px;
+  transition: width 0.2s;
+}
+
+.grid-col-manager-span {
+  font-size: 10px;
+  font-weight: 700;
+  color: #0b978e;
+  min-width: 28px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.grid-col-manager-span.over {
+  color: #ef4444;
+}
+
+.grid-col-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  padding: 7px 0;
+  border: 1.5px dashed #0b978e;
+  border-radius: 6px;
+  background: transparent;
+  color: #0b978e;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.grid-col-add-btn:hover {
+  background: #e8f5f5;
+  border-color: #006e75;
+  color: #006e75;
+}
+
+/* ─── Grid element drag-and-drop ─── */
+
+/* Faded element being dragged */
+.grid-el--dragging {
+  opacity: 0.35 !important;
+  pointer-events: none;
+}
+
+/* Cell highlight when a grid element hovers over it */
+.grid-cell--el-over {
+  outline: 2px dashed #006e75;
+  background-color: rgba(0, 110, 117, 0.04);
+}
+
+/* Horizontal insertion line (column / wrap cells) */
+.grid-insert-line {
+  width: 100%;
+  height: 2px;
+  background: #006e75;
+  border-radius: 1px;
+  flex-shrink: 0;
+  pointer-events: none;
+  position: relative;
+}
+
+.grid-insert-line::before,
+.grid-insert-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #006e75;
+}
+
+.grid-insert-line::before { left: -3px; }
+.grid-insert-line::after  { right: -3px; }
+
+/* Vertical insertion line (row cells) */
+.grid-insert-line--vertical {
+  width: 2px;
+  height: auto;
+  align-self: stretch;
+}
+
+.grid-insert-line--vertical::before,
+.grid-insert-line--vertical::after {
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.grid-insert-line--vertical::before { top: -3px; }
+.grid-insert-line--vertical::after  { bottom: -3px; top: auto; }
+
+/* ─── Responsive UX helpers (right sidebar) ─── */
+.resp-row--active {
+  background: rgba(0, 110, 117, 0.07);
+  border-radius: 4px;
+}
+
+.resp-clear-btn {
+  background: none;
+  border: none;
+  color: #006e75;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+.resp-clear-btn:hover { opacity: 1; }
+
+.resp-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0 5px 0;
+  font-size: 10px;
+  color: #888;
+}
+.resp-ref-label { font-weight: 500; }
+.resp-ref-value {
+  font-weight: 600;
+  color: #555;
+  text-transform: capitalize;
+}
+
+.desktop-only-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #e8e8e8;
+  color: #666;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  vertical-align: middle;
 }

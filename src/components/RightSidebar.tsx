@@ -1,9 +1,10 @@
 import { useRef, useState } from 'react';
 import type {
   Breakpoint, BorderStyle, BgType, AnimationType, AnimationTrigger,
-  CanvasElement, BuilderState, TextAlign, ObjectFit, Section,
+  CanvasElement, BuilderState, TextAlign, ObjectFit, Section, SectionUpdate, GridSection, GridCell,
   BreakpointOverride, ElementBackground, ElementLayout, ElementContent,
   ElementAnimation, Border, Padding, Shadow, Typography, ColumnStyle, SectionBackground,
+  CellLayoutMode, FlexWidthMode, NodeMap, TextTransform,
 } from '../types';
 import { equalWidths, applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { injectGoogleFont } from '../utils/fonts';
@@ -11,29 +12,297 @@ import { injectGoogleFont } from '../utils/fonts';
 interface Props {
   element: CanvasElement | null;
   section: Section | null;
+  gridCell?: GridCell | null;
+  isInGridCell?: boolean;
+  nodes: NodeMap;
   snapshot: BuilderState;
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
-  onUpdateSection: (id: string, updates: Partial<Section>) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onAddGridCell?: (sectionId: string) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   onDelete: (id: string) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
 }
 
-export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSection, onPushSnapshot, onDelete, breakpoint = 'desktop', onUpdateResponsive }: Props) {
+export function RightSidebar({ element, section, gridCell = null, isInGridCell = false, nodes, snapshot, onUpdate, onUpdateSection, onUpdateGridCell, onAddGridCell, onPushSnapshot, onDelete, breakpoint = 'desktop', onUpdateResponsive }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
   const [selectedColIdx, setSelectedColIdx] = useState(0);
+  const [flexAdvanced, setFlexAdvanced] = useState(false);
+
+  const gcFocus = () => { if (!focusSnapshot.current) focusSnapshot.current = snapshot; };
+  const gcBlur = () => { if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; } };
+
+  // ── Grid cell panel ────────────────────────────────────────────────────────
+  if (!element && gridCell && onUpdateGridCell) {
+    const gc = gridCell;
+    const { style, responsive } = gc;
+    const bgColor = style.background.color?.startsWith('#') ? style.background.color : '#ffffff';
+    const isDesktop = breakpoint === 'desktop';
+
+    const effMode: CellLayoutMode =
+      breakpoint === 'tablet' ? (responsive.tablet?.layoutMode ?? style.layoutMode) :
+      breakpoint === 'mobile' ? (responsive.mobile?.layoutMode ?? responsive.tablet?.layoutMode ?? style.layoutMode) :
+      style.layoutMode;
+
+    const modeIsOverridden =
+      (breakpoint === 'tablet' && responsive.tablet?.layoutMode !== undefined) ||
+      (breakpoint === 'mobile' && responsive.mobile?.layoutMode !== undefined);
+
+    const setCurrentMode = (mode: CellLayoutMode) => {
+      onPushSnapshot(snapshot);
+      if (isDesktop) {
+        onUpdateGridCell(gc.id, { style: { ...style, layoutMode: mode } });
+      } else if (breakpoint === 'tablet') {
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, layoutMode: mode } } });
+      } else {
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, layoutMode: mode } } });
+      }
+    };
+
+    const resetModeOverride = () => {
+      onPushSnapshot(snapshot);
+      if (breakpoint === 'tablet') {
+        const { layoutMode: _lm, ...rest } = responsive.tablet ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+      } else {
+        const { layoutMode: _lm, ...rest } = responsive.mobile ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+      }
+    };
+
+    return (
+      <aside className="right-sidebar">
+        <div className="panel-header">
+          <span className="panel-header-title">Grid Column</span>
+        </div>
+
+        {breakpoint !== 'desktop' && (
+          <div className={`bp-banner bp-banner-${breakpoint}`}>
+            {breakpoint === 'tablet' ? '⬛ Tablet overrides (768px)' : '📱 Mobile overrides (375px)'}
+          </div>
+        )}
+
+        <div className="prop-section">
+          <div className="section-header">Column Span</div>
+          <div className={`prop-row${breakpoint === 'desktop' ? ' resp-row--active' : ''}`}>
+            <label>Desktop</label>
+            <input type="number" value={gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) })} />
+            <span style={{ fontSize: 11, color: '#888' }}>/12</span>
+          </div>
+          <div className={`prop-row${breakpoint === 'tablet' ? ' resp-row--active' : ''}`}>
+            <label>Tablet</label>
+            <input type="number" value={responsive.tablet?.columnSpan ?? gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+            {responsive.tablet?.columnSpan !== undefined && (
+              <button className="resp-clear-btn" title="Reset to desktop" onClick={() => {
+                onPushSnapshot(snapshot);
+                const { columnSpan: _cs, ...rest } = responsive.tablet ?? {};
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+              }}>↺</button>
+            )}
+          </div>
+          <div className={`prop-row${breakpoint === 'mobile' ? ' resp-row--active' : ''}`}>
+            <label>Mobile</label>
+            <input type="number" value={responsive.mobile?.columnSpan ?? gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+            {responsive.mobile?.columnSpan !== undefined && (
+              <button className="resp-clear-btn" title="Reset to desktop" onClick={() => {
+                onPushSnapshot(snapshot);
+                const { columnSpan: _cs, ...rest } = responsive.mobile ?? {};
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+              }}>↺</button>
+            )}
+          </div>
+        </div>
+        <div className="prop-section">
+          <div className="section-header">Layout</div>
+          <div className="prop-row">
+            <label>Direction</label>
+            <div className="btn-group">
+              {(['column', 'row', 'wrap'] as CellLayoutMode[]).map(m => (
+                <button key={m}
+                  className={effMode === m ? 'active' : ''}
+                  onClick={() => setCurrentMode(m)}>
+                  {m === 'column' ? '↕' : m === 'row' ? '↔' : '⤵'}
+                </button>
+              ))}
+            </div>
+            {!isDesktop && modeIsOverridden && (
+              <button className="resp-clear-btn" title={`Reset to desktop (${style.layoutMode})`} onClick={resetModeOverride}>↺</button>
+            )}
+          </div>
+          {!isDesktop && (
+            <div className="resp-ref-row">
+              <span className="resp-ref-label">🖥 Desktop:</span>
+              <span className="resp-ref-value">{style.layoutMode}</span>
+              {modeIsOverridden && <span className="resp-badge">overridden</span>}
+            </div>
+          )}
+          <div className="prop-row">
+            <label>Justify</label>
+            <select value={style.justifyContent}
+              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, justifyContent: e.target.value as typeof style.justifyContent } }); }}>
+              <option value="flex-start">Start</option>
+              <option value="center">Center</option>
+              <option value="flex-end">End</option>
+              <option value="space-between">Space Between</option>
+              <option value="space-around">Space Around</option>
+            </select>
+          </div>
+          <div className="prop-row">
+            <label>Align</label>
+            <select value={style.alignItems}
+              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, alignItems: e.target.value as typeof style.alignItems } }); }}>
+              <option value="flex-start">Start</option>
+              <option value="center">Center</option>
+              <option value="flex-end">End</option>
+              <option value="stretch">Stretch</option>
+            </select>
+          </div>
+          <div className="prop-row">
+            <label>Elem. Gap</label>
+            <input type="number" value={style.gap} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, gap: Number(e.target.value) } })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+          <div className="prop-row">
+            <label>Pad Top</label>
+            <input type="number" value={style.padding.top} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, top: Number(e.target.value) } } })} />
+          </div>
+          <div className="prop-row">
+            <label>Pad Right</label>
+            <input type="number" value={style.padding.right} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, right: Number(e.target.value) } } })} />
+          </div>
+          <div className="prop-row">
+            <label>Pad Bottom</label>
+            <input type="number" value={style.padding.bottom} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, bottom: Number(e.target.value) } } })} />
+          </div>
+          <div className="prop-row">
+            <label>Pad Left</label>
+            <input type="number" value={style.padding.left} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, left: Number(e.target.value) } } })} />
+          </div>
+        </div>
+        <div className="prop-section">
+          <div className="section-header">Min Height</div>
+          <div className={`prop-row${breakpoint === 'desktop' ? ' resp-row--active' : ''}`}>
+            <label>Desktop</label>
+            <input type="number" value={style.minHeight ?? 80} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) } })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+          <div className={`prop-row${breakpoint === 'tablet' ? ' resp-row--active' : ''}`}>
+            <label>Tablet</label>
+            <input type="number" value={responsive.tablet?.minHeight ?? style.minHeight ?? 80} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, minHeight: Number(e.target.value) } } })} />
+            {responsive.tablet?.minHeight !== undefined && (
+              <button className="resp-clear-btn" title="Reset to desktop" onClick={() => {
+                onPushSnapshot(snapshot);
+                const { minHeight: _mh, ...rest } = responsive.tablet ?? {};
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+              }}>↺</button>
+            )}
+          </div>
+          <div className={`prop-row${breakpoint === 'mobile' ? ' resp-row--active' : ''}`}>
+            <label>Mobile</label>
+            <input type="number" value={responsive.mobile?.minHeight ?? style.minHeight ?? 80} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, minHeight: Number(e.target.value) } } })} />
+            {responsive.mobile?.minHeight !== undefined && (
+              <button className="resp-clear-btn" title="Reset to desktop" onClick={() => {
+                onPushSnapshot(snapshot);
+                const { minHeight: _mh, ...rest } = responsive.mobile ?? {};
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+              }}>↺</button>
+            )}
+          </div>
+        </div>
+        <div className="prop-section">
+          <div className="section-header">Background</div>
+          <div className="prop-row">
+            <label>Color</label>
+            <input type="color" value={bgColor}
+              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.value, type: 'solid' } } }); }} />
+            <label className="transparent-label">
+              <input type="checkbox" checked={style.background.color === 'transparent' || !style.background.color}
+                onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.checked ? 'transparent' : '#ffffff' } } }); }} />
+              {' '}None
+            </label>
+          </div>
+        </div>
+        <div className="prop-section">
+          <div className="section-header">Border</div>
+          <div className="prop-row">
+            <label>Radius</label>
+            <input type="number" value={style.border?.radius ?? 0} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }), radius: Number(e.target.value) } } })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+          <div className="prop-row">
+            <label>Width</label>
+            <input type="number" value={style.border?.width ?? 0} min={0}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), width: Number(e.target.value) } } })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+          {(style.border?.width ?? 0) > 0 && (
+            <>
+              <div className="prop-row">
+                <label>Color</label>
+                <input type="color"
+                  value={(style.border?.color ?? '#cccccc').startsWith('#') ? (style.border?.color ?? '#cccccc') : '#cccccc'}
+                  onFocus={gcFocus} onBlur={gcBlur}
+                  onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), color: e.target.value } } })} />
+              </div>
+              <div className="prop-row">
+                <label>Style</label>
+                <select value={style.border?.style ?? 'solid'}
+                  onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), style: e.target.value as BorderStyle } } }); }}>
+                  <option value="solid">Solid</option>
+                  <option value="dashed">Dashed</option>
+                  <option value="dotted">Dotted</option>
+                </select>
+              </div>
+            </>
+          )}
+        </div>
+      </aside>
+    );
+  }
 
   // ── Section panel ─────────────────────────────────────────────────────────
   if (!element && section) {
     const bg = section.style.background;
     const cols = section.style.columns;
     const secBgColor = bg.color.startsWith('#') ? bg.color : '#ffffff';
+    const isGrid = section.layoutMode === 'grid';
+    const gridCfg = isGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 };
+
+    const secPad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
 
     const updateBg = (b: Partial<SectionBackground>) =>
       onUpdateSection(section.id, { style: { ...section.style, background: { ...bg, ...b } } });
     const updateCols = (c: Partial<typeof cols>) =>
       onUpdateSection(section.id, { style: { ...section.style, columns: { ...cols, ...c } } });
+    const updateSecPad = (p: Partial<typeof secPad>) =>
+      onUpdateSection(section.id, { style: { ...section.style, padding: { ...secPad, ...p } } });
 
     return (
       <aside className="right-sidebar">
@@ -42,38 +311,133 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
         </div>
         <div className="prop-section">
           <div className="section-header">Layout</div>
+          {section.role === 'section' && (
+            <div className="prop-row">
+              <label>Mode</label>
+              <div className="layout-mode-toggle">
+                <button
+                  className={`layout-mode-btn${!isGrid ? ' active' : ''}`}
+                  onClick={() => onUpdateSection(section.id, { layoutMode: 'free' })}
+                >Free</button>
+                <button
+                  className={`layout-mode-btn${isGrid ? ' active' : ''}`}
+                  onClick={() => onUpdateSection(section.id, {
+                    layoutMode: 'grid',
+                    grid: isGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 },
+                  })}
+                >Grid</button>
+              </div>
+            </div>
+          )}
           <div className="prop-row">
             <label>Label</label>
             <input type="text" value={section.label}
               onChange={e => onUpdateSection(section.id, { label: e.target.value })} />
           </div>
-          <div className="prop-row">
-            <label>Height</label>
-            <input type="number" value={section.layout.height} min={80}
-              onChange={e => onUpdateSection(section.id, { layout: { ...section.layout, height: Math.max(80, Number(e.target.value)) } })} />
-            <span style={{ fontSize: 11, color: '#888' }}>px</span>
-          </div>
-          <div className="prop-row">
-            <label>Columns</label>
-            <select
-              value={cols.count}
-              onChange={e => {
-                const n = Number(e.target.value);
-                const newStyles: Record<string, ColumnStyle> = {};
-                Object.entries(cols.styles).forEach(([idx, style]) => {
-                  if (Number(idx) < n) newStyles[idx] = style;
-                });
-                updateCols({ count: n, widths: n > 1 ? equalWidths(n) : [], styles: newStyles });
-              }}
-            >
-              <option value={1}>None</option>
-              <option value={2}>2 Columns</option>
-              <option value={3}>3 Columns</option>
-              <option value={4}>4 Columns</option>
-              <option value={5}>5 Columns</option>
-              <option value={6}>6 Columns</option>
-            </select>
-          </div>
+          {!isGrid && (
+            <div className="prop-row">
+              <label>Height</label>
+              <input type="number" value={section.layout.height} min={80}
+                onChange={e => onUpdateSection(section.id, { layout: { ...section.layout, height: Math.max(80, Number(e.target.value)) } })} />
+              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+            </div>
+          )}
+          {isGrid ? (
+            <>
+              <div className="prop-row">
+                <label>Col. Gap</label>
+                <input type="number" value={gridCfg.gap} min={0}
+                  onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, gap: Number(e.target.value) } })} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+              <div className="prop-row">
+                <label>Row Gap</label>
+                <input type="number" value={gridCfg.rowGap} min={0}
+                  onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, rowGap: Number(e.target.value) } })} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+              <div className="prop-row">
+                <label>Pad Top</label>
+                <input type="number" value={secPad.top} min={0}
+                  onChange={e => updateSecPad({ top: Number(e.target.value) })} />
+              </div>
+              <div className="prop-row">
+                <label>Pad Right</label>
+                <input type="number" value={secPad.right} min={0}
+                  onChange={e => updateSecPad({ right: Number(e.target.value) })} />
+              </div>
+              <div className="prop-row">
+                <label>Pad Bottom</label>
+                <input type="number" value={secPad.bottom} min={0}
+                  onChange={e => updateSecPad({ bottom: Number(e.target.value) })} />
+              </div>
+              <div className="prop-row">
+                <label>Pad Left</label>
+                <input type="number" value={secPad.left} min={0}
+                  onChange={e => updateSecPad({ left: Number(e.target.value) })} />
+              </div>
+              <div className="grid-col-manager">
+                <div className="grid-col-manager-label">
+                  Columns
+                  <span className="grid-col-manager-count">{section.children.length}</span>
+                </div>
+                <div className="grid-col-manager-list">
+                  {section.children.map((cellId, idx) => {
+                    const cell = nodes[cellId] as GridCell | undefined;
+                    if (!cell) return null;
+                    const totalUsed = section.children.reduce((sum, cid) => {
+                      const c = nodes[cid] as GridCell | undefined;
+                      return sum + (c?.columnSpan ?? 4);
+                    }, 0);
+                    return (
+                      <div key={cellId} className="grid-col-manager-row">
+                        <span className="grid-col-manager-num">Col {idx + 1}</span>
+                        <div className="grid-col-manager-bar">
+                          <div
+                            className="grid-col-manager-fill"
+                            style={{ width: `${(cell.columnSpan / 12) * 100}%` }}
+                          />
+                        </div>
+                        <span className={`grid-col-manager-span${totalUsed > 12 ? ' over' : ''}`}>
+                          {cell.columnSpan}/12
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {onAddGridCell && (
+                  <button
+                    className="grid-col-add-btn"
+                    onClick={() => onAddGridCell(section.id)}
+                  >
+                    <span>+</span> Add Column
+                  </button>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="prop-row">
+              <label>Columns</label>
+              <select
+                value={cols.count}
+                onChange={e => {
+                  const n = Number(e.target.value);
+                  const newStyles: Record<string, ColumnStyle> = {};
+                  Object.entries(cols.styles).forEach(([idx, style]) => {
+                    if (Number(idx) < n) newStyles[idx] = style;
+                  });
+                  updateCols({ count: n, widths: n > 1 ? equalWidths(n) : [], styles: newStyles });
+                }}
+              >
+                <option value={1}>None</option>
+                <option value={2}>2 Columns</option>
+                <option value={3}>3 Columns</option>
+                <option value={4}>4 Columns</option>
+                <option value={5}>5 Columns</option>
+                <option value={6}>6 Columns</option>
+              </select>
+            </div>
+          )}
         </div>
         <div className="prop-section">
           <div className="section-header">Background</div>
@@ -311,27 +675,36 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
       {/* ─── Position & Size ─── */}
       <div className="prop-section">
         <div className="section-header">
-          Position &amp; Size
-          {respOverrides && (respOverrides.layout?.x !== undefined || respOverrides.layout?.y !== undefined ||
+          {isInGridCell ? 'Size' : 'Position & Size'}
+          {!isInGridCell && respOverrides && (respOverrides.layout?.x !== undefined || respOverrides.layout?.y !== undefined ||
             respOverrides.layout?.width !== undefined || respOverrides.layout?.height !== undefined) && (
             <span className="resp-badge">overridden</span>
           )}
         </div>
-        <div className="prop-row">
-          <label>X</label>
-          <input type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
-        </div>
-        <div className="prop-row">
-          <label>Y</label>
-          <input type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
-        </div>
-        <div className="prop-row">
-          <label>W</label>
-          <input type="number" value={eff.layout.width} min={20} onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeResp({ layout: { width: Math.max(20, Number(e.target.value)) } })} />
-        </div>
+        {isInGridCell && (
+          <div style={{ fontSize: 10, color: '#888', padding: '0 0 6px', lineHeight: 1.4 }}>
+            Height sets the minimum element height. Width is controlled by Flex Sizing below.
+          </div>
+        )}
+        {!isInGridCell && (
+          <>
+            <div className="prop-row">
+              <label>X</label>
+              <input type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+            </div>
+            <div className="prop-row">
+              <label>Y</label>
+              <input type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
+            </div>
+            <div className="prop-row">
+              <label>W</label>
+              <input type="number" value={eff.layout.width} min={20} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { width: Math.max(20, Number(e.target.value)) } })} />
+            </div>
+          </>
+        )}
         <div className="prop-row">
           <label>H</label>
           <input type="number" value={eff.layout.height} min={20} onFocus={onFocus} onBlur={onBlur}
@@ -345,9 +718,118 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
         </div>
       </div>
 
+      {/* ─── Flex Sizing (grid elements only) ─── */}
+      {isInGridCell && (() => {
+        type Preset = { label: string; widthMode: FlexWidthMode; flexGrow: number; alignSelf: typeof element.flexLayout.alignSelf };
+        const presets: Preset[] = [
+          { label: 'Natural', widthMode: 'auto',    flexGrow: 0, alignSelf: 'auto' },
+          { label: 'Fill',    widthMode: 'fill',    flexGrow: 0, alignSelf: 'auto' },
+          { label: 'Expand',  widthMode: 'fill',    flexGrow: 1, alignSelf: 'stretch' },
+          { label: 'Fixed',   widthMode: 'fixed',   flexGrow: 0, alignSelf: 'auto' },
+          { label: '%',       widthMode: 'percent',  flexGrow: 0, alignSelf: 'auto' },
+        ];
+        const { widthMode, flexGrow, alignSelf, widthValue } = element.flexLayout;
+        const activePreset = presets.findIndex(p =>
+          p.widthMode === widthMode && p.flexGrow === flexGrow && p.alignSelf === alignSelf
+        );
+        const applyPreset = (p: Preset) => {
+          onPushSnapshot(snapshot);
+          change({ flexLayout: { ...element.flexLayout, widthMode: p.widthMode, flexGrow: p.flexGrow, alignSelf: p.alignSelf } });
+        };
+        return (
+          <div className="prop-section">
+            <div className="section-header">
+              Sizing
+              <button
+                className="resp-clear-btn"
+                style={{ marginLeft: 'auto', fontSize: 10 }}
+                onClick={() => setFlexAdvanced(v => !v)}
+                title="Toggle advanced controls"
+              >{flexAdvanced ? 'Simple' : 'Advanced'}</button>
+            </div>
+            <div className="flex-preset-grid">
+              {presets.map((p, i) => (
+                <button
+                  key={p.label}
+                  className={`flex-preset-btn${activePreset === i ? ' active' : ''}`}
+                  title={`${p.label}: widthMode=${p.widthMode}, grow=${p.flexGrow}, alignSelf=${p.alignSelf}`}
+                  onClick={() => applyPreset(p)}
+                >{p.label}</button>
+              ))}
+            </div>
+            {(widthMode === 'fixed' || widthMode === 'percent') && (
+              <div className="prop-row">
+                <label>{widthMode === 'fixed' ? 'px' : '%'}</label>
+                <input type="number" value={widthValue} min={0}
+                  max={widthMode === 'percent' ? 100 : undefined}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => change({ flexLayout: { ...element.flexLayout, widthValue: Number(e.target.value) } })} />
+              </div>
+            )}
+            {flexAdvanced && (
+              <>
+                <div className="prop-row">
+                  <label>Width</label>
+                  <select value={widthMode}
+                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, widthMode: e.target.value as FlexWidthMode } }); }}>
+                    <option value="fill">Fill</option>
+                    <option value="auto">Auto</option>
+                    <option value="fixed">Fixed px</option>
+                    <option value="percent">Percent %</option>
+                  </select>
+                </div>
+                <div className="prop-row">
+                  <label>Grow</label>
+                  <input type="checkbox" checked={flexGrow === 1}
+                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, flexGrow: e.target.checked ? 1 : 0 } }); }} />
+                </div>
+                <div className="prop-row">
+                  <label>Align Self</label>
+                  <select value={alignSelf}
+                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, alignSelf: e.target.value as typeof element.flexLayout.alignSelf } }); }}>
+                    <option value="auto">Auto</option>
+                    <option value="flex-start">Start</option>
+                    <option value="center">Center</option>
+                    <option value="flex-end">End</option>
+                    <option value="stretch">Stretch</option>
+                  </select>
+                </div>
+              </>
+            )}
+            {breakpoint !== 'desktop' && onUpdateResponsive && (
+              <>
+                <div style={{ fontSize: 10, color: '#888', padding: '4px 0 2px' }}>
+                  {breakpoint === 'tablet' ? 'Tablet override' : 'Mobile override'}
+                </div>
+                <div className="prop-row">
+                  <label>Width</label>
+                  <select
+                    value={respOverrides?.flexLayout?.widthMode ?? ''}
+                    onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive!(id, breakpoint, { flexLayout: { widthMode: (e.target.value || undefined) as FlexWidthMode | undefined } }); }}>
+                    <option value="">Same</option>
+                    <option value="fill">Fill</option>
+                    <option value="auto">Auto</option>
+                    <option value="fixed">Fixed px</option>
+                    <option value="percent">Percent %</option>
+                  </select>
+                </div>
+                {(respOverrides?.flexLayout?.widthMode === 'fixed' || respOverrides?.flexLayout?.widthMode === 'percent') && (
+                  <div className="prop-row">
+                    <label>{respOverrides.flexLayout.widthMode === 'fixed' ? 'px' : '%'}</label>
+                    <input type="number" value={respOverrides.flexLayout.widthValue ?? 0} min={0}
+                      onFocus={onFocus} onBlur={onBlur}
+                      onChange={e => onUpdateResponsive!(id, breakpoint, { flexLayout: { ...respOverrides?.flexLayout, widthValue: Number(e.target.value) } })} />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        );
+      })()}
+
       {/* ─── Appearance ─── */}
       <div className="prop-section">
-        <div className="section-header">Appearance</div>
+        <div className="section-header">Appearance {breakpoint !== 'desktop' && <span className="desktop-only-badge">all bp</span>}</div>
         <div className="prop-row">
           <label>BG Type</label>
           <select value={elBg.type}
@@ -548,6 +1030,23 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeTypo({ lineHeight: Number(e.target.value) })} />
           </div>
+          <div className="prop-row">
+            <label>Spacing</label>
+            <input type="number" value={element.style.typography.letterSpacing ?? 0} min={-10} max={50} step={0.5}
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeTypo({ letterSpacing: Number(e.target.value) })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+          <div className="prop-row">
+            <label>Transform</label>
+            <select value={element.style.typography.textTransform ?? 'none'}
+              onChange={e => commitChange({ style: { ...element.style, typography: { ...element.style.typography, textTransform: e.target.value as TextTransform } } })}>
+              <option value="none">None</option>
+              <option value="uppercase">UPPERCASE</option>
+              <option value="lowercase">lowercase</option>
+              <option value="capitalize">Capitalize</option>
+            </select>
+          </div>
         </div>
       )}
 
@@ -620,7 +1119,7 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
 
       {/* ─── Spacing (Padding) ─── */}
       <div className="prop-section">
-        <div className="section-header">Spacing</div>
+        <div className="section-header">Spacing {breakpoint !== 'desktop' && <span className="desktop-only-badge">all bp</span>}</div>
         <div className="prop-row">
           <label>Pad Top</label>
           <input type="number" value={element.style.padding.top} min={0}
@@ -650,7 +1149,7 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
       {/* ─── Shadow ─── */}
       <div className="prop-section">
         <div className="section-header">
-          Shadow
+          Shadow {breakpoint !== 'desktop' && <span className="desktop-only-badge">all bp</span>}
           <label className="transparent-label" style={{ marginLeft: 8 }}>
             <input type="checkbox" checked={element.style.shadow.enabled}
               onChange={e => commitChange({ style: { ...element.style, shadow: { ...element.style.shadow, enabled: e.target.checked } } })} />
@@ -696,7 +1195,7 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
 
       {/* ─── Transform ─── */}
       <div className="prop-section">
-        <div className="section-header">Transform</div>
+        <div className="section-header">Transform {breakpoint !== 'desktop' && <span className="desktop-only-badge">all bp</span>}</div>
         <div className="prop-row">
           <label>Rotation</label>
           <input type="number" value={element.layout.rotation} min={-360} max={360}
@@ -708,7 +1207,7 @@ export function RightSidebar({ element, section, snapshot, onUpdate, onUpdateSec
 
       {/* ─── Animation ─── */}
       <div className="prop-section">
-        <div className="section-header">Animation</div>
+        <div className="section-header">Animation {breakpoint !== 'desktop' && <span className="desktop-only-badge">all bp</span>}</div>
         <div className="prop-row">
           <label>Effect</label>
           <select value={element.animation.type}

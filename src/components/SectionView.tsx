@@ -3,8 +3,9 @@ import type React from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasElement, canvasDragShared } from './CanvasElement';
 import type { GuideLine } from './CanvasElement';
+import { GridSectionView } from './GridSectionView';
 import { DND_TYPE } from './LeftSidebar';
-import type { Breakpoint, BreakpointOverride, NodeMap, Section, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { Breakpoint, BreakpointOverride, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 
 interface Props {
@@ -14,16 +15,22 @@ interface Props {
   isSelected: boolean;
   selectedId: string | null;
   selectedIds: string[];
+  selectedGridCellId?: string | null;
   canvasWidth: number;
   onSelectSection: () => void;
   onSelectElement: (id: string, shift: boolean) => void;
+  onSelectGridCell?: (id: string | null) => void;
   onUpdateElement: (id: string, updates: Partial<El>) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
+  onDeleteGridCell?: (id: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   snapEnabled: boolean;
   onContextMenu: (id: string, x: number, y: number) => void;
   onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
-  onUpdateSection: (id: string, updates: Partial<Section>) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
   onDeleteSection?: () => void;
@@ -36,19 +43,41 @@ interface Props {
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
   isDragOverTarget?: boolean;
 }
 
-export function SectionView({
+// Pure dispatcher — no hooks here, so React hook count never changes between renders.
+export function SectionView(props: Props) {
+  if (props.section.layoutMode === 'grid') {
+    const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, ...rest } = props;
+    return (
+      <GridSectionView
+        section={section as GridSection}
+        onSelectGridCell={onSelectGridCell ?? (() => {})}
+        onUpdateGridCell={onUpdateGridCell ?? (() => {})}
+        onAddGridCell={onAddGridCell ?? (() => {})}
+        onDeleteGridCell={onDeleteGridCell ?? (() => {})}
+        onAddElementToCell={onAddElementToCell ?? (() => {})}
+        {...rest}
+      />
+    );
+  }
+  return <FreeSectionView {...props} />;
+}
+
+function FreeSectionView({
   section, nodes, role, isSelected,
-  selectedId, selectedIds, canvasWidth,
-  onSelectSection, onSelectElement, onUpdateElement,
+  selectedId, selectedIds, selectedGridCellId = null, canvasWidth,
+  onSelectSection, onSelectElement, onSelectGridCell,
+  onUpdateElement, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onCommit, snapshot, snapEnabled, onContextMenu,
   onDrop, onUpdateSection,
   onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
+  onMoveGridElement,
   isDragOverTarget = false,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
