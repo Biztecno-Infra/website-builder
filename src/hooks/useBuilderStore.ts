@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeDemoState } from '../data/demoState';
+import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
-  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, CellLayoutMode,
-  ColumnStyle, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
-  ElementLayout, ElementStyle, ElementType, FlexItemLayout, FreeSection, GridCell, GridCellStyle,
-  GridSection, NodeMap, Page, Padding, Section, SectionBackground, SectionLayoutMode, SectionRole,
+  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement,
+  ColumnStyle, ElementLayout, ElementType, FreeSection, GridCell,
+  GridSection, NodeMap, Page, Section, SectionRole,
   SectionUpdate, SiteTheme, TextAlign, TextTransform,
 } from '../types';
 import { useUndoRedo } from './useUndoRedo';
+import { hydrateNodes, sparsifyNodes } from '../utils/sparse';
+import {
+  DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
+  DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
+} from '../utils/builderDefaults';
+
+export {
+  DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
+  DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
+} from '../utils/builderDefaults';
 
 const STORAGE_KEY = 'microsite-builder-v5';
 const LEGACY_KEYS = ['page-builder-v3', 'page-builder-v2', 'page-builder-v1'];
@@ -41,41 +51,6 @@ function isFreeSection(node: AnyNode): node is FreeSection {
 
 // ── Defaults ───────────────────────────────────────────────────────────
 
-const DEFAULT_BG: ElementBackground = {
-  type: 'solid', color: 'transparent', image: '', position: 'center',
-  from: '#006e75', to: '#0b978e', angle: 135,
-};
-
-const DEFAULT_SECTION_BG: SectionBackground = {
-  type: 'solid', color: '#ffffff', image: '', position: 'center',
-  from: '#006e75', to: '#0b978e', angle: 135, overlay: 0,
-};
-
-const DEFAULT_STYLE: ElementStyle = {
-  opacity: 1,
-  background: { ...DEFAULT_BG },
-  padding: { top: 0, right: 0, bottom: 0, left: 0 },
-  border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' },
-  shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' },
-  typography: { family: 'Inter, sans-serif', size: 16, weight: 'normal', color: '#333333', align: 'left', lineHeight: 1.5, letterSpacing: 0, textTransform: 'none' as TextTransform },
-};
-
-const DEFAULT_CONTENT: ElementContent = {
-  plain: 'Sample text', rich: '',
-  src: '', alt: 'image', objectFit: 'cover',
-  label: 'Button',
-  videoUrl: '',
-  iconName: '★', iconSize: 40,
-};
-
-const DEFAULT_INTERACTION: ElementInteraction = { linkUrl: '', linkTarget: '_self' };
-const DEFAULT_ANIMATION: ElementAnimation = { type: 'none', trigger: 'load', duration: 600, delay: 0 };
-
-export const DEFAULT_THEME: SiteTheme = {
-  colors: { primary: '#006e75', secondary: '#0b978e', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c' },
-  fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
-};
-
 // ── Factory helpers ────────────────────────────────────────────────────
 
 function makeSection(id: string, role: SectionRole, partial?: SectionUpdate): Section {
@@ -94,28 +69,12 @@ function makeSection(id: string, role: SectionRole, partial?: SectionUpdate): Se
   } as Section;
 }
 
-export const DEFAULT_FLEX_LAYOUT: FlexItemLayout = {
-  widthMode: 'fill',
-  widthValue: 0,
-  flexGrow: 0,
-  alignSelf: 'auto',
-};
-
-const DEFAULT_GRID_CELL_STYLE: GridCellStyle = {
-  layoutMode: 'column',
-  gap: 16,
-  padding: { top: 24, right: 24, bottom: 24, left: 24 } as Padding,
-  background: { ...DEFAULT_BG, overlay: 0 },
-  border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
-  minHeight: undefined,
-  alignItems: 'flex-start',
-  justifyContent: 'flex-start',
-};
 
 function makeGridCell(id: string, parentId: string, columnSpan = 4): GridCell {
   return {
     id, type: 'grid-cell', parent: parentId,
     columnSpan,
+    rowSpan: 1,
     style: {
       ...DEFAULT_GRID_CELL_STYLE,
       padding: { ...DEFAULT_GRID_CELL_STYLE.padding },
@@ -127,11 +86,34 @@ function makeGridCell(id: string, parentId: string, columnSpan = 4): GridCell {
   };
 }
 
+// Recursively delete a grid cell and all its descendants (elements or sub-cells)
+function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
+  if (cell.nestedGrid) {
+    for (const subId of cell.children) {
+      const sub = nodes[subId] as GridCell | undefined;
+      if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
+    }
+  } else {
+    for (const elId of cell.children) delete nodes[elId];
+  }
+}
+
+// Collect all leaf element IDs from a cell (recursing into nested grids)
+function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
+  if (cell.nestedGrid) {
+    return cell.children.flatMap(subId => {
+      const sub = nodes[subId] as GridCell | undefined;
+      return sub ? collectElementIds(sub, nodes) : [];
+    });
+  }
+  return cell.children;
+}
+
 function removeNodesForSection(nodes: NodeMap, sec: Section): void {
   if (sec.layoutMode === 'grid') {
     for (const cellId of sec.children) {
       const cell = nodes[cellId] as GridCell | undefined;
-      if (cell) { for (const elId of cell.children) delete nodes[elId]; delete nodes[cellId]; }
+      if (cell) { removeGridCellNodes(nodes, cell); delete nodes[cellId]; }
     }
   } else {
     for (const elId of sec.children) delete nodes[elId];
@@ -158,7 +140,7 @@ function appendToParent(nodes: NodeMap, parentId: string, childId: string): void
   }
 }
 
-function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number): CanvasElement {
+function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, themeFont?: string): CanvasElement {
   const offset = (count % 8) * 20;
   const cx = Math.round(CANVAS_W / 2 - 100 + offset);
   const cy = Math.round(150 + offset);
@@ -167,7 +149,7 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
   const base: CanvasElement = {
     id, type, parent: parentId,
     layout: { x: dropX ?? cx, y: dropY ?? cy, width: 200, height: 100, zIndex: count, rotation: 0 },
-    style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography } },
+    style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: themeFont ?? DEFAULT_STYLE.typography.family } },
     content: { ...DEFAULT_CONTENT },
     interaction: { ...DEFAULT_INTERACTION },
     animation: { ...DEFAULT_ANIMATION },
@@ -199,10 +181,12 @@ export function equalWidths(n: number): number[] {
 // ── applyBreakpoint ────────────────────────────────────────────────────
 
 export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): CanvasElement {
-  if (bp === 'desktop') return el;
-  const tOvr = el.responsive.tablet;
+  const baseState = el.state ?? { hidden: false, locked: false };
+  const baseResponsive = el.responsive ?? {};
+  if (bp === 'desktop') return el.state && el.responsive ? el : { ...el, state: baseState, responsive: baseResponsive };
+  const tOvr = baseResponsive.tablet;
   // Cascade: mobile falls back to tablet, then desktop. Tablet falls back to desktop only.
-  const srcOvr = bp === 'mobile' ? el.responsive.mobile : tOvr;
+  const srcOvr = bp === 'mobile' ? baseResponsive.mobile : tOvr;
   const fallOvr = bp === 'mobile' ? tOvr : undefined;
 
   // Layout: property-level cascade (mobile ?? tablet ?? desktop)
@@ -210,10 +194,10 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
   const flo = fallOvr?.layout;
   const layout: ElementLayout = {
     ...el.layout,
-    x:      slo?.x      ?? flo?.x      ?? (scale !== 1 ? Math.round(el.layout.x * scale) : el.layout.x),
+    x:      slo?.x      ?? flo?.x      ?? (scale !== 1 ? Math.round(el.layout.x * scale)                   : el.layout.x),
+    y:      slo?.y      ?? flo?.y      ?? (scale !== 1 ? Math.round(el.layout.y * scale)                   : el.layout.y),
     width:  slo?.width  ?? flo?.width  ?? (scale !== 1 ? Math.max(20, Math.round(el.layout.width * scale)) : el.layout.width),
-    y:      slo?.y      ?? flo?.y      ?? el.layout.y,
-    height: slo?.height ?? flo?.height ?? el.layout.height,
+    height: slo?.height ?? flo?.height ?? (scale !== 1 ? Math.max(4,  Math.round(el.layout.height * scale)): el.layout.height),
   };
 
   // Typography: deep merge — tablet values as base, mobile overrides on top
@@ -230,7 +214,7 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
 
   const hidden = srcOvr?.state?.hidden ?? fallOvr?.state?.hidden;
 
-  return { ...el, layout, style, flexLayout, state: hidden !== undefined ? { ...el.state, hidden } : el.state };
+  return { ...el, layout, style, flexLayout, responsive: baseResponsive, state: hidden !== undefined ? { ...baseState, hidden } : baseState };
 }
 
 // ── Migration helpers ──────────────────────────────────────────────────
@@ -359,75 +343,12 @@ function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
   return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en' }, theme, pages, activePageId, nodes };
 }
 
-function normalizeNodes(nodes: NodeMap): NodeMap {
-  let changed = false;
-  const out = { ...nodes };
-  for (const [id, node] of Object.entries(out)) {
-    const n = node as AnyNode;
-    if (isSection(n)) {
-      const raw = n as unknown as Record<string, unknown>;
-      const rawStyle = (raw.style ?? {}) as Record<string, unknown>;
-      const needsLayoutMode = !raw.layoutMode;
-      const needsPadding = !rawStyle.padding;
-      if (needsLayoutMode || needsPadding) {
-        out[id] = {
-          ...n,
-          layoutMode: (raw.layoutMode as SectionLayoutMode) ?? 'free',
-          style: { ...(n.style), padding: rawStyle.padding ?? { top: 0, right: 0, bottom: 0, left: 0 } },
-        } as Section;
-        changed = true;
-      }
-    } else if (isGridCell(n)) {
-      const cell = n as GridCell;
-      const raw = cell.style as unknown as Record<string, unknown>;
-      const needsLayout = !raw.layoutMode;
-      const needsJustify = !raw.justifyContent;
-      const needsBorder = !raw.border;
-      const needsOverlay = (raw.background as Record<string, unknown> | undefined)?.overlay === undefined;
-      if (needsLayout || needsJustify || needsBorder || needsOverlay) {
-        out[id] = {
-          ...cell,
-          style: {
-            ...cell.style,
-            layoutMode: (raw.layoutMode as CellLayoutMode) ?? 'column',
-            justifyContent: (raw.justifyContent as GridCellStyle['justifyContent']) ?? 'flex-start',
-            border: (raw.border as GridCellStyle['border']) ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' },
-            background: { ...(cell.style.background as object), overlay: (raw.background as Record<string, unknown>)?.overlay ?? 0 } as GridCellStyle['background'],
-          },
-        };
-        changed = true;
-      }
-    } else if (!isSection(n)) {
-      const el = n as CanvasElement;
-      const rawTypo = (el.style?.typography ?? {}) as unknown as Record<string, unknown>;
-      const needsFlexLayout = !el.flexLayout;
-      const needsLetterSpacing = rawTypo.letterSpacing === undefined;
-      const needsTextTransform = rawTypo.textTransform === undefined;
-      if (needsFlexLayout || needsLetterSpacing || needsTextTransform) {
-        out[id] = {
-          ...el,
-          flexLayout: el.flexLayout ?? { ...DEFAULT_FLEX_LAYOUT },
-          style: {
-            ...el.style,
-            typography: {
-              ...el.style.typography,
-              letterSpacing: rawTypo.letterSpacing !== undefined ? rawTypo.letterSpacing as number : 0,
-              textTransform: rawTypo.textTransform !== undefined ? rawTypo.textTransform as TextTransform : 'none',
-            },
-          },
-        };
-        changed = true;
-      }
-    }
-  }
-  return changed ? out : nodes;
-}
 
 export function migrateState(raw: unknown): BuilderState {
   if (!raw || typeof raw !== 'object') return makeEmpty();
   const r = raw as Record<string, unknown>;
   if (r.schema === '2.0' && r.nodes) {
-    const nodes = normalizeNodes((r.nodes as NodeMap) ?? {});
+    const nodes = hydrateNodes(r.nodes as Record<string, unknown>);
     return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: { ...DEFAULT_THEME, ...((r.theme as object) ?? {}) }, pages: (r.pages as Page[]) ?? [], activePageId: (r.activePageId as string) ?? '', nodes };
   }
   if ((r.pages || r.sections || r.elements) && (r.header || r.sections || r.elements)) {
@@ -461,7 +382,10 @@ function loadFromStorage(): BuilderState {
 }
 
 function saveToStorage(s: BuilderState) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+  try {
+    const sparse = { ...s, nodes: sparsifyNodes(s.nodes) };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sparse));
+  } catch {}
 }
 
 function getActivePage(state: BuilderState): Page {
@@ -501,7 +425,7 @@ export function useBuilderStore() {
       if (sec.layoutMode === 'grid') {
         return sec.children.flatMap(cellId => {
           const cell = state.nodes[cellId] as GridCell | undefined;
-          return cell?.children ?? [];
+          return cell ? collectElementIds(cell, state.nodes) : [];
         });
       }
       return sec.children;
@@ -622,13 +546,18 @@ export function useBuilderStore() {
           const nodes = { ...s.nodes };
           if (newMode === 'grid') {
             for (const elId of node.children) delete nodes[elId];
+            const c1 = newGridCellId(), c2 = newGridCellId(), c3 = newGridCellId();
+            nodes[c1] = makeGridCell(c1, id, 4);
+            nodes[c2] = makeGridCell(c2, id, 4);
+            nodes[c3] = makeGridCell(c3, id, 4);
+            nodes[id] = { ...node, ...updates, children: [c1, c2, c3] } as Section;
           } else {
             for (const cellId of node.children) {
               const cell = nodes[cellId] as GridCell | undefined;
               if (cell) { for (const elId of cell.children) delete nodes[elId]; delete nodes[cellId]; }
             }
+            nodes[id] = { ...node, ...updates, children: [] } as Section;
           }
-          nodes[id] = { ...node, ...updates, children: [] } as Section;
           return { ...s, nodes };
         });
         setSelectedIds([]); setSelectedGridCellId(null);
@@ -665,19 +594,29 @@ export function useBuilderStore() {
       const nodes = { ...s.nodes };
       let newChildren: string[];
       if (src.layoutMode === 'grid') {
+        const deepCopyCell = (cell: GridCell, newParentId: string): string => {
+          const newCellId = newGridCellId();
+          let newCellChildren: string[];
+          if (cell.nestedGrid) {
+            newCellChildren = cell.children.map(subId => {
+              const sub = nodes[subId] as GridCell | undefined;
+              return sub ? deepCopyCell(sub, newCellId) : '';
+            }).filter(Boolean);
+          } else {
+            newCellChildren = cell.children.map(elId => {
+              const el = nodes[elId] as CanvasElement | undefined;
+              if (!el) return '';
+              const newElId = newId();
+              nodes[newElId] = { ...el, id: newElId, parent: newCellId };
+              return newElId;
+            }).filter(Boolean);
+          }
+          nodes[newCellId] = { ...cell, id: newCellId, parent: newParentId, children: newCellChildren };
+          return newCellId;
+        };
         newChildren = src.children.map(cellId => {
           const cell = nodes[cellId] as GridCell | undefined;
-          if (!cell) return '';
-          const newCellId = newGridCellId();
-          const newCellChildren = cell.children.map(elId => {
-            const el = nodes[elId] as CanvasElement | undefined;
-            if (!el) return '';
-            const newElId = newId();
-            nodes[newElId] = { ...el, id: newElId, parent: newCellId };
-            return newElId;
-          }).filter(Boolean);
-          nodes[newCellId] = { ...cell, id: newCellId, parent: newSecId, children: newCellChildren };
-          return newCellId;
+          return cell ? deepCopyCell(cell, newSecId) : '';
         }).filter(Boolean);
       } else {
         newChildren = src.children.map(elId => {
@@ -699,7 +638,7 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const cell = s.nodes[cellId] as GridCell | undefined;
     if (!cell) return;
-    const el = createDefaultElement(type, cell.children.length, cellId, 0, 0);
+    const el = createDefaultElement(type, cell.children.length, cellId, 0, 0, stateRef.current.theme.fonts.body);
     push(s);
     setState(prev => {
       const c = prev.nodes[cellId] as GridCell | undefined;
@@ -711,23 +650,31 @@ export function useBuilderStore() {
 
   const addElement = useCallback((type: ElementType) => {
     const s = stateRef.current;
-    // If a grid cell is selected, add there
+    // If a grid cell is selected, add there (skip nested-grid containers)
     const gcId = selectedGridCellIdRef.current;
     if (gcId && s.nodes[gcId] && isGridCell(s.nodes[gcId])) {
-      addElementToCell(type, gcId);
-      return;
+      const selCell = s.nodes[gcId] as GridCell;
+      if (!selCell.nestedGrid) { addElementToCell(type, gcId); return; }
     }
     const page = getActivePage(s);
     const sectionId = selectedSectionId ?? page.sections[0];
     if (!sectionId) return;
     const sec = s.nodes[sectionId] as Section | undefined;
     if (!sec) return;
-    // Grid section with no cell selected — add to first cell
+    // Grid section with no cell selected — add to first non-nested cell
     if (sec.layoutMode === 'grid') {
-      if (sec.children.length > 0) { addElementToCell(type, sec.children[0]); }
+      for (const cellId of sec.children) {
+        const c = s.nodes[cellId] as GridCell | undefined;
+        if (!c) continue;
+        if (c.nestedGrid) {
+          if (c.children.length > 0) { addElementToCell(type, c.children[0]); return; }
+        } else {
+          addElementToCell(type, cellId); return;
+        }
+      }
       return;
     }
-    const el = createDefaultElement(type, sec.children.length, sectionId);
+    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme.fonts.body);
     push(s);
     setState(prev => {
       const section = prev.nodes[sectionId] as Section | undefined;
@@ -741,7 +688,7 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const node = s.nodes[sectionId];
     if (!node || !isFreeSection(node)) return;  // grid sections don't accept direct element drops
-    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y));
+    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme.fonts.body);
     push(s);
     setState(prev => {
       const sec = prev.nodes[sectionId];
@@ -888,6 +835,7 @@ export function useBuilderStore() {
     // Only allow moving into free sections — grid sections require a cell target
     const toNode = s.nodes[toSectionId];
     if (!toNode || !isFreeSection(toNode)) return;
+    const fromGrid = isGridCell(s.nodes[cel.parent]);
     push(s);
     setState(prev => {
       const nodes = { ...prev.nodes };
@@ -895,13 +843,69 @@ export function useBuilderStore() {
       if (!toSec || !isFreeSection(toSec)) return prev;
       // Remove from source — works for both FreeSection parent and GridCell parent
       removeFromParent(nodes, cel.parent, id);
-      // Place in target free section
-      nodes[id] = { ...cel, parent: toSectionId, layout: { ...cel.layout, x: pos?.x ?? cel.layout.x, y: pos?.y ?? 20 } };
+      // Derive concrete pixel width when coming from a grid cell
+      let width = cel.layout.width;
+      if (fromGrid) {
+        const fl = cel.flexLayout;
+        if (fl.widthMode === 'fixed' && fl.widthValue) width = fl.widthValue;
+        else if (fl.widthMode === 'percent' && fl.widthValue) width = Math.round(fl.widthValue / 100 * CANVAS_W);
+        else width = cel.layout.width || 200;
+      }
+      nodes[id] = {
+        ...cel,
+        parent: toSectionId,
+        layout: { ...cel.layout, x: pos?.x ?? cel.layout.x, y: pos?.y ?? 20, width },
+        // Reset grid-specific flex fields when entering free layout
+        flexLayout: fromGrid
+          ? { ...cel.flexLayout, widthMode: 'auto', flexGrow: 0, alignSelf: 'auto' }
+          : cel.flexLayout,
+        responsive: fromGrid ? {
+          tablet: cel.responsive.tablet ? { ...cel.responsive.tablet, flexLayout: undefined } : cel.responsive.tablet,
+          mobile: cel.responsive.mobile ? { ...cel.responsive.mobile, flexLayout: undefined } : cel.responsive.mobile,
+        } : cel.responsive,
+      };
       const toChildren = [...toSec.children];
       toChildren.splice(Math.max(0, Math.min(toChildren.length, atIndex)), 0, id);
       nodes[toSectionId] = { ...toSec, children: toChildren };
       return { ...prev, nodes };
     });
+  }, [push]);
+
+  const moveElementToGridCell = useCallback((id: string, toCellId: string, insertIndex: number) => {
+    const s = stateRef.current;
+    const el = s.nodes[id];
+    const toCell = s.nodes[toCellId];
+    if (!el || isSection(el) || isGridCell(el) || !toCell || !isGridCell(toCell)) return;
+    const cel = el as CanvasElement;
+    const fromFree = isFreeSection(s.nodes[cel.parent]);
+    push(s);
+    setState(prev => {
+      const nodes = { ...prev.nodes };
+      const targetCell = nodes[toCellId] as GridCell;
+      if (!targetCell || !isGridCell(targetCell)) return prev;
+      removeFromParent(nodes, cel.parent, id);
+      const children = [...targetCell.children];
+      children.splice(Math.max(0, Math.min(children.length, insertIndex)), 0, id);
+      nodes[toCellId] = { ...targetCell, children };
+      if (fromFree) {
+        // Reset absolute-position fields; derive fixed width from the element's pixel width
+        nodes[id] = {
+          ...cel,
+          parent: toCellId,
+          layout: { ...cel.layout, x: 0, y: 0, zIndex: 0, rotation: 0 },
+          flexLayout: { ...cel.flexLayout, widthMode: 'fixed', widthValue: cel.layout.width },
+          responsive: {
+            tablet: cel.responsive.tablet ? { ...cel.responsive.tablet, layout: undefined } : cel.responsive.tablet,
+            mobile: cel.responsive.mobile ? { ...cel.responsive.mobile, layout: undefined } : cel.responsive.mobile,
+          },
+        };
+      } else {
+        nodes[id] = { ...cel, parent: toCellId };
+      }
+      return { ...prev, nodes };
+    });
+    setSelectedIds([id]);
+    setSelectedGridCellId(toCellId);
   }, [push]);
 
   const bringToFront = useCallback((id: string) => {
@@ -986,24 +990,41 @@ export function useBuilderStore() {
     setSelectedGridCellId(null);
   }, [push]);
 
+  const addSectionFromTemplate = useCallback((
+    buildFn: (ids: TemplateIds) => TemplateResult,
+    afterId?: string,
+  ) => {
+    push(stateRef.current);
+    const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId });
+    setState(s => {
+      const p = getActivePage(s);
+      let sections: string[];
+      if (!afterId) { sections = [...p.sections, result.sectionId]; }
+      else { const idx = p.sections.indexOf(afterId); sections = [...p.sections]; sections.splice(idx + 1, 0, result.sectionId); }
+      return { ...s, nodes: { ...s.nodes, ...result.nodes }, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
+    });
+    setSelectedSectionId(result.sectionId);
+    setSelectedGridCellId(null);
+  }, [push]);
+
   // ── Grid cell ops ──────────────────────────────────────────────────
 
-  const addGridCell = useCallback((sectionId: string, columnSpan = 4, afterCellId?: string) => {
+  const addGridCell = useCallback((parentId: string, columnSpan = 4, afterCellId?: string) => {
     push(stateRef.current);
     const cellId = newGridCellId();
-    const cell = makeGridCell(cellId, sectionId, columnSpan);
+    const cell = makeGridCell(cellId, parentId, columnSpan);
     setState(s => {
-      const sec = s.nodes[sectionId] as Section | undefined;
-      if (!sec) return s;
+      const parent = s.nodes[parentId] as Section | GridCell | undefined;
+      if (!parent) return s;
       let children: string[];
       if (afterCellId) {
-        const idx = sec.children.indexOf(afterCellId);
-        children = [...sec.children];
+        const idx = parent.children.indexOf(afterCellId);
+        children = [...parent.children];
         children.splice(idx + 1, 0, cellId);
       } else {
-        children = [...sec.children, cellId];
+        children = [...parent.children, cellId];
       }
-      return { ...s, nodes: { ...s.nodes, [cellId]: cell, [sectionId]: { ...sec, children } } };
+      return { ...s, nodes: { ...s.nodes, [cellId]: cell, [parentId]: { ...parent, children } } };
     });
     setSelectedGridCellId(cellId);
   }, [push]);
@@ -1024,13 +1045,71 @@ export function useBuilderStore() {
     push(stateRef.current);
     setState(s => {
       const nodes = { ...s.nodes };
-      for (const elId of cell.children) delete nodes[elId];
+      removeGridCellNodes(nodes, cell);
       delete nodes[id];
-      const sec = nodes[cell.parent] as Section | undefined;
-      if (sec) nodes[cell.parent] = { ...sec, children: sec.children.filter(c => c !== id) };
+      const parent = nodes[cell.parent] as Section | GridCell | undefined;
+      if (parent) nodes[cell.parent] = { ...parent, children: parent.children.filter(c => c !== id) } as typeof parent;
       return { ...s, nodes };
     });
     setSelectedGridCellId(null);
+    setSelectedIds([]);
+  }, [push]);
+
+  const reorderGridCell = useCallback((parentId: string, fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    push(stateRef.current);
+    setState(s => {
+      const parent = s.nodes[parentId] as Section | GridCell | undefined;
+      if (!parent) return s;
+      if (parent.type === 'section' && (parent as Section).layoutMode !== 'grid') return s;
+      if (parent.type === 'grid-cell' && !(parent as GridCell).nestedGrid) return s;
+      const children = [...parent.children];
+      const [moved] = children.splice(fromIndex, 1);
+      children.splice(toIndex, 0, moved);
+      return { ...s, nodes: { ...s.nodes, [parentId]: { ...parent, children } as typeof parent } };
+    });
+  }, [push]);
+
+  const addNestedGrid = useCallback((cellId: string) => {
+    const node = stateRef.current.nodes[cellId];
+    if (!node || !isGridCell(node)) return;
+    const cell = node as GridCell;
+    if (cell.nestedGrid) return; // already has nested grid
+    push(stateRef.current);
+    const sub1 = newGridCellId(), sub2 = newGridCellId();
+    setState(s => {
+      const nodes = { ...s.nodes };
+      // Delete existing element children
+      for (const elId of cell.children) {
+        if (!isGridCell(nodes[elId])) delete nodes[elId];
+      }
+      const subCell1 = makeGridCell(sub1, cellId, 6);
+      const subCell2 = makeGridCell(sub2, cellId, 6);
+      nodes[sub1] = { ...subCell1, responsive: { mobile: { columnSpan: 12 } } };
+      nodes[sub2] = { ...subCell2, responsive: { mobile: { columnSpan: 12 } } };
+      nodes[cellId] = { ...cell, nestedGrid: { gap: 16, rowGap: 16 }, children: [sub1, sub2] };
+      return { ...s, nodes };
+    });
+    setSelectedGridCellId(cellId);
+  }, [push]);
+
+  const removeNestedGrid = useCallback((cellId: string) => {
+    const node = stateRef.current.nodes[cellId];
+    if (!node || !isGridCell(node)) return;
+    const cell = node as GridCell;
+    if (!cell.nestedGrid) return;
+    push(stateRef.current);
+    setState(s => {
+      const nodes = { ...s.nodes };
+      for (const subId of cell.children) {
+        const sub = nodes[subId] as GridCell | undefined;
+        if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
+      }
+      const { nestedGrid: _ng, ...rest } = cell;
+      nodes[cellId] = { ...rest, children: [] } as GridCell;
+      return { ...s, nodes };
+    });
+    setSelectedGridCellId(cellId);
     setSelectedIds([]);
   }, [push]);
 
@@ -1103,12 +1182,12 @@ export function useBuilderStore() {
     selectedId, selectedIds, selectedSectionId, selectedGridCellId,
     setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, toggleSelectedId,
     addPage, deletePage, renamePage, updatePageSlug, setActivePage, reorderPage,
-    addSection, addGridSection, deleteSection, updateSection, reorderSection, duplicateSection,
+    addSection, addGridSection, addSectionFromTemplate, deleteSection, updateSection, reorderSection, duplicateSection,
     addElement, addElementAt, addElementToCell, duplicateElement, copyElement, pasteElement,
     updateElement, updateElements, updateResponsive, pushSnapshot,
-    deleteElement, deleteSelected, reorderElement, moveElementToSection,
+    deleteElement, deleteSelected, reorderElement, moveElementToSection, moveElementToGridCell,
     bringToFront, sendToBack, importState, updateTheme,
-    addGridCell, updateGridCell, deleteGridCell, moveGridElement,
+    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, addNestedGrid, removeNestedGrid, moveGridElement,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';
@@ -71,11 +71,13 @@ export function GridElementView({
 }: Props) {
   const el = applyBreakpoint(rawEl, breakpoint);
 
+  const [editing, setEditing] = useState(false);
+
   // ── Drag source ──────────────────────────────────────────────────────────
   const [{ isDragging }, dragRef] = useDrag<GridElDragItem, void, { isDragging: boolean }>({
     type: GRID_EL_DND_TYPE,
     item: { elementId: rawEl.id, sourceCellId: cellId, sourceIndex: elementIndex },
-    canDrag: !previewMode,
+    canDrag: !previewMode && !editing,
     collect: m => ({ isDragging: m.isDragging() }),
   });
 
@@ -114,15 +116,50 @@ export function GridElementView({
       (dragRef as (el: HTMLDivElement | null) => void)(node);
       (dropRef as (el: HTMLDivElement | null) => void)(node);
     },
-    // dragRef / dropRef are stable across renders
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [dragRef, dropRef],
   );
 
   // Must stay above the early-return so hook call order is stable
-  const dummyRef = useRef<HTMLDivElement | null>(null);
+  const editRef = useRef<HTMLDivElement | null>(null);
 
   if (el.state.hidden) return null;
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    if (previewMode || (el.type !== 'text' && el.type !== 'button')) return;
+    e.stopPropagation();
+    setEditing(true);
+    setTimeout(() => {
+      editRef.current?.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      if (editRef.current && sel) {
+        range.selectNodeContents(editRef.current);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }, 0);
+  };
+
+  const handleEditBlur = () => {
+    if (!editing) return;
+    const html = editRef.current?.innerHTML ?? '';
+    const text = editRef.current?.innerText ?? '';
+    onCommit(snapshot);
+    if (el.type === 'text') onUpdate({ content: { ...el.content, rich: html, plain: text } });
+    if (el.type === 'button') onUpdate({ content: { ...el.content, label: text } });
+    setEditing(false);
+  };
+
+  const handleEditKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (editRef.current) editRef.current.innerText = el.type === 'button' ? (el.content.label ?? '') : (el.content.plain ?? '');
+      setEditing(false);
+    }
+    if (e.key === 'Enter' && el.type === 'button') {
+      e.preventDefault();
+      handleEditBlur();
+    }
+  };
 
   const shadow = el.style.shadow.enabled
     ? `${el.style.shadow.x}px ${el.style.shadow.y}px ${el.style.shadow.blur}px ${el.style.shadow.spread}px ${el.style.shadow.color}`
@@ -152,18 +189,20 @@ export function GridElementView({
         minHeight: el.layout.height,
         opacity: isDragging ? 0.35 : el.style.opacity,
         boxShadow: shadow,
-        cursor: previewMode ? 'default' : isDragging ? 'grabbing' : 'grab',
-        userSelect: 'none',
+        borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
+        cursor: previewMode ? 'default' : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
+        userSelect: editing ? 'text' : 'none',
       }}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onContextMenu={e => { if (!previewMode) e.preventDefault(); }}
     >
       <ElementContent
         el={el}
-        editing={false}
-        editRef={dummyRef}
-        onBlur={() => {}}
-        onKeyDown={() => {}}
+        editing={editing}
+        editRef={editRef}
+        onBlur={handleEditBlur}
+        onKeyDown={handleEditKeyDown}
       />
 
       {isSelected && !previewMode && (

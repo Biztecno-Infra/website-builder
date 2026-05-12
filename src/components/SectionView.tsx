@@ -5,6 +5,7 @@ import { CanvasElement, canvasDragShared } from './CanvasElement';
 import type { GuideLine } from './CanvasElement';
 import { GridSectionView } from './GridSectionView';
 import { DND_TYPE } from './LeftSidebar';
+import { GRID_EL_DND_TYPE } from './GridElementView';
 import type { Breakpoint, BreakpointOverride, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 
@@ -30,6 +31,7 @@ interface Props {
   snapEnabled: boolean;
   onContextMenu: (id: string, x: number, y: number) => void;
   onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
+  onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
@@ -45,6 +47,8 @@ interface Props {
   onDeleteElement?: (id: string) => void;
   onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
   isDragOverTarget?: boolean;
+  dragOverGridCellId?: string | null;
+  onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -72,7 +76,7 @@ function FreeSectionView({
   onSelectSection, onSelectElement, onSelectGridCell,
   onUpdateElement, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onCommit, snapshot, snapEnabled, onContextMenu,
-  onDrop, onUpdateSection,
+  onDrop, onUpdateSection, onMoveElementToSection,
   onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
@@ -89,15 +93,23 @@ function FreeSectionView({
   const bg = section.style.background;
   const cols = section.style.columns;
   const sectionHeight = section.layout.height;
+  const scale = canvasWidth / CANVAS_W;
+  const displayHeight = breakpoint !== 'desktop' ? Math.round(sectionHeight * scale) : sectionHeight;
   const sectionElements = section.children.map(id => nodes[id] as El | undefined).filter((el): el is El => !!el);
 
-  const [{ isOver }, dropRef] = useDrop<{ type: ElementType }, void, { isOver: boolean }>({
-    accept: DND_TYPE,
+  const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
+    accept: [DND_TYPE, GRID_EL_DND_TYPE],
     drop: (item, monitor) => {
       const offset = monitor.getClientOffset();
       if (!offset || !surfaceRef.current) return;
       const rect = surfaceRef.current.getBoundingClientRect();
       const z = canvasDragShared.zoom;
+
+      if ('elementId' in item) {
+        onMoveElementToSection?.(item.elementId, section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
+        return;
+      }
+
       onDrop(item.type, (offset.x - rect.left) / z, (offset.y - rect.top) / z, section.id);
     },
     collect: m => ({ isOver: m.isOver() }),
@@ -155,7 +167,7 @@ function FreeSectionView({
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    height: sectionHeight,
+    height: displayHeight,
     backgroundColor: bg.type === 'solid' ? (bg.color || '#ffffff') : undefined,
     backgroundImage: secBgImage,
     backgroundSize: 'cover',

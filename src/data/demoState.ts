@@ -1,72 +1,98 @@
-/**
- * Demo page state — showcases grid layout, responsiveness, and styling.
- * Demonstrates Phase 1 (section padding, cell border, responsive min-height)
- * and Phase 2 (letterSpacing, textTransform) features.
- */
 import type {
-  BuilderState, CanvasElement, GridCell, GridSection,
-  ElementBackground, SectionBackground, Padding, Border, Shadow,
-  FlexItemLayout, ElementResponsive, TextTransform,
+  AnyNode, Border, BuilderState, CanvasElement, ElementBackground,
+  ElementResponsive, FlexItemLayout, GridCell, GridSection, Padding,
+  SectionBackground, Shadow, TextTransform,
 } from '../types';
 
-// ─── Tiny helpers ──────────────────────────────────────────────────────────────
+const C = {
+  ink: '#111827',
+  slate: '#334155',
+  muted: '#64748b',
+  soft: '#f6fbf8',
+  line: '#d9e8e0',
+  mint: '#36c7a0',
+  teal: '#0f766e',
+  deep: '#063b3b',
+  aqua: '#d7fbef',
+  coral: '#f9735b',
+  gold: '#e9b949',
+  lavender: '#7566f1',
+  white: '#ffffff',
+};
 
 const fl = (
-  mode: FlexItemLayout['widthMode'],
-  grow = 0,
-  self: FlexItemLayout['alignSelf'] = 'auto',
-): FlexItemLayout => ({ widthMode: mode, widthValue: 0, flexGrow: grow, alignSelf: self });
+  widthMode: FlexItemLayout['widthMode'],
+  flexGrow = 0,
+  alignSelf: FlexItemLayout['alignSelf'] = 'auto',
+  widthValue = 0,
+): FlexItemLayout => ({ widthMode, widthValue, flexGrow, alignSelf });
 
-const pad = (t: number, r = t, b = t, l = r): Padding => ({ top: t, right: r, bottom: b, left: l });
+const pad = (top: number, right = top, bottom = top, left = right): Padding =>
+  ({ top, right, bottom, left });
 
 const elBg = (color = 'transparent'): ElementBackground => ({
-  type: 'solid', color, image: '', position: 'center',
-  from: '#006e75', to: '#0b978e', angle: 135,
+  type: 'solid', color, image: '', position: 'center', from: C.mint, to: C.teal, angle: 135,
 });
 
-const elBgGrad = (from: string, to: string, angle = 135): ElementBackground => ({
-  type: 'linear-gradient', color: 'transparent', image: '', position: 'center',
-  from, to, angle,
+const elGrad = (from: string, to: string, angle = 135): ElementBackground => ({
+  type: 'linear-gradient', color: 'transparent', image: '', position: 'center', from, to, angle,
 });
 
-const secSolid = (color: string, overlay = 0): SectionBackground => ({
-  type: 'solid', color, image: '', position: 'center',
-  from: '#006e75', to: '#0b978e', angle: 135, overlay,
+const secSolid = (color: string): SectionBackground => ({
+  type: 'solid', color, image: '', position: 'center', from: C.mint, to: C.teal, angle: 135, overlay: 0,
 });
 
-const secGrad = (from: string, to: string, angle = 135, overlay = 0): SectionBackground => ({
-  type: 'linear-gradient', color: 'transparent', image: '', position: 'center',
-  from, to, angle, overlay,
+const secGrad = (from: string, to: string, angle = 135): SectionBackground => ({
+  type: 'linear-gradient', color: 'transparent', image: '', position: 'center', from, to, angle, overlay: 0,
 });
 
-const bdr = (radius = 0, width = 0, color = '#cccccc', style: Border['style'] = 'solid'): Border =>
+const bdr = (radius = 0, width = 0, color = C.line, style: Border['style'] = 'solid'): Border =>
   ({ radius, width, color, style });
 
-const shad = (enabled = false, x = 0, y = 20, blur = 60, spread = -10, color = 'rgba(0,0,0,0.15)'): Shadow =>
-  ({ enabled, x, y, blur, spread, color });
-
-// letterSpacing and textTransform are now first-class typography fields (Phase 2)
-const typo = (
-  size: number, weight: string, color: string,
-  align: 'left' | 'center' | 'right' = 'left',
-  lineHeight = 1.5,
-  letterSpacing = 0,
-  textTransform: TextTransform = 'none',
-) => ({ family: 'Inter, sans-serif', size, weight, color, align, lineHeight, letterSpacing, textTransform });
+const shad = (
+  enabled = false,
+  x = 0,
+  y = 18,
+  blur = 48,
+  spread = -18,
+  color = 'rgba(17,24,39,0.16)',
+): Shadow => ({ enabled, x, y, blur, spread, color });
 
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
 const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
 
-// ─── Element factories ────────────────────────────────────────────────────────
-
-function mkText(
-  id: string, parent: string, text: string,
-  size: number, weight: string, color: string,
+const typo = (
+  size: number,
+  weight: string,
+  color: string,
   align: 'left' | 'center' | 'right' = 'left',
-  height = 48, lineHeight = 1.5,
-  padding_ = pad(0),
-  flex: FlexItemLayout = fl('fill'),
+  lineHeight = 1.5,
+  letterSpacing = 0,
+  textTransform: TextTransform = 'none',
+) => ({
+  family: 'Inter, sans-serif',
+  size,
+  weight,
+  color,
+  align,
+  lineHeight,
+  letterSpacing,
+  textTransform,
+});
+
+function text(
+  id: string,
+  parent: string,
+  plain: string,
+  size: number,
+  weight: string,
+  color: string,
+  align: 'left' | 'center' | 'right' = 'left',
+  height = 48,
+  lineHeight = 1.5,
+  padding = pad(0),
+  flex = fl('fill'),
   responsive: ElementResponsive = {},
   letterSpacing = 0,
   textTransform: TextTransform = 'none',
@@ -75,486 +101,480 @@ function mkText(
     id, type: 'text', parent,
     layout: { x: 0, y: 0, width: 200, height, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBg(), padding: padding_,
-      border: bdr(), shadow: shad(),
+      opacity: 1,
+      background: elBg(),
+      padding,
+      border: bdr(),
+      shadow: shad(),
       typography: typo(size, weight, color, align, lineHeight, letterSpacing, textTransform),
     },
-    content: { plain: text, rich: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive, flexLayout: flex,
+    content: { plain, rich: '' },
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive,
+    flexLayout: flex,
   };
 }
 
-function mkBtn(
-  id: string, parent: string, label: string,
-  bgColor = '#006e75', textColor = '#ffffff',
-  size = 15, radius = 8,
-  padding_ = pad(12, 28, 12, 28),
-  flex: FlexItemLayout = fl('auto'),
-  letterSpacing = 0.5,
+function button(
+  id: string,
+  parent: string,
+  label: string,
+  bg: string,
+  color: string,
+  padding = pad(14, 24),
+  flex = fl('auto'),
+  borderColor = bg,
+  borderWidth = 0,
 ): CanvasElement {
   return {
     id, type: 'button', parent,
-    layout: { x: 0, y: 0, width: 160, height: 44, zIndex: 0, rotation: 0 },
+    layout: { x: 0, y: 0, width: 170, height: 48, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBg(bgColor), padding: padding_,
-      border: bdr(radius), shadow: shad(),
-      typography: typo(size, '600', textColor, 'center', 1, letterSpacing),
+      opacity: 1,
+      background: elBg(bg),
+      padding,
+      border: bdr(8, borderWidth, borderColor),
+      shadow: shad(),
+      typography: typo(15, '700', color, 'center', 1, 0),
     },
     content: { plain: label, label, rich: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive: {}, flexLayout: flex,
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: flex,
   };
 }
 
-function mkSpacer(id: string, parent: string, height = 20): CanvasElement {
+function spacer(id: string, parent: string, height: number): CanvasElement {
   return {
     id, type: 'spacer', parent,
     layout: { x: 0, y: 0, width: 200, height, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBg(), padding: pad(0),
-      border: bdr(), shadow: shad(),
-      typography: typo(16, 'normal', '#333'),
+      opacity: 1,
+      background: elBg(),
+      padding: pad(0),
+      border: bdr(),
+      shadow: shad(),
+      typography: typo(16, '400', C.ink),
     },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive: {}, flexLayout: fl('fill'),
+    content: {},
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: fl('fill'),
   };
 }
 
-function mkBox(
-  id: string, parent: string, height = 300,
-  bgFrom = '#006e75', bgTo = '#0b978e', angle = 135, radius = 16,
-  flex: FlexItemLayout = fl('fill', 1, 'stretch'),
+function box(
+  id: string,
+  parent: string,
+  height: number,
+  from: string,
+  to: string,
+  angle = 135,
+  radius = 8,
+  flex = fl('fill', 1, 'stretch'),
+  shadow = true,
 ): CanvasElement {
   return {
     id, type: 'box', parent,
-    layout: { x: 0, y: 0, width: 200, height, zIndex: 0, rotation: 0 },
+    layout: { x: 0, y: 0, width: 240, height, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBgGrad(bgFrom, bgTo, angle), padding: pad(24),
-      border: bdr(radius), shadow: shad(true),
-      typography: typo(16, 'normal', '#333'),
+      opacity: 1,
+      background: elGrad(from, to, angle),
+      padding: pad(0),
+      border: bdr(radius, 0, 'transparent'),
+      shadow: shadow ? shad(true) : shad(),
+      typography: typo(16, '400', C.ink),
     },
     content: { plain: '', rich: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive: {}, flexLayout: flex,
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: flex,
   };
 }
 
-function mkIcon(
-  id: string, parent: string, iconName: string,
-  iconSize = 36, color = '#006e75',
-): CanvasElement {
+function icon(id: string, parent: string, iconName: string, color = C.teal, size = 26): CanvasElement {
   return {
     id, type: 'icon', parent,
-    layout: { x: 0, y: 0, width: 60, height: iconSize + 8, zIndex: 0, rotation: 0 },
+    layout: { x: 0, y: 0, width: 48, height: 42, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBg(), padding: pad(0),
-      border: bdr(), shadow: shad(),
-      typography: { family: 'Inter, sans-serif', size: iconSize, weight: 'normal', color, align: 'left', lineHeight: 1, letterSpacing: 0, textTransform: 'none' },
+      opacity: 1,
+      background: elBg(C.aqua),
+      padding: pad(8),
+      border: bdr(8, 1, '#b8eadb'),
+      shadow: shad(),
+      typography: typo(size, '700', color, 'center', 1),
     },
-    content: { iconName, iconSize },
-    interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive: {}, flexLayout: fl('auto'),
+    content: { iconName, iconSize: size },
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: fl('auto'),
   };
 }
 
-function mkDivider(id: string, parent: string, color = '#334155'): CanvasElement {
+function divider(id: string, parent: string, color = C.line): CanvasElement {
   return {
     id, type: 'divider', parent,
     layout: { x: 0, y: 0, width: 400, height: 2, zIndex: 0, rotation: 0 },
     style: {
-      opacity: 1, background: elBg(color), padding: pad(8, 0, 8, 0),
-      border: bdr(2), shadow: shad(),
-      typography: typo(16, 'normal', '#333'),
+      opacity: 1,
+      background: elBg(color),
+      padding: pad(8, 0),
+      border: bdr(),
+      shadow: shad(),
+      typography: typo(16, '400', C.ink),
     },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(),
-    responsive: {}, flexLayout: fl('fill'),
+    content: {},
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: fl('fill'),
   };
 }
 
-// ─── Cell / section factories ─────────────────────────────────────────────────
+function image(id: string, parent: string, src: string, alt: string, height: number): CanvasElement {
+  return {
+    id, type: 'image', parent,
+    layout: { x: 0, y: 0, width: 520, height, zIndex: 0, rotation: 0 },
+    style: {
+      opacity: 1,
+      background: elBg('#eef8f4'),
+      padding: pad(0),
+      border: bdr(8, 1, '#cae8df'),
+      shadow: shad(true),
+      typography: typo(16, '400', C.ink),
+    },
+    content: { src, alt, objectFit: 'cover' },
+    interaction: nolink(),
+    animation: noanim(),
+    state: nostate(),
+    responsive: {},
+    flexLayout: fl('fill', 1, 'stretch'),
+  };
+}
 
-// Phase 1: border_ and minHeight_ are now first-class cell properties
-function mkCell(
-  id: string, parent: string, span: number, children: string[],
-  layoutMode: GridCell['style']['layoutMode'] = 'column',
+function cell(
+  id: string,
+  parent: string,
+  span: number,
+  children: string[],
+  mode: GridCell['style']['layoutMode'] = 'column',
   align: GridCell['style']['alignItems'] = 'flex-start',
   justify: GridCell['style']['justifyContent'] = 'flex-start',
-  gap_ = 0, padding_ = pad(0), bgColor = 'transparent',
+  gap = 0,
+  padding = pad(0),
+  bg = 'transparent',
   responsive: GridCell['responsive'] = {},
-  border_: Border = bdr(0, 0, '#cccccc', 'none'),
-  minHeight_?: number,
+  border = bdr(0, 0, 'transparent', 'none'),
+  minHeight?: number,
+  nestedGrid?: { gap: number; rowGap: number },
 ): GridCell {
-  return {
-    id, type: 'grid-cell', parent, columnSpan: span,
+  const node: GridCell = {
+    id, type: 'grid-cell', parent, columnSpan: span, rowSpan: 1,
     style: {
-      layoutMode, gap: gap_, padding: padding_,
-      background: { type: 'solid', color: bgColor, image: '', position: 'center', from: '#006e75', to: '#0b978e', angle: 135, overlay: 0 },
-      border: border_,
-      minHeight: minHeight_,
-      alignItems: align, justifyContent: justify,
+      layoutMode: mode,
+      gap,
+      padding,
+      background: { type: 'solid', color: bg, image: '', position: 'center', from: C.mint, to: C.teal, angle: 135, overlay: 0 },
+      border,
+      minHeight,
+      alignItems: align,
+      justifyContent: justify,
     },
-    children, responsive,
+    children,
+    responsive,
   };
+  if (nestedGrid) node.nestedGrid = nestedGrid;
+  return node;
 }
 
-// Phase 1: secPad demonstrates section-level padding
-function mkSection(
-  id: string, role: GridSection['role'], label: string,
-  children: string[], bg: SectionBackground, gap_ = 24, rowGap = 0,
-  secPad: Padding = pad(0),
+function section(
+  id: string,
+  role: GridSection['role'],
+  label: string,
+  children: string[],
+  bg: SectionBackground,
+  gap = 24,
+  rowGap = 24,
+  padding = pad(0),
 ): GridSection {
   return {
-    id, type: 'section', layoutMode: 'grid', role, label,
+    id, type: 'section', role, label, layoutMode: 'grid',
     layout: { height: 600 },
-    style: { background: bg, columns: { count: 1, widths: [100], styles: {} }, padding: secPad },
-    children, grid: { gap: gap_, rowGap },
+    style: { background: bg, columns: { count: 1, widths: [100], styles: {} }, padding },
+    children,
+    grid: { gap, rowGap },
   };
 }
 
-// ─── Colour / sizing constants ────────────────────────────────────────────────
-
-const C = {
-  dark:    '#0f172a',
-  navy:    '#1e293b',
-  teal:    '#006e75',
-  teal2:   '#0b978e',
-  light:   '#f1f5f9',
-  white:   '#ffffff',
-  txtDark: '#0f172a',
-  txtMid:  '#475569',
-  txtLt:   '#94a3b8',
-  muted:   '#64748b',
-  border:  '#334155',
-};
-
-// ─── Build the full state ─────────────────────────────────────────────────────
-
 export function makeDemoState(): BuilderState {
-  const nodes: Record<string, CanvasElement | GridCell | GridSection> = {};
+  const nodes: Record<string, AnyNode> = {};
+  const add = <T extends AnyNode>(node: T): T => { nodes[node.id] = node; return node; };
 
-  const add = <T extends CanvasElement | GridCell | GridSection>(n: T) => { nodes[n.id] = n; return n; };
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // HEADER
-  // ══════════════════════════════════════════════════════════════════════════
-  const H = 'sec_d_header';
-  const gcHL = 'gc_d_hdr_logo'; const gcHN = 'gc_d_hdr_nav';
-
-  add(mkText('el_d_logo', gcHL, 'Buildify', 22, '700', C.white, 'left', 32, 1, pad(0), fl('auto')));
-  // Nav links — slight letter-spacing for horizontal rhythm (Phase 2)
-  add(mkText('el_d_nav_links', gcHN, 'Features · Pricing · About', 14, 'normal', C.txtLt, 'left', 32, 1, pad(0), fl('auto'), {}, 0.3));
-  add(mkBtn('el_d_nav_btn', gcHN, 'Get Started', C.teal, C.white, 14, 6, pad(8, 20, 8, 20)));
-
-  add(mkCell(gcHL, H, 3,  ['el_d_logo'],
-    'row', 'center', 'flex-start', 0, pad(16, 24, 16, 24), 'transparent',
-    { tablet: { columnSpan: 6 }, mobile: { columnSpan: 7 } }));
-  add(mkCell(gcHN, H, 9,  ['el_d_nav_links', 'el_d_nav_btn'],
-    'row', 'center', 'flex-end', 24, pad(16, 24, 16, 24), 'transparent',
-    { tablet: { columnSpan: 6 }, mobile: { columnSpan: 5 } }));
-
-  add(mkSection(H, 'header', 'Header', [gcHL, gcHN], secSolid(C.dark), 0, 0));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // HERO
-  // ══════════════════════════════════════════════════════════════════════════
-  const HERO = 'sec_d_hero';
-  const gcHeroMain = 'gc_d_hero_main';
-
-  // Eyebrow: textTransform + letterSpacing demonstrates Phase 2 (source text is lowercase)
-  add(mkText('el_d_hero_eye', gcHeroMain, '✦  next-gen page builder  ✦',
-    11, '700', C.teal2, 'center', 18, 1, pad(0), fl('fill'), {}, 2.5, 'uppercase',
-  ));
-  add(mkSpacer('el_d_hero_sp1', gcHeroMain, 16));
-  add(mkText('el_d_hero_h1', gcHeroMain, 'Design Pages That Convert',
-    54, '700', C.white, 'center', 76, 1.15, pad(0), fl('fill'), {
-      tablet: { style: { typography: { size: 40 } } },
-      mobile: { style: { typography: { size: 30 } } },
-    },
-  ));
-  add(mkSpacer('el_d_hero_sp2', gcHeroMain, 20));
-  add(mkText('el_d_hero_sub', gcHeroMain,
-    'Create beautiful, responsive websites in minutes with our intuitive drag-and-drop builder. No design skills required.',
-    18, 'normal', C.txtLt, 'center', 60, 1.75, pad(0), fl('fill'), {
-      tablet: { style: { typography: { size: 16 } } },
-      mobile: { style: { typography: { size: 15 } } },
-    },
-  ));
-  add(mkSpacer('el_d_hero_sp3', gcHeroMain, 36));
-  add(mkBtn('el_d_hero_btn', gcHeroMain, 'Start Building Free  →', C.teal, C.white, 16, 8, pad(16, 36, 16, 36)));
-  add(mkSpacer('el_d_hero_sp4', gcHeroMain, 16));
-  add(mkText('el_d_hero_note', gcHeroMain, 'No credit card required  ·  Free forever plan',
-    13, 'normal', '#475569', 'center', 20, 1, pad(0), fl('fill'),
-  ));
-
-  add(mkCell(gcHeroMain, HERO, 12, [
-    'el_d_hero_eye', 'el_d_hero_sp1', 'el_d_hero_h1', 'el_d_hero_sp2',
-    'el_d_hero_sub', 'el_d_hero_sp3', 'el_d_hero_btn', 'el_d_hero_sp4', 'el_d_hero_note',
-  ], 'column', 'center', 'flex-start', 0, pad(96, 40, 96, 40)));
-
-  add(mkSection(HERO, 'section', 'Hero', [gcHeroMain], secGrad(C.dark, C.navy, 160), 0, 0));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // FEATURES
-  // ══════════════════════════════════════════════════════════════════════════
-  // Phase 1 demo: section padding (top/bottom) replaces eyebrow-cell top padding.
-  // Phase 1 demo: feature cards use cell border (radius + 1px border).
-  // Phase 2 demo: eyebrow uses textTransform + letterSpacing.
-  const FEAT = 'sec_d_features';
-  const gcFH = 'gc_d_feat_hdr';
-
-  // Eyebrow — source text is sentence-case; textTransform renders it UPPERCASE
-  add(mkText('el_d_feat_eye', gcFH, 'What we offer',
-    11, '700', C.teal, 'center', 18, 1, pad(0), fl('fill'), {}, 2.5, 'uppercase',
-  ));
-  add(mkSpacer('el_d_feat_sp1', gcFH, 8));
-  add(mkText('el_d_feat_h2', gcFH, 'Everything You Need to Build',
-    38, '700', C.txtDark, 'center', 56, 1.2, pad(0), fl('fill'), {
-      tablet: { style: { typography: { size: 30 } } },
-      mobile: { style: { typography: { size: 26 } } },
-    },
-  ));
-  add(mkSpacer('el_d_feat_sp2', gcFH, 12));
-  add(mkText('el_d_feat_sub', gcFH,
-    'Powerful tools designed to help you create, publish, and grow your online presence.',
-    16, 'normal', C.muted, 'center', 48, 1.7,
-  ));
-
-  // Section padding handles top breathing room; cell only needs bottom gap
-  add(mkCell(gcFH, FEAT, 12,
-    ['el_d_feat_eye', 'el_d_feat_sp1', 'el_d_feat_h2', 'el_d_feat_sp2', 'el_d_feat_sub'],
-    'column', 'center', 'flex-start', 0, pad(0, 40, 48, 40),
-  ));
-
-  const features = [
-    { icon: '⚡', title: 'Lightning Fast',      desc: 'Build and publish pages in minutes, not days. Our optimized platform delivers blazing-fast performance out of the box.' },
-    { icon: '🎨', title: 'Beautiful Design',     desc: 'Access professional design tools and templates. Create stunning visual experiences with full creative control.' },
-    { icon: '📱', title: 'Fully Responsive',     desc: 'Every page you build automatically adapts to any screen size — desktop, tablet, and mobile — without extra effort.' },
-    { icon: '🔧', title: 'Highly Customizable', desc: 'Fine-tune every detail with advanced controls. Customize colors, typography, spacing, and animations to match your brand.' },
-  ] as const;
-
-  const featCellIds = ['gc_d_feat_1', 'gc_d_feat_2', 'gc_d_feat_3', 'gc_d_feat_4'] as const;
-
-  features.forEach((f, i) => {
-    const cid = featCellIds[i];
-    const icon  = add(mkIcon(`el_d_fi${i}_icon`,  cid, f.icon, 32, C.teal));
-    const sp1   = add(mkSpacer(`el_d_fi${i}_sp1`, cid, 16));
-    const title = add(mkText(`el_d_fi${i}_title`, cid, f.title, 17, '700', C.txtDark, 'left', 26));
-    const sp2   = add(mkSpacer(`el_d_fi${i}_sp2`, cid, 8));
-    const desc  = add(mkText(`el_d_fi${i}_desc`,  cid, f.desc,  14, 'normal', C.muted, 'left', 88, 1.75));
-
-    // Phase 1: card-style cell — border radius 16px, 1px border, white background
-    add(mkCell(cid, FEAT, 3, [icon.id, sp1.id, title.id, sp2.id, desc.id],
-      'column', 'flex-start', 'flex-start', 0, pad(32, 28, 32, 28), C.white, {
-        tablet: { columnSpan: 6 }, mobile: { columnSpan: 12 },
-      },
-      bdr(16, 1, '#e2e8f0'),
-    ));
+  const HDR = 'demo_header';
+  add(text('demo_logo', 'demo_header_brand', 'Clearbase', 22, '800', C.deep, 'left', 32, 1, pad(0), fl('auto')));
+  ['Product', 'Features', 'Pricing', 'Stories'].forEach((link, i) => {
+    add(text(`demo_nav_${i}`, 'demo_header_nav', link, 14, '600', C.slate, 'center', 24, 1, pad(0), fl('auto')));
   });
+  add(button('demo_nav_btn', 'demo_header_nav', 'Start free', C.deep, C.white, pad(10, 18), fl('auto')));
+  add(cell('demo_header_brand', HDR, 3, ['demo_logo'], 'row', 'center', 'flex-start', 0, pad(20, 32),
+    'transparent', { mobile: { columnSpan: 12, justifyContent: 'center' } }));
+  add(cell('demo_header_nav', HDR, 9, ['demo_nav_0', 'demo_nav_1', 'demo_nav_2', 'demo_nav_3', 'demo_nav_btn'], 'row', 'center', 'flex-end', 22, pad(20, 32),
+    'transparent', { tablet: { columnSpan: 9 }, mobile: { columnSpan: 12, layoutMode: 'column', alignItems: 'center', justifyContent: 'flex-start' } }));
+  add(section(HDR, 'header', 'Header', ['demo_header_brand', 'demo_header_nav'], secSolid(C.white), 0, 0));
 
-  // Phase 1: section padding top+bottom = 72px; cells provide only horizontal/internal spacing
-  add(mkSection(FEAT, 'section', 'Features',
-    [gcFH, ...featCellIds], secSolid(C.light), 20, 20, pad(72, 0, 72, 0)));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CONTENT  (text left · visual right)
-  // ══════════════════════════════════════════════════════════════════════════
-  const CONT = 'sec_d_content';
-  const gcCL = 'gc_d_cont_left';
-  const gcCR = 'gc_d_cont_right';
-
-  // Eyebrow — Phase 2: textTransform + letterSpacing on a left-aligned label
-  add(mkText('el_d_cl_eye', gcCL, 'Why choose us',
-    11, '700', C.teal, 'left', 18, 1, pad(0), fl('fill'), {}, 2.5, 'uppercase',
-  ));
-  add(mkSpacer('el_d_cl_sp1', gcCL, 12));
-  add(mkText('el_d_cl_h2', gcCL, 'Built for Speed,\nDesigned for Growth',
-    36, '700', C.txtDark, 'left', 90, 1.2, pad(0), fl('fill'), {
-      tablet: { style: { typography: { size: 28 } } },
-      mobile: { style: { typography: { size: 24 } } },
-    },
-  ));
-  add(mkSpacer('el_d_cl_sp2', gcCL, 20));
-  add(mkText('el_d_cl_body', gcCL,
-    'Our platform combines the power of visual editing with professional-grade tools. Whether you\'re a freelancer, agency, or enterprise — we have everything you need to succeed online.',
-    16, 'normal', C.txtMid, 'left', 84, 1.75,
-  ));
-  add(mkSpacer('el_d_cl_sp3', gcCL, 12));
-  add(mkText('el_d_cl_list', gcCL, '✓  No coding required\n✓  99.9% uptime guaranteed\n✓  24/7 customer support',
-    15, 'normal', C.txtMid, 'left', 76, 2.1,
-  ));
-  add(mkSpacer('el_d_cl_sp4', gcCL, 32));
-  add(mkBtn('el_d_cl_btn', gcCL, 'Learn More  →', C.dark, C.white, 15, 8, pad(14, 28, 14, 28)));
-
-  add(mkCell(gcCL, CONT, 6,
-    ['el_d_cl_eye', 'el_d_cl_sp1', 'el_d_cl_h2', 'el_d_cl_sp2',
-     'el_d_cl_body', 'el_d_cl_sp3', 'el_d_cl_list', 'el_d_cl_sp4', 'el_d_cl_btn'],
-    'column', 'flex-start', 'center', 0, pad(80, 60, 80, 60), 'transparent', {
-      tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 },
-    },
-  ));
-
-  add(mkBox('el_d_cr_img', gcCR, 400, C.teal, C.teal2, 135, 20, fl('fill', 1, 'stretch')));
-
-  add(mkCell(gcCR, CONT, 6, ['el_d_cr_img'],
-    'column', 'stretch', 'center', 0, pad(48, 60, 48, 40), 'transparent', {
-      tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 },
-    },
-  ));
-
-  add(mkSection(CONT, 'section', 'Content', [gcCL, gcCR], secSolid(C.white), 0, 0));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // STATS
-  // ══════════════════════════════════════════════════════════════════════════
-  // Phase 1 demo: section padding handles all vertical breathing room.
-  // Phase 2 demo: large numbers use negative letterSpacing; labels use uppercase + wide spacing.
-  const STATS = 'sec_d_stats';
-  const statCellIds = ['gc_d_st_1', 'gc_d_st_2', 'gc_d_st_3'] as const;
-
-  const statsData = [
-    { num: '10,000+', label: 'Happy Customers' },
-    { num: '50+',     label: 'Ready Templates' },
-    { num: '99.9%',   label: 'Uptime Guarantee' },
-  ] as const;
-
-  statsData.forEach((s, i) => {
-    const cid = statCellIds[i];
-    // Large numbers: tight tracking reads as bold and confident (Phase 2)
-    const numEl = add(mkText(`el_d_st${i}_num`, cid, s.num,
-      44, '700', C.white, 'center', 56, 1.1, pad(0), fl('fill'), {
-        tablet: { style: { typography: { size: 36 } } },
-        mobile: { style: { typography: { size: 30 } } },
-      }, -1.5,
-    ));
-    const sp  = add(mkSpacer(`el_d_st${i}_sp`, cid, 8));
-    // Labels: wide-spaced uppercase — standard pattern for stat captions (Phase 2)
-    const lbl = add(mkText(`el_d_st${i}_lbl`, cid, s.label.toLowerCase(),
-      11, '600', C.txtLt, 'center', 22, 1, pad(0), fl('fill'), {}, 2, 'uppercase',
-    ));
-    // Phase 1: section handles vertical padding; cell only needs horizontal
-    // Phase 1: responsive minHeight on mobile prevents collapsed cells
-    add(mkCell(cid, STATS, 4, [numEl.id, sp.id, lbl.id],
-      'column', 'center', 'flex-start', 0, pad(0, 24, 0, 24), 'transparent', {
-        tablet: { columnSpan: 4 },
-        mobile: { columnSpan: 12, minHeight: 120 },
-      },
-    ));
-  });
-
-  // Phase 1: section padding = 64px top + bottom
-  add(mkSection(STATS, 'section', 'Stats', [...statCellIds], secSolid(C.dark), 0, 0, pad(64, 0, 64, 0)));
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // CTA
-  // ══════════════════════════════════════════════════════════════════════════
-  const CTA = 'sec_d_cta';
-  const gcCTA = 'gc_d_cta_main';
-
-  add(mkText('el_d_cta_h2', gcCTA, 'Ready to Start Building?',
-    42, '700', C.white, 'center', 58, 1.2, pad(0), fl('fill'), {
-      tablet: { style: { typography: { size: 32 } } },
-      mobile: { style: { typography: { size: 26 } } },
-    },
-  ));
-  add(mkSpacer('el_d_cta_sp1', gcCTA, 16));
-  add(mkText('el_d_cta_sub', gcCTA,
-    'Join thousands of creators building stunning pages with Buildify.',
-    18, 'normal', 'rgba(255,255,255,0.8)', 'center', 28, 1.6, pad(0), fl('fill'), {
+  const HERO = 'demo_hero';
+  add(text('demo_hero_kicker', 'demo_hero_copy', 'MODERN WEBSITE BUILDER', 12, '800', C.teal, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(spacer('demo_hero_sp1', 'demo_hero_copy', 18));
+  add(text('demo_hero_title', 'demo_hero_copy', 'Launch polished landing pages without leaving the builder.', 58, '800', C.ink, 'left', 210, 1.12, pad(0), fl('fill'), {
+    tablet: { style: { typography: { size: 42 } } },
+    mobile: { style: { typography: { size: 32, align: 'left' } } },
+  }));
+  add(spacer('demo_hero_sp2', 'demo_hero_copy', 20));
+  add(text('demo_hero_body', 'demo_hero_copy',
+    'Clearbase gives founders, marketers, and agencies a realistic no-code workflow for building conversion-ready pages with clean sections, responsive grids, and brand-safe styling.',
+    18, '400', C.slate, 'left', 102, 1.65, pad(0), fl('fill'), {
       mobile: { style: { typography: { size: 16 } } },
-    },
-  ));
-  add(mkSpacer('el_d_cta_sp2', gcCTA, 36));
-  // CTA button: wider letter-spacing reinforces the call-to-action weight (Phase 2)
-  add(mkBtn('el_d_cta_btn', gcCTA, 'Get Started Free', C.white, C.teal, 16, 8, pad(16, 36, 16, 36), fl('auto'), 1));
+    }));
+  add(spacer('demo_hero_sp3', 'demo_hero_copy', 30));
+  add(button('demo_hero_primary', 'demo_hero_copy', 'Start building', C.deep, C.white, pad(15, 26), fl('auto')));
+  add(button('demo_hero_secondary', 'demo_hero_copy', 'View templates', 'transparent', C.deep, pad(15, 24), fl('auto'), C.deep, 1));
+  add(spacer('demo_hero_sp4', 'demo_hero_copy', 24));
+  add(text('demo_hero_note', 'demo_hero_copy', 'Trusted by launch teams at Northstar, Pixelwave, Orbitly, and Studio Nine.', 13, '600', C.muted, 'left', 24, 1.4));
 
-  add(mkCell(gcCTA, CTA, 12,
-    ['el_d_cta_h2', 'el_d_cta_sp1', 'el_d_cta_sub', 'el_d_cta_sp2', 'el_d_cta_btn'],
-    'column', 'center', 'flex-start', 0, pad(96, 40, 96, 40),
-  ));
+  add(text('demo_dash_label', 'demo_hero_visual', 'Live campaign dashboard', 13, '800', C.deep, 'left', 20, 1, pad(0), fl('fill'), {}, 0, 'uppercase'));
+  add(spacer('demo_dash_sp1', 'demo_hero_visual', 16));
+  add(text('demo_dash_metric', 'demo_hero_visual', '+38%', 52, '800', C.deep, 'left', 62, 1));
+  add(text('demo_dash_caption', 'demo_hero_visual', 'Qualified signups after publishing the new landing page.', 15, '500', C.slate, 'left', 48, 1.55));
+  add(spacer('demo_dash_sp2', 'demo_hero_visual', 24));
+  add(box('demo_dash_bar1', 'demo_hero_visual', 16, C.mint, C.teal, 90, 8, fl('fill'), false));
+  add(box('demo_dash_bar2', 'demo_hero_visual', 16, C.coral, '#ffb199', 90, 8, fl('percent', 0, 'auto', 72), false));
+  add(box('demo_dash_bar3', 'demo_hero_visual', 16, C.gold, '#f8dfa0', 90, 8, fl('percent', 0, 'auto', 54), false));
+  add(spacer('demo_dash_sp3', 'demo_hero_visual', 26));
+  add(text('demo_dash_rows', 'demo_hero_visual', 'Lead quality      94/100\nSpeed score       98/100\nMobile fit        Passed', 14, '600', C.slate, 'left', 84, 2));
+  add(box('demo_visual_accent', 'demo_hero_visual', 80, C.coral, C.gold, 135, 8, fl('percent', 0, 'flex-end', 36), false));
+  add(cell('demo_hero_visual', HERO, 6,
+    ['demo_visual_accent', 'demo_dash_label', 'demo_dash_sp1', 'demo_dash_metric', 'demo_dash_caption', 'demo_dash_sp2', 'demo_dash_bar1', 'demo_dash_bar2', 'demo_dash_bar3', 'demo_dash_sp3', 'demo_dash_rows'],
+    'column', 'stretch', 'center', 10, pad(54, 52, 54, 52),
+    C.white, { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }, bdr(8, 1, C.line), 520));
+  add(cell('demo_hero_copy', HERO, 6,
+    ['demo_hero_kicker', 'demo_hero_sp1', 'demo_hero_title', 'demo_hero_sp2', 'demo_hero_body', 'demo_hero_sp3', 'demo_hero_primary', 'demo_hero_secondary', 'demo_hero_sp4', 'demo_hero_note'],
+    'column', 'flex-start', 'center', 12, pad(96, 44, 96, 56), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
+  add(section(HERO, 'section', 'Hero', ['demo_hero_copy', 'demo_hero_visual'], secGrad('#f6fbf8', '#e3fff4', 145), 0, 0));
 
-  add(mkSection(CTA, 'section', 'CTA', [gcCTA], secGrad(C.teal, C.teal2, 135), 0, 0));
+  const LOGOS = 'demo_logos';
+  ['NORTHSTAR', 'PIXELWAVE', 'ORBITLY', 'STUDIO NINE'].forEach((name, i) => {
+    const cid = `demo_logo_cell_${i}`;
+    add(text(`demo_logo_text_${i}`, cid, name, 13, '800', i === 1 ? C.coral : i === 2 ? C.lavender : C.teal, 'center', 24, 1, pad(0), fl('fill'), {}, 0));
+    add(cell(cid, LOGOS, 3, [`demo_logo_text_${i}`], 'column', 'center', 'center', 0, pad(26, 16), C.white,
+      { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } }, bdr(8, 1, C.line), 80));
+  });
+  add(section(LOGOS, 'section', 'Trust Logos', ['demo_logo_cell_0', 'demo_logo_cell_1', 'demo_logo_cell_2', 'demo_logo_cell_3'], secSolid(C.soft), 18, 18, pad(42, 48)));
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // FOOTER
-  // ══════════════════════════════════════════════════════════════════════════
-  const FOOT = 'sec_d_footer';
-  const gcF1 = 'gc_d_foot_1'; const gcF2 = 'gc_d_foot_2'; const gcF3 = 'gc_d_foot_3';
+  const FEATURES = 'demo_features';
+  add(text('demo_features_kicker', 'demo_features_head', 'FEATURES', 12, '800', C.teal, 'center', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(spacer('demo_features_sp1', 'demo_features_head', 12));
+  add(text('demo_features_title', 'demo_features_head', 'Built for production-looking pages', 40, '800', C.ink, 'center', 54, 1.2, pad(0), fl('fill'), {
+    mobile: { style: { typography: { size: 28 } } },
+  }));
+  add(spacer('demo_features_sp2', 'demo_features_head', 12));
+  add(text('demo_features_body', 'demo_features_head', 'Use real landing-page sections, not isolated parts, to show clients exactly what your builder can create today.', 16, '400', C.muted, 'center', 52, 1.65));
+  add(cell('demo_features_head', FEATURES, 12, ['demo_features_kicker', 'demo_features_sp1', 'demo_features_title', 'demo_features_sp2', 'demo_features_body'],
+    'column', 'center', 'flex-start', 0, pad(0, 60, 42, 60)));
 
-  add(mkText('el_d_f1_logo', gcF1, 'Buildify', 22, '700', C.white, 'left', 32, 1, pad(0), fl('auto')));
-  add(mkSpacer('el_d_f1_sp1', gcF1, 12));
-  add(mkText('el_d_f1_desc', gcF1,
-    'The easiest way to build beautiful, responsive web pages without writing a single line of code.',
-    14, 'normal', C.muted, 'left', 68, 1.75,
-  ));
-  add(mkSpacer('el_d_f1_sp2', gcF1, 24));
-  add(mkText('el_d_f1_copy', gcF1, '© 2025 Buildify Inc. All rights reserved.', 12, 'normal', '#475569', 'left', 20));
+  const featureData = [
+    ['01', 'Responsive grid sections', 'Stack sections gracefully across desktop, tablet, and mobile without relying on complex effects.'],
+    ['02', 'Reusable content blocks', 'Combine text, buttons, dividers, icons, cards, and media into polished marketing sections.'],
+    ['03', 'Brand-ready styling', 'Control typography, color, spacing, borders, shadows, and background treatments from the builder.'],
+    ['04', 'Export-friendly structure', 'The page can be exported as clean responsive HTML that keeps the designed hierarchy intact.'],
+  ] as const;
+  const featureCells: string[] = [];
+  featureData.forEach(([num, title, body], i) => {
+    const cid = `demo_feature_${i}`;
+    featureCells.push(cid);
+    add(text(`demo_feature_num_${i}`, cid, num, 13, '800', i === 1 ? C.coral : i === 2 ? C.lavender : C.teal, 'left', 20, 1, pad(0), fl('fill'), {}, 0));
+    add(spacer(`demo_feature_sp_${i}`, cid, 14));
+    add(text(`demo_feature_title_${i}`, cid, title, 20, '800', C.ink, 'left', 30, 1.2));
+    add(spacer(`demo_feature_spb_${i}`, cid, 10));
+    add(text(`demo_feature_body_${i}`, cid, body, 15, '400', C.slate, 'left', 82, 1.65));
+    add(cell(cid, FEATURES, 3, [`demo_feature_num_${i}`, `demo_feature_sp_${i}`, `demo_feature_title_${i}`, `demo_feature_spb_${i}`, `demo_feature_body_${i}`],
+      'column', 'flex-start', 'flex-start', 0, pad(30, 26), C.white,
+      { tablet: { columnSpan: 6 }, mobile: { columnSpan: 12 } }, bdr(8, 1, C.line), 210));
+  });
+  add(section(FEATURES, 'section', 'Features', ['demo_features_head', ...featureCells], secSolid(C.white), 22, 22, pad(86, 48)));
 
-  add(mkCell(gcF1, FOOT, 5,
-    ['el_d_f1_logo', 'el_d_f1_sp1', 'el_d_f1_desc', 'el_d_f1_sp2', 'el_d_f1_copy'],
-    'column', 'flex-start', 'flex-start', 0, pad(48, 40, 48, 24), 'transparent', {
-      tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 },
-    },
-  ));
+  const PRODUCT = 'demo_product';
+  add(text('demo_product_kicker', 'demo_product_copy', 'VISUAL WORKFLOW', 12, '800', C.teal, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(spacer('demo_product_sp1', 'demo_product_copy', 14));
+  add(text('demo_product_title', 'demo_product_copy', 'A calm editing flow for fast marketing launches.', 38, '800', C.ink, 'left', 104, 1.2, pad(0), fl('fill'), {
+    mobile: { style: { typography: { size: 28 } } },
+  }));
+  add(spacer('demo_product_sp2', 'demo_product_copy', 18));
+  add(text('demo_product_body', 'demo_product_copy',
+    'Plan the story, refine the layout, and publish a page that looks intentional across every viewport. Clearbase keeps marketing teams moving without turning launches into a design bottleneck.',
+    16, '400', C.slate, 'left', 90, 1.7));
+  add(spacer('demo_product_sp3', 'demo_product_copy', 22));
+  add(text('demo_product_list', 'demo_product_copy', '+ Guided launch structure\n+ Card-based feature blocks\n+ Branded pricing sections\n+ Mobile-ready page flow', 15, '700', C.deep, 'left', 116, 2));
+  add(cell('demo_product_copy', PRODUCT, 5,
+    ['demo_product_kicker', 'demo_product_sp1', 'demo_product_title', 'demo_product_sp2', 'demo_product_body', 'demo_product_sp3', 'demo_product_list'],
+    'column', 'flex-start', 'center', 0, pad(72, 56), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
+  add(image('demo_product_image', 'demo_product_visual',
+    'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1000&q=80',
+    'Team reviewing a website dashboard', 420));
+  add(cell('demo_product_visual', PRODUCT, 7, ['demo_product_image'], 'column', 'stretch', 'center', 0, pad(72, 56, 72, 0),
+    'transparent', { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
+  add(section(PRODUCT, 'section', 'Product Story', ['demo_product_copy', 'demo_product_visual'], secSolid(C.soft), 36, 0));
 
-  // Footer column headings: wide-spaced uppercase (Phase 2)
-  add(mkText('el_d_f2_title', gcF2, 'Quick links',
-    11, '700', '#e2e8f0', 'left', 22, 1, pad(0), fl('fill'), {}, 2, 'uppercase',
-  ));
-  add(mkDivider('el_d_f2_div', gcF2, C.border));
-  add(mkText('el_d_f2_links', gcF2, 'Home\nFeatures\nPricing\nAbout Us\nContact', 14, 'normal', C.muted, 'left', 120, 2.2));
+  const TEST = 'demo_testimonials';
+  add(text('demo_test_title', 'demo_test_head', 'Launch teams use Clearbase to move faster', 38, '800', C.white, 'center', 52, 1.2, pad(0), fl('fill'), {
+    mobile: { style: { typography: { size: 27 } } },
+  }));
+  add(spacer('demo_test_sp1', 'demo_test_head', 12));
+  add(text('demo_test_body', 'demo_test_head', 'Three short stories from teams building real campaigns with a visual builder.', 16, '400', '#bfe3dc', 'center', 32, 1.6));
+  add(cell('demo_test_head', TEST, 12, ['demo_test_title', 'demo_test_sp1', 'demo_test_body'], 'column', 'center', 'flex-start', 0, pad(0, 60, 42, 60)));
 
-  add(mkCell(gcF2, FOOT, 3,
-    ['el_d_f2_title', 'el_d_f2_div', 'el_d_f2_links'],
-    'column', 'flex-start', 'flex-start', 0, pad(48, 24, 48, 24), 'transparent', {
-      tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 },
-    },
-  ));
+  const quotes = [
+    ['"We rebuilt our launch page in one afternoon and the exported HTML still looked like something our design team would approve."', 'Mira Patel', 'Growth Lead, Northstar'],
+    ['"The section hierarchy is the win. We can show a full customer journey instead of dropping random components onto a page."', 'Owen Reed', 'Founder, Pixelwave'],
+    ['"It feels realistic. Pricing, testimonials, CTAs, mobile structure, all the parts a client asks to see during a demo."', 'Leah Stone', 'Agency Partner, Studio Nine'],
+  ] as const;
+  const quoteCells: string[] = [];
+  quotes.forEach(([quote, name, role], i) => {
+    const cid = `demo_quote_${i}`;
+    quoteCells.push(cid);
+    add(text(`demo_quote_mark_${i}`, cid, '"', 44, '800', i === 1 ? C.coral : i === 2 ? C.gold : C.mint, 'left', 42, 1));
+    add(text(`demo_quote_text_${i}`, cid, quote, 16, '500', C.ink, 'left', 124, 1.65));
+    add(spacer(`demo_quote_sp_${i}`, cid, 22));
+    add(divider(`demo_quote_div_${i}`, cid, C.line));
+    add(spacer(`demo_quote_spb_${i}`, cid, 16));
+    add(text(`demo_quote_name_${i}`, cid, name, 15, '800', C.ink, 'left', 22, 1));
+    add(text(`demo_quote_role_${i}`, cid, role, 14, '400', C.muted, 'left', 22, 1));
+    add(cell(cid, TEST, 4,
+      [`demo_quote_mark_${i}`, `demo_quote_text_${i}`, `demo_quote_sp_${i}`, `demo_quote_div_${i}`, `demo_quote_spb_${i}`, `demo_quote_name_${i}`, `demo_quote_role_${i}`],
+      'column', 'flex-start', 'flex-start', 0, pad(32, 28), C.white,
+      { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }, bdr(8, 1, '#214f4a'), 340));
+  });
+  add(section(TEST, 'section', 'Testimonials', ['demo_test_head', ...quoteCells], secGrad(C.deep, '#092f42', 145), 22, 22, pad(84, 48)));
 
-  add(mkText('el_d_f3_title', gcF3, 'Contact us',
-    11, '700', '#e2e8f0', 'left', 22, 1, pad(0), fl('fill'), {}, 2, 'uppercase',
-  ));
-  add(mkDivider('el_d_f3_div', gcF3, C.border));
-  add(mkText('el_d_f3_email', gcF3, 'hello@buildify.com',    14, 'normal', C.muted, 'left', 24, 1.5));
-  add(mkSpacer('el_d_f3_sp1', gcF3, 6));
-  add(mkText('el_d_f3_phone', gcF3, '+1 (555) 123-4567',     14, 'normal', C.muted, 'left', 24, 1.5));
-  add(mkSpacer('el_d_f3_sp2', gcF3, 6));
-  add(mkText('el_d_f3_addr',  gcF3, '123 Builder Street\nSan Francisco, CA 94102', 14, 'normal', C.muted, 'left', 44, 1.75));
+  const PRICING = 'demo_pricing';
+  add(text('demo_price_kicker', 'demo_price_head', 'PRICING', 12, '800', C.teal, 'center', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(spacer('demo_price_sp1', 'demo_price_head', 12));
+  add(text('demo_price_title', 'demo_price_head', 'Simple plans for every launch rhythm', 38, '800', C.ink, 'center', 52, 1.2, pad(0), fl('fill'), {
+    mobile: { style: { typography: { size: 27 } } },
+  }));
+  add(spacer('demo_price_sp2', 'demo_price_head', 10));
+  add(text('demo_price_body', 'demo_price_head', 'Show full pricing tables with clear hierarchy, useful details, and a focused call to action.', 16, '400', C.muted, 'center', 34, 1.6));
+  add(cell('demo_price_head', PRICING, 12, ['demo_price_kicker', 'demo_price_sp1', 'demo_price_title', 'demo_price_sp2', 'demo_price_body'], 'column', 'center', 'flex-start', 0, pad(0, 60, 42, 60)));
 
-  add(mkCell(gcF3, FOOT, 4,
-    ['el_d_f3_title', 'el_d_f3_div', 'el_d_f3_email', 'el_d_f3_sp1',
-     'el_d_f3_phone', 'el_d_f3_sp2', 'el_d_f3_addr'],
-    'column', 'flex-start', 'flex-start', 0, pad(48, 24, 48, 24), 'transparent', {
-      tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 },
-    },
-  ));
+  const plans = [
+    ['Starter', '$19', 'For solo creators', '+ 3 published sites\n+ Basic templates\n+ Email support', 'Choose Starter', C.white, C.deep, C.teal],
+    ['Studio', '$49', 'For growing teams', '+ Unlimited sites\n+ Shared brand styles\n+ Priority support\n+ Export HTML', 'Start Studio', C.deep, C.white, C.mint],
+    ['Scale', 'Custom', 'For agencies', '+ Client workspaces\n+ Advanced permissions\n+ Launch support', 'Talk to sales', C.white, C.deep, C.coral],
+  ] as const;
+  const planCells: string[] = [];
+  plans.forEach(([name, price, desc, features, cta, bg, fg, accent], i) => {
+    const cid = `demo_plan_${i}`;
+    planCells.push(cid);
+    add(text(`demo_plan_name_${i}`, cid, name.toUpperCase(), 12, '800', accent, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+    add(spacer(`demo_plan_sp_${i}`, cid, 12));
+    add(text(`demo_plan_price_${i}`, cid, price, price === 'Custom' ? 38 : 48, '800', fg, 'left', 58, 1));
+    add(text(`demo_plan_desc_${i}`, cid, desc, 14, '500', i === 1 ? '#bfe3dc' : C.muted, 'left', 24, 1));
+    add(spacer(`demo_plan_spb_${i}`, cid, 20));
+    add(divider(`demo_plan_div_${i}`, cid, i === 1 ? '#315d58' : C.line));
+    add(spacer(`demo_plan_spc_${i}`, cid, 20));
+    add(text(`demo_plan_features_${i}`, cid, features, 15, '600', i === 1 ? '#ecfffb' : C.slate, 'left', 118, 2));
+    add(spacer(`demo_plan_spd_${i}`, cid, 28));
+    add(button(`demo_plan_btn_${i}`, cid, cta, i === 1 ? C.white : C.deep, i === 1 ? C.deep : C.white, pad(13, 22), fl('fill')));
+    add(cell(cid, PRICING, 4,
+      [`demo_plan_name_${i}`, `demo_plan_sp_${i}`, `demo_plan_price_${i}`, `demo_plan_desc_${i}`, `demo_plan_spb_${i}`, `demo_plan_div_${i}`, `demo_plan_spc_${i}`, `demo_plan_features_${i}`, `demo_plan_spd_${i}`, `demo_plan_btn_${i}`],
+      'column', 'stretch', 'flex-start', 0, pad(34, 30), bg,
+      { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }, bdr(8, 1, i === 1 ? C.deep : C.line), 430));
+  });
+  add(section(PRICING, 'section', 'Pricing', ['demo_price_head', ...planCells], secSolid(C.white), 22, 22, pad(86, 48)));
 
-  add(mkSection(FOOT, 'footer', 'Footer', [gcF1, gcF2, gcF3], secSolid(C.dark), 0, 0));
+  const CTA = 'demo_cta';
+  add(text('demo_cta_kicker', 'demo_cta_main', 'READY TO SHOWCASE THE BUILDER?', 12, '800', C.aqua, 'center', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(spacer('demo_cta_sp1', 'demo_cta_main', 14));
+  add(text('demo_cta_title', 'demo_cta_main', 'Build a page that feels finished from the first screen to the footer.', 42, '800', C.white, 'center', 108, 1.2, pad(0), fl('fill'), {
+    mobile: { style: { typography: { size: 28 } } },
+  }));
+  add(spacer('demo_cta_sp2', 'demo_cta_main', 18));
+  add(text('demo_cta_body', 'demo_cta_main', 'This demo is intentionally realistic: strong spacing, clear hierarchy, testimonials, pricing, CTA, footer, and responsive section behavior.', 17, '400', '#c7eee5', 'center', 56, 1.65));
+  add(spacer('demo_cta_sp3', 'demo_cta_main', 34));
+  add(button('demo_cta_btn', 'demo_cta_main', 'Start a free build', C.white, C.deep, pad(15, 28), fl('auto')));
+  add(cell('demo_cta_main', CTA, 12,
+    ['demo_cta_kicker', 'demo_cta_sp1', 'demo_cta_title', 'demo_cta_sp2', 'demo_cta_body', 'demo_cta_sp3', 'demo_cta_btn'],
+    'column', 'center', 'flex-start', 0, pad(92, 80), 'transparent'));
+  add(section(CTA, 'section', 'CTA', ['demo_cta_main'], secGrad(C.teal, C.deep, 135), 0, 0));
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PAGE + STATE
-  // ══════════════════════════════════════════════════════════════════════════
-  const pageId = 'page_demo_1';
+  const FOOT = 'demo_footer';
+  add(text('demo_foot_brand', 'demo_foot_about', 'Clearbase', 22, '800', C.white, 'left', 32, 1, pad(0), fl('auto')));
+  add(spacer('demo_foot_sp1', 'demo_foot_about', 12));
+  add(text('demo_foot_desc', 'demo_foot_about', 'A focused workspace for teams that need to launch thoughtful, responsive marketing pages without slowing down.', 14, '400', '#9cc9c0', 'left', 72, 1.7));
+  add(spacer('demo_foot_sp2', 'demo_foot_about', 18));
+  add(text('demo_foot_copy', 'demo_foot_about', 'Copyright 2026 Clearbase Inc. All rights reserved.', 12, '600', '#6da79b', 'left', 22, 1.4));
+  add(cell('demo_foot_about', FOOT, 5, ['demo_foot_brand', 'demo_foot_sp1', 'demo_foot_desc', 'demo_foot_sp2', 'demo_foot_copy'],
+    'column', 'flex-start', 'flex-start', 0, pad(48, 42), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
+  add(text('demo_foot_product_title', 'demo_foot_product', 'PRODUCT', 12, '800', C.white, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(divider('demo_foot_product_div', 'demo_foot_product', '#245d55'));
+  add(text('demo_foot_product_links', 'demo_foot_product', 'Builder\nTemplates\nExport\nResponsive', 14, '500', '#9cc9c0', 'left', 92, 2.2));
+  add(cell('demo_foot_product', FOOT, 3, ['demo_foot_product_title', 'demo_foot_product_div', 'demo_foot_product_links'],
+    'column', 'flex-start', 'flex-start', 0, pad(48, 28), 'transparent',
+    { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } }));
+  add(text('demo_foot_company_title', 'demo_foot_company', 'COMPANY', 12, '800', C.white, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(divider('demo_foot_company_div', 'demo_foot_company', '#245d55'));
+  add(text('demo_foot_company_links', 'demo_foot_company', 'About\nCustomers\nPricing\nContact', 14, '500', '#9cc9c0', 'left', 92, 2.2));
+  add(cell('demo_foot_company', FOOT, 2, ['demo_foot_company_title', 'demo_foot_company_div', 'demo_foot_company_links'],
+    'column', 'flex-start', 'flex-start', 0, pad(48, 28), 'transparent',
+    { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } }));
+  add(text('demo_foot_contact_title', 'demo_foot_contact', 'CONTACT', 12, '800', C.white, 'left', 18, 1, pad(0), fl('fill'), {}, 0));
+  add(divider('demo_foot_contact_div', 'demo_foot_contact', '#245d55'));
+  add(text('demo_foot_contact_links', 'demo_foot_contact', 'hello@clearbase.io\nSan Francisco, CA\nLinkedIn / X', 14, '500', '#9cc9c0', 'left', 74, 2.1));
+  add(cell('demo_foot_contact', FOOT, 2, ['demo_foot_contact_title', 'demo_foot_contact_div', 'demo_foot_contact_links'],
+    'column', 'flex-start', 'flex-start', 0, pad(48, 28, 48, 12), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
+  add(section(FOOT, 'footer', 'Footer', ['demo_foot_about', 'demo_foot_product', 'demo_foot_company', 'demo_foot_contact'], secSolid(C.deep), 0, 0));
 
+  const pageId = 'demo_page_clearbase';
   return {
     schema: '2.0',
-    site: { name: 'Buildify', favicon: '', language: 'en' },
+    site: { name: 'Clearbase', favicon: '', language: 'en' },
     theme: {
       colors: {
-        primary: C.teal, secondary: C.teal2,
-        text: C.txtDark, background: C.white, light: C.light, accent: '#e74c3c',
+        primary: C.teal,
+        secondary: C.mint,
+        text: C.ink,
+        background: C.white,
+        light: C.soft,
+        accent: C.coral,
       },
       fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
     },
     pages: [{
-      id: pageId, name: 'Demo Page', slug: '/',
+      id: pageId,
+      name: 'Clearbase SaaS Demo',
+      slug: '/',
       seo: {
-        title: 'Buildify — Design Pages That Convert',
-        description: 'Create beautiful, responsive websites in minutes with our intuitive drag-and-drop builder.',
+        title: 'Clearbase - Modern SaaS Builder Demo',
+        description: 'A polished production-style SaaS landing page built inside the microsite builder.',
         ogImage: '',
       },
-      header: H, footer: FOOT,
-      sections: [HERO, FEAT, CONT, STATS, CTA],
+      header: HDR,
+      footer: FOOT,
+      sections: [HERO, LOGOS, FEATURES, PRODUCT, TEST, PRICING, CTA],
     }],
     activePageId: pageId,
     nodes: nodes as BuilderState['nodes'],

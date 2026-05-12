@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import type { CanvasElement, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
@@ -96,7 +96,17 @@ function SectionGroup({
       .map(id => nodes[id] as GridCell | undefined)
       .filter((c): c is GridCell => !!c);
 
-    const totalElements = cells.reduce((sum, c) => sum + c.children.length, 0);
+    function countCellElements(cell: GridCell): number {
+      if (cell.nestedGrid) {
+        return cell.children.reduce((sum, id) => {
+          const sub = nodes[id] as GridCell | undefined;
+          return sum + (sub ? countCellElements(sub) : 0);
+        }, 0);
+      }
+      return cell.children.length;
+    }
+
+    const totalElements = cells.reduce((sum, c) => sum + countCellElements(c), 0);
 
     const renderGridElementRow = (el: CanvasElement) => {
       const isSelected = selectedIds.includes(el.id);
@@ -126,6 +136,58 @@ function SectionGroup({
         </div>
       );
     };
+
+    function renderCellLayer(cell: GridCell, cellIdx: number, depth: number): React.ReactNode {
+      const isCellSelected = selectedGridCellId === cell.id;
+      const indent = depth * 12;
+
+      if (cell.nestedGrid) {
+        const subCells = cell.children
+          .map(id => nodes[id] as GridCell | undefined)
+          .filter((c): c is GridCell => !!c);
+        return (
+          <div key={cell.id} className="layer-grid-cell-group">
+            <div
+              className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
+              style={{ paddingLeft: 8 + indent }}
+              onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+            >
+              <span className="layer-column-icon">⊞</span>
+              <span className="layer-column-label">Col {cellIdx + 1} (nested)</span>
+              <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
+              <span className="layer-section-count">{countCellElements(cell)}</span>
+            </div>
+            {subCells.length === 0 && (
+              <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty nested grid</div>
+            )}
+            {subCells.map((sub, si) => renderCellLayer(sub, si, depth + 1))}
+          </div>
+        );
+      }
+
+      const cellElements = cell.children
+        .map(id => nodes[id] as CanvasElement | undefined)
+        .filter((el): el is CanvasElement => !!el);
+
+      return (
+        <div key={cell.id} className="layer-grid-cell-group">
+          <div
+            className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
+            style={{ paddingLeft: 8 + indent }}
+            onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+          >
+            <span className="layer-column-icon">⊟</span>
+            <span className="layer-column-label">Col {cellIdx + 1}</span>
+            <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
+            <span className="layer-section-count">{cellElements.length}</span>
+          </div>
+          {cellElements.length === 0 && (
+            <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty</div>
+          )}
+          {cellElements.map(el => renderGridElementRow(el))}
+        </div>
+      );
+    }
 
     return (
       <div
@@ -157,30 +219,7 @@ function SectionGroup({
             {cells.length === 0 && (
               <div className="layer-empty-section">No columns yet</div>
             )}
-            {cells.map((cell, cellIdx) => {
-              const cellElements = cell.children
-                .map(id => nodes[id] as CanvasElement | undefined)
-                .filter((el): el is CanvasElement => !!el);
-              const isCellSelected = selectedGridCellId === cell.id;
-
-              return (
-                <div key={cell.id} className="layer-grid-cell-group">
-                  <div
-                    className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
-                    onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
-                  >
-                    <span className="layer-column-icon">⊟</span>
-                    <span className="layer-column-label">Col {cellIdx + 1}</span>
-                    <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
-                    <span className="layer-section-count">{cellElements.length}</span>
-                  </div>
-                  {cellElements.length === 0 && (
-                    <div className="layer-empty-section" style={{ paddingLeft: 32 }}>Empty</div>
-                  )}
-                  {cellElements.map(el => renderGridElementRow(el))}
-                </div>
-              );
-            })}
+            {cells.map((cell, cellIdx) => renderCellLayer(cell, cellIdx, 0))}
           </div>
         )}
       </div>
@@ -384,11 +423,21 @@ export function LayerPanel({
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
 
+  function countCellElementsDeep(cell: GridCell): number {
+    if (cell.nestedGrid) {
+      return cell.children.reduce((sum, id) => {
+        const sub = nodes[id] as GridCell | undefined;
+        return sum + (sub ? countCellElementsDeep(sub) : 0);
+      }, 0);
+    }
+    return cell.children.length;
+  }
+
   const totalElements = [header, ...sections, footer].reduce((sum, s) => {
     if (s.layoutMode === 'grid') {
       return sum + s.children.reduce((cSum, cellId) => {
         const cell = nodes[cellId] as GridCell | undefined;
-        return cSum + (cell?.children.length ?? 0);
+        return cSum + (cell ? countCellElementsDeep(cell) : 0);
       }, 0);
     }
     return sum + s.children.length;

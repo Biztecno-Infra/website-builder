@@ -26,9 +26,10 @@ const COLOR_FIELDS: Array<{ key: keyof ThemeColors; label: string }> = [
 interface Props {
   theme: SiteTheme;
   onUpdate: (updates: Partial<SiteTheme>) => void;
+  onApplyTheme?: () => void;
 }
 
-export function ThemePanel({ theme, onUpdate }: Props) {
+export function ThemePanel({ theme, onUpdate, onApplyTheme }: Props) {
   const updateColor = (key: keyof ThemeColors, value: string) => {
     onUpdate({ colors: { ...theme.colors, [key]: value } });
   };
@@ -105,6 +106,18 @@ export function ThemePanel({ theme, onUpdate }: Props) {
           </div>
         </div>
       </div>
+
+      {onApplyTheme && (
+        <div className="prop-section">
+          <div className="section-header">Apply</div>
+          <p style={{ fontSize: 11, color: '#888', margin: '0 0 8px' }}>
+            Push theme fonts &amp; colors onto all existing text and button elements on the canvas.
+          </p>
+          <button className="apply-theme-btn" onClick={onApplyTheme}>
+            Apply Theme to Canvas
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

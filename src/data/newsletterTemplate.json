@@ -1,0 +1,108 @@
+{
+  "schema": "2.0",
+  "site": { "name": "Newsletter", "favicon": "", "language": "en" },
+  "theme": {
+    "colors": {
+      "primary": "#070127", "secondary": "#ffffff",
+      "text": "#000000", "background": "#ffffff", "light": "#f8f8f8", "accent": "#070127"
+    },
+    "fonts": { "heading": "Arial, sans-serif", "body": "Arial, sans-serif" }
+  },
+  "pages": [{
+    "id": "page_newsletter", "name": "Newsletter Template", "slug": "/",
+    "seo": { "title": "Newsletter Template", "description": "", "ogImage": "" },
+    "header": "sec_nl_hdr", "footer": "sec_nl_foot",
+    "sections": ["sec_nl_hero", "sec_nl_res", "sec_nl_title", "sec_nl_cards", "sec_nl_feat"]
+  }],
+  "activePageId": "page_newsletter",
+  "nodes": {
+
+    "sec_nl_hdr": { "id": "sec_nl_hdr", "type": "section", "layoutMode": "grid", "role": "header", "label": "Header", "layout": { "height": 600 }, "style": { "background": { "color": "#070127", "from": "#070127", "to": "#070127" } }, "children": ["gc_nl_hl", "gc_nl_hn"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_hl": { "id": "gc_nl_hl", "type": "grid-cell", "parent": "sec_nl_hdr", "children": ["el_nl_logo"], "style": { "layoutMode": "row", "gap": 0, "padding": { "top": 16, "right": 24, "bottom": 16, "left": 24 }, "alignItems": "center" }, "responsive": { "mobile": { "columnSpan": 12, "justifyContent": "center" } } },
+    "el_nl_logo": { "id": "el_nl_logo", "type": "image", "parent": "gc_nl_hl", "layout": { "width": 120, "height": 40 }, "style": { "typography": { "family": "Arial, sans-serif", "color": "#ffffff", "lineHeight": 1 } }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/company_logo_saas.png", "alt": "Company Logo", "objectFit": "contain" }, "flexLayout": { "widthMode": "auto" } },
+
+    "gc_nl_hn": { "id": "gc_nl_hn", "type": "grid-cell", "parent": "sec_nl_hdr", "columnSpan": 8, "children": ["el_nl_nav_0", "el_nl_nav_1", "el_nl_nav_2", "el_nl_nav_3"], "style": { "layoutMode": "row", "gap": 16, "padding": { "top": 16, "right": 24, "bottom": 16, "left": 24 }, "alignItems": "center", "justifyContent": "flex-end" }, "responsive": { "mobile": { "columnSpan": 12, "layoutMode": "column", "alignItems": "center", "justifyContent": "flex-start" } } },
+    "el_nl_nav_0": { "id": "el_nl_nav_0", "type": "text", "parent": "gc_nl_hn", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 15, "weight": "400", "color": "#ffffff", "align": "center", "lineHeight": 1 } }, "content": { "plain": "Home" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_nav_1": { "id": "el_nl_nav_1", "type": "text", "parent": "gc_nl_hn", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 15, "weight": "400", "color": "#ffffff", "align": "center", "lineHeight": 1 } }, "content": { "plain": "Product" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_nav_2": { "id": "el_nl_nav_2", "type": "text", "parent": "gc_nl_hn", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 15, "weight": "400", "color": "#ffffff", "align": "center", "lineHeight": 1 } }, "content": { "plain": "About Us" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_nav_3": { "id": "el_nl_nav_3", "type": "text", "parent": "gc_nl_hn", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 15, "weight": "400", "color": "#ffffff", "align": "center", "lineHeight": 1 } }, "content": { "plain": "Blog" }, "flexLayout": { "widthMode": "auto" } },
+
+    "sec_nl_hero": { "id": "sec_nl_hero", "type": "section", "layoutMode": "grid", "role": "section", "label": "Hero", "layout": { "height": 600 }, "style": { "background": { "color": "#070127", "from": "#070127", "to": "#070127" } }, "children": ["gc_nl_hero"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_hero": { "id": "gc_nl_hero", "type": "grid-cell", "parent": "sec_nl_hero", "columnSpan": 12, "children": ["el_nl_h_sp1", "el_nl_h_title", "el_nl_h_sp2", "el_nl_h_sub", "el_nl_h_sp3", "el_nl_h_img", "el_nl_h_sp4"], "style": { "gap": 0, "padding": { "top": 0, "right": 40, "bottom": 0, "left": 40 }, "alignItems": "center" } },
+
+    "el_nl_h_sp1": { "id": "el_nl_h_sp1", "type": "spacer", "parent": "gc_nl_hero", "layout": { "height": 32 } },
+    "el_nl_h_title": { "id": "el_nl_h_title", "type": "text", "parent": "gc_nl_hero", "layout": { "height": 112 }, "style": { "padding": { "top": 0, "right": 80, "bottom": 0, "left": 80 }, "typography": { "family": "Arial, sans-serif", "size": 42, "weight": "700", "color": "#ffffff", "align": "center", "lineHeight": 1.2 } }, "content": { "plain": "All the Signals You Need Delivered in One Powerful Digest" }, "responsive": { "tablet": { "style": { "typography": { "size": 32 } } }, "mobile": { "style": { "typography": { "size": 24 } } } } },
+    "el_nl_h_sp2": { "id": "el_nl_h_sp2", "type": "spacer", "parent": "gc_nl_hero", "layout": { "height": 20 } },
+    "el_nl_h_sub": { "id": "el_nl_h_sub", "type": "text", "parent": "gc_nl_hero", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "weight": "400", "color": "#c3c3c3", "align": "center", "lineHeight": 1.2 } }, "content": { "plain": "Fresh updates, standout stories, and tools to help you operate at your best." } },
+    "el_nl_h_sp3": { "id": "el_nl_h_sp3", "type": "spacer", "parent": "gc_nl_hero", "layout": { "height": 36 } },
+    "el_nl_h_img": { "id": "el_nl_h_img", "type": "image", "parent": "gc_nl_hero", "layout": { "height": 480 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/saas_hero_image-min.png", "alt": "Dashboard", "objectFit": "contain" } },
+    "el_nl_h_sp4": { "id": "el_nl_h_sp4", "type": "spacer", "parent": "gc_nl_hero", "layout": { "height": 48 } },
+
+    "sec_nl_res": { "id": "sec_nl_res", "type": "section", "layoutMode": "grid", "role": "section", "label": "Resources Bar", "layout": { "height": 600 }, "children": ["gc_nl_rl", "gc_nl_rr"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_rl": { "id": "gc_nl_rl", "type": "grid-cell", "parent": "sec_nl_res", "columnSpan": 7, "children": ["el_nl_r_h2"], "style": { "gap": 0, "padding": { "top": 40, "right": 40, "bottom": 40, "left": 40 }, "alignItems": "center" } },
+    "el_nl_r_h2": { "id": "el_nl_r_h2", "type": "text", "parent": "gc_nl_rl", "layout": { "height": 72 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 28, "weight": "700", "color": "#000000", "lineHeight": 1.2 } }, "content": { "plain": "Templates, guides, and playbooks you can use.", "rich": "Templates, guides, and playbooks <span style=\"color:#807f7f\">you can use.</span>" } },
+
+    "gc_nl_rr": { "id": "gc_nl_rr", "type": "grid-cell", "parent": "sec_nl_res", "columnSpan": 5, "children": ["el_nl_r_desc", "el_nl_r_sp", "el_nl_r_btn"], "style": { "gap": 0, "padding": { "top": 40, "right": 40, "bottom": 40, "left": 24 } } },
+    "el_nl_r_desc": { "id": "el_nl_r_desc", "type": "text", "parent": "gc_nl_rr", "layout": { "height": 44 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#000000", "lineHeight": 1.2 } }, "content": { "plain": "We've bundled our most requested resources into one tidy collection" } },
+    "el_nl_r_sp": { "id": "el_nl_r_sp", "type": "spacer", "parent": "gc_nl_rr", "layout": { "height": 16 } },
+    "el_nl_r_btn": { "id": "el_nl_r_btn", "type": "button", "parent": "gc_nl_rr", "layout": { "width": 160, "height": 40 }, "style": { "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 }, "border": { "radius": 4, "width": 1, "color": "#000000", "style": "solid" }, "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#000000", "align": "center", "lineHeight": 1 } }, "content": { "plain": "Download the Toolkit", "label": "Download the Toolkit" }, "flexLayout": { "widthMode": "auto" } },
+
+    "sec_nl_title": { "id": "sec_nl_title", "type": "section", "layoutMode": "grid", "role": "section", "label": "Section Heading", "layout": { "height": 600 }, "children": ["gc_nl_title"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_title": { "id": "gc_nl_title", "type": "grid-cell", "parent": "sec_nl_title", "columnSpan": 12, "children": ["el_nl_t_h2"], "style": { "gap": 0, "padding": { "top": 48, "right": 40, "bottom": 48, "left": 40 }, "alignItems": "center" } },
+    "el_nl_t_h2": { "id": "el_nl_t_h2", "type": "text", "parent": "gc_nl_title", "layout": { "height": 52 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 36, "weight": "700", "color": "#000000", "align": "center", "lineHeight": 1.2 } }, "content": { "plain": "Short, practical frameworks for better decisions." }, "responsive": { "tablet": { "style": { "typography": { "size": 28 } } }, "mobile": { "style": { "typography": { "size": 22 } } } } },
+
+    "sec_nl_cards": { "id": "sec_nl_cards", "type": "section", "layoutMode": "grid", "role": "section", "label": "Content Cards", "layout": { "height": 600 }, "style": { "padding": { "top": 0, "right": 40, "bottom": 40, "left": 40 } }, "children": ["gc_nl_c0", "gc_nl_c1", "gc_nl_c2", "gc_nl_c3"] },
+
+    "gc_nl_c0": { "id": "gc_nl_c0", "type": "grid-cell", "parent": "sec_nl_cards", "columnSpan": 6, "children": ["el_nl_c0_icon", "el_nl_c0_sp1", "el_nl_c0_title", "el_nl_c0_sp2", "el_nl_c0_desc"], "style": { "gap": 0, "padding": { "top": 28, "right": 28, "bottom": 28, "left": 28 }, "background": { "color": "#e6daf9" }, "border": { "radius": 15, "color": "transparent" } }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_c0_icon":  { "id": "el_nl_c0_icon",  "type": "image",  "parent": "gc_nl_c0", "layout": { "width": 56, "height": 56 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/graph.png",    "alt": "Graph",    "objectFit": "contain" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_c0_sp1":   { "id": "el_nl_c0_sp1",   "type": "spacer", "parent": "gc_nl_c0", "layout": { "height": 12 } },
+    "el_nl_c0_title": { "id": "el_nl_c0_title", "type": "text",   "parent": "gc_nl_c0", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 20, "weight": "700", "color": "#070127", "lineHeight": 1.2 } }, "content": { "plain": "Data Deep Dive" } },
+    "el_nl_c0_sp2":   { "id": "el_nl_c0_sp2",   "type": "spacer", "parent": "gc_nl_c0", "layout": { "height": 8 } },
+    "el_nl_c0_desc":  { "id": "el_nl_c0_desc",  "type": "text",   "parent": "gc_nl_c0", "layout": { "height": 88 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#454545", "lineHeight": 1.4 } }, "content": { "plain": "Every month, we analyze anonymized usage patterns across our platform to understand where teams are gaining speed—and where friction still hides" } },
+
+    "gc_nl_c1": { "id": "gc_nl_c1", "type": "grid-cell", "parent": "sec_nl_cards", "columnSpan": 6, "children": ["el_nl_c1_icon", "el_nl_c1_sp1", "el_nl_c1_title", "el_nl_c1_sp2", "el_nl_c1_desc"], "style": { "gap": 0, "padding": { "top": 28, "right": 28, "bottom": 28, "left": 28 }, "background": { "color": "#e7f5ff" }, "border": { "radius": 15, "color": "transparent" } }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_c1_icon":  { "id": "el_nl_c1_icon",  "type": "image",  "parent": "gc_nl_c1", "layout": { "width": 56, "height": 56 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/Feature.png",  "alt": "Feature",  "objectFit": "contain" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_c1_sp1":   { "id": "el_nl_c1_sp1",   "type": "spacer", "parent": "gc_nl_c1", "layout": { "height": 12 } },
+    "el_nl_c1_title": { "id": "el_nl_c1_title", "type": "text",   "parent": "gc_nl_c1", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 20, "weight": "700", "color": "#070127", "lineHeight": 1.2 } }, "content": { "plain": "Feature in Focus" } },
+    "el_nl_c1_sp2":   { "id": "el_nl_c1_sp2",   "type": "spacer", "parent": "gc_nl_c1", "layout": { "height": 8 } },
+    "el_nl_c1_desc":  { "id": "el_nl_c1_desc",  "type": "text",   "parent": "gc_nl_c1", "layout": { "height": 88 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#454545", "lineHeight": 1.4 } }, "content": { "plain": "Meet Smart Templates—your shortcut to consistent, repeatable workflows. Perfect for onboarding, reporting, and anything your team does more than twice." } },
+
+    "gc_nl_c2": { "id": "gc_nl_c2", "type": "grid-cell", "parent": "sec_nl_cards", "columnSpan": 6, "children": ["el_nl_c2_icon", "el_nl_c2_sp1", "el_nl_c2_title", "el_nl_c2_sp2", "el_nl_c2_desc"], "style": { "gap": 0, "padding": { "top": 28, "right": 28, "bottom": 28, "left": 28 }, "background": { "color": "#ebfeda" }, "border": { "radius": 14, "color": "transparent" } }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_c2_icon":  { "id": "el_nl_c2_icon",  "type": "image",  "parent": "gc_nl_c2", "layout": { "width": 56, "height": 56 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/compass.png",   "alt": "Compass",  "objectFit": "contain" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_c2_sp1":   { "id": "el_nl_c2_sp1",   "type": "spacer", "parent": "gc_nl_c2", "layout": { "height": 12 } },
+    "el_nl_c2_title": { "id": "el_nl_c2_title", "type": "text",   "parent": "gc_nl_c2", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 20, "weight": "700", "color": "#070127", "lineHeight": 1.2 } }, "content": { "plain": "Strategy Corner" } },
+    "el_nl_c2_sp2":   { "id": "el_nl_c2_sp2",   "type": "spacer", "parent": "gc_nl_c2", "layout": { "height": 8 } },
+    "el_nl_c2_desc":  { "id": "el_nl_c2_desc",  "type": "text",   "parent": "gc_nl_c2", "layout": { "height": 88 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#454545", "lineHeight": 1.4 } }, "content": { "plain": "This week's lens: The 2–10–30 Rule—a simple way to evaluate where time, energy, and resources should go as product teams scale." } },
+
+    "gc_nl_c3": { "id": "gc_nl_c3", "type": "grid-cell", "parent": "sec_nl_cards", "columnSpan": 6, "children": ["el_nl_c3_icon", "el_nl_c3_sp1", "el_nl_c3_title", "el_nl_c3_sp2", "el_nl_c3_desc"], "style": { "gap": 0, "padding": { "top": 28, "right": 28, "bottom": 28, "left": 28 }, "background": { "color": "#dcfaea" }, "border": { "radius": 14, "color": "transparent" } }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_c3_icon":  { "id": "el_nl_c3_icon",  "type": "image",  "parent": "gc_nl_c3", "layout": { "width": 56, "height": 56 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/highlight.png", "alt": "Highlight", "objectFit": "contain" }, "flexLayout": { "widthMode": "auto" } },
+    "el_nl_c3_sp1":   { "id": "el_nl_c3_sp1",   "type": "spacer", "parent": "gc_nl_c3", "layout": { "height": 12 } },
+    "el_nl_c3_title": { "id": "el_nl_c3_title", "type": "text",   "parent": "gc_nl_c3", "layout": { "height": 28 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 20, "weight": "700", "color": "#070127", "lineHeight": 1.2 } }, "content": { "plain": "Community Highlight" } },
+    "el_nl_c3_sp2":   { "id": "el_nl_c3_sp2",   "type": "spacer", "parent": "gc_nl_c3", "layout": { "height": 8 } },
+    "el_nl_c3_desc":  { "id": "el_nl_c3_desc",  "type": "text",   "parent": "gc_nl_c3", "layout": { "height": 88 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#454545", "lineHeight": 1.4 } }, "content": { "plain": "From workflow blueprints to clever shortcuts, our users keep surprising us with creative ways to get more from the product." } },
+
+    "sec_nl_feat": { "id": "sec_nl_feat", "type": "section", "layoutMode": "grid", "role": "section", "label": "Feature CTA", "layout": { "height": 600 }, "style": { "background": { "color": "#070127", "from": "#070127", "to": "#070127" } }, "children": ["gc_nl_fl", "gc_nl_fr"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_fl": { "id": "gc_nl_fl", "type": "grid-cell", "parent": "sec_nl_feat", "columnSpan": 6, "children": ["el_nl_f_h2", "el_nl_f_sp1", "el_nl_f_desc", "el_nl_f_sp2", "el_nl_f_btn"], "style": { "gap": 0, "padding": { "top": 60, "right": 48, "bottom": 60, "left": 48 } }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_f_h2":  { "id": "el_nl_f_h2",  "type": "text",   "parent": "gc_nl_fl", "layout": { "height": 72 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 28, "weight": "700", "color": "#ffffff", "lineHeight": 1.2 } }, "content": { "plain": "A Smoother, Faster Experience Now Live!" }, "responsive": { "tablet": { "style": { "typography": { "size": 22 } } }, "mobile": { "style": { "typography": { "size": 18 } } } } },
+    "el_nl_f_sp1": { "id": "el_nl_f_sp1", "type": "spacer", "parent": "gc_nl_fl", "layout": { "height": 16 } },
+    "el_nl_f_desc": { "id": "el_nl_f_desc", "type": "text", "parent": "gc_nl_fl", "layout": { "height": 96 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#b9b9b9", "lineHeight": 1.4 } }, "content": { "plain": "We've rolled out a series of performance improvements designed to make your workflow feel effortless. Expect quicker load times, a more intuitive navigation flow, and upgraded accessibility features across key dashboards." } },
+    "el_nl_f_sp2": { "id": "el_nl_f_sp2", "type": "spacer", "parent": "gc_nl_fl", "layout": { "height": 28 } },
+    "el_nl_f_btn": { "id": "el_nl_f_btn", "type": "button", "parent": "gc_nl_fl", "layout": { "width": 160, "height": 40 }, "style": { "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 }, "border": { "radius": 4, "width": 1, "color": "#ffffff", "style": "solid" }, "typography": { "family": "Arial, sans-serif", "size": 14, "weight": "400", "color": "#ffffff", "align": "center", "lineHeight": 1 } }, "content": { "plain": "Explore What's New", "label": "Explore What's New" }, "flexLayout": { "widthMode": "auto" } },
+
+    "gc_nl_fr": { "id": "gc_nl_fr", "type": "grid-cell", "parent": "sec_nl_feat", "columnSpan": 6, "children": ["el_nl_f_img"], "style": { "gap": 0, "padding": { "top": 40, "right": 40, "bottom": 40, "left": 40 }, "alignItems": "center", "justifyContent": "center" }, "responsive": { "tablet": { "columnSpan": 12 }, "mobile": { "columnSpan": 12 } } },
+    "el_nl_f_img": { "id": "el_nl_f_img", "type": "image", "parent": "gc_nl_fr", "layout": { "height": 320 }, "content": { "src": "https://d1oco4z2z1fhwp.cloudfront.net/templates/default/10661/feature_saas.png", "alt": "Feature Preview", "objectFit": "contain" }, "flexLayout": { "flexGrow": 1, "alignSelf": "center" } },
+
+    "sec_nl_foot": { "id": "sec_nl_foot", "type": "section", "layoutMode": "grid", "role": "footer", "label": "Footer", "layout": { "height": 600 }, "style": { "background": { "color": "#070127", "from": "#070127", "to": "#070127" } }, "children": ["gc_nl_foot"], "grid": { "gap": 0, "rowGap": 0 } },
+
+    "gc_nl_foot": { "id": "gc_nl_foot", "type": "grid-cell", "parent": "sec_nl_foot", "columnSpan": 12, "children": ["el_nl_foot_copy", "el_nl_foot_sp", "el_nl_foot_addr"], "style": { "gap": 0, "padding": { "top": 32, "right": 40, "bottom": 32, "left": 40 }, "alignItems": "center" } },
+    "el_nl_foot_copy": { "id": "el_nl_foot_copy", "type": "text",   "parent": "gc_nl_foot", "layout": { "height": 22 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 13, "weight": "400", "color": "#888888", "align": "center", "lineHeight": 1 } }, "content": { "plain": "© 2025 Company Name  ·  Unsubscribe  ·  Privacy Policy" } },
+    "el_nl_foot_sp":   { "id": "el_nl_foot_sp",   "type": "spacer", "parent": "gc_nl_foot", "layout": { "height": 8 } },
+    "el_nl_foot_addr": { "id": "el_nl_foot_addr", "type": "text",   "parent": "gc_nl_foot", "layout": { "height": 20 }, "style": { "typography": { "family": "Arial, sans-serif", "size": 12, "weight": "400", "color": "#666666", "align": "center", "lineHeight": 1 } }, "content": { "plain": "123 Example Street, City, Country" } }
+
+  }
+}

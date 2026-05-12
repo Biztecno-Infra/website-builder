@@ -195,6 +195,110 @@ button {
   opacity: 1;
 }
 
+/* ── Section template collapsible + cards ───────────────────── */
+.sidebar-collapsible-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #888;
+  text-align: left;
+}
+.sidebar-collapsible-header:hover { color: #006e75; }
+.sidebar-collapsible-icon { font-size: 10px; color: #aaa; }
+.sidebar-collapsible-count {
+  margin-left: auto;
+  background: #e8f4f4;
+  color: #006e75;
+  border-radius: 8px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.template-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 8px 8px;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: #f8fffe;
+  border: 1px solid #e0f0f0;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s, border-color 0.12s;
+}
+.template-card:hover {
+  background: #e8f7f5;
+  border-color: #0b978e;
+}
+.template-card-icon {
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+.template-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.template-card-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.template-card-desc {
+  font-size: 10px;
+  color: #888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Theme color swatches (RightSidebar) ────────────────────── */
+.theme-swatches {
+  display: flex;
+  gap: 5px;
+  padding: 3px 12px 8px;
+  flex-wrap: wrap;
+}
+.theme-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.theme-swatch:hover {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 2px rgba(0, 110, 117, 0.35);
+}
+
 .palette-icon {
   font-size: 16px;
   line-height: 1;
@@ -975,6 +1079,43 @@ button {
 
 .delete-btn:hover {
   background: #fee2e2;
+}
+
+.panel-action-btn {
+  background: transparent;
+  border: none;
+  color: #006e75;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.panel-action-btn:hover {
+  background: #e6f7f7;
+}
+
+.panel-action-btn:disabled {
+  color: #b0b0b0;
+  cursor: default;
+}
+
+.apply-theme-btn {
+  width: 100%;
+  padding: 8px 0;
+  background: #006e75;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.apply-theme-btn:hover {
+  background: #005a60;
 }
 
 /* ─── Property sections ─── */
@@ -1974,6 +2115,84 @@ button {
 .grid-cell-delete-btn:hover {
   background: #ef4444;
   color: #fff;
+}
+
+/* ─── Cell drag handle ─── */
+.grid-cell-drag-handle {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 12;
+  width: 22px;
+  height: 22px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity 0.15s;
+  user-select: none;
+  pointer-events: auto;
+}
+
+.grid-cell-drag-handle:active {
+  cursor: grabbing;
+}
+
+.grid-cell-wrapper:hover .grid-cell-drag-handle,
+.grid-cell--selected ~ .grid-cell-drag-handle,
+.grid-cell-wrapper:has(.grid-cell--selected) .grid-cell-drag-handle {
+  opacity: 1;
+}
+
+/* ─── Cell reorder insertion indicators ─── */
+.grid-cell-insert-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: #006e75;
+  border-radius: 2px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.grid-cell-insert-indicator--before { left: -3px; }
+.grid-cell-insert-indicator--after  { right: -3px; }
+
+/* ─── Nested grid cell ─── */
+.grid-cell--nested-container {
+  outline: 2px dashed #7c3aed44;
+}
+
+.grid-cell--nested-container:not(.grid-cell--selected):hover {
+  outline: 2px dashed #7c3aed88;
+}
+
+.grid-cell--nested-container.grid-cell--selected {
+  outline: 2px solid #7c3aed;
+}
+
+.nested-grid-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nested-grid-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+  color: #9ca3af;
+  font-size: 12px;
+  font-style: italic;
+  border: 1px dashed #d1d5db;
+  border-radius: 4px;
 }
 
 /* ─── Grid element (inside grid cell) ─── */

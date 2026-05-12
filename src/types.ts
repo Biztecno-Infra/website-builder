@@ -231,9 +231,18 @@ export interface GridCellStyle {
   justifyContent: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
 }
 
+export interface GridCellBpOverride {
+  columnSpan?: number;
+  hidden?: boolean;
+  layoutMode?: CellLayoutMode;
+  minHeight?: number;
+  alignItems?: GridCellStyle['alignItems'];
+  justifyContent?: GridCellStyle['justifyContent'];
+}
+
 export interface GridCellResponsive {
-  tablet?: { columnSpan?: number; hidden?: boolean; layoutMode?: CellLayoutMode; minHeight?: number };
-  mobile?: { columnSpan?: number; hidden?: boolean; layoutMode?: CellLayoutMode; minHeight?: number };
+  tablet?: GridCellBpOverride;
+  mobile?: GridCellBpOverride;
 }
 
 export interface GridCell {
@@ -241,9 +250,11 @@ export interface GridCell {
   type: 'grid-cell';
   parent: string;
   columnSpan: number;
+  rowSpan: number;
   style: GridCellStyle;
   children: string[];
   responsive: GridCellResponsive;
+  nestedGrid?: { gap: number; rowGap: number };
 }
 
 // ── Nodes flat map ─────────────────────────────────────────────────────

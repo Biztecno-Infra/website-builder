@@ -15,6 +15,10 @@ export const canvasDragShared = {
   zoom: 1,
 };
 
+export const dragState = {
+  context: null as 'palette' | 'grid-element' | null,
+};
+
 interface Props {
   element: El;
   isSelected: boolean;
@@ -150,6 +154,8 @@ export function CanvasElement({
     const originY = el.layout.y;
     const prevSnapshot = snapshot;
     let moved = false;
+    const prevPointerEvents = wrapperRef.current?.style.pointerEvents;
+    if (wrapperRef.current) wrapperRef.current.style.pointerEvents = 'none';
 
     const elRect = wrapperRef.current?.getBoundingClientRect();
     canvasDragShared.active = {
@@ -177,6 +183,7 @@ export function CanvasElement({
     };
 
     const onUp = () => {
+      if (wrapperRef.current) wrapperRef.current.style.pointerEvents = prevPointerEvents ?? '';
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       onGuides?.([]);

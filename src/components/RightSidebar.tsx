@@ -4,10 +4,34 @@ import type {
   CanvasElement, BuilderState, TextAlign, ObjectFit, Section, SectionUpdate, GridSection, GridCell,
   BreakpointOverride, ElementBackground, ElementLayout, ElementContent,
   ElementAnimation, Border, Padding, Shadow, Typography, ColumnStyle, SectionBackground,
-  CellLayoutMode, FlexWidthMode, NodeMap, TextTransform,
+  CellLayoutMode, FlexWidthMode, NodeMap, TextTransform, SiteTheme, ThemeColors,
 } from '../types';
 import { equalWidths, applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { injectGoogleFont } from '../utils/fonts';
+
+function ThemeSwatches({ colors, onPick }: { colors: ThemeColors; onPick: (c: string) => void }) {
+  const swatches: [string, string][] = [
+    ['Primary', colors.primary],
+    ['Secondary', colors.secondary],
+    ['Accent', colors.accent],
+    ['Text', colors.text],
+    ['Light', colors.light],
+    ['Background', colors.background],
+  ];
+  return (
+    <div className="theme-swatches">
+      {swatches.map(([name, color]) => (
+        <button
+          key={name}
+          className="theme-swatch"
+          title={`${name}: ${color}`}
+          style={{ background: color }}
+          onClick={() => onPick(color)}
+        />
+      ))}
+    </div>
+  );
+}
 
 interface Props {
   element: CanvasElement | null;
@@ -20,13 +44,19 @@ interface Props {
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onAddGridCell?: (sectionId: string) => void;
+  onAddNestedGrid?: (cellId: string) => void;
+  onRemoveNestedGrid?: (cellId: string) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   onDelete: (id: string) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
+  onCopyStyle?: () => void;
+  onPasteStyle?: () => void;
+  hasCopiedStyle?: boolean;
+  theme: SiteTheme;
 }
 
-export function RightSidebar({ element, section, gridCell = null, isInGridCell = false, nodes, snapshot, onUpdate, onUpdateSection, onUpdateGridCell, onAddGridCell, onPushSnapshot, onDelete, breakpoint = 'desktop', onUpdateResponsive }: Props) {
+export function RightSidebar({ element, section, gridCell = null, isInGridCell = false, nodes, snapshot, onUpdate, onUpdateSection, onUpdateGridCell, onAddGridCell, onAddNestedGrid, onRemoveNestedGrid, onPushSnapshot, onDelete, breakpoint = 'desktop', onUpdateResponsive, onCopyStyle, onPasteStyle, hasCopiedStyle = false, theme }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
   const [selectedColIdx, setSelectedColIdx] = useState(0);
   const [flexAdvanced, setFlexAdvanced] = useState(false);
@@ -68,6 +98,63 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
         onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
       } else {
         const { layoutMode: _lm, ...rest } = responsive.mobile ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+      }
+    };
+
+    type JustifyVal = typeof style.justifyContent;
+    type AlignVal = typeof style.alignItems;
+
+    const effJustify: JustifyVal =
+      breakpoint === 'tablet' ? (responsive.tablet?.justifyContent ?? style.justifyContent) :
+      breakpoint === 'mobile' ? (responsive.mobile?.justifyContent ?? responsive.tablet?.justifyContent ?? style.justifyContent) :
+      style.justifyContent;
+
+    const effAlign: AlignVal =
+      breakpoint === 'tablet' ? (responsive.tablet?.alignItems ?? style.alignItems) :
+      breakpoint === 'mobile' ? (responsive.mobile?.alignItems ?? responsive.tablet?.alignItems ?? style.alignItems) :
+      style.alignItems;
+
+    const justifyIsOverridden =
+      (breakpoint === 'tablet' && responsive.tablet?.justifyContent !== undefined) ||
+      (breakpoint === 'mobile' && responsive.mobile?.justifyContent !== undefined);
+
+    const alignIsOverridden =
+      (breakpoint === 'tablet' && responsive.tablet?.alignItems !== undefined) ||
+      (breakpoint === 'mobile' && responsive.mobile?.alignItems !== undefined);
+
+    const setCurrentJustify = (v: JustifyVal) => {
+      onPushSnapshot(snapshot);
+      if (isDesktop) onUpdateGridCell(gc.id, { style: { ...style, justifyContent: v } });
+      else if (breakpoint === 'tablet') onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, justifyContent: v } } });
+      else onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, justifyContent: v } } });
+    };
+
+    const setCurrentAlign = (v: AlignVal) => {
+      onPushSnapshot(snapshot);
+      if (isDesktop) onUpdateGridCell(gc.id, { style: { ...style, alignItems: v } });
+      else if (breakpoint === 'tablet') onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, alignItems: v } } });
+      else onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, alignItems: v } } });
+    };
+
+    const resetJustifyOverride = () => {
+      onPushSnapshot(snapshot);
+      if (breakpoint === 'tablet') {
+        const { justifyContent: _jc, ...rest } = responsive.tablet ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+      } else {
+        const { justifyContent: _jc, ...rest } = responsive.mobile ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+      }
+    };
+
+    const resetAlignOverride = () => {
+      onPushSnapshot(snapshot);
+      if (breakpoint === 'tablet') {
+        const { alignItems: _ai, ...rest } = responsive.tablet ?? {};
+        onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+      } else {
+        const { alignItems: _ai, ...rest } = responsive.mobile ?? {};
         onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
       }
     };
@@ -119,7 +206,40 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
               }}>↺</button>
             )}
           </div>
+          <div className="prop-row" style={{ gap: 4 }}>
+            <label style={{ color: '#888', fontSize: 11 }}>Quick</label>
+            <button
+              className="resp-clear-btn"
+              style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
+              title="Full width on tablet (span 12)"
+              onClick={() => {
+                onPushSnapshot(snapshot);
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: 12 } } });
+              }}
+            >⬛ Tab full</button>
+            <button
+              className="resp-clear-btn"
+              style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
+              title="Full width on mobile (span 12)"
+              onClick={() => {
+                onPushSnapshot(snapshot);
+                onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: 12 } } });
+              }}
+            >📱 Mob full</button>
+          </div>
         </div>
+
+        <div className="prop-section">
+          <div className="section-header">Row Span</div>
+          <div className="prop-row">
+            <label>Rows</label>
+            <input type="number" value={gc.rowSpan ?? 1} min={1} max={6}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { rowSpan: Math.max(1, Math.min(6, Number(e.target.value))) })} />
+            <span style={{ fontSize: 11, color: '#888' }}>/6</span>
+          </div>
+        </div>
+
         <div className="prop-section">
           <div className="section-header">Layout</div>
           <div className="prop-row">
@@ -146,25 +266,43 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
           )}
           <div className="prop-row">
             <label>Justify</label>
-            <select value={style.justifyContent}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, justifyContent: e.target.value as typeof style.justifyContent } }); }}>
+            <select value={effJustify} onChange={e => setCurrentJustify(e.target.value as JustifyVal)}>
               <option value="flex-start">Start</option>
               <option value="center">Center</option>
               <option value="flex-end">End</option>
               <option value="space-between">Space Between</option>
               <option value="space-around">Space Around</option>
             </select>
+            {!isDesktop && justifyIsOverridden && (
+              <button className="resp-clear-btn" title={`Reset to desktop (${style.justifyContent})`} onClick={resetJustifyOverride}>↺</button>
+            )}
           </div>
+          {!isDesktop && (
+            <div className="resp-ref-row">
+              <span className="resp-ref-label">🖥 Desktop:</span>
+              <span className="resp-ref-value">{style.justifyContent}</span>
+              {justifyIsOverridden && <span className="resp-badge">overridden</span>}
+            </div>
+          )}
           <div className="prop-row">
             <label>Align</label>
-            <select value={style.alignItems}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, alignItems: e.target.value as typeof style.alignItems } }); }}>
+            <select value={effAlign} onChange={e => setCurrentAlign(e.target.value as AlignVal)}>
               <option value="flex-start">Start</option>
               <option value="center">Center</option>
               <option value="flex-end">End</option>
               <option value="stretch">Stretch</option>
             </select>
+            {!isDesktop && alignIsOverridden && (
+              <button className="resp-clear-btn" title={`Reset to desktop (${style.alignItems})`} onClick={resetAlignOverride}>↺</button>
+            )}
           </div>
+          {!isDesktop && (
+            <div className="resp-ref-row">
+              <span className="resp-ref-label">🖥 Desktop:</span>
+              <span className="resp-ref-value">{style.alignItems}</span>
+              {alignIsOverridden && <span className="resp-badge">overridden</span>}
+            </div>
+          )}
           <div className="prop-row">
             <label>Elem. Gap</label>
             <input type="number" value={style.gap} min={0}
@@ -245,6 +383,7 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
               {' '}None
             </label>
           </div>
+          <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: c, type: 'solid' } } }); }} />
         </div>
         <div className="prop-section">
           <div className="section-header">Border</div>
@@ -283,6 +422,48 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
             </>
           )}
         </div>
+
+        {/* Nested Grid — only on top-level cells (parent is a Section, not another GridCell) */}
+        {nodes[gc.parent]?.type !== 'grid-cell' && (
+          <div className="prop-section">
+            <div className="section-header">Nested Grid</div>
+            {gc.nestedGrid ? (
+              <>
+                <div className="prop-row">
+                  <label>Col Gap</label>
+                  <input type="number" value={gc.nestedGrid.gap} min={0}
+                    onFocus={gcFocus} onBlur={gcBlur}
+                    onChange={e => onUpdateGridCell(gc.id, { nestedGrid: { ...gc.nestedGrid!, gap: Number(e.target.value) } })} />
+                  <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                </div>
+                <div className="prop-row">
+                  <label>Row Gap</label>
+                  <input type="number" value={gc.nestedGrid.rowGap} min={0}
+                    onFocus={gcFocus} onBlur={gcBlur}
+                    onChange={e => onUpdateGridCell(gc.id, { nestedGrid: { ...gc.nestedGrid!, rowGap: Number(e.target.value) } })} />
+                  <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                </div>
+                <div className="prop-row">
+                  <button className="grid-col-add-btn" onClick={() => { onPushSnapshot(snapshot); onAddGridCell?.(gc.id); }}>
+                    <span>+</span> Add Sub-Column
+                  </button>
+                </div>
+                <div className="prop-row">
+                  <button className="section-danger-btn"
+                    onClick={() => { if (window.confirm('Remove nested grid and all its contents?')) onRemoveNestedGrid?.(gc.id); }}>
+                    Remove Nested Grid
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="prop-row">
+                <button className="grid-col-add-btn" onClick={() => onAddNestedGrid?.(gc.id)}>
+                  ⊞ Convert to Nested Grid
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </aside>
     );
   }
@@ -311,24 +492,22 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
         </div>
         <div className="prop-section">
           <div className="section-header">Layout</div>
-          {section.role === 'section' && (
-            <div className="prop-row">
-              <label>Mode</label>
-              <div className="layout-mode-toggle">
-                <button
-                  className={`layout-mode-btn${!isGrid ? ' active' : ''}`}
-                  onClick={() => onUpdateSection(section.id, { layoutMode: 'free' })}
-                >Free</button>
-                <button
-                  className={`layout-mode-btn${isGrid ? ' active' : ''}`}
-                  onClick={() => onUpdateSection(section.id, {
-                    layoutMode: 'grid',
-                    grid: isGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 },
-                  })}
-                >Grid</button>
-              </div>
+          <div className="prop-row">
+            <label>Mode</label>
+            <div className="layout-mode-toggle">
+              <button
+                className={`layout-mode-btn${!isGrid ? ' active' : ''}`}
+                onClick={() => onUpdateSection(section.id, { layoutMode: 'free' })}
+              >Free</button>
+              <button
+                className={`layout-mode-btn${isGrid ? ' active' : ''}`}
+                onClick={() => onUpdateSection(section.id, {
+                  layoutMode: 'grid',
+                  grid: isGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 },
+                })}
+              >Grid</button>
             </div>
-          )}
+          </div>
           <div className="prop-row">
             <label>Label</label>
             <input type="text" value={section.label}
@@ -451,11 +630,14 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
             </select>
           </div>
           {bg.type === 'solid' && (
-            <div className="prop-row">
-              <label>Color</label>
-              <input type="color" value={secBgColor}
-                onChange={e => updateBg({ color: e.target.value })} />
-            </div>
+            <>
+              <div className="prop-row">
+                <label>Color</label>
+                <input type="color" value={secBgColor}
+                  onChange={e => updateBg({ color: e.target.value })} />
+              </div>
+              <ThemeSwatches colors={theme.colors} onPick={c => updateBg({ color: c })} />
+            </>
           )}
           {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (
             <>
@@ -464,11 +646,13 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
                 <input type="color" value={bg.from || '#006e75'}
                   onChange={e => updateBg({ from: e.target.value })} />
               </div>
+              <ThemeSwatches colors={theme.colors} onPick={c => updateBg({ from: c })} />
               <div className="prop-row">
                 <label>To</label>
                 <input type="color" value={bg.to || '#0b978e'}
                   onChange={e => updateBg({ to: e.target.value })} />
               </div>
+              <ThemeSwatches colors={theme.colors} onPick={c => updateBg({ to: c })} />
               {bg.type === 'linear-gradient' && (
                 <div className="prop-row">
                   <label>Angle</label>
@@ -642,9 +826,15 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
     <aside className="right-sidebar">
       <div className="panel-header">
         <span className="panel-header-title">Properties</span>
-        <button className="delete-btn" onClick={() => onDelete(id)} title="Delete (Del)">
-          ✕
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {onCopyStyle && (
+            <button className="panel-action-btn" title="Copy style" onClick={onCopyStyle}>⧉ Copy</button>
+          )}
+          {onPasteStyle && (
+            <button className="panel-action-btn" title={hasCopiedStyle ? 'Paste style' : 'Copy a style first'} disabled={!hasCopiedStyle} onClick={onPasteStyle}>⊞ Paste</button>
+          )}
+          <button className="delete-btn" onClick={() => onDelete(id)} title="Delete (Del)">✕</button>
+        </div>
       </div>
 
       {breakpoint !== 'desktop' && (
@@ -681,11 +871,6 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
             <span className="resp-badge">overridden</span>
           )}
         </div>
-        {isInGridCell && (
-          <div style={{ fontSize: 10, color: '#888', padding: '0 0 6px', lineHeight: 1.4 }}>
-            Height sets the minimum element height. Width is controlled by Flex Sizing below.
-          </div>
-        )}
         {!isInGridCell && (
           <>
             <div className="prop-row">
@@ -706,7 +891,7 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
           </>
         )}
         <div className="prop-row">
-          <label>H</label>
+          <label>{isInGridCell ? 'Min H' : 'H'}</label>
           <input type="number" value={eff.layout.height} min={20} onFocus={onFocus} onBlur={onBlur}
             onChange={e => changeResp({ layout: { height: Math.max(20, Number(e.target.value)) } })} />
         </div>
@@ -840,16 +1025,19 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
           </select>
         </div>
         {elBg.type === 'solid' && (
-          <div className="prop-row">
-            <label>BG Color</label>
-            <input type="color" value={bgColor} onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeBg({ color: e.target.value })} />
-            <label className="transparent-label">
-              <input type="checkbox" checked={elBg.color === 'transparent'}
-                onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
-              {' '}None
-            </label>
-          </div>
+          <>
+            <div className="prop-row">
+              <label>BG Color</label>
+              <input type="color" value={bgColor} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeBg({ color: e.target.value })} />
+              <label className="transparent-label">
+                <input type="checkbox" checked={elBg.color === 'transparent'}
+                  onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
+                {' '}None
+              </label>
+            </div>
+            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ color: c }); }} />
+          </>
         )}
         {(elBg.type === 'linear-gradient' || elBg.type === 'radial-gradient') && (
           <>
@@ -858,11 +1046,13 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
               <input type="color" value={elBg.from || '#006e75'} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeBg({ from: e.target.value })} />
             </div>
+            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ from: c }); }} />
             <div className="prop-row">
               <label>To</label>
               <input type="color" value={elBg.to || '#0b978e'} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeBg({ to: e.target.value })} />
             </div>
+            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ to: c }); }} />
             {elBg.type === 'linear-gradient' && (
               <div className="prop-row">
                 <label>Angle</label>
@@ -949,6 +1139,23 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
                 onChange={e => changeContent({ label: e.target.value })} />
             </div>
           )}
+          {element.type === 'button' && (
+            <div className="prop-row">
+              <label>Style</label>
+              <div className="btn-group">
+                <button
+                  className={element.style.background.color !== 'transparent' ? 'active' : ''}
+                  title="Filled button"
+                  onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: '#0B978E' }, border: { ...element.style.border, width: 0 } } }); }}
+                >Filled</button>
+                <button
+                  className={element.style.background.color === 'transparent' ? 'active' : ''}
+                  title="Outline button"
+                  onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: 'transparent' }, border: { ...element.style.border, width: 2, color: element.style.typography.color, style: 'solid' } } }); }}
+                >Outline</button>
+              </div>
+            </div>
+          )}
           <div className="prop-row">
             <label>Size</label>
             <input type="number" value={eff.style.typography.size} min={8} max={200}
@@ -1011,6 +1218,7 @@ export function RightSidebar({ element, section, gridCell = null, isInGridCell =
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeTypo({ color: e.target.value })} />
           </div>
+          <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeTypo({ color: c }); }} />
           <div className="prop-row">
             <label>Align</label>
             <div className="btn-group">

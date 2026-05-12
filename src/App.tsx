@@ -8,9 +8,15 @@ import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { useBuilderStore, makeEmpty } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
 import { makeDemoState } from './data/demoState';
+import { makeSaasLandingState } from './data/saasLandingState';
+import { makeAgencyState } from './data/agencyState';
+import { makePortfolioState } from './data/portfolioState';
+import newsletterTemplate from './data/newsletterTemplate.json';
+import linearShowcase from '../showcases/linear.json';
+import lemonSqueezyShowcase from '../showcases/lemon-squeezy.json';
 import { exportHtml } from './utils/exportHtml';
 import { serializeState } from './utils/serializeState';
-import type { Breakpoint, GridCell } from './types';
+import type { Breakpoint, GridCell, CanvasElement } from './types';
 
 export default function App() {
   const {
@@ -31,6 +37,7 @@ export default function App() {
     addElementAt,
     addSection,
     addGridSection,
+    addSectionFromTemplate,
     deleteSection,
     updateSection,
     duplicateSection,
@@ -64,8 +71,12 @@ export default function App() {
     addGridCell,
     updateGridCell,
     deleteGridCell,
+    reorderGridCell,
+    addNestedGrid,
+    removeNestedGrid,
     addElementToCell,
     moveGridElement,
+    moveElementToGridCell,
   } = useBuilderStore();
 
   const [snapEnabled, setSnapEnabled] = useState(true);
@@ -74,6 +85,7 @@ export default function App() {
   const [previewMode, setPreviewMode] = useState(false);
   const [previewMobile, setPreviewMobile] = useState(false);
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
+  const [styleClipboard, setStyleClipboard] = useState<CanvasElement['style'] | null>(null);
 
   const changeZoom = useCallback((delta: number) =>
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
@@ -90,6 +102,19 @@ export default function App() {
     selectedSectionId === header.id ? header :
     selectedSectionId === footer.id ? footer :
     sections.find(s => s.id === selectedSectionId) ?? null;
+
+  const handleApplyTheme = useCallback(() => {
+    if (!window.confirm('Apply theme fonts & colors to all text and button elements? (Ctrl+Z to undo)')) return;
+    pushSnapshot(state);
+    const updates = Object.values(nodes)
+      .filter((n): n is CanvasElement => n.type !== 'section' && n.type !== 'grid-cell')
+      .flatMap(el => {
+        if (el.type === 'text') return [{ id: el.id, changes: { style: { ...el.style, typography: { ...el.style.typography, family: state.theme.fonts.body, color: state.theme.colors.text } } } }];
+        if (el.type === 'button') return [{ id: el.id, changes: { style: { ...el.style, background: { ...el.style.background, color: state.theme.colors.primary }, typography: { ...el.style.typography, family: state.theme.fonts.body } } } }];
+        return [];
+      });
+    updateElements(updates);
+  }, [nodes, state, pushSnapshot, updateElements]);
 
   // Export HTML
   const handleExportHTML = () => {
@@ -278,6 +303,7 @@ export default function App() {
           onAdd={addElement}
           onAddFreeSection={addSection}
           onAddGridSection={addGridSection}
+          onAddSectionFromTemplate={addSectionFromTemplate}
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
@@ -299,13 +325,14 @@ export default function App() {
           onRenamePage={renamePage}
           theme={state.theme}
           onUpdateTheme={updateTheme}
+          onApplyTheme={handleApplyTheme}
         />
 
         <div className="middle-container">
           <header className="toolbar">
-            {/* <div className="toolbar-left">
+            <div className="toolbar-left">
               <span className="app-name">Page Builder</span>
-              <span className="active-page-name">{activePage.name}</span>
+              {/* <span className="active-page-name">{activePage.name}</span> */}
               <div className="toolbar-divider" />
               <button
                 className="toolbar-btn toolbar-btn--demo"
@@ -319,6 +346,72 @@ export default function App() {
                 ⊞ Load Demo
               </button>
               <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load the newsletter template (undoable)"
+                onClick={() => {
+                  if (window.confirm('Load newsletter template? This replaces the current canvas (you can Ctrl+Z to undo).')) {
+                    importState(migrateState(newsletterTemplate as any));
+                  }
+                }}
+              >
+                ✉ Newsletter
+              </button>
+              {/* <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load SaaS landing page demo (Flowdesk)"
+                onClick={() => {
+                  if (window.confirm('Load Flowdesk SaaS demo? This replaces the current canvas (Ctrl+Z to undo).')) {
+                    importState(makeSaasLandingState());
+                  }
+                }}
+              >
+                ⚡ SaaS Demo
+              </button> */}
+              <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load agency page demo (Studio Craft)"
+                onClick={() => {
+                  if (window.confirm('Load Studio Craft agency demo? This replaces the current canvas (Ctrl+Z to undo).')) {
+                    importState(makeAgencyState());
+                  }
+                }}
+              >
+                ◆ Agency Demo
+              </button>
+              {/* <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load portfolio demo (Alex Chen)"
+                onClick={() => {
+                  if (window.confirm('Load Alex Chen portfolio demo? This replaces the current canvas (Ctrl+Z to undo).')) {
+                    importState(makePortfolioState());
+                  }
+                }}
+              >
+                ✦ Portfolio Demo
+              </button> */}
+              {/* <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load Linear-inspired showcase"
+                onClick={() => {
+                  if (window.confirm('Load Linear showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
+                    importState(migrateState(linearShowcase as any));
+                  }
+                }}
+              >
+                ◈ Linear
+              </button> */}
+              {/* <button
+                className="toolbar-btn toolbar-btn--demo"
+                title="Load Lemon Squeezy-inspired showcase"
+                onClick={() => {
+                  if (window.confirm('Load Lemon Squeezy showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
+                    importState(migrateState(lemonSqueezyShowcase as any));
+                  }
+                }}
+              >
+                🍋 Lemon Squeezy
+              </button> */}
+              <button
                 className="toolbar-btn toolbar-btn--danger"
                 title="Clear canvas and start with an empty page (undoable)"
                 onClick={() => {
@@ -329,7 +422,7 @@ export default function App() {
               >
                 ✕ Clear Page
               </button>
-            </div> */}
+            </div>
             <div className="toolbar-center">
               <button className="toolbar-btn" onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
                 ↩ Undo
@@ -380,9 +473,9 @@ export default function App() {
               <button className="toolbar-btn" onClick={handleExportJSON} title="Export JSON">
                  JSON
               </button>
-              {/* <button className="toolbar-btn" onClick={() => importRef.current?.click()} title="Import JSON">
+              <button className="toolbar-btn" onClick={() => importRef.current?.click()} title="Import JSON">
                 ↑ Import
-              </button> */}
+              </button>
               <input
                 ref={importRef}
                 type="file"
@@ -440,6 +533,8 @@ export default function App() {
               onDeleteGridCell={deleteGridCell}
               onAddElementToCell={addElementToCell}
               onMoveGridElement={moveGridElement}
+              onMoveElementToGridCell={moveElementToGridCell}
+              onReorderGridCell={reorderGridCell}
               zoom={zoom}
             />
 
@@ -454,10 +549,16 @@ export default function App() {
               onUpdateSection={updateSection}
               onUpdateGridCell={updateGridCell}
               onAddGridCell={addGridCell}
+              onAddNestedGrid={addNestedGrid}
+              onRemoveNestedGrid={removeNestedGrid}
               onPushSnapshot={pushSnapshot}
               onDelete={deleteElement}
               breakpoint={breakpoint}
               onUpdateResponsive={updateResponsive}
+              onCopyStyle={selectedElement ? () => setStyleClipboard(selectedElement.style) : undefined}
+              onPasteStyle={selectedElement && styleClipboard ? () => { pushSnapshot(state); updateElement(selectedElement.id, { style: styleClipboard }); } : undefined}
+              hasCopiedStyle={styleClipboard !== null}
+              theme={state.theme}
             />
           </div>
 

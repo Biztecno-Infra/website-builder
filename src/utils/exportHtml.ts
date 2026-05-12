@@ -22,16 +22,25 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
     const name = extractFontName(ff);
     if (name && !SYSTEM_FONTS.has(name)) fonts.add(name);
   };
+  const collectFromCell = (cell: GridCell) => {
+    if (cell.nestedGrid) {
+      for (const subId of cell.children) {
+        const sub = nodes[subId] as GridCell | undefined;
+        if (sub) collectFromCell(sub);
+      }
+    } else {
+      for (const elId of cell.children) {
+        const el = nodes[elId] as CanvasElement | undefined;
+        if (el) add(el.style.typography.family);
+      }
+    }
+  };
+
   for (const sec of sections) {
     if (sec.layoutMode === 'grid') {
       for (const cellId of sec.children) {
         const cell = nodes[cellId] as GridCell | undefined;
-        if (cell) {
-          for (const elId of cell.children) {
-            const el = nodes[elId] as CanvasElement | undefined;
-            if (el) add(el.style.typography.family);
-          }
-        }
+        if (cell) collectFromCell(cell);
       }
     } else {
       for (const elId of sec.children) {
@@ -112,9 +121,7 @@ function renderElement(el: CanvasElement): string {
   }
 
   let inner = '';
-  const lsCss = typography.letterSpacing ? `;letter-spacing:${typography.letterSpacing}px` : '';
-  const ttCss = (typography.textTransform && typography.textTransform !== 'none') ? `;text-transform:${typography.textTransform}` : '';
-  const textBase = `${cStyle};padding:${pad};font-family:${typography.family};font-size:${typography.size}px;font-weight:${typography.weight};color:${typography.color};text-align:${typography.align};line-height:${typography.lineHeight};word-break:break-word${lsCss}${ttCss}`;
+  const textBase = `${cStyle};padding:${pad};word-break:break-word`;
 
   switch (el.type) {
     case 'text': {
@@ -123,7 +130,7 @@ function renderElement(el: CanvasElement): string {
       break;
     }
     case 'button': {
-      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};font-family:${typography.family};font-size:${typography.size}px;font-weight:${typography.weight};color:${typography.color}${lsCss}${ttCss};cursor:pointer`;
+      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
       inner = `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
       break;
     }
@@ -206,8 +213,9 @@ function renderGridElement(el: CanvasElement): string {
     ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms`
     : '';
 
+  const wrapRadiusCss = el.style.border.radius > 0 ? `;border-radius:${el.style.border.radius}px` : '';
   // Flex-sizing is class-based (ge-{id}); only non-flex properties here
-  const wrapStyle = `min-height:${el.layout.height}px;box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${animVars}`;
+  const wrapStyle = `min-height:${el.layout.height}px;box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${wrapRadiusCss}${animVars}`;
 
   let animClass = '';
   let animData = '';
@@ -216,9 +224,7 @@ function renderGridElement(el: CanvasElement): string {
     else { animClass = ' anim-pending'; animData = ` data-anim="${el.animation.type}"`; }
   }
 
-  const lsCss2 = typography.letterSpacing ? `;letter-spacing:${typography.letterSpacing}px` : '';
-  const ttCss2 = (typography.textTransform && typography.textTransform !== 'none') ? `;text-transform:${typography.textTransform}` : '';
-  const textBase = `${cStyle};padding:${pad};font-family:${typography.family};font-size:${typography.size}px;font-weight:${typography.weight};color:${typography.color};text-align:${typography.align};line-height:${typography.lineHeight};word-break:break-word${lsCss2}${ttCss2}`;
+  const textBase = `${cStyle};padding:${pad};word-break:break-word`;
 
   let inner = '';
   switch (el.type) {
@@ -228,7 +234,7 @@ function renderGridElement(el: CanvasElement): string {
       break;
     }
     case 'button': {
-      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};font-family:${typography.family};font-size:${typography.size}px;font-weight:${typography.weight};color:${typography.color}${lsCss2}${ttCss2};cursor:pointer`;
+      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
       inner = `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
       break;
     }
@@ -289,17 +295,38 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     : '';
   const radiusCss = border?.radius ? `border-radius:${border.radius}px` : '';
 
-  // display/flex-direction/flex-wrap live in the gc-{id} class (responsive via @media)
+  const cellOverlay = bg.overlay > 0
+    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;border-radius:inherit"></div>`
+    : '';
+
+  // Nested grid mode — render sub-cells in a CSS grid
+  if (cell.nestedGrid) {
+    const { gap: ngGap, rowGap: ngRowGap } = cell.nestedGrid;
+    const baseCellStyle = [
+      'position:relative', bgCss, `padding:${padStr}`, `box-sizing:border-box`,
+      `min-height:${minHeight ?? 80}px`, borderCss, radiusCss,
+    ].filter(Boolean).join(';');
+
+    const subCells = cell.children
+      .map(id => nodes[id] as GridCell | undefined)
+      .filter((c): c is GridCell => !!c);
+
+    const subCellHtml = subCells.map(sub => {
+      const subSpan = sub.columnSpan;
+      return `<div style="grid-column:span ${subSpan}">${renderGridCell(sub, nodes)}</div>`;
+    }).join('\n');
+
+    const nestedGridStyle = `display:grid;grid-template-columns:repeat(12,1fr);gap:${ngRowGap}px ${ngGap}px;width:100%`;
+    return `<div class="gc-${cell.id}" style="${baseCellStyle}">${cellOverlay}<div style="${nestedGridStyle}">${subCellHtml}</div></div>`;
+  }
+
+  // Normal elements mode
   const cellStyle = [
-    bgCss,
-    `gap:${gap}px`,
-    `padding:${padStr}`,
-    `align-items:${alignItems}`,
-    `justify-content:${justifyContent}`,
-    `box-sizing:border-box`,
-    `min-height:${minHeight ?? 80}px`,
-    borderCss,
-    radiusCss,
+    'position:relative', bgCss,
+    `gap:${gap}px`, `padding:${padStr}`,
+    `align-items:${alignItems}`, `justify-content:${justifyContent}`,
+    `box-sizing:border-box`, `min-height:${minHeight ?? 80}px`,
+    borderCss, radiusCss,
   ].filter(Boolean).join(';');
 
   const elements = cell.children
@@ -308,7 +335,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     .map(el => renderGridElement(el))
     .join('\n');
 
-  return `<div class="gc-${cell.id}" style="${cellStyle}">${elements}</div>`;
+  return `<div class="gc-${cell.id}" style="${cellStyle}">${cellOverlay}${elements}</div>`;
 }
 
 function renderGridSection(sec: GridSection, nodes: NodeMap): string {
@@ -384,9 +411,13 @@ function renderSection(sec: Section, nodes: NodeMap): string {
     .map(renderElement)
     .join('\n      ');
 
+  const freePad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const freePadCss = (freePad.top || freePad.right || freePad.bottom || freePad.left)
+    ? `;padding:${freePad.top}px ${freePad.right}px ${freePad.bottom}px ${freePad.left}px`
+    : '';
   return `  <div style="${sectionBgStyle(sec)};position:relative;width:100%">
     ${overlay}
-    <div class="sc" style="min-height:${sec.layout.height}px">
+    <div class="sc sc-free-${sec.id}" style="min-height:${sec.layout.height}px${freePadCss}">
       ${columnBgs}
       ${elements}
     </div>
@@ -411,8 +442,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
 
         const desktopMode = cell.style.layoutMode ?? 'column';
 
-        // Base: grid-column span + flex display + direction
-        baseRules.push(`.gc-${cell.id}{grid-column:span ${Math.min(cell.columnSpan, 12)};display:flex;${cellDirectionCss(desktopMode)}}`);
+        // Base: grid-column span, optional row span, flex display + direction
+        const rowSpanCss = (cell.rowSpan ?? 1) > 1 ? `;grid-row:span ${cell.rowSpan}` : '';
+        baseRules.push(`.gc-${cell.id}{grid-column:span ${Math.min(cell.columnSpan, 12)}${rowSpanCss};display:flex;${cellDirectionCss(desktopMode)}}`);
 
         // Tablet cell overrides
         const tCell = cell.responsive.tablet;
@@ -444,6 +476,10 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
           if (!el || el.state.hidden) continue;
 
           baseRules.push(`.ge-${el.id}{${flexItemClassCss(el.flexLayout, desktopMode)}}`);
+          const typo = el.style.typography;
+          const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
+          const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
+          baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
 
           const tElOverride = el.responsive.tablet;
           const mElOverride = el.responsive.mobile;
@@ -478,6 +514,8 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
                 if (tTypo.size)   tp.push(`font-size:${tTypo.size}px`);
                 if (tTypo.weight) tp.push(`font-weight:${tTypo.weight}`);
                 if (tTypo.align)  tp.push(`text-align:${tTypo.align}`);
+                if (tTypo.letterSpacing != null) tp.push(`letter-spacing:${tTypo.letterSpacing}px`);
+                if (tTypo.textTransform) tp.push(`text-transform:${tTypo.textTransform}`);
                 if (tp.length) tabletRules.push(`.ec-${el.id}{${tp.join(';')}}`);
               }
             }
@@ -506,6 +544,8 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
                 if (mTypo.size)   mp.push(`font-size:${mTypo.size}px`);
                 if (mTypo.weight) mp.push(`font-weight:${mTypo.weight}`);
                 if (mTypo.align)  mp.push(`text-align:${mTypo.align}`);
+                if (mTypo.letterSpacing != null) mp.push(`letter-spacing:${mTypo.letterSpacing}px`);
+                if (mTypo.textTransform) mp.push(`text-transform:${mTypo.textTransform}`);
                 if (mp.length) mobileRules.push(`.ec-${el.id}{${mp.join(';')}}`);
               }
             }
@@ -535,11 +575,16 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const s = el.style.shadow;
         base.push(`box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}`);
       }
+      if (el.style.border.radius > 0) base.push(`border-radius:${el.style.border.radius}px`);
       if (el.animation.type !== 'none') {
         base.push(`--anim-duration:${el.animation.duration}ms`);
         base.push(`--anim-delay:${el.animation.delay}ms`);
       }
       baseRules.push(`.el-${el.id}{${base.join(';')}}`);
+      const typo = el.style.typography;
+      const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
+      const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
+      baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
 
       // Tablet overrides
       const to = el.responsive.tablet;
@@ -547,9 +592,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         tabletRules.push(`.el-${el.id}{display:none}`);
       } else {
         const tx = to?.layout?.x ?? Math.round(el.layout.x * tScale);
-        const ty = to?.layout?.y ?? el.layout.y;
+        const ty = to?.layout?.y ?? Math.round(el.layout.y * tScale);
         const tw = to?.layout?.width ?? Math.max(20, Math.round(el.layout.width * tScale));
-        const th = to?.layout?.height ?? el.layout.height;
+        const th = to?.layout?.height ?? Math.max(4, Math.round(el.layout.height * tScale));
         tabletRules.push(`.el-${el.id}{left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
         const tTypo = to?.style?.typography;
         if (tTypo) {
@@ -557,6 +602,8 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
           if (tTypo.size) parts.push(`font-size:${tTypo.size}px`);
           if (tTypo.weight) parts.push(`font-weight:${tTypo.weight}`);
           if (tTypo.align) parts.push(`text-align:${tTypo.align}`);
+          if (tTypo.letterSpacing != null) parts.push(`letter-spacing:${tTypo.letterSpacing}px`);
+          if (tTypo.textTransform) parts.push(`text-transform:${tTypo.textTransform}`);
           if (parts.length) tabletRules.push(`.ec-${el.id}{${parts.join(';')}}`);
         }
       }
@@ -568,9 +615,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       } else {
         // Cascade tablet explicit overrides as intermediate fallback before auto-scaling
         const mx = mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale);
-        const my = mo?.layout?.y ?? to?.layout?.y ?? el.layout.y;
+        const my = mo?.layout?.y ?? to?.layout?.y ?? Math.round(el.layout.y * mScale);
         const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(20, Math.round(el.layout.width * mScale));
-        const mh = mo?.layout?.height ?? to?.layout?.height ?? el.layout.height;
+        const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(4, Math.round(el.layout.height * mScale));
         mobileRules.push(`.el-${el.id}{left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
         // Only emit mobile typography rules for properties with an explicit mobile override
         // (tablet typography already cascades via CSS max-width:768px covering mobile)
@@ -580,10 +627,18 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
           if (mTypo.size) parts.push(`font-size:${mTypo.size}px`);
           if (mTypo.weight) parts.push(`font-weight:${mTypo.weight}`);
           if (mTypo.align) parts.push(`text-align:${mTypo.align}`);
+          if (mTypo.letterSpacing != null) parts.push(`letter-spacing:${mTypo.letterSpacing}px`);
+          if (mTypo.textTransform) parts.push(`text-transform:${mTypo.textTransform}`);
           if (parts.length) mobileRules.push(`.ec-${el.id}{${parts.join(';')}}`);
         }
       }
     }
+
+    // Free section container height scales proportionally with viewport
+    const tSH = Math.round(sec.layout.height * tScale);
+    const mSH = Math.round(sec.layout.height * mScale);
+    tabletRules.push(`.sc-free-${sec.id}{min-height:${tSH}px}`);
+    mobileRules.push(`.sc-free-${sec.id}{min-height:${mSH}px}`);
   }
 
   const base = baseRules.join('');
