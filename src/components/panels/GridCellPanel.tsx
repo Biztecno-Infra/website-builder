@@ -345,14 +345,14 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="minHeight" label="Min Height" isOpen={sec('minHeight')} onToggle={toggle}>
         <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Desktop</label>
-          <input type="number" value={style.minHeight ?? 80} min={0}
+          <input type="number" value={style.minHeight ?? 40} min={0}
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) } })} />
           <span style={{ fontSize: 11, color: '#888' }}>px</span>
         </div>
         <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Tablet</label>
-          <input type="number" value={responsive.tablet?.minHeight ?? style.minHeight ?? 80} min={0}
+          <input type="number" value={responsive.tablet?.minHeight ?? style.minHeight ?? 40} min={0}
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, minHeight: Number(e.target.value) } } })} />
           {responsive.tablet?.minHeight !== undefined && (
@@ -365,7 +365,7 @@ export function GridCellPanel({
         </div>
         <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Mobile</label>
-          <input type="number" value={responsive.mobile?.minHeight ?? responsive.tablet?.minHeight ?? style.minHeight ?? 80} min={0}
+          <input type="number" value={responsive.mobile?.minHeight ?? responsive.tablet?.minHeight ?? style.minHeight ?? 40} min={0}
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, minHeight: Number(e.target.value) } } })} />
           {responsive.mobile?.minHeight !== undefined && (

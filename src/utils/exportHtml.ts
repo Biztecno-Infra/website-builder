@@ -865,10 +865,7 @@ const SCROLL_ANIM_SCRIPT = `<script>
 export function exportHtml(state: BuilderState, pageName: string): string {
   const page = state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
   const nodes = state.nodes;
-  const header = nodes[page.header] as Section;
-  const footer = nodes[page.footer] as Section;
-  const bodySections = page.sections.map(id => nodes[id] as Section).filter(Boolean);
-  const sections = [header, ...bodySections, footer].filter(Boolean);
+  const sections = page.sections.map(id => nodes[id] as Section).filter(Boolean);
 
   const googleFonts = collectGoogleFonts(state, sections);
   const fontLinks = googleFonts

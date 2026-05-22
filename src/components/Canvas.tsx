@@ -15,9 +15,7 @@ export const BREAKPOINT_WIDTHS: Record<Breakpoint, number> = {
 };
 
 interface Props {
-  header: Section;
-  sections: Section[];
-  footer: Section;
+  sections: Section[];  // All sections in render order
   nodes: NodeMap;
   selectedId: string | null;
   selectedIds: string[];
@@ -57,14 +55,17 @@ interface Props {
   onDropGridLayout?: (sectionId: string | null, columnSpans: number[], atStart?: boolean) => void;
   onAddNestedGrid?: (cellId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
+  onPromoteSection?: (sectionId: string, role: 'header' | 'footer') => void;
   onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
+  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
   zoom?: number;
 }
 
 export function Canvas({
-  header, sections, footer, nodes,
+  sections, nodes,
   selectedId, selectedIds, selectedSectionId, selectedGridCellId = null,
   onSelectSection, onSelectElement, onSelectGridCell, onDeselect,
   onUpdate, onCommit, snapshot,
@@ -76,8 +77,8 @@ export function Canvas({
   onMoveElementToSection, onMoveElementToGridCell,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell,
-  onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock,
-  onAddContainer, selectedContainerId, onSelectContainer,
+  onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock, onPromoteSection,
+  onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   zoom = 1,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
@@ -184,7 +185,7 @@ export function Canvas({
     onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
     onMoveGridElement, onReorderGridCell,
     onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock,
-    onAddContainer, selectedContainerId, onSelectContainer,
+    onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   };
 
   const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };
@@ -202,17 +203,6 @@ export function Canvas({
           </div>
         )}
 
-        <SectionView
-          {...commonProps}
-          section={header}
-          role="header"
-          isSelected={selectedSectionId === header.id}
-          onSelectSection={() => onSelectSection(header.id)}
-          onMarqueeSelect={ids => onMultiSelect(ids, header.id)}
-          isDragOverTarget={dragOverSectionId === header.id}
-          dragOverGridCellId={dragOverGridCellId}
-        />
-
         <SectionDropZone
           atStart
           onDrop={(_afterId, spans, atStart) => onDropGridLayout?.(null, spans, atStart)}
@@ -223,14 +213,15 @@ export function Canvas({
             <SectionView
               {...commonProps}
               section={sec}
-              role="section"
+              role={sec.role}
               isSelected={selectedSectionId === sec.id}
               onSelectSection={() => onSelectSection(sec.id)}
               onAddSectionAfter={() => onAddSection(sec.id)}
               onAddSectionBefore={i === 0 ? () => onAddSection(undefined, true) : () => onAddSection(sections[i - 1].id)}
               onAddGridSectionAfter={(spans: number[]) => onDropGridLayout?.(sec.id, spans)}
               onAddGridSectionBefore={(spans: number[]) => i === 0 ? onDropGridLayout?.(null, spans, true) : onDropGridLayout?.(sections[i - 1].id, spans)}
-              onDeleteSection={() => onDeleteSection(sec.id)}
+              onPromoteSection={onPromoteSection ? (role) => onPromoteSection(sec.id, role) : undefined}
+              onDeleteSection={sections.length > 1 ? () => onDeleteSection(sec.id) : undefined}
               onDuplicateSection={() => onDuplicateSection(sec.id)}
               onMoveSectionUp={i > 0 ? () => onMoveSectionUp(i) : undefined}
               onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
@@ -244,17 +235,6 @@ export function Canvas({
             />
           </React.Fragment>
         ))}
-
-        <SectionView
-          {...commonProps}
-          section={footer}
-          role="footer"
-          isSelected={selectedSectionId === footer.id}
-          onSelectSection={() => onSelectSection(footer.id)}
-          onMarqueeSelect={ids => onMultiSelect(ids, footer.id)}
-          isDragOverTarget={dragOverSectionId === footer.id}
-          dragOverGridCellId={dragOverGridCellId}
-        />
 
       </div>
     </div>

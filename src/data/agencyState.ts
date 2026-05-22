@@ -279,7 +279,7 @@ export function makeAgencyState(): BuilderState {
     },
     pages: [{ id: pageId, name: 'Studio Craft – Agency', slug: '/',
       seo: { title: 'Studio Craft — Creative Experiences For Ambitious Brands', description: 'Brand strategy, digital design, and web development.', ogImage: '' },
-      header: HDR, footer: FOOT, sections: [HERO, WINTR, WORK, SVC, ABOUT, CTA],
+      sections: [HDR, HERO, WINTR, WORK, SVC, ABOUT, CTA, FOOT],
     }],
     activePageId: pageId,
     nodes: nodes as BuilderState['nodes'],

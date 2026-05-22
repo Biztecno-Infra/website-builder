@@ -381,7 +381,7 @@ export function makeSaasLandingState(): BuilderState {
     },
     pages: [{ id: pageId, name: 'Flowdesk – SaaS Landing', slug: '/',
       seo: { title: 'Flowdesk — Work Smarter, Not Harder', description: 'Bring tasks, docs, and team chat into one beautiful workspace.', ogImage: '' },
-      header: HDR, footer: FOOT, sections: [HERO, MET, FEAT, PRC, TEST, CTA],
+      sections: [HDR, HERO, MET, FEAT, PRC, TEST, CTA, FOOT],
     }],
     activePageId: pageId,
     nodes: nodes as BuilderState['nodes'],

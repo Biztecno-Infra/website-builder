@@ -37,6 +37,8 @@ interface Props {
   onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
+  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
 }
@@ -55,7 +57,8 @@ export function GridCellView({
   isDragOverTarget,
   selectedGridCellId, onUpdateGridCell, onDeleteGridCell,
   onAddElementToCell, onSelectGridCell, onReorderGridCell,
-  onRemoveColumnsBlock, onAddContainer, selectedContainerId, onSelectContainer,
+  onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
+  selectedContainerId, onSelectContainer,
 }: Props) {
 
   const bp = breakpoint;
@@ -250,9 +253,9 @@ export function GridCellView({
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
 
   const effectiveMinH =
-    bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH ?? 80)
-    : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH ?? 80)
-    : (desktopMinH ?? 80);
+    bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH ?? 40)
+    : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH ?? 40)
+    : (desktopMinH ?? 40);
 
   const effectiveFreeH =
     bp === 'mobile' ? (cell.responsive.mobile?.freeHeight ?? cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
@@ -452,6 +455,8 @@ export function GridCellView({
                   onReorderGridCell={onReorderGridCell}
                   onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
                   onAddContainer={onAddContainer}
+                  onUpdateContainer={onUpdateContainer}
+                  onAddSubCell={onAddSubCell}
                   selectedContainerId={selectedContainerId}
                   onDragHover={handleDragHover}
                   onDropAtChildIdx={handleDropAtChildIdx}

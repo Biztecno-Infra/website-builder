@@ -283,7 +283,7 @@ export function makePortfolioState(): BuilderState {
     },
     pages: [{ id: pageId, name: 'Alex Chen – Product Designer', slug: '/',
       seo: { title: 'Alex Chen — Product Designer', description: '6 years designing digital products people love to use.', ogImage: '' },
-      header: HDR, footer: FOOT, sections: [INTRO, CASES, PROC, ABOUT, QUOTE, CONTACT],
+      sections: [HDR, INTRO, CASES, PROC, ABOUT, QUOTE, CONTACT, FOOT],
     }],
     activePageId: pageId,
     nodes: nodes as BuilderState['nodes'],

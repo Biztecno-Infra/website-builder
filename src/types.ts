@@ -205,6 +205,7 @@ interface SectionBase {
   scrollBehavior?: SectionScrollBehavior;
   stickyOffset?: number;
   responsive?: SectionResponsive;
+  hidden?: boolean;
 }
 
 export interface FreeSection extends SectionBase {
@@ -324,9 +325,7 @@ export interface Page {
   name: string;
   slug: string;
   seo: PageSEO;
-  header: string;
-  footer: string;
-  sections: string[];
+  sections: string[];  // All sections in render order — role on each node determines header/footer identity
 }
 
 // ── Site & Theme ───────────────────────────────────────────────────────

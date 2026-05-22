@@ -11,7 +11,6 @@ import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 import { getCellColumnSpan } from '../utils/cellUtils';
 
-export { GRID_CELL_DND_TYPE } from './DraggableCellWrapper';
 
 interface Props {
   section: GridSection;
@@ -40,6 +39,7 @@ interface Props {
   onDuplicateSection?: () => void;
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
+  onPromoteSection?: (role: 'header' | 'footer') => void;
   previewMode?: boolean;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
@@ -51,6 +51,8 @@ interface Props {
   onDropGridLayout?: (sectionId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
+  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
 }
@@ -64,7 +66,7 @@ export function GridSectionView({
   onCommit, snapshot,
   onAddSectionBefore, onAddSectionAfter, onAddGridSectionBefore, onAddGridSectionAfter,
   onDeleteSection, onDuplicateSection,
-  onMoveSectionUp, onMoveSectionDown,
+  onMoveSectionUp, onMoveSectionDown, onPromoteSection,
   previewMode, breakpoint = 'desktop',
   onUpdateResponsive, onDuplicateElement, onDeleteElement,
   onMoveGridElement,
@@ -72,7 +74,7 @@ export function GridSectionView({
   onReorderGridCell,
   onDropGridLayout,
   onRemoveColumnsBlock,
-  onAddContainer,
+  onAddContainer, onUpdateContainer, onAddSubCell,
   selectedContainerId,
   onSelectContainer,
 }: Props) {
@@ -81,12 +83,12 @@ export function GridSectionView({
 
   const [{ isLayoutOver }, layoutDropRef] = useDrop<{ columnSpans: number[] }, void, { isLayoutOver: boolean }>({
     accept: LAYOUT_DND_TYPE,
-    canDrop: () => role === 'section',
+    canDrop: () => true,
     drop: (item, monitor) => {
-      if (monitor.didDrop() || role !== 'section') return;
+      if (monitor.didDrop()) return;
       onDropGridLayout?.(section.id, item.columnSpans);
     },
-    collect: m => ({ isLayoutOver: m.isOver({ shallow: true }) && role === 'section' }),
+    collect: m => ({ isLayoutOver: m.isOver({ shallow: true }) }),
   });
 
   const bgRefCallback = useCallback((node: HTMLDivElement | null) => {
@@ -149,6 +151,22 @@ export function GridSectionView({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {!previewMode && (hovered || isSelected) && (
+        <>
+          <button
+            className={'pb-section-insert-btn pb-section-insert-btn--above'}
+            title="Insert section above"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onAddSectionBefore?.(); }}
+          >+</button>
+          <button
+            className={'pb-section-insert-btn pb-section-insert-btn--below'}
+            title="Insert section below"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onAddSectionAfter?.(); }}
+          >+</button>
+        </>
+      )}
       <div ref={bgRefCallback} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
@@ -190,7 +208,7 @@ export function GridSectionView({
             </div>
           )}
 
-          {!previewMode && isSelected && role === 'section' && (
+          {!previewMode && isSelected && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
               <button className={'pb-section-action-btn'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
@@ -198,6 +216,15 @@ export function GridSectionView({
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
+              {onPromoteSection && (
+                <>
+                  <div className={'pb-section-action-divider'} />
+                  <button className={'pb-section-action-btn'} title="Set as Header"
+                    onClick={e => { e.stopPropagation(); onPromoteSection('header'); }}>H</button>
+                  <button className={'pb-section-action-btn'} title="Set as Footer"
+                    onClick={e => { e.stopPropagation(); onPromoteSection('footer'); }}>F</button>
+                </>
+              )}
               <div className={'pb-section-action-divider'} />
               <button className={'pb-section-action-btn'} title="Add column"
                 onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>+ Col</button>
@@ -218,15 +245,12 @@ export function GridSectionView({
                 minHeight: gridCfg.minHeight || undefined,
               }}
             >
-              {cells.map((cell, index) => (
+              {cells.map((cell) => (
                 <DraggableCellWrapper
                   key={cell.id}
                   cell={cell}
-                  index={index}
-                  parentId={section.id}
                   breakpoint={breakpoint}
                   previewMode={previewMode}
-                  onReorderCell={(from, to) => onReorderGridCell?.(section.id, from, to)}
                 >
                   <GridCellView
                     cell={cell}
@@ -266,6 +290,8 @@ export function GridSectionView({
                     onReorderGridCell={onReorderGridCell}
                     onRemoveColumnsBlock={onRemoveColumnsBlock}
                     onAddContainer={onAddContainer}
+                    onUpdateContainer={onUpdateContainer}
+                    onAddSubCell={onAddSubCell}
                     selectedContainerId={selectedContainerId}
                     onSelectContainer={onSelectContainer}
                   />

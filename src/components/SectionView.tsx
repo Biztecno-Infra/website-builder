@@ -37,6 +37,7 @@ interface Props {
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
+  onPromoteSection?: (role: 'header' | 'footer') => void;
   onAddGridSectionBefore?: (columnSpans: number[]) => void;
   onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
@@ -56,6 +57,8 @@ interface Props {
   onDropGridLayout?: (sectionId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
+  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
 }
@@ -63,7 +66,7 @@ interface Props {
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
 export function SectionView(props: Props) {
   if (props.section.layoutMode === 'grid') {
-    const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, onDropGridLayout, onRemoveColumnsBlock, onAddContainer, selectedContainerId, onSelectContainer, onAddGridSectionBefore, onAddGridSectionAfter, ...rest } = props;
+    const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, onDropGridLayout, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer, onAddGridSectionBefore, onAddGridSectionAfter, ...rest } = props;
     return (
       <GridSectionView
         section={section as GridSection}
@@ -75,6 +78,8 @@ export function SectionView(props: Props) {
         onDropGridLayout={onDropGridLayout}
         onRemoveColumnsBlock={onRemoveColumnsBlock}
         onAddContainer={onAddContainer}
+        onUpdateContainer={onUpdateContainer}
+        onAddSubCell={onAddSubCell}
         selectedContainerId={selectedContainerId}
         onSelectContainer={onSelectContainer}
         onAddGridSectionBefore={onAddGridSectionBefore}
@@ -94,6 +99,7 @@ function FreeSectionView({
   onCommit, snapshot, snapEnabled, onContextMenu,
   onDrop, onUpdateSection, onMoveElementToSection,
   onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
+  onPromoteSection,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
@@ -134,12 +140,12 @@ function FreeSectionView({
 
   const [{ isLayoutOver }, layoutDropRef] = useDrop<{ columnSpans: number[] }, void, { isLayoutOver: boolean }>({
     accept: LAYOUT_DND_TYPE,
-    canDrop: () => role === 'section',
+    canDrop: () => true,
     drop: (item, monitor) => {
-      if (monitor.didDrop() || role !== 'section') return;
+      if (monitor.didDrop()) return;
       onDropGridLayout?.(section.id, item.columnSpans);
     },
-    collect: m => ({ isLayoutOver: m.isOver() && role === 'section' }),
+    collect: m => ({ isLayoutOver: m.isOver() }),
   });
 
   const handleDividerMouseDown = (e: React.MouseEvent, dividerIndex: number) => {
@@ -273,6 +279,22 @@ function FreeSectionView({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
+      {!previewMode && (hovered || isSelected) && (
+        <>
+          <button
+            className={'pb-section-insert-btn pb-section-insert-btn--above'}
+            title="Insert section above"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onAddSectionBefore?.(); }}
+          >+</button>
+          <button
+            className={'pb-section-insert-btn pb-section-insert-btn--below'}
+            title="Insert section below"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onAddSectionAfter?.(); }}
+          >+</button>
+        </>
+      )}
       {/* Full-width section background */}
       <div
         ref={node => {
@@ -314,7 +336,7 @@ function FreeSectionView({
             </div>
           )}
 
-          {!previewMode && isSelected && role === 'section' && (
+          {!previewMode && isSelected && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
               <button className={'pb-section-action-btn'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
@@ -322,6 +344,15 @@ function FreeSectionView({
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
+              {onPromoteSection && (
+                <>
+                  <div className={'pb-section-action-divider'} />
+                  <button className={'pb-section-action-btn'} title="Set as Header"
+                    onClick={e => { e.stopPropagation(); onPromoteSection('header'); }}>H</button>
+                  <button className={'pb-section-action-btn'} title="Set as Footer"
+                    onClick={e => { e.stopPropagation(); onPromoteSection('footer'); }}>F</button>
+                </>
+              )}
               <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>

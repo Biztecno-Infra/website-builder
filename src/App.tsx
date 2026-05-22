@@ -25,7 +25,7 @@ export default function App() {
     nodes,
     elements,
     order,
-    header, sections, footer,
+    header, sections, footer, allSections,
     pages, activePageId, activePage,
     selectedId,
     selectedIds,
@@ -40,6 +40,7 @@ export default function App() {
     addGridSection,
     addSectionFromTemplate,
     deleteSection,
+    promoteSection,
     updateSection,
     duplicateSection,
     duplicateElement,
@@ -75,6 +76,7 @@ export default function App() {
     reorderGridCell,
     removeColumnsBlock,
     addContainer,
+    addContainerColumn,
     updateContainer,
     addElementToCell,
     moveGridElement,
@@ -113,10 +115,7 @@ export default function App() {
   const isInGridCell = selectedElement
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
     : false;
-  const selectedSection =
-    selectedSectionId === header.id ? header :
-    selectedSectionId === footer.id ? footer :
-    sections.find(s => s.id === selectedSectionId) ?? null;
+  const selectedSection = allSections.find(s => s.id === selectedSectionId) ?? null;
 
   const handleApplyTheme = useCallback(() => {
     if (!window.confirm('Apply theme fonts, colors & section backgrounds to the canvas? (Ctrl+Z to undo)')) return;
@@ -135,7 +134,7 @@ export default function App() {
         return [];
       });
     updateElements(updates);
-    [header, ...sections, footer].forEach(sec =>
+    allSections.forEach(sec =>
       updateSection(sec.id, { style: { ...sec.style, background: { ...sec.style.background, type: 'solid', color: colors.sectionBg, image: '' } } })
     );
   }, [nodes, state, header, sections, footer, pushSnapshot, updateElements, updateSection]);
@@ -288,9 +287,7 @@ export default function App() {
           <div className={['pb-preview-canvas-wrapper', previewMobile && 'pb-mobile-frame'].filter(Boolean).join(' ')}>
             <Canvas
               nodes={nodes}
-              header={header}
-              sections={sections}
-              footer={footer}
+              sections={allSections}
               selectedId={null}
               selectedIds={[]}
               selectedSectionId={null}
@@ -537,9 +534,7 @@ export default function App() {
 
             <Canvas
               nodes={nodes}
-              header={header}
-              sections={sections}
-              footer={footer}
+              sections={allSections}
               selectedId={selectedId}
               selectedIds={selectedIds}
               selectedSectionId={selectedSectionId}
@@ -556,6 +551,7 @@ export default function App() {
               onAddSection={addSection}
               onDeleteSection={deleteSection}
               onDuplicateSection={duplicateSection}
+              onPromoteSection={promoteSection}
               onMoveSectionUp={i => reorderSection(i, i - 1)}
               onMoveSectionDown={i => reorderSection(i, i + 1)}
               snapEnabled={snapEnabled}
@@ -576,6 +572,8 @@ export default function App() {
               onDropGridLayout={(sectionId, columnSpans, atStart) => addGridSection(sectionId ?? undefined, columnSpans, atStart)}
               onRemoveColumnsBlock={removeColumnsBlock}
               onAddContainer={(cellId, mode, spans) => addContainer(cellId, mode, spans)}
+              onUpdateContainer={updateContainer}
+              onAddSubCell={addContainerColumn}
               selectedContainerId={selectedContainerId}
               onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); }}
               zoom={zoom}

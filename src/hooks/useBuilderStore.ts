@@ -323,7 +323,7 @@ function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
         pSections.push(secId);
       }
       const pid = (p.id as string) || newPageId();
-      pages.push({ id: pid, name: (p.name as string) ?? 'Page', slug: (p.slug as string) ?? '/', seo: { title: `${(p.name as string) ?? 'Page'} | My Site`, description: '', ogImage: '' }, header: headerId, footer: footerId, sections: pSections });
+      pages.push({ id: pid, name: (p.name as string) ?? 'Page', slug: (p.slug as string) ?? '/', seo: { title: `${(p.name as string) ?? 'Page'} | My Site`, description: '', ogImage: '' }, sections: [headerId, ...pSections, footerId] });
     }
     activePageId = (r.activePageId as string) ?? pages[0]?.id ?? '';
   } else if (r.sections && Array.isArray(r.sections)) {
@@ -334,13 +334,13 @@ function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
       pSections.push(secId);
     }
     const pageId = newPageId();
-    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, header: headerId, footer: footerId, sections: pSections }];
+    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, ...pSections, footerId] }];
     activePageId = pageId;
   } else {
     const sectionId = newSectionId();
     nodes[sectionId] = migrateOldSection({ id: sectionId, elements: r.elements, order: r.order }, 'section', nodes);
     const pageId = newPageId();
-    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, header: headerId, footer: footerId, sections: [sectionId] }];
+    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, sectionId, footerId] }];
     activePageId = pageId;
   }
 
@@ -362,7 +362,18 @@ export function migrateState(raw: unknown): BuilderState {
     const nodes = hydrateNodes(r.nodes as Record<string, unknown>);
     const rt = (r.theme as Partial<SiteTheme> | undefined);
     const mergedTheme: SiteTheme = { ...DEFAULT_THEME, ...rt, colors: { ...DEFAULT_THEME.colors, ...(rt?.colors ?? {}) }, fonts: { ...DEFAULT_THEME.fonts, ...(rt?.fonts ?? {}) } };
-    return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: mergedTheme, pages: (r.pages as Page[]) ?? [], activePageId: (r.activePageId as string) ?? '', nodes };
+    // Migrate old page format that had separate header/footer fields
+    const rawPages = (r.pages as Array<Record<string, unknown>>) ?? [];
+    const pages: Page[] = rawPages.map(p => {
+      if ('header' in p && 'footer' in p) {
+        const hId = p.header as string;
+        const fId = p.footer as string;
+        const body = (p.sections as string[]) ?? [];
+        return { id: p.id, name: p.name, slug: p.slug, seo: p.seo, sections: [hId, ...body, fId] } as Page;
+      }
+      return p as unknown as Page;
+    });
+    return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: mergedTheme, pages, activePageId: (r.activePageId as string) ?? '', nodes };
   }
   if ((r.pages || r.sections || r.elements) && (r.header || r.sections || r.elements)) {
     return migrateFromOldFormat(r);
@@ -373,13 +384,13 @@ export function migrateState(raw: unknown): BuilderState {
 export function makeEmpty(): BuilderState {
   const pageId = newPageId();
   const headerId = newSectionId();
-  const footerId = newSectionId();
   const sectionId = newSectionId();
+  const footerId = newSectionId();
   return {
     schema: SCHEMA_VERSION,
     site: { name: 'My Site', favicon: '', language: 'en' },
     theme: DEFAULT_THEME,
-    pages: [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, header: headerId, footer: footerId, sections: [sectionId] }],
+    pages: [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, sectionId, footerId] }],
     activePageId: pageId,
     nodes: { [headerId]: makeSection(headerId, 'header'), [footerId]: makeSection(footerId, 'footer'), [sectionId]: makeSection(sectionId, 'section', { label: 'Section 1' }) },
   };
@@ -433,7 +444,7 @@ export function useBuilderStore() {
 
   const allOrder = useMemo(() => {
     const page = getActivePage(state);
-    return [page.header, ...page.sections, page.footer].flatMap(secId => {
+    return page.sections.flatMap(secId => {
       const sec = state.nodes[secId] as Section | undefined;
       if (!sec) return [];
       if (sec.layoutMode === 'grid') {
@@ -485,7 +496,7 @@ export function useBuilderStore() {
     const n = stateRef.current.pages.length + 1;
     const pageId = newPageId(); const headerId = newSectionId(); const footerId = newSectionId(); const sectionId = newSectionId();
     push(stateRef.current);
-    setState(s => ({ ...s, nodes: { ...s.nodes, [headerId]: makeSection(headerId, 'header'), [footerId]: makeSection(footerId, 'footer'), [sectionId]: makeSection(sectionId, 'section', { label: 'Section 1' }) }, pages: [...s.pages, { id: pageId, name: `Page ${n}`, slug: `/page-${n}`, seo: { title: `Page ${n} | My Site`, description: '', ogImage: '' }, header: headerId, footer: footerId, sections: [sectionId] }], activePageId: pageId }));
+    setState(s => ({ ...s, nodes: { ...s.nodes, [headerId]: makeSection(headerId, 'header'), [footerId]: makeSection(footerId, 'footer'), [sectionId]: makeSection(sectionId, 'section', { label: 'Section 1' }) }, pages: [...s.pages, { id: pageId, name: `Page ${n}`, slug: `/page-${n}`, seo: { title: `Page ${n} | My Site`, description: '', ogImage: '' }, sections: [headerId, sectionId, footerId] }], activePageId: pageId }));
     setSelectedIds([]); setSelectedSectionId(null);
   }, [push]);
 
@@ -496,7 +507,7 @@ export function useBuilderStore() {
       const page = s.pages.find(p => p.id === id);
       if (!page) return s;
       const nodes = { ...s.nodes };
-      for (const secId of [page.header, ...page.sections, page.footer]) {
+      for (const secId of page.sections) {
         const sec = nodes[secId] as Section | undefined;
         if (sec) { removeNodesForSection(nodes, sec); delete nodes[secId]; }
       }
@@ -540,6 +551,24 @@ export function useBuilderStore() {
       return { ...s, nodes: { ...s.nodes, [secId]: sec }, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
     });
     setSelectedSectionId(secId);
+  }, [push]);
+
+  // Change a section's role; demotes any other section that held that role.
+  const promoteSection = useCallback((id: string, role: 'header' | 'footer' | 'section') => {
+    push(stateRef.current);
+    setState(s => {
+      const p = getActivePage(s);
+      const nodes = { ...s.nodes };
+      // Demote any other section that currently holds this role
+      for (const secId of p.sections) {
+        const sec = nodes[secId] as Section | undefined;
+        if (sec && sec.role === role && secId !== id) {
+          nodes[secId] = { ...sec, role: 'section' };
+        }
+      }
+      nodes[id] = { ...(nodes[id] as Section), role };
+      return { ...s, nodes };
+    });
   }, [push]);
 
   const deleteSection = useCallback((id: string) => {
@@ -990,7 +1019,7 @@ export function useBuilderStore() {
     const sec = makeSection(secId, 'section', {
       label: `Grid Section ${page.sections.length + 1}`,
       layoutMode: 'grid',
-      grid: { gap: 24, rowGap: 24 },
+      grid: { gap: 16, rowGap: 16 },
       children: cellIds,
     }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
@@ -1086,6 +1115,49 @@ export function useBuilderStore() {
     });
   }, [push]);
 
+  // Add a column to an existing container, redistributing all sub-cell spans equally.
+  const addContainerColumn = useCallback((containerId: string) => {
+    const node = stateRef.current.nodes[containerId];
+    if (!node || node.type !== 'container') return;
+    const block = node as Container;
+    const newCount = block.children.length + 1;
+    const newSpan = Math.max(1, Math.floor(12 / newCount));
+    const cellId = newGridCellId();
+    push(stateRef.current);
+    setState(s => {
+      const nodes = { ...s.nodes };
+      const c = nodes[containerId] as Container;
+      if (!c || c.type !== 'container') return s;
+      for (const childId of c.children) {
+        const child = nodes[childId] as GridCell | undefined;
+        if (child?.type === 'grid-cell') nodes[childId] = { ...child, columnSpan: newSpan };
+      }
+      nodes[cellId] = makeGridCell(cellId, containerId, newSpan);
+      nodes[containerId] = { ...c, children: [...c.children, cellId] };
+      return { ...s, nodes };
+    });
+    setSelectedGridCellId(cellId);
+  }, [push]);
+
+  // Live-resize two adjacent grid cells by redistributing spans; no undo push (caller commits).
+  const resizeAdjacentGridCells = useCallback((cellId: string, neighborId: string | undefined, newSpan: number) => {
+    setState(s => {
+      const cell = s.nodes[cellId] as GridCell | undefined;
+      if (!cell || cell.type !== 'grid-cell') return s;
+      const clamped = Math.max(1, Math.min(12, newSpan));
+      const delta = clamped - cell.columnSpan;
+      if (delta === 0) return s;
+      const nodes = { ...s.nodes, [cellId]: { ...cell, columnSpan: clamped } };
+      if (neighborId) {
+        const nb = nodes[neighborId] as GridCell | undefined;
+        if (nb?.type === 'grid-cell') {
+          nodes[neighborId] = { ...nb, columnSpan: Math.max(1, nb.columnSpan - delta) };
+        }
+      }
+      return { ...s, nodes };
+    });
+  }, []);
+
   // Append a container (inline layout block) to a cell — never converts the whole cell.
   const addContainer = useCallback((cellId: string, mode: ContainerLayoutMode = 'grid', columnSpans?: number[]) => {
     const node = stateRef.current.nodes[cellId];
@@ -1097,7 +1169,7 @@ export function useBuilderStore() {
     setState(s => {
       const nodes = { ...s.nodes };
       const c = nodes[cellId] as GridCell;
-      nodes[blockId] = { id: blockId, type: 'container', parent: cellId, children: subIds, layoutMode: mode, gap: 16, rowGap: 0 } as Container;
+      nodes[blockId] = { id: blockId, type: 'container', parent: cellId, children: subIds, layoutMode: mode, gap: 8, rowGap: 0 } as Container;
       subIds.forEach((id, i) => {
         nodes[id] = { ...makeGridCell(id, blockId, spans[i]), ...(spans.length === 2 ? { responsive: { mobile: { columnSpan: 12 } } } : {}) };
       });
@@ -1229,23 +1301,25 @@ export function useBuilderStore() {
   }, [redo]);
 
   const activePage = getActivePage(state);
-  const header = state.nodes[activePage.header] as Section;
-  const footer = state.nodes[activePage.footer] as Section;
-  const sections = activePage.sections.map(id => state.nodes[id] as Section).filter(Boolean);
+  const allSections = activePage.sections.map(id => state.nodes[id] as Section).filter(Boolean);
+  // Derive header/footer/sections for backward-compat with LayerPanel/LeftSidebar
+  const header = allSections.find(s => s.role === 'header') ?? allSections[0];
+  const footer = allSections.find(s => s.role === 'footer') ?? allSections[allSections.length - 1];
+  const sections = allSections.filter(s => s !== header && s !== footer);
 
   return {
     state, nodes: state.nodes, elements: allElements, order: allOrder,
-    header, sections, footer,
+    header, sections, footer, allSections,
     pages: state.pages, activePageId: state.activePageId, activePage,
     selectedId, selectedIds, selectedSectionId, selectedGridCellId,
     setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, toggleSelectedId,
     addPage, deletePage, renamePage, updatePageSlug, setActivePage, reorderPage,
-    addSection, addGridSection, addSectionFromTemplate, deleteSection, updateSection, reorderSection, duplicateSection,
+    addSection, addGridSection, addSectionFromTemplate, deleteSection, promoteSection, updateSection, reorderSection, duplicateSection,
     addElement, addElementAt, addElementToCell, duplicateElement, copyElement, pasteElement,
     updateElement, updateElements, updateResponsive, pushSnapshot,
     deleteElement, deleteSelected, reorderElement, moveElementToSection, moveElementToGridCell,
     bringToFront, sendToBack, importState, updateTheme,
-    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, removeColumnsBlock: removeContainer, addContainer, removeContainer, updateContainer, moveGridElement,
+    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, resizeAdjacentGridCells, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, removeContainer, updateContainer, moveGridElement,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

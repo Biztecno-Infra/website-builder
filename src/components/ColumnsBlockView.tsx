@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
@@ -44,6 +44,8 @@ interface Props {
   onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
   onRemoveColumnsBlock: (blockId: string) => void;
   onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
+  onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
 }
 
@@ -61,13 +63,12 @@ export function ColumnsBlockView({
   onUpdateResponsive, onDuplicateElement, onDeleteElement,
   onReorderGridCell,
   onRemoveColumnsBlock,
-  onAddContainer, selectedContainerId,
+  onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId,
 }: Props) {
   const subCells = block.children
     .map(id => nodes[id])
     .filter((n): n is GridCell => !!n && n.type === 'grid-cell');
 
-  const [hovered, setHovered] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   // Track hover side in a ref so the drop handler sees the latest value
   const sideRef = useRef<'before' | 'after'>('after');
@@ -126,16 +127,54 @@ export function ColumnsBlockView({
     >
       <div
         className={['pb-container', isSelected ? 'pb-container--selected' : ''].filter(Boolean).join(' ')}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
       >
-        {!previewMode && (hovered || isSelected) && (
-          <div className={'pb-container-actions'}>
-            <span
-              className={'pb-container-label'}
-              onClick={e => { e.stopPropagation(); onSelectContainer?.(block.id); }}
-              style={{ cursor: 'pointer' }}
-            >{MODE_LABEL[mode]}</span>
+        {!previewMode && (
+          <div
+            className={['pb-container-actions', isSelected ? 'pb-container-actions--expanded' : ''].filter(Boolean).join(' ')}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Mode label / mode toggles */}
+            {isSelected ? (
+              (['grid', 'flex-col', 'flex-row'] as ContainerLayoutMode[]).map(m => (
+                <button
+                  key={m}
+                  className={['pb-ctb-mode-btn', block.layoutMode === m ? 'pb-ctb-mode-btn--active' : ''].filter(Boolean).join(' ')}
+                  title={{ grid: 'Columns (CSS Grid)', 'flex-col': 'Stack (flex column)', 'flex-row': 'Row (flex row)' }[m]}
+                  onClick={() => onUpdateContainer?.(block.id, { layoutMode: m })}
+                >{MODE_LABEL[m]}</button>
+              ))
+            ) : (
+              <span
+                className={'pb-container-label'}
+                onClick={() => onSelectContainer?.(block.id)}
+                style={{ cursor: 'pointer' }}
+                title="Click to select container"
+              >{MODE_LABEL[mode]}</span>
+            )}
+
+            <div className={'pb-ctb-sep'} />
+
+            {/* Gap — only when selected */}
+            {isSelected && (
+              <>
+                <label className={'pb-ctb-label'}>Gap</label>
+                <input
+                  className={'pb-ctb-gap-input'}
+                  type="number" min={0} max={120} value={block.gap}
+                  onClick={e => e.stopPropagation()}
+                  onChange={e => onUpdateContainer?.(block.id, { gap: Math.max(0, Number(e.target.value)) })}
+                />
+                <div className={'pb-ctb-sep'} />
+              </>
+            )}
+
+            {/* Add column — always visible on hover */}
+            <button
+              className={'pb-ctb-add-btn'}
+              title="Add column"
+              onClick={() => onAddSubCell?.(block.id)}
+            >+ Col</button>
+
             <div
               ref={dragRef as (el: HTMLDivElement | null) => void}
               className={'pb-container-handle'}
@@ -145,7 +184,7 @@ export function ColumnsBlockView({
             <button
               className={'pb-container-delete'}
               title="Remove container"
-              onClick={e => { e.stopPropagation(); onRemoveColumnsBlock(block.id); }}
+              onClick={() => onRemoveColumnsBlock(block.id)}
             >✕</button>
           </div>
         )}
@@ -154,11 +193,8 @@ export function ColumnsBlockView({
             <DraggableCellWrapper
               key={subCell.id}
               cell={subCell}
-              index={idx}
-              parentId={block.id}
               breakpoint={breakpoint}
               previewMode={previewMode}
-              onReorderCell={(from, to) => onReorderGridCell?.(block.id, from, to)}
             >
               <GridCellView
                 cell={subCell}
@@ -188,6 +224,8 @@ export function ColumnsBlockView({
                 onReorderGridCell={onReorderGridCell}
                 onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
                 onAddContainer={onAddContainer}
+                onUpdateContainer={onUpdateContainer}
+                onAddSubCell={onAddSubCell}
                 selectedContainerId={selectedContainerId}
                 onSelectContainer={onSelectContainer}
               />
