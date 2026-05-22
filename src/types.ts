@@ -5,10 +5,10 @@ export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
 export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient';
 export type AnimationType = 'none' | 'fade-in' | 'slide-up' | 'slide-left' | 'zoom-in';
 export type AnimationTrigger = 'load' | 'scroll';
-export type Breakpoint = 'desktop' | 'tablet' | 'mobile';
+export type Breakpoint = 'desktop' | 'large-desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
 export type SectionLayoutMode = 'free' | 'grid';
-export type CellLayoutMode = 'column' | 'row' | 'wrap';
+export type CellLayoutMode = 'column' | 'row' | 'wrap' | 'free';
 export type FlexWidthMode = 'fill' | 'auto' | 'fixed' | 'percent';
 
 // ── Style primitives ───────────────────────────────────────────────────
@@ -95,9 +95,14 @@ export interface ElementContent {
   iconSize?: number;
 }
 
+export type InteractionType = 'link' | 'scroll-to-section' | 'scroll-to-top';
+
 export interface ElementInteraction {
+  type: InteractionType;
   linkUrl: string;
   linkTarget: '_self' | '_blank';
+  targetSectionId?: string;
+  smoothScroll: boolean;
 }
 
 export interface ElementState {
@@ -149,6 +154,7 @@ export interface CanvasElement {
   state: ElementState;
   responsive: ElementResponsive;
   flexLayout: FlexItemLayout;
+  overlayInCell?: boolean;
 }
 
 // ── Section column ─────────────────────────────────────────────────────
@@ -176,9 +182,18 @@ export interface SectionLayout {
 export interface GridConfig {
   gap: number;
   rowGap: number;
+  minHeight?: number;
+  rowHeight?: number;
 }
 
 // ── Section node — discriminated union ────────────────────────────────
+
+export type SectionScrollBehavior = 'normal' | 'sticky' | 'fixed';
+
+export interface SectionResponsive {
+  tablet?: { height?: number; gap?: number; rowGap?: number };
+  mobile?: { height?: number; gap?: number; rowGap?: number };
+}
 
 interface SectionBase {
   id: string;
@@ -187,6 +202,9 @@ interface SectionBase {
   label: string;
   layout: SectionLayout;
   style: SectionStyle;
+  scrollBehavior?: SectionScrollBehavior;
+  stickyOffset?: number;
+  responsive?: SectionResponsive;
 }
 
 export interface FreeSection extends SectionBase {
@@ -211,6 +229,9 @@ export type SectionUpdate = {
   layoutMode?: SectionLayoutMode;
   children?: string[];
   grid?: GridConfig;
+  scrollBehavior?: SectionScrollBehavior;
+  stickyOffset?: number;
+  responsive?: SectionResponsive;
 };
 
 export interface FlexItemLayout {
@@ -236,6 +257,7 @@ export interface GridCellBpOverride {
   hidden?: boolean;
   layoutMode?: CellLayoutMode;
   minHeight?: number;
+  freeHeight?: number;
   alignItems?: GridCellStyle['alignItems'];
   justifyContent?: GridCellStyle['justifyContent'];
 }
@@ -254,12 +276,39 @@ export interface GridCell {
   style: GridCellStyle;
   children: string[];
   responsive: GridCellResponsive;
-  nestedGrid?: { gap: number; rowGap: number };
+  freeHeight?: number;
 }
+
+// ── Container — layout wrapper that lives inside a GridCell ───────────
+// layoutMode controls how sub-cells (GridCell children) are arranged:
+//   'grid'     → 12-column CSS grid (column spans apply)
+//   'flex-col' → flex column stack (full-width cells)
+//   'flex-row' → flex row (cells grow equally)
+
+export type ContainerLayoutMode = 'grid' | 'flex-col' | 'flex-row';
+
+export interface ContainerResponsive {
+  tablet?: { layoutMode?: ContainerLayoutMode };
+  mobile?: { layoutMode?: ContainerLayoutMode };
+}
+
+export interface Container {
+  id: string;
+  type: 'container';
+  parent: string; // parent GridCell ID
+  children: string[]; // GridCell IDs
+  layoutMode: ContainerLayoutMode;
+  gap: number;
+  rowGap: number;
+  responsive?: ContainerResponsive;
+}
+
+/** @deprecated use Container */
+export type ColumnsBlock = Container;
 
 // ── Nodes flat map ─────────────────────────────────────────────────────
 
-export type AnyNode = Section | GridCell | CanvasElement;
+export type AnyNode = Section | GridCell | CanvasElement | Container;
 export type NodeMap = Record<string, AnyNode>;
 
 // ── Page ───────────────────────────────────────────────────────────────
@@ -295,12 +344,12 @@ export interface ThemeColors {
   background: string;
   light: string;
   accent: string;
+  sectionBg: string;
 }
 
 export interface SiteTheme {
   colors: ThemeColors;
   fonts: {
-    heading: string;
     body: string;
   };
 }

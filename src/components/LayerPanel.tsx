@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import type { CanvasElement, GridCell, NodeMap, Section, SectionColumns } from '../types';
+﻿import React, { useRef, useState } from 'react';
+import type { CanvasElement, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
 
@@ -25,6 +25,8 @@ interface Props {
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
+  onSelectContainer?: (id: string) => void;
+  onScrollToElement?: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
@@ -70,6 +72,8 @@ interface SectionGroupProps {
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
+  onSelectContainer?: (id: string) => void;
+  onScrollToElement?: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
@@ -81,7 +85,7 @@ interface SectionGroupProps {
 
 function SectionGroup({
   section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, isDragOver, isDragging,
-  onSelectElement, onSelectSection, onSelectGridCell, onUpdateElement, onReorderElement, onMoveElementToSection,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -97,13 +101,18 @@ function SectionGroup({
       .filter((c): c is GridCell => !!c);
 
     function countCellElements(cell: GridCell): number {
-      if (cell.nestedGrid) {
-        return cell.children.reduce((sum, id) => {
-          const sub = nodes[id] as GridCell | undefined;
-          return sum + (sub ? countCellElements(sub) : 0);
-        }, 0);
-      }
-      return cell.children.length;
+      return cell.children.reduce((sum, id) => {
+        const child = nodes[id];
+        if (!child) return sum;
+        if (child.type === 'container') {
+          const block = child as Container;
+          return sum + block.children.reduce((cs, subId) => {
+            const sub = nodes[subId] as GridCell | undefined;
+            return cs + (sub ? countCellElements(sub) : 0);
+          }, 0);
+        }
+        return sum + 1;
+      }, 0);
     }
 
     const totalElements = cells.reduce((sum, c) => sum + countCellElements(c), 0);
@@ -115,20 +124,20 @@ function SectionGroup({
       return (
         <div
           key={el.id}
-          className={`layer-row layer-row--grid-el${isSelected ? ' selected' : ''}${hidden ? ' layer-hidden' : ''}`}
-          onClick={() => onSelectElement(el.id)}
+          className={['pb-layer-row', 'pb-layer-row--grid-el', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+          onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
         >
-          <span className="layer-el-drag-handle" style={{ visibility: 'hidden' }}>⠿</span>
-          <span className="layer-type-icon">{TYPE_ICON[el.type] ?? '□'}</span>
-          <span className="layer-name" title={elementLabel(el)}>{elementLabel(el)}</span>
-          <span className="layer-actions">
+          <span className={'pb-layer-el-drag-handle'} style={{ visibility: 'hidden' }}>⠿</span>
+          <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
+          <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
+          <span className={'pb-layer-actions'}>
             <button
-              className={`layer-btn${hidden ? ' active' : ''}`}
+              className={['pb-layer-btn', hidden && 'pb-active'].filter(Boolean).join(' ')}
               title={hidden ? 'Show' : 'Hide'}
               onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, hidden: !hidden } }); }}
             >{hidden ? '🙈' : '👁'}</button>
             <button
-              className={`layer-btn${locked ? ' active' : ''}`}
+              className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
               title={locked ? 'Unlock' : 'Lock'}
               onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
             >{locked ? '🔒' : '🔓'}</button>
@@ -141,83 +150,80 @@ function SectionGroup({
       const isCellSelected = selectedGridCellId === cell.id;
       const indent = depth * 12;
 
-      if (cell.nestedGrid) {
-        const subCells = cell.children
-          .map(id => nodes[id] as GridCell | undefined)
-          .filter((c): c is GridCell => !!c);
-        return (
-          <div key={cell.id} className="layer-grid-cell-group">
-            <div
-              className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
-              style={{ paddingLeft: 8 + indent }}
-              onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
-            >
-              <span className="layer-column-icon">⊞</span>
-              <span className="layer-column-label">Col {cellIdx + 1} (nested)</span>
-              <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
-              <span className="layer-section-count">{countCellElements(cell)}</span>
-            </div>
-            {subCells.length === 0 && (
-              <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty nested grid</div>
-            )}
-            {subCells.map((sub, si) => renderCellLayer(sub, si, depth + 1))}
-          </div>
-        );
-      }
-
-      const cellElements = cell.children
-        .map(id => nodes[id] as CanvasElement | undefined)
-        .filter((el): el is CanvasElement => !!el);
+      const cellChildren = cell.children.map(id => nodes[id]).filter(Boolean);
+      const childCount = cellChildren.length;
 
       return (
-        <div key={cell.id} className="layer-grid-cell-group">
+        <div key={cell.id} className={'pb-layer-grid-cell-group'}>
           <div
-            className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
+            className={['pb-layer-grid-cell-header', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
             style={{ paddingLeft: 8 + indent }}
             onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
           >
-            <span className="layer-column-icon">⊟</span>
-            <span className="layer-column-label">Col {cellIdx + 1}</span>
-            <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
-            <span className="layer-section-count">{cellElements.length}</span>
+            <span className={'pb-layer-column-icon'}>⊟</span>
+            <span className={'pb-layer-column-label'}>Col {cellIdx + 1}</span>
+            <span className={'pb-layer-grid-cell-span'}>span {cell.columnSpan}</span>
+            <span className={'pb-layer-section-count'}>{childCount}</span>
           </div>
-          {cellElements.length === 0 && (
-            <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty</div>
+          {childCount === 0 && (
+            <div className={'pb-layer-empty-section'} style={{ paddingLeft: 20 + indent }}>Empty</div>
           )}
-          {cellElements.map(el => renderGridElementRow(el))}
+          {cellChildren.map((child) => {
+            if (!child) return null;
+            if (child.type === 'container') {
+              const block = child as Container;
+              const subCells = block.children.map((id: string) => nodes[id] as GridCell | undefined).filter((c: GridCell | undefined): c is GridCell => !!c);
+              const containerElCount = subCells.reduce((s, sub) => s + countCellElements(sub), 0);
+              return (
+                <div key={block.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
+                  <div
+                    className={'pb-layer-grid-cell-header'}
+                    style={{ paddingLeft: 8, cursor: 'pointer' }}
+                    onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); }}
+                  >
+                    <span className={'pb-layer-column-icon'}>⊞</span>
+                    <span className={'pb-layer-column-label'}>Container</span>
+                    <span className={'pb-layer-section-count'}>{containerElCount}</span>
+                  </div>
+                  {subCells.map((sub: GridCell, si: number) => renderCellLayer(sub, si, depth + 1))}
+                </div>
+              );
+            }
+            return renderGridElementRow(child as CanvasElement);
+          })}
         </div>
       );
     }
 
     return (
       <div
-        className={`layer-section-group${isDragOver ? ' drag-over' : ''}${isDragging ? ' dragging' : ''}`}
+        className={['pb-layer-section-group', isDragOver && 'pb-drag-over', isDragging && 'pb-dragging'].filter(Boolean).join(' ')}
         onDragOver={e => { e.preventDefault(); if (draggable) onSectionDragOver(index); }}
         onDrop={e => { e.preventDefault(); onSectionDrop(); }}
       >
         <div
-          className={`layer-section-header${isSectionSelected ? ' selected' : ''}`}
+          className={['pb-layer-section-header', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
           draggable={draggable}
           onDragStart={() => draggable && onSectionDragStart(index)}
           onDragEnd={() => draggable && onSectionDragEnd()}
           onClick={() => onSelectSection(section.id)}
         >
-          {draggable && <span className="layer-drag-handle" title="Drag to reorder">⠿</span>}
+          {draggable && <span className={'pb-layer-drag-handle'} title="Drag to reorder">⠿</span>}
           <button
-            className="layer-collapse-btn"
+            className={'pb-layer-collapse-btn'}
             onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
           >
             {collapsed ? '▶' : '▼'}
           </button>
-          <span className="layer-section-icon">⊞</span>
-          <span className="layer-section-name">{section.label}</span>
-          <span className="layer-section-count">{totalElements}</span>
+          <span className={'pb-layer-section-icon'}>⊞</span>
+          <span className={'pb-layer-section-name'}>{section.label}</span>
+          <span className={'pb-layer-section-count'}>{totalElements}</span>
         </div>
 
         {!collapsed && (
-          <div className="layer-element-list">
+          <div className={'pb-layer-element-list'}>
             {cells.length === 0 && (
-              <div className="layer-empty-section">No columns yet</div>
+              <div className={'pb-layer-empty-section'}>No columns yet</div>
             )}
             {cells.map((cell, cellIdx) => renderCellLayer(cell, cellIdx, 0))}
           </div>
@@ -312,25 +318,25 @@ function SectionGroup({
     return (
       <div
         key={el.id}
-        className={`layer-row${isSelected ? ' selected' : ''}${hidden ? ' layer-hidden' : ''}${locked ? ' layer-locked' : ''}${isDropTarget ? ' el-drop-target' : ''}`}
+        className={['pb-layer-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden', locked && 'pb-layer-locked', isDropTarget && 'pb-el-drop-target'].filter(Boolean).join(' ')}
         draggable
-        onClick={() => onSelectElement(el.id)}
+        onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
         onDragStart={e => handleElDragStart(e, panelIdx, el.id)}
         onDragOver={e => handleElDragOver(e, panelIdx)}
         onDrop={e => handleElDrop(e, panelIdx)}
         onDragEnd={handleElDragEnd}
       >
-        <span className="layer-el-drag-handle">⠿</span>
-        <span className="layer-type-icon">{TYPE_ICON[el.type] ?? '□'}</span>
-        <span className="layer-name" title={elementLabel(el)}>{elementLabel(el)}</span>
-        <span className="layer-actions">
+        <span className={'pb-layer-el-drag-handle'}>⠿</span>
+        <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
+        <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
+        <span className={'pb-layer-actions'}>
           <button
-            className={`layer-btn${hidden ? ' active' : ''}`}
+            className={['pb-layer-btn', hidden && 'pb-active'].filter(Boolean).join(' ')}
             title={hidden ? 'Show' : 'Hide'}
             onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, hidden: !hidden } }); }}
           >{hidden ? '🙈' : '👁'}</button>
           <button
-            className={`layer-btn${locked ? ' active' : ''}`}
+            className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
             title={locked ? 'Unlock' : 'Lock'}
             onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
           >{locked ? '🔒' : '🔓'}</button>
@@ -341,7 +347,7 @@ function SectionGroup({
 
   return (
     <div
-      className={`layer-section-group${isDragOver ? ' drag-over' : ''}${isDragging ? ' dragging' : ''}`}
+      className={['pb-layer-section-group', isDragOver && 'pb-drag-over', isDragging && 'pb-dragging'].filter(Boolean).join(' ')}
       onDragOver={e => {
         e.preventDefault();
         if (!_layerDrag && draggable) onSectionDragOver(index);
@@ -349,31 +355,31 @@ function SectionGroup({
       onDrop={handleSectionBodyDrop}
     >
       <div
-        className={`layer-section-header${isSectionSelected ? ' selected' : ''}`}
+        className={['pb-layer-section-header', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
         draggable={draggable}
         onDragStart={() => draggable && onSectionDragStart(index)}
         onDragEnd={() => draggable && onSectionDragEnd()}
         onClick={() => onSelectSection(section.id)}
       >
-        {draggable && <span className="layer-drag-handle" title="Drag to reorder">⠿</span>}
+        {draggable && <span className={'pb-layer-drag-handle'} title="Drag to reorder">⠿</span>}
         <button
-          className="layer-collapse-btn"
+          className={'pb-layer-collapse-btn'}
           onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
         >
           {collapsed ? '▶' : '▼'}
         </button>
-        <span className="layer-section-icon">
+        <span className={'pb-layer-section-icon'}>
           {role === 'header' ? '⬆' : role === 'footer' ? '⬇' : '▭'}
         </span>
-        <span className="layer-section-name">
+        <span className={'pb-layer-section-name'}>
           {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
         </span>
-        <span className="layer-section-count">{section.children.length}</span>
+        <span className={'pb-layer-section-count'}>{section.children.length}</span>
       </div>
 
       {!collapsed && (
         <div
-          className="layer-element-list"
+          className={'pb-layer-element-list'}
           onDragOver={e => { if (_layerDrag) { e.preventDefault(); e.stopPropagation(); } }}
           onDrop={e => {
             if (!_layerDrag) return;
@@ -386,19 +392,19 @@ function SectionGroup({
           }}
         >
           {elements.length === 0 && (
-            <div className="layer-empty-section">Drop element here</div>
+            <div className={'pb-layer-empty-section'}>Drop element here</div>
           )}
 
           {hasColumns ? (
             columnGroups.map((group, colIdx) => (
-              <div key={colIdx} className="layer-column-group">
-                <div className="layer-column-header">
-                  <span className="layer-column-icon">⊟</span>
-                  <span className="layer-column-label">Column {colIdx + 1}</span>
-                  <span className="layer-section-count">{group.length}</span>
+              <div key={colIdx} className={'pb-layer-column-group'}>
+                <div className={'pb-layer-column-header'}>
+                  <span className={'pb-layer-column-icon'}>⊟</span>
+                  <span className={'pb-layer-column-label'}>Column {colIdx + 1}</span>
+                  <span className={'pb-layer-section-count'}>{group.length}</span>
                 </div>
                 {group.length === 0 && (
-                  <div className="layer-empty-section">Empty</div>
+                  <div className={'pb-layer-empty-section'}>Empty</div>
                 )}
                 {group.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
               </div>
@@ -415,7 +421,7 @@ function SectionGroup({
 export function LayerPanel({
   header, sections, footer, nodes,
   selectedIds, selectedSectionId, selectedGridCellId,
-  onSelectElement, onSelectSection, onSelectGridCell,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement,
   onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement,
 }: Props) {
@@ -424,13 +430,18 @@ export function LayerPanel({
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
 
   function countCellElementsDeep(cell: GridCell): number {
-    if (cell.nestedGrid) {
-      return cell.children.reduce((sum, id) => {
-        const sub = nodes[id] as GridCell | undefined;
-        return sum + (sub ? countCellElementsDeep(sub) : 0);
-      }, 0);
-    }
-    return cell.children.length;
+    return cell.children.reduce((sum, id) => {
+      const child = nodes[id];
+      if (!child) return sum;
+      if (child.type === 'container') {
+        const block = child as Container;
+        return sum + block.children.reduce((cs, subId) => {
+          const sub = nodes[subId] as GridCell | undefined;
+          return cs + (sub ? countCellElementsDeep(sub) : 0);
+        }, 0);
+      }
+      return sum + 1;
+    }, 0);
   }
 
   const totalElements = [header, ...sections, footer].reduce((sum, s) => {
@@ -465,6 +476,8 @@ export function LayerPanel({
     onSelectElement,
     onSelectSection,
     onSelectGridCell,
+    onSelectContainer,
+    onScrollToElement,
     onUpdateElement,
     onReorderElement,
     onMoveElementToSection,
@@ -472,11 +485,11 @@ export function LayerPanel({
   };
 
   return (
-    <aside className="left-sidebar layer-panel">
-      <div className="sidebar-section-title">
-        Layers <span className="layer-count">({totalElements})</span>
+    <aside className={"pb-left-sidebar pb-layer-panel"}>
+      <div className={'pb-sidebar-section-title'}>
+        Layers <span className={'pb-layer-count'}>({totalElements})</span>
       </div>
-      <div className="layer-list">
+      <div className={'pb-layer-list'}>
         <SectionGroup
           {...commonSectionProps}
           section={header} role="header" index={-1}

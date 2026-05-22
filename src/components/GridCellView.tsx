@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, GridCell, GridCellStyle, NodeMap, ElementType } from '../types';
-import { DND_TYPE } from './LeftSidebar';
+import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container } from '../types';
+import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE } from './LeftSidebar';
+import type { CellLayoutDragItem } from './LeftSidebar';
 import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
-import { DraggableCellWrapper } from './DraggableCellWrapper';
+import { ColumnsBlockView } from './ColumnsBlockView';
+import { getCellColumnSpan, getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../utils/cellUtils';
 
 interface Props {
   cell: GridCell;
@@ -16,8 +18,8 @@ interface Props {
   onUpdateElement: (id: string, updates: Partial<El>) => void;
   onUpdateCell: (updates: Partial<GridCell>) => void;
   onDeleteCell: () => void;
-  onAddElement: (type: ElementType) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
+  onAddElement: (type: ElementType, x?: number, y?: number) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: CellLayoutMode) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   previewMode?: boolean;
@@ -30,37 +32,17 @@ interface Props {
   selectedGridCellId?: string | null;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onDeleteGridCell?: (id: string) => void;
-  onAddElementToCell?: (type: ElementType, cellId: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
   onSelectGridCell?: (id: string | null) => void;
   onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
-}
-
-function getColumnSpan(cell: GridCell, bp: Breakpoint): number {
-  if (bp === 'tablet') return cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-  if (bp === 'mobile') return cell.responsive.mobile?.columnSpan ?? cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-  return cell.columnSpan;
+  onRemoveColumnsBlock?: (blockId: string) => void;
+  onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
+  selectedContainerId?: string | null;
+  onSelectContainer?: (id: string) => void;
 }
 
 function getRowSpan(cell: GridCell): number {
   return cell.rowSpan ?? 1;
-}
-
-function getEffectiveCellMode(cell: GridCell, bp: Breakpoint): CellLayoutMode {
-  if (bp === 'tablet') return cell.responsive.tablet?.layoutMode ?? cell.style.layoutMode;
-  if (bp === 'mobile') return cell.responsive.mobile?.layoutMode ?? cell.responsive.tablet?.layoutMode ?? cell.style.layoutMode;
-  return cell.style.layoutMode;
-}
-
-function getEffectiveAlign(cell: GridCell, bp: Breakpoint): GridCellStyle['alignItems'] {
-  if (bp === 'tablet') return cell.responsive.tablet?.alignItems ?? cell.style.alignItems;
-  if (bp === 'mobile') return cell.responsive.mobile?.alignItems ?? cell.responsive.tablet?.alignItems ?? cell.style.alignItems;
-  return cell.style.alignItems;
-}
-
-function getEffectiveJustify(cell: GridCell, bp: Breakpoint): GridCellStyle['justifyContent'] {
-  if (bp === 'tablet') return cell.responsive.tablet?.justifyContent ?? cell.style.justifyContent;
-  if (bp === 'mobile') return cell.responsive.mobile?.justifyContent ?? cell.responsive.tablet?.justifyContent ?? cell.style.justifyContent;
-  return cell.style.justifyContent;
 }
 
 export function GridCellView({
@@ -73,88 +55,185 @@ export function GridCellView({
   isDragOverTarget,
   selectedGridCellId, onUpdateGridCell, onDeleteGridCell,
   onAddElementToCell, onSelectGridCell, onReorderGridCell,
+  onRemoveColumnsBlock, onAddContainer, selectedContainerId, onSelectContainer,
 }: Props) {
 
   const bp = breakpoint;
-  const span = getColumnSpan(cell, bp);
+  const span = getCellColumnSpan(cell, bp);
   const rowSpan = getRowSpan(cell);
-  const isNestedGrid = !!cell.nestedGrid;
+  // Canvas elements only (no containers) — used for free branch, overlay els, drop logic
+  const allElements = cell.children
+    .map(id => nodes[id])
+    .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container');
 
-  const elements = !isNestedGrid
-    ? cell.children
-      .map(id => nodes[id])
-      .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell')
-    : [];
+  const elements = allElements.filter(el => !el.overlayInCell);
+  const overlayEls = allElements.filter(el => !!el.overlayInCell);
 
-  const subCells = isNestedGrid
-    ? cell.children
-      .map(id => nodes[id])
-      .filter((node): node is GridCell => !!node && node.type === 'grid-cell')
-    : [];
+  // Ordered mix of canvas elements + containers for the flex branch, with per-item indices
+  let _elIdx = 0;
+  const flexChildrenWithIndex = cell.children
+    .map((id, rawIdx) => {
+      const node = nodes[id];
+      if (!node || node.type === 'section' || node.type === 'grid-cell') return null;
+      const item = node as El | Container;
+      return { item, elIdx: item.type === 'container' ? -1 : _elIdx++, childIdx: rawIdx };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+  const flexChildren = flexChildrenWithIndex.map(x => x.item);
 
   // ── Insertion-line state ─────────────────────────────────────────────────
   const [insertAfterIndex, setInsertAfterIndex] = useState<number | null>(null);
 
+  // Refs for coordinate calculation in free-mode drops
+  const cellDomRef = useRef<HTMLDivElement>(null);
+  const cellModeRef = useRef<CellLayoutMode>(cell.style.layoutMode);
+  cellModeRef.current = getCellLayoutMode(cell, breakpoint ?? 'desktop');
+
   // ── Drop: new elements from sidebar palette ──────────────────────────────
   const [{ isOver: isPaletteOver }, paletteDropRef] = useDrop<{ type: ElementType }, void, { isOver: boolean }>({
     accept: DND_TYPE,
-    canDrop: () => !isNestedGrid,
-    drop: item => { if (!isNestedGrid) onAddElement(item.type); },
-    collect: m => ({ isOver: m.isOver() && !isNestedGrid }),
+    drop: (item, monitor) => {
+      if (monitor.didDrop()) return;
+      if (cellModeRef.current === 'free' && cellDomRef.current) {
+        const clientOffset = monitor.getClientOffset();
+        if (clientOffset) {
+          const rect = cellDomRef.current.getBoundingClientRect();
+          const x = Math.max(0, Math.round(clientOffset.x - rect.left));
+          const y = Math.max(0, Math.round(clientOffset.y - rect.top));
+          onAddElement(item.type, x, y);
+          return;
+        }
+      }
+      onAddElement(item.type);
+    },
+    collect: m => ({ isOver: m.isOver() }),
   });
 
-  // ── Drop: existing grid elements (reorder / cross-cell move) ────────────
+  // ── Drop: existing grid elements (reorder / cross-cell move / free-drop) ─
   const [{ isGridElOver }, gridElDropRef] = useDrop<GridElDragItem, void, { isGridElOver: boolean }>({
     accept: GRID_EL_DND_TYPE,
-    canDrop: () => !isNestedGrid,
     hover(_item, monitor) {
-      if (isNestedGrid || !monitor.isOver({ shallow: true })) return;
-      setInsertAfterIndex(elements.length - 1);
+      if (!monitor.isOver({ shallow: true }) || cellModeRef.current === 'free') return;
+      setInsertAfterIndex(flexChildrenWithIndex.length - 1);
     },
     drop(item, monitor) {
-      if (isNestedGrid || monitor.didDrop()) return;
-      const { elementId, sourceCellId } = item;
-      const insertAt = elements.length;
-      setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt), 0);
+      if (monitor.didDrop()) return;
+      if (item.kind === 'element') {
+        const { elementId, sourceCellId, sourceCellMode } = item;
+        if (cellModeRef.current === 'free') {
+          // Calculate drop position relative to this cell, correcting for grab offset
+          const clientOffset = monitor.getClientOffset();
+          const initClient   = monitor.getInitialClientOffset();
+          const initSource   = monitor.getInitialSourceClientOffset();
+          if (clientOffset && cellDomRef.current) {
+            const rect = cellDomRef.current.getBoundingClientRect();
+            const grabX = (initClient?.x ?? 0) - (initSource?.x ?? 0);
+            const grabY = (initClient?.y ?? 0) - (initSource?.y ?? 0);
+            const x = clientOffset.x - rect.left - grabX;
+            const y = clientOffset.y - rect.top  - grabY;
+            setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, 0, { x: Math.max(0, Math.round(x)), y: Math.max(0, Math.round(y)) }, sourceCellMode), 0);
+          }
+        } else {
+          const insertAt = flexChildrenWithIndex.length;
+          setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
+        }
+      }
+      // containers handled by child drop targets; nothing needed here
       setInsertAfterIndex(null);
     },
-    collect: m => ({ isGridElOver: m.isOver({ shallow: false }) && !isNestedGrid }),
+    collect: m => ({ isGridElOver: m.isOver({ shallow: false }) }),
   });
 
   useEffect(() => {
     if (!isGridElOver) setInsertAfterIndex(null);
   }, [isGridElOver]);
 
+  // Accept grid layout presets dropped into a cell → create a nested container
+  const [{ isLayoutOver }, layoutDropRef] = useDrop<{ columnSpans: number[] }, void, { isLayoutOver: boolean }>({
+    accept: LAYOUT_DND_TYPE,
+    drop: (item, monitor) => {
+      if (monitor.didDrop()) return;
+      onAddContainer?.(cell.id, 'grid', item.columnSpans);
+    },
+    collect: m => ({ isLayoutOver: m.isOver({ shallow: true }) }),
+  });
+
+  // ── Drop: cell layout presets from sidebar (creates container) ───────────
+  const [{ isCellLayoutOver }, cellLayoutDropRef] = useDrop<CellLayoutDragItem, void, { isCellLayoutOver: boolean }>({
+    accept: CELL_LAYOUT_DND_TYPE,
+    drop: (item, monitor) => {
+      if (monitor.didDrop()) return;
+      onAddContainer?.(cell.id, item.mode, item.columnSpans);
+    },
+    collect: m => ({ isCellLayoutOver: m.isOver({ shallow: true }) }),
+  });
+
   const combinedDropRef = useCallback(
     (node: HTMLDivElement | null) => {
-      (paletteDropRef as (el: HTMLDivElement | null) => void)(node);
-      (gridElDropRef  as (el: HTMLDivElement | null) => void)(node);
+      cellDomRef.current = node;
+      (paletteDropRef     as (el: HTMLDivElement | null) => void)(node);
+      (gridElDropRef      as (el: HTMLDivElement | null) => void)(node);
+      (layoutDropRef      as (el: HTMLDivElement | null) => void)(node);
+      (cellLayoutDropRef  as (el: HTMLDivElement | null) => void)(node);
     },
-    [paletteDropRef, gridElDropRef],
+    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef],
   );
 
   // ── Span resize ──────────────────────────────────────────────────────────
   const handleSpanChange = useCallback((delta: number) => {
     const newSpan = Math.max(1, Math.min(12, span + delta));
     if (newSpan === span) return;
+    onCommit(snapshot);
     if (bp === 'desktop') onUpdateCell({ columnSpan: newSpan });
     else if (bp === 'tablet') onUpdateCell({ responsive: { ...cell.responsive, tablet: { ...cell.responsive.tablet, columnSpan: newSpan } } });
     else onUpdateCell({ responsive: { ...cell.responsive, mobile: { ...cell.responsive.mobile, columnSpan: newSpan } } });
-  }, [span, bp, cell.responsive, onUpdateCell]);
+  }, [span, bp, cell.responsive, onUpdateCell, onCommit, snapshot]);
 
   const handleRowSpanChange = useCallback((delta: number) => {
     const newSpan = Math.max(1, Math.min(6, rowSpan + delta));
     if (newSpan === rowSpan) return;
+    onCommit(snapshot);
     onUpdateCell({ rowSpan: newSpan });
-  }, [rowSpan, onUpdateCell]);
+  }, [rowSpan, onUpdateCell, onCommit, snapshot]);
 
   const handleDragHover = useCallback((afterIdx: number) => setInsertAfterIndex(afterIdx), []);
 
-  const handleDropOnElement = useCallback((item: GridElDragItem, afterIdx: number) => {
-    const { elementId, sourceCellId } = item;
-    setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, afterIdx + 1), 0);
+  const handleDropAtChildIdx = useCallback((item: GridElDragItem, afterChildIdx: number) => {
     setInsertAfterIndex(null);
-  }, [cell.id, onMoveGridElement]);
+    if (item.kind === 'element') {
+      const { elementId, sourceCellId, sourceCellMode } = item;
+      const insertAt = afterChildIdx + 1;
+      setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
+    } else if (item.kind === 'container' && item.parentCellId === cell.id) {
+      // same-cell container reorder
+      const toIndex = afterChildIdx >= item.fromChildIdx ? afterChildIdx : afterChildIdx + 1;
+      onReorderGridCell?.(cell.id, item.fromChildIdx, toIndex);
+    }
+  }, [cell.id, onMoveGridElement, onReorderGridCell]);
+
+  // ── Overlay element drag ──────────────────────────────────────────────────
+  const handleOverlayMouseDown = useCallback((el: El, e: React.MouseEvent<HTMLDivElement>) => {
+    if (previewMode) return;
+    e.stopPropagation();
+    onSelectElement(el.id);
+    if (!cellDomRef.current) return;
+    const cellRect = cellDomRef.current.getBoundingClientRect();
+    const elRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const grabX = e.clientX - elRect.left;
+    const grabY = e.clientY - elRect.top;
+    onCommit(snapshot);
+    const onMove = (me: MouseEvent) => {
+      const nx = Math.max(0, Math.round(me.clientX - cellRect.left - grabX));
+      const ny = Math.max(0, Math.round(me.clientY - cellRect.top - grabY));
+      onUpdateElement(el.id, { layout: { ...el.layout, x: nx, y: ny } });
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [previewMode, onSelectElement, onCommit, snapshot, onUpdateElement]);
 
   // ── Hidden check ──────────────────────────────────────────────────────────
   const hidden = bp === 'tablet'
@@ -166,7 +245,7 @@ export function GridCellView({
   if (hidden && previewMode) return null;
 
   // ── Shared style helpers ───────────────────────────────────────────────────
-  const cellMode = getEffectiveCellMode(cell, bp);
+  const cellMode = getCellLayoutMode(cell, bp);
   const { gap, padding, border, minHeight: desktopMinH } = cell.style;
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
 
@@ -174,6 +253,11 @@ export function GridCellView({
     bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH ?? 80)
     : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH ?? 80)
     : (desktopMinH ?? 80);
+
+  const effectiveFreeH =
+    bp === 'mobile' ? (cell.responsive.mobile?.freeHeight ?? cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
+    : bp === 'tablet' ? (cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
+    : (cell.freeHeight ?? 320);
 
   let bgColor: string | undefined;
   let bgImage: string | undefined;
@@ -197,146 +281,84 @@ export function GridCellView({
     position: 'relative', boxSizing: 'border-box',
   };
 
-  const cellClassName = [
-    'grid-cell',
-    isSelected && !previewMode ? 'grid-cell--selected' : '',
-    isDragOverTarget ? 'grid-cell--drop-over' : '',
-    isNestedGrid ? 'grid-cell--nested-container' : '',
-  ].filter(Boolean).join(' ');
+  // ── Free / Flex toggle (desktop only) ─────────────────────────────────────
+  const handleToggleFree = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (cellMode === 'free') {
+      onCommit(snapshot);
+      onUpdateCell({ style: { ...cell.style, layoutMode: 'column' } });
+    } else {
+      const hasContent = elements.length > 0;
+      if (hasContent && !window.confirm('Switch to Free Canvas? Elements will be positioned absolutely inside the cell.')) return;
+      onCommit(snapshot);
+      onUpdateCell({ style: { ...cell.style, layoutMode: 'free' }, freeHeight: cell.freeHeight ?? Math.max(cell.style.minHeight ?? 0, 320) });
+    }
+  }, [cellMode, cell, elements.length, onUpdateCell, onCommit, snapshot]);
 
   // ── Shared toolbar ─────────────────────────────────────────────────────────
   const toolbar = isSelected && !previewMode ? (
-    <div className="grid-cell-toolbar" onMouseDown={e => e.stopPropagation()}>
-      <button className="grid-cell-span-btn" title="Decrease column span"
+    <div className={'pb-grid-cell-toolbar'} onMouseDown={e => e.stopPropagation()}>
+      <button className={'pb-grid-cell-span-btn'} title="Decrease column span"
         onClick={e => { e.stopPropagation(); handleSpanChange(-1); }} disabled={span <= 1}>−</button>
-      <span className="grid-cell-span-label">col&nbsp;{span}/12</span>
-      <button className="grid-cell-span-btn" title="Increase column span"
+      <span className={'pb-grid-cell-span-label'}>col&nbsp;{span}/12</span>
+      <button className={'pb-grid-cell-span-btn'} title="Increase column span"
         onClick={e => { e.stopPropagation(); handleSpanChange(1); }} disabled={span >= 12}>+</button>
-      <div className="grid-cell-toolbar-sep" />
-      <button className="grid-cell-span-btn" title="Decrease row span"
+      <div className={'pb-grid-cell-toolbar-sep'} />
+      <button className={'pb-grid-cell-span-btn'} title="Decrease row span"
         onClick={e => { e.stopPropagation(); handleRowSpanChange(-1); }} disabled={rowSpan <= 1}>−</button>
-      <span className="grid-cell-span-label">row&nbsp;{rowSpan}</span>
-      <button className="grid-cell-span-btn" title="Increase row span"
+      <span className={'pb-grid-cell-span-label'}>row&nbsp;{rowSpan}</span>
+      <button className={'pb-grid-cell-span-btn'} title="Increase row span"
         onClick={e => { e.stopPropagation(); handleRowSpanChange(1); }} disabled={rowSpan >= 6}>+</button>
-      <div className="grid-cell-toolbar-sep" />
-      <button className="grid-cell-delete-btn" title="Remove column"
+      {bp === 'desktop' && (
+        <>
+          <div className={'pb-grid-cell-toolbar-sep'} />
+          <button
+            className={['pb-grid-cell-span-btn', cellMode === 'free' && 'pb-grid-cell-mode-active'].filter(Boolean).join(' ')}
+            title={cellMode === 'free' ? 'Free Canvas — click to switch to Flex' : 'Flex layout — click to switch to Free Canvas'}
+            onClick={handleToggleFree}
+          >
+            {cellMode === 'free' ? '⊞' : '≡'}
+          </button>
+        </>
+      )}
+      <div className={'pb-grid-cell-toolbar-sep'} />
+      <button className={'pb-grid-cell-delete-btn'} title="Remove column"
         onClick={e => {
           e.stopPropagation();
-          const hasContent = isNestedGrid ? subCells.length > 0 : elements.length > 0;
-          if (hasContent && !window.confirm('Delete this cell and all its content?')) return;
+          if (elements.length > 0 && !window.confirm('Delete this cell and all its content?')) return;
           onDeleteCell();
         }}>✕</button>
     </div>
   ) : null;
 
-  // ── Nested grid branch ─────────────────────────────────────────────────────
-  if (isNestedGrid) {
+  // ── Free-canvas branch ────────────────────────────────────────────────────
+  if (cellMode === 'free') {
     return (
       <div
+        ref={combinedDropRef}
         data-grid-cell-id={cell.id}
-        className={cellClassName}
-        style={sharedCellStyle}
+        className={[
+          'pb-grid-cell',
+          isSelected && !previewMode && 'pb-grid-cell--selected',
+          (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
+          (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
+        ].filter(Boolean).join(' ')}
+        style={{
+          ...sharedCellStyle,
+          height: effectiveFreeH,
+          minHeight: effectiveFreeH,
+          overflow: 'hidden',
+          padding: 0,
+        }}
         onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
       >
-        <div
-          className="nested-grid-container"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(12, 1fr)',
-            gap: `${cell.nestedGrid!.rowGap}px ${cell.nestedGrid!.gap}px`,
-            width: '100%',
-          }}
-        >
-          {subCells.map((subCell, idx) => (
-            <DraggableCellWrapper
-              key={subCell.id}
-              cell={subCell}
-              index={idx}
-              parentId={cell.id}
-              breakpoint={bp}
-              previewMode={previewMode}
-              onReorderCell={(from, to) => onReorderGridCell?.(cell.id, from, to)}
-            >
-              <GridCellView
-                cell={subCell}
-                nodes={nodes}
-                isSelected={selectedGridCellId === subCell.id}
-                selectedElementId={selectedElementId}
-                onSelectCell={() => onSelectGridCell?.(subCell.id)}
-                onSelectElement={onSelectElement}
-                onUpdateElement={onUpdateElement}
-                onUpdateCell={updates => onUpdateGridCell?.(subCell.id, updates)}
-                onDeleteCell={() => onDeleteGridCell?.(subCell.id)}
-                onAddElement={type => onAddElementToCell?.(type, subCell.id)}
-                onMoveGridElement={onMoveGridElement}
-                onCommit={onCommit}
-                snapshot={snapshot}
-                previewMode={previewMode}
-                breakpoint={breakpoint}
-                onUpdateResponsive={onUpdateResponsive}
-                onDuplicateElement={onDuplicateElement}
-                onDeleteElement={onDeleteElement}
-                isDragOverTarget={false}
-                selectedGridCellId={selectedGridCellId}
-                onUpdateGridCell={onUpdateGridCell}
-                onDeleteGridCell={onDeleteGridCell}
-                onAddElementToCell={onAddElementToCell}
-                onSelectGridCell={onSelectGridCell}
-                onReorderGridCell={onReorderGridCell}
-              />
-            </DraggableCellWrapper>
-          ))}
-
-          {subCells.length === 0 && !previewMode && (
-            <div className="nested-grid-empty">
-              Add columns from the right panel
-            </div>
-          )}
-        </div>
-        {toolbar}
-      </div>
-    );
-  }
-
-  // ── Normal elements branch ─────────────────────────────────────────────────
-  const isRow = cellMode === 'row';
-
-  const insertionLine = (afterIdx: number) =>
-    insertAfterIndex === afterIdx ? (
-      <div key={`ins-${afterIdx}`} className={`grid-insert-line${isRow ? ' grid-insert-line--vertical' : ''}`} />
-    ) : null;
-
-  return (
-    <div
-      ref={combinedDropRef}
-      data-grid-cell-id={cell.id}
-      className={[
-        'grid-cell',
-        isSelected && !previewMode ? 'grid-cell--selected' : '',
-        isDragOverTarget ? 'grid-cell--drop-over' : '',
-        isPaletteOver  ? 'grid-cell--drop-over' : '',
-        isGridElOver   ? 'grid-cell--el-over'   : '',
-      ].filter(Boolean).join(' ')}
-      style={{
-        ...sharedCellStyle,
-        display: 'flex',
-        flexDirection: cellMode === 'column' ? 'column' : 'row',
-        flexWrap: cellMode === 'wrap' ? 'wrap' : 'nowrap',
-        gap,
-        alignItems: getEffectiveAlign(cell, bp),
-        justifyContent: getEffectiveJustify(cell, bp),
-      }}
-      onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
-    >
-      {insertionLine(-1)}
-
-      {elements.map((el, idx) => (
-        <React.Fragment key={el.id}>
+        {allElements.map(el => (
           <GridElementView
+            key={el.id}
             element={el}
             cellId={cell.id}
-            elementIndex={idx}
-            cellMode={cellMode}
+            childIdx={0}
+            cellMode="free"
             isSelected={selectedElementId === el.id}
             onSelect={() => onSelectElement(el.id)}
             onUpdate={updates => onUpdateElement(el.id, updates)}
@@ -347,17 +369,174 @@ export function GridCellView({
             onUpdateResponsive={onUpdateResponsive}
             onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
             onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
-            onDragHover={handleDragHover}
-            onDropGridElement={handleDropOnElement}
+            onDragHover={() => {}}
+            onDropAtChildIdx={() => {}}
           />
-          {insertionLine(idx)}
-        </React.Fragment>
-      ))}
+        ))}
 
-      {elements.length === 0 && !previewMode && (
-        <div className="grid-cell-empty">
-          <span className="grid-cell-empty-icon">+</span>
+        {allElements.length === 0 && !previewMode && (
+          <div className={'pb-grid-cell-empty'}>
+            <span className={'pb-grid-cell-empty-icon'}>+</span>
+            {isPaletteOver ? 'Drop here' : 'Drop element into free canvas'}
+          </div>
+        )}
+
+        {toolbar}
+      </div>
+    );
+  }
+
+  // ── Normal elements branch ─────────────────────────────────────────────────
+  const isRow = cellMode === 'row';
+
+  const insertionLine = (afterIdx: number) =>
+    insertAfterIndex === afterIdx ? (
+      <div key={`ins-${afterIdx}`} className={['pb-grid-insert-line', isRow && 'pb-grid-insert-line--vertical'].filter(Boolean).join(' ')} />
+    ) : null;
+
+  return (
+    <div
+      ref={combinedDropRef}
+      data-grid-cell-id={cell.id}
+      className={[
+        'pb-grid-cell',
+        isSelected && !previewMode && 'pb-grid-cell--selected',
+        (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
+        isGridElOver && 'pb-grid-cell--el-over',
+        isRow && 'pb-grid-cell--flex-row',
+        (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
+      ].filter(Boolean).join(' ')}
+      style={{
+        ...sharedCellStyle,
+        display: 'flex',
+        flexDirection: cellMode === 'column' ? 'column' : 'row',
+        flexWrap: cellMode === 'wrap' ? 'wrap' : 'nowrap',
+        gap,
+        alignItems: getCellAlignItems(cell, bp),
+        justifyContent: getCellJustifyContent(cell, bp),
+      }}
+      onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
+    >
+      {insertionLine(-1)}
+
+      {flexChildrenWithIndex
+        .filter(({ item }) => item.type === 'container' || !(item as El).overlayInCell)
+        .map(({ item, childIdx }) => {
+          if (item.type === 'container') {
+            const block = item as Container;
+            return (
+              <React.Fragment key={block.id}>
+                <ColumnsBlockView
+                  block={block}
+                  nodes={nodes}
+                  cellChildIndex={childIdx}
+                  childIdx={childIdx}
+                  isSelected={selectedContainerId === block.id}
+                  onSelectContainer={onSelectContainer}
+                  selectedGridCellId={selectedGridCellId}
+                  selectedElementId={selectedElementId}
+                  onSelectGridCell={onSelectGridCell}
+                  onSelectElement={onSelectElement}
+                  onUpdateElement={onUpdateElement}
+                  onUpdateGridCell={onUpdateGridCell}
+                  onDeleteGridCell={onDeleteGridCell}
+                  onAddElementToCell={onAddElementToCell}
+                  onMoveGridElement={onMoveGridElement}
+                  onCommit={onCommit}
+                  snapshot={snapshot}
+                  previewMode={previewMode}
+                  breakpoint={breakpoint}
+                  onUpdateResponsive={onUpdateResponsive}
+                  onDuplicateElement={onDuplicateElement}
+                  onDeleteElement={onDeleteElement}
+                  onReorderGridCell={onReorderGridCell}
+                  onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
+                  onAddContainer={onAddContainer}
+                  selectedContainerId={selectedContainerId}
+                  onDragHover={handleDragHover}
+                  onDropAtChildIdx={handleDropAtChildIdx}
+                />
+                {insertionLine(childIdx)}
+              </React.Fragment>
+            );
+          }
+          const el = item as El;
+          return (
+            <React.Fragment key={el.id}>
+              <GridElementView
+                element={el}
+                cellId={cell.id}
+                childIdx={childIdx}
+                cellMode={cellMode}
+                isSelected={selectedElementId === el.id}
+                onSelect={() => onSelectElement(el.id)}
+                onUpdate={updates => onUpdateElement(el.id, updates)}
+                onCommit={onCommit}
+                snapshot={snapshot}
+                previewMode={previewMode}
+                breakpoint={breakpoint}
+                onUpdateResponsive={onUpdateResponsive}
+                onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
+                onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
+                onDragHover={handleDragHover}
+                onDropAtChildIdx={handleDropAtChildIdx}
+              />
+              {insertionLine(childIdx)}
+            </React.Fragment>
+          );
+        })
+      }
+
+      {flexChildren.length === 0 && !previewMode && (
+        <div className={'pb-grid-cell-empty'}>
+          <span className={'pb-grid-cell-empty-icon'}>+</span>
           {isPaletteOver ? 'Drop here' : 'Drop element or drag from panel'}
+        </div>
+      )}
+
+      {overlayEls.length > 0 && (
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 50 }}>
+          {overlayEls.map(el => (
+            <div
+              key={el.id}
+              className={['pb-grid-overlay-el', selectedElementId === el.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
+              style={{
+                position: 'absolute',
+                left: el.layout.x,
+                top: el.layout.y,
+                width: el.layout.width,
+                height: el.layout.height,
+                zIndex: el.layout.zIndex ?? 1,
+                opacity: el.style.opacity,
+                cursor: previewMode ? 'default' : 'move',
+                boxSizing: 'border-box',
+                pointerEvents: 'all',
+              }}
+              onMouseDown={e => handleOverlayMouseDown(el, e)}
+              onClick={e => { e.stopPropagation(); if (!previewMode) onSelectElement(el.id); }}
+              onDragStart={e => e.preventDefault()}
+            >
+              <GridElementView
+                element={el}
+                cellId={cell.id}
+                childIdx={0}
+                cellMode={cellMode}
+                isSelected={false}
+                onSelect={() => onSelectElement(el.id)}
+                onUpdate={updates => onUpdateElement(el.id, updates)}
+                onCommit={onCommit}
+                snapshot={snapshot}
+                previewMode={previewMode}
+                disableDrag={true}
+                breakpoint={breakpoint}
+                onUpdateResponsive={onUpdateResponsive}
+                onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
+                onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
+                onDragHover={() => {}}
+                onDropAtChildIdx={() => {}}
+              />
+            </div>
+          ))}
         </div>
       )}
 

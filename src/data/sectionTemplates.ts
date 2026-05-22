@@ -46,7 +46,7 @@ const shad = (on = false, x = 0, y = 8, blur = 24, spread = -4, color = 'rgba(0,
   ({ enabled: on, x, y, blur, spread, color });
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
-const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
+const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
 const typo = (sz: number, w: string, color: string, align: A3 = 'left', lh = 1.5, ls = 0, tt: TextTransform = 'none') =>
   ({ family: 'Inter, sans-serif', size: sz, weight: w, color, align, lineHeight: lh, letterSpacing: ls, textTransform: tt });
@@ -434,13 +434,13 @@ function buildFooter(ids: TemplateIds): TemplateResult {
 export const SECTION_TEMPLATES: SectionTemplate[] = [
   { key: 'navbar',       label: 'Navbar',          desc: 'Logo + nav links + CTA button',          icon: '☰',  build: buildNavbar },
   { key: 'hero',         label: 'Hero – Centered',  desc: 'Full-width headline, sub & CTA',         icon: '⬛',  build: buildHero },
-  { key: 'hero-split',   label: 'Hero – Split',     desc: 'Text left, visual right',                icon: '◧',  build: buildHeroSplit },
+  // { key: 'hero-split',   label: 'Hero – Split',     desc: 'Text left, visual right',                icon: '◧',  build: buildHeroSplit },
   { key: 'features-3',   label: 'Features 3-col',   desc: '3 icon + title + description cards',     icon: '⊞',  build: buildFeatures3 },
-  { key: 'features-4',   label: 'Features 4-col',   desc: '4 compact feature cards',                icon: '⊟',  build: buildFeatures4 },
+  // { key: 'features-4',   label: 'Features 4-col',   desc: '4 compact feature cards',                icon: '⊟',  build: buildFeatures4 },
   { key: 'two-column',   label: 'Two Column',        desc: 'Text left + visual block right',         icon: '◫',  build: buildTwoColumn },
-  { key: 'stats',        label: 'Stats Bar',         desc: '4 key numbers on dark background',       icon: '★',  build: buildStats },
-  { key: 'testimonial',  label: 'Testimonial',       desc: 'Centered quote with name & role',        icon: '❝',  build: buildTestimonial },
+  // { key: 'stats',        label: 'Stats Bar',         desc: '4 key numbers on dark background',       icon: '★',  build: buildStats },
+  // { key: 'testimonial',  label: 'Testimonial',       desc: 'Centered quote with name & role',        icon: '❝',  build: buildTestimonial },
   { key: 'cta',          label: 'CTA Banner',        desc: 'Full-width call to action + button',     icon: '→',  build: buildCTA },
-  { key: 'pricing',      label: 'Pricing',           desc: '3-tier pricing cards',                   icon: '◈',  build: buildPricing },
+  // { key: 'pricing',      label: 'Pricing',           desc: '3-tier pricing cards',                   icon: '◈',  build: buildPricing },
   { key: 'footer',       label: 'Footer',            desc: 'Brand + 2 link columns, dark bg',        icon: '⬇',  build: buildFooter },
 ];

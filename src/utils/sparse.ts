@@ -1,4 +1,4 @@
-import type { AnyNode, CanvasElement, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { AnyNode, CanvasElement, Container, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
   DEFAULT_ANIMATION, DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
@@ -89,6 +89,9 @@ export function sparsifyNode(node: AnyNode): Obj {
       const sg = sparsifyVal((sec as GridSection).grid, SECTION_DEFAULTS.grid);
       if (sg !== undefined) out.grid = sg;
     }
+    if (sec.scrollBehavior && sec.scrollBehavior !== 'normal') out.scrollBehavior = sec.scrollBehavior;
+    if (sec.stickyOffset !== undefined && sec.stickyOffset !== 0) out.stickyOffset = sec.stickyOffset;
+    if (sec.responsive && (sec.responsive.tablet || sec.responsive.mobile)) out.responsive = sec.responsive;
     return out;
   }
 
@@ -106,8 +109,15 @@ export function sparsifyNode(node: AnyNode): Obj {
     if (st !== undefined) out.style = st;
     if (cell.responsive && Object.keys(cell.responsive).length > 0)
       out.responsive = cell.responsive;
-    if (cell.nestedGrid) out.nestedGrid = cell.nestedGrid;
+    if (cell.freeHeight !== undefined) out.freeHeight = cell.freeHeight;
     return out;
+  }
+
+  if (node.type === 'container') {
+    const c = node as Container;
+    const result: Obj = { id: c.id, type: 'container', parent: c.parent, children: c.children, layoutMode: c.layoutMode, gap: c.gap, rowGap: c.rowGap };
+    if (c.responsive && (c.responsive.tablet || c.responsive.mobile)) result.responsive = c.responsive;
+    return result;
   }
 
   // CanvasElement
@@ -129,6 +139,7 @@ export function sparsifyNode(node: AnyNode): Obj {
   if (sf !== undefined) out.flexLayout = sf;
   if (el.responsive && Object.keys(el.responsive).length > 0)
     out.responsive = el.responsive;
+  if (el.overlayInCell) out.overlayInCell = true;
   return out;
 }
 
@@ -140,6 +151,7 @@ export function hydrateNode(raw: Obj): AnyNode {
       label: raw.label ?? '',
       layoutMode: raw.layoutMode ?? 'free',
       children: (raw.children as string[]) ?? [],
+      ...(raw.responsive ? { responsive: raw.responsive } : {}),
     } as AnyNode;
   }
 
@@ -150,6 +162,18 @@ export function hydrateNode(raw: Obj): AnyNode {
       children: (raw.children as string[]) ?? [],
       responsive: raw.responsive ?? {},
     } as AnyNode;
+  }
+
+  if (raw.type === 'container' || raw.type === 'columns') {
+    const c: AnyNode = {
+      id: raw.id, type: 'container', parent: raw.parent,
+      children: (raw.children as string[]) ?? [],
+      layoutMode: (raw.layoutMode as string) ?? 'grid',
+      gap: (raw.gap as number) ?? 16,
+      rowGap: (raw.rowGap as number) ?? 0,
+    } as AnyNode;
+    if (raw.responsive) (c as import('../types').Container).responsive = raw.responsive as import('../types').ContainerResponsive;
+    return c;
   }
 
   // CanvasElement

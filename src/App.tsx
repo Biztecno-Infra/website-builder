@@ -1,3 +1,4 @@
+﻿import './builder.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -16,7 +17,7 @@ import linearShowcase from '../showcases/linear.json';
 import lemonSqueezyShowcase from '../showcases/lemon-squeezy.json';
 import { exportHtml } from './utils/exportHtml';
 import { serializeState } from './utils/serializeState';
-import type { Breakpoint, GridCell, CanvasElement } from './types';
+import type { Breakpoint, Container, GridCell, CanvasElement } from './types';
 
 export default function App() {
   const {
@@ -72,12 +73,15 @@ export default function App() {
     updateGridCell,
     deleteGridCell,
     reorderGridCell,
-    addNestedGrid,
-    removeNestedGrid,
+    removeColumnsBlock,
+    addContainer,
+    updateContainer,
     addElementToCell,
     moveGridElement,
     moveElementToGridCell,
   } = useBuilderStore();
+
+  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
 
   const [snapEnabled, setSnapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -91,9 +95,20 @@ export default function App() {
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
   const importRef = useRef<HTMLInputElement>(null);
 
+  const scrollCanvasToElement = useCallback((id: string) => {
+    const el = document.querySelector<HTMLElement>(`[data-el-id="${id}"]`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('pb-canvas-el--flash');
+    setTimeout(() => el.classList.remove('pb-canvas-el--flash'), 1300);
+  }, []);
+
   const selectedElement = selectedId ? (elements[selectedId] ?? null) : null;
   const selectedGridCell = !selectedElement && selectedGridCellId
     ? (nodes[selectedGridCellId] as GridCell | undefined ?? null)
+    : null;
+  const selectedContainer = selectedContainerId
+    ? (nodes[selectedContainerId] as Container | undefined ?? null)
     : null;
   const isInGridCell = selectedElement
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
@@ -104,17 +119,26 @@ export default function App() {
     sections.find(s => s.id === selectedSectionId) ?? null;
 
   const handleApplyTheme = useCallback(() => {
-    if (!window.confirm('Apply theme fonts & colors to all text and button elements? (Ctrl+Z to undo)')) return;
+    if (!window.confirm('Apply theme fonts, colors & section backgrounds to the canvas? (Ctrl+Z to undo)')) return;
     pushSnapshot(state);
+    const { fonts, colors } = state.theme;
     const updates = Object.values(nodes)
       .filter((n): n is CanvasElement => n.type !== 'section' && n.type !== 'grid-cell')
       .flatMap(el => {
-        if (el.type === 'text') return [{ id: el.id, changes: { style: { ...el.style, typography: { ...el.style.typography, family: state.theme.fonts.body, color: state.theme.colors.text } } } }];
-        if (el.type === 'button') return [{ id: el.id, changes: { style: { ...el.style, background: { ...el.style.background, color: state.theme.colors.primary }, typography: { ...el.style.typography, family: state.theme.fonts.body } } } }];
+        if (el.type === 'text') return [{ id: el.id, changes: { style: { ...el.style,
+          typography: { ...el.style.typography, family: fonts.body, color: colors.text },
+        } } }];
+        if (el.type === 'button') return [{ id: el.id, changes: { style: { ...el.style,
+          background: { ...el.style.background, color: colors.primary },
+          typography: { ...el.style.typography, family: fonts.body },
+        } } }];
         return [];
       });
     updateElements(updates);
-  }, [nodes, state, pushSnapshot, updateElements]);
+    [header, ...sections, footer].forEach(sec =>
+      updateSection(sec.id, { style: { ...sec.style, background: { ...sec.style.background, type: 'solid', color: colors.sectionBg, image: '' } } })
+    );
+  }, [nodes, state, header, sections, footer, pushSnapshot, updateElements, updateSection]);
 
   // Export HTML
   const handleExportHTML = () => {
@@ -233,35 +257,35 @@ export default function App() {
   if (previewMode) {
     return (
       <DndProvider backend={HTML5Backend}>
-        <div className="app preview-app">
-          <header className="toolbar preview-toolbar">
-            <div className="toolbar-left">
-              <span className="app-name">{activePage.name}</span>
+        <div className={"pb-app pb-preview-app"}>
+          <header className={"pb-toolbar pb-preview-toolbar"}>
+            <div className={'pb-toolbar-left'}>
+              <span className={'pb-app-name'}>{activePage.name}</span>
             </div>
-            <div className="toolbar-center">
+            <div className={'pb-toolbar-center'}>
               <button
-                className={`toolbar-btn${!previewMobile ? ' active' : ''}`}
+                className={['pb-toolbar-btn', !previewMobile && 'pb-active'].filter(Boolean).join(' ')}
                 onClick={() => setPreviewMobile(false)}
                 title="Desktop preview"
               >
                 🖥 Desktop
               </button>
               <button
-                className={`toolbar-btn${previewMobile ? ' active' : ''}`}
+                className={['pb-toolbar-btn', previewMobile && 'pb-active'].filter(Boolean).join(' ')}
                 onClick={() => setPreviewMobile(true)}
                 title="Mobile preview (375px)"
               >
                 📱 Mobile
               </button>
             </div>
-            <div className="toolbar-right">
-              <button className="toolbar-btn primary" onClick={() => setPreviewMode(false)}>
+            <div className={'pb-toolbar-right'}>
+              <button className={"pb-toolbar-btn pb-primary"} onClick={() => setPreviewMode(false)}>
                 ✕ Exit Preview
               </button>
             </div>
           </header>
 
-          <div className={`preview-canvas-wrapper${previewMobile ? ' mobile-frame' : ''}`}>
+          <div className={['pb-preview-canvas-wrapper', previewMobile && 'pb-mobile-frame'].filter(Boolean).join(' ')}>
             <Canvas
               nodes={nodes}
               header={header}
@@ -295,20 +319,34 @@ export default function App() {
     );
   }
 
+  const handleAddElement = useCallback((type: import('./types').ElementType) => {
+    if (selectedContainerId) {
+      const container = nodes[selectedContainerId] as import('./types').Container | undefined;
+      if (container?.children.length) {
+        addElementToCell(type, container.children[0]);
+        return;
+      }
+    }
+    addElement(type);
+  }, [selectedContainerId, nodes, addElementToCell, addElement]);
+
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="app">
+      <div className={'pb-app'}>
         <LeftSidebar
           nodes={nodes}
-          onAdd={addElement}
+          onAdd={handleAddElement}
           onAddFreeSection={addSection}
-          onAddGridSection={addGridSection}
+          onAddGridSection={columnSpans => addGridSection(undefined, columnSpans)}
           onAddSectionFromTemplate={addSectionFromTemplate}
+          onAddContainer={(mode, spans) => selectedGridCellId && addContainer(selectedGridCellId, mode, spans)}
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
           onSelect={setSelectedId}
           onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); }}
+          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); }}
+          onScrollToElement={scrollCanvasToElement}
           onReorderSection={reorderSection}
           onReorderElement={reorderElement}
           onMoveElementToSection={moveElementToSection}
@@ -328,14 +366,14 @@ export default function App() {
           onApplyTheme={handleApplyTheme}
         />
 
-        <div className="middle-container">
-          <header className="toolbar">
-            <div className="toolbar-left">
-              <span className="app-name">Page Builder</span>
-              {/* <span className="active-page-name">{activePage.name}</span> */}
-              <div className="toolbar-divider" />
-              <button
-                className="toolbar-btn toolbar-btn--demo"
+        <div className={'pb-middle-container'}>
+          <header className={'pb-toolbar'}>
+            <div className={'pb-toolbar-left'}>
+              <span className={'pb-app-name'}>Page Builder</span>
+              {/* <span className={'pb-active-page-name'}>{activePage.name}</span> */}
+              <div className={'pb-toolbar-divider'} />
+              {/* <button
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Replace canvas with the built-in demo page (undoable)"
                 onClick={() => {
                   if (window.confirm('Load demo page? This replaces the current canvas (you can Ctrl+Z to undo).')) {
@@ -343,10 +381,10 @@ export default function App() {
                   }
                 }}
               >
-                ⊞ Load Demo
-              </button>
-              <button
-                className="toolbar-btn toolbar-btn--demo"
+                 Load Demo
+              </button> */}
+              {/* <button
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load the newsletter template (undoable)"
                 onClick={() => {
                   if (window.confirm('Load newsletter template? This replaces the current canvas (you can Ctrl+Z to undo).')) {
@@ -354,10 +392,10 @@ export default function App() {
                   }
                 }}
               >
-                ✉ Newsletter
-              </button>
+                 Newsletter
+              </button> */}
               {/* <button
-                className="toolbar-btn toolbar-btn--demo"
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load SaaS landing page demo (Flowdesk)"
                 onClick={() => {
                   if (window.confirm('Load Flowdesk SaaS demo? This replaces the current canvas (Ctrl+Z to undo).')) {
@@ -367,8 +405,8 @@ export default function App() {
               >
                 ⚡ SaaS Demo
               </button> */}
-              <button
-                className="toolbar-btn toolbar-btn--demo"
+              {/* <button
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load agency page demo (Studio Craft)"
                 onClick={() => {
                   if (window.confirm('Load Studio Craft agency demo? This replaces the current canvas (Ctrl+Z to undo).')) {
@@ -376,10 +414,10 @@ export default function App() {
                   }
                 }}
               >
-                ◆ Agency Demo
-              </button>
+                 Agency Demo
+              </button> */}
               {/* <button
-                className="toolbar-btn toolbar-btn--demo"
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load portfolio demo (Alex Chen)"
                 onClick={() => {
                   if (window.confirm('Load Alex Chen portfolio demo? This replaces the current canvas (Ctrl+Z to undo).')) {
@@ -390,7 +428,7 @@ export default function App() {
                 ✦ Portfolio Demo
               </button> */}
               {/* <button
-                className="toolbar-btn toolbar-btn--demo"
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load Linear-inspired showcase"
                 onClick={() => {
                   if (window.confirm('Load Linear showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
@@ -401,7 +439,7 @@ export default function App() {
                 ◈ Linear
               </button> */}
               {/* <button
-                className="toolbar-btn toolbar-btn--demo"
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load Lemon Squeezy-inspired showcase"
                 onClick={() => {
                   if (window.confirm('Load Lemon Squeezy showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
@@ -412,7 +450,7 @@ export default function App() {
                 🍋 Lemon Squeezy
               </button> */}
               <button
-                className="toolbar-btn toolbar-btn--danger"
+                className={"pb-toolbar-btn pb-toolbar-btn--danger"}
                 title="Clear canvas and start with an empty page (undoable)"
                 onClick={() => {
                   if (window.confirm('Clear the canvas and start with an empty page? (Ctrl+Z to undo)')) {
@@ -420,62 +458,62 @@ export default function App() {
                   }
                 }}
               >
-                ✕ Clear Page
+              Clear 
               </button>
             </div>
-            <div className="toolbar-center">
-              <button className="toolbar-btn" onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
+            <div className={'pb-toolbar-center'}>
+              <button className={'pb-toolbar-btn'} onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
                 ↩ Undo
               </button>
-              <button className="toolbar-btn" onClick={handleRedo} disabled={!canRedo} title="Redo (Ctrl+Y)">
+              <button className={'pb-toolbar-btn'} onClick={handleRedo} disabled={!canRedo} title="Redo (Ctrl+Y)">
                 ↪ Redo
               </button>
-              {/* <div className="toolbar-divider" />
-              <label className="toolbar-toggle" title="Snap to 8px grid">
+              {/* <div className={'pb-toolbar-divider'} />
+              <label className={'pb-toolbar-toggle'} title="Snap to 8px grid">
                 <input type="checkbox" checked={snapEnabled} onChange={e => setSnapEnabled(e.target.checked)} />
                 Snap
               </label> */}
-              <div className="toolbar-divider" />
-              <div className="breakpoint-switcher">
+              <div className={'pb-toolbar-divider'} />
+              <div className={'pb-breakpoint-switcher'}>
                 <button
-                  className={`bp-btn${breakpoint === 'desktop' ? ' active' : ''}`}
+                  className={['pb-bp-btn', breakpoint === 'desktop' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('desktop')}
                   title="Desktop (1200px)"
                 >🖥</button>
                 <button
-                  className={`bp-btn${breakpoint === 'tablet' ? ' active' : ''}`}
+                  className={['pb-bp-btn', breakpoint === 'tablet' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('tablet')}
                   title="Tablet (768px)"
                 >⬛</button>
                 <button
-                  className={`bp-btn${breakpoint === 'mobile' ? ' active' : ''}`}
+                  className={['pb-bp-btn', breakpoint === 'mobile' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('mobile')}
                   title="Mobile (375px)"
                 >📱</button>
               </div>
-              <div className="toolbar-divider" />
-              <div className="zoom-control">
-                <button className="zoom-btn" onClick={() => changeZoom(-10)} title="Zoom out (Ctrl+-)">−</button>
-                <button className="zoom-value" onClick={() => setZoom(1)} title="Reset zoom (Ctrl+0)">
+              <div className={'pb-toolbar-divider'} />
+              <div className={'pb-zoom-control'}>
+                <button className={'pb-zoom-btn'} onClick={() => changeZoom(-10)} title="Zoom out (Ctrl+-)">−</button>
+                <button className={'pb-zoom-value'} onClick={() => setZoom(1)} title="Reset zoom (Ctrl+0)">
                   {Math.round(zoom * 100)}%
                 </button>
-                <button className="zoom-btn" onClick={() => changeZoom(10)} title="Zoom in (Ctrl+=)">+</button>
+                <button className={'pb-zoom-btn'} onClick={() => changeZoom(10)} title="Zoom in (Ctrl+=)">+</button>
               </div>
             </div>
-            <div className="toolbar-right">
-              {/* <button className="toolbar-btn" onClick={() => setPreviewMode(true)} title="Preview">
+            <div className={'pb-toolbar-right'}>
+              {/* <button className={'pb-toolbar-btn'} onClick={() => setPreviewMode(true)} title="Preview">
                 ▶ Preview
               </button> */}
-              <div className="toolbar-divider" />
-              <button className="toolbar-btn" onClick={handleExportHTML} title="Export HTML">
+              <div className={'pb-toolbar-divider'} />
+              <button className={'pb-toolbar-btn'} onClick={handleExportHTML} title="Export HTML">
                  HTML
               </button>
-              <button className="toolbar-btn" onClick={handleExportJSON} title="Export JSON">
+              <button className={'pb-toolbar-btn'} onClick={handleExportJSON} title="Export JSON">
                  JSON
               </button>
-              <button className="toolbar-btn" onClick={() => importRef.current?.click()} title="Import JSON">
+              {/* <button className={'pb-toolbar-btn'} onClick={() => importRef.current?.click()} title="Import JSON">
                 ↑ Import
-              </button>
+              </button> */}
               <input
                 ref={importRef}
                 type="file"
@@ -483,12 +521,12 @@ export default function App() {
                 style={{ display: 'none' }}
                 onChange={handleImportJSON}
               />
-              <div className="toolbar-divider" />
-              <span className="save-indicator">● Auto-saved</span>
+              <div className={'pb-toolbar-divider'} />
+              <span className={'pb-save-indicator'}>● Auto-saved</span>
             </div>
           </header>
 
-          <div className="content-wrapper" style={{ position: 'relative' }}>
+          <div className={'pb-content-wrapper'} style={{ position: 'relative' }}>
             {selectedIds.length >= 2 && (
               <AlignmentToolbar
                 selectedIds={selectedIds}
@@ -535,13 +573,20 @@ export default function App() {
               onMoveGridElement={moveGridElement}
               onMoveElementToGridCell={moveElementToGridCell}
               onReorderGridCell={reorderGridCell}
+              onDropGridLayout={(sectionId, columnSpans, atStart) => addGridSection(sectionId ?? undefined, columnSpans, atStart)}
+              onRemoveColumnsBlock={removeColumnsBlock}
+              onAddContainer={(cellId, mode, spans) => addContainer(cellId, mode, spans)}
+              selectedContainerId={selectedContainerId}
+              onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); }}
               zoom={zoom}
             />
 
             <RightSidebar
               element={selectedElement}
-              section={selectedElement ? null : (selectedGridCell ? null : selectedSection)}
-              gridCell={selectedGridCell}
+              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : selectedSection))}
+              gridCell={selectedContainer ? selectedGridCell : selectedGridCell}
+              container={selectedContainer}
+              onUpdateContainer={updateContainer}
               nodes={nodes}
               isInGridCell={isInGridCell}
               snapshot={state}
@@ -549,8 +594,6 @@ export default function App() {
               onUpdateSection={updateSection}
               onUpdateGridCell={updateGridCell}
               onAddGridCell={addGridCell}
-              onAddNestedGrid={addNestedGrid}
-              onRemoveNestedGrid={removeNestedGrid}
               onPushSnapshot={pushSnapshot}
               onDelete={deleteElement}
               breakpoint={breakpoint}
@@ -564,7 +607,7 @@ export default function App() {
 
           {contextMenu && (
             <div
-              className="context-menu"
+              className={'pb-context-menu'}
               style={{ top: contextMenu.y, left: contextMenu.x }}
               onClick={e => e.stopPropagation()}
             >
@@ -578,8 +621,8 @@ export default function App() {
               }}>
                 {elements[contextMenu.id]?.state?.locked ? 'Unlock' : 'Lock'}
               </button>
-              <div className="context-menu-divider" />
-              <button className="context-menu-danger"
+              <div className={'pb-context-menu-divider'} />
+              <button className={'pb-context-menu-danger'}
                 onClick={() => { deleteElement(contextMenu.id); setContextMenu(null); }}>
                 Delete
               </button>

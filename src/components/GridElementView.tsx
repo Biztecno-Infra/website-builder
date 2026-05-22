@@ -1,17 +1,16 @@
-import React, { useCallback, useRef, useState } from 'react';
+﻿import React, { useCallback, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
 
+
 // ── DND contract (imported by GridCellView) ────────────────────────────────
 export const GRID_EL_DND_TYPE = 'grid-element';
 
-export interface GridElDragItem {
-  elementId: string;
-  sourceCellId: string;
-  sourceIndex: number;
-}
+export type GridElDragItem =
+  | { kind: 'element'; elementId: string; sourceCellId: string; fromChildIdx: number; sourceCellMode: CellLayoutMode }
+  | { kind: 'container'; blockId: string; parentCellId: string; fromChildIdx: number };
 
 // ── Flex width resolver (also used by export) ──────────────────────────────
 export function resolveFlexItemWidth(fl: FlexItemLayout, cellMode: CellLayoutMode): React.CSSProperties {
@@ -33,7 +32,8 @@ export function resolveFlexItemWidth(fl: FlexItemLayout, cellMode: CellLayoutMod
 interface Props {
   element: El;
   cellId: string;
-  elementIndex: number;
+  /** Position of this element in the combined flexChildrenWithIndex list. */
+  childIdx: number;
   cellMode: CellLayoutMode;
   isSelected: boolean;
   onSelect: () => void;
@@ -41,20 +41,21 @@ interface Props {
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   previewMode?: boolean;
+  disableDrag?: boolean;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
   /** Called on hover so the parent cell can render an insertion line. */
   onDragHover: (afterIndex: number) => void;
-  /** Called when a dragged grid element is dropped onto this element. */
-  onDropGridElement: (item: GridElDragItem, afterIndex: number) => void;
+  /** Called when a dragged item is dropped onto this element. */
+  onDropAtChildIdx: (item: GridElDragItem, afterChildIdx: number) => void;
 }
 
 export function GridElementView({
   element: rawEl,
   cellId,
-  elementIndex,
+  childIdx,
   cellMode,
   isSelected,
   onSelect,
@@ -62,12 +63,13 @@ export function GridElementView({
   onCommit,
   snapshot,
   previewMode,
+  disableDrag = false,
   breakpoint = 'desktop',
   onUpdateResponsive,
   onDuplicate,
   onDelete,
   onDragHover,
-  onDropGridElement,
+  onDropAtChildIdx,
 }: Props) {
   const el = applyBreakpoint(rawEl, breakpoint);
 
@@ -76,8 +78,8 @@ export function GridElementView({
   // ── Drag source ──────────────────────────────────────────────────────────
   const [{ isDragging }, dragRef] = useDrag<GridElDragItem, void, { isDragging: boolean }>({
     type: GRID_EL_DND_TYPE,
-    item: { elementId: rawEl.id, sourceCellId: cellId, sourceIndex: elementIndex },
-    canDrag: !previewMode && !editing,
+    item: { kind: 'element', elementId: rawEl.id, sourceCellId: cellId, fromChildIdx: childIdx, sourceCellMode: cellMode },
+    canDrag: !previewMode && !editing && !disableDrag,
     collect: m => ({ isDragging: m.isDragging() }),
   });
 
@@ -85,7 +87,8 @@ export function GridElementView({
   const [, dropRef] = useDrop<GridElDragItem, void, Record<string, never>>({
     accept: GRID_EL_DND_TYPE,
     hover(item, monitor) {
-      if (!domRef.current || item.elementId === rawEl.id) return;
+      if (!domRef.current) return;
+      if (item.kind === 'element' && item.elementId === rawEl.id) return;
       const rect = domRef.current.getBoundingClientRect();
       const offset = monitor.getClientOffset();
       if (!offset) return;
@@ -93,10 +96,11 @@ export function GridElementView({
       const afterThis = cellMode === 'row'
         ? offset.x - rect.left >= (rect.right - rect.left) / 2
         : offset.y - rect.top  >= (rect.bottom - rect.top) / 2;
-      onDragHover(afterThis ? elementIndex : elementIndex - 1);
+      onDragHover(afterThis ? childIdx : childIdx - 1);
     },
     drop(item, monitor) {
-      if (monitor.didDrop() || !domRef.current || item.elementId === rawEl.id) return;
+      if (monitor.didDrop() || !domRef.current) return;
+      if (item.kind === 'element' && item.elementId === rawEl.id) return;
       const rect = domRef.current.getBoundingClientRect();
       const offset = monitor.getClientOffset();
       const afterThis = offset
@@ -104,7 +108,7 @@ export function GridElementView({
             ? offset.x - rect.left >= (rect.right - rect.left) / 2
             : offset.y - rect.top  >= (rect.bottom - rect.top) / 2)
         : true;
-      onDropGridElement(item, afterThis ? elementIndex : elementIndex - 1);
+      onDropAtChildIdx(item, afterThis ? childIdx : childIdx - 1);
     },
   });
 
@@ -165,28 +169,74 @@ export function GridElementView({
     ? `${el.style.shadow.x}px ${el.style.shadow.y}px ${el.style.shadow.blur}px ${el.style.shadow.spread}px ${el.style.shadow.color}`
     : undefined;
 
-  const flexSizing = resolveFlexItemWidth(el.flexLayout, cellMode);
-  const alignSelf  = el.flexLayout.alignSelf !== 'auto' ? el.flexLayout.alignSelf : undefined;
-
   const handleClick = (e: React.MouseEvent) => {
     if (previewMode) return;
     e.stopPropagation();
     onSelect();
   };
 
+  // ── Free-canvas mode: absolutely positioned, dragged via DnD ─────────────
+  if (cellMode === 'free') {
+    return (
+      <div
+        ref={mergedRef}
+        data-el-id={rawEl.id}
+        className={['pb-grid-el', isSelected && !previewMode && 'pb-grid-el--selected', isDragging && 'pb-grid-el--dragging'].filter(Boolean).join(' ')}
+        style={{
+          position: 'absolute',
+          left: rawEl.layout.x,
+          top: rawEl.layout.y,
+          width: rawEl.layout.width,
+          height: rawEl.layout.height,
+          zIndex: rawEl.layout.zIndex,
+          opacity: isDragging ? 0.35 : el.style.opacity,
+          boxShadow: shadow,
+          borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
+          cursor: previewMode ? 'default' : disableDrag ? 'inherit' : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
+          userSelect: editing ? 'text' : 'none',
+          boxSizing: 'border-box',
+        }}
+        onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
+        onContextMenu={e => { if (!previewMode) e.preventDefault(); }}
+      >
+        <ElementContent
+          el={el}
+          editing={editing}
+          editRef={editRef}
+          onBlur={handleEditBlur}
+          onKeyDown={handleEditKeyDown}
+        />
+        {isSelected && !previewMode && (
+          <div className={'pb-grid-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
+            {onDuplicate && <button className={'pb-el-quick-btn'} title="Duplicate" onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>}
+            {onDelete && <button className={"pb-el-quick-btn pb-danger"} title="Delete" onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Flex-flow mode (column / row / wrap) ───────────────────────────────────
+  const flexSizing = resolveFlexItemWidth(el.flexLayout, cellMode);
+  const alignSelf  = el.flexLayout.alignSelf !== 'auto' ? el.flexLayout.alignSelf : undefined;
+
   return (
     <div
       ref={mergedRef}
+      data-el-id={rawEl.id}
       className={[
-        'grid-el',
-        isSelected && !previewMode ? 'grid-el--selected' : '',
-        isDragging ? 'grid-el--dragging' : '',
+        'pb-grid-el',
+        isSelected && !previewMode && 'pb-grid-el--selected',
+        isDragging && 'pb-grid-el--dragging',
       ].filter(Boolean).join(' ')}
       style={{
         position: 'relative',
         ...flexSizing,
         alignSelf,
-        minHeight: el.layout.height,
+        ...(el.type === 'image' || el.type === 'video'
+          ? { height: el.layout.height }
+          : { minHeight: el.layout.height }),
         opacity: isDragging ? 0.35 : el.style.opacity,
         boxShadow: shadow,
         borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
@@ -206,12 +256,12 @@ export function GridElementView({
       />
 
       {isSelected && !previewMode && (
-        <div className="grid-el-quick-bar" onMouseDown={e => e.stopPropagation()}>
+        <div className={'pb-grid-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
           {onDuplicate && (
-            <button className="el-quick-btn" title="Duplicate" onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>
+            <button className={'pb-el-quick-btn'} title="Duplicate" onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>
           )}
           {onDelete && (
-            <button className="el-quick-btn danger" title="Delete" onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>
+            <button className={"pb-el-quick-btn pb-danger"} title="Delete" onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>
           )}
         </div>
       )}

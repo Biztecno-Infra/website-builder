@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import type { Page } from '../types';
 
 interface Props {
@@ -35,21 +35,21 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
   };
 
   return (
-    <aside className="left-sidebar">
-      <div className="sidebar-section-title">Pages</div>
-      <div className="page-list">
+    <aside className={'pb-left-sidebar'}>
+      <div className={'pb-sidebar-section-title'}>Pages</div>
+      <div className={'pb-page-list'}>
         {pages.map((page, i) => (
           <div
             key={page.id}
-            className={`page-row${page.id === activePageId ? ' active' : ''}`}
+            className={['pb-page-row', page.id === activePageId && 'pb-active'].filter(Boolean).join(' ')}
             onClick={() => onSetActivePage(page.id)}
           >
-            <span className="page-index">{i + 1}</span>
+            <span className={'pb-page-index'}>{i + 1}</span>
 
             {editingId === page.id ? (
               <input
                 ref={inputRef}
-                className="page-name-input"
+                className={'pb-page-name-input'}
                 value={editValue}
                 onChange={e => setEditValue(e.target.value)}
                 onBlur={commitRename}
@@ -61,7 +61,7 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
               />
             ) : (
               <span
-                className="page-name"
+                className={'pb-page-name'}
                 onDoubleClick={e => { e.stopPropagation(); startRename(page); }}
                 title="Double-click to rename"
               >
@@ -69,16 +69,16 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
               </span>
             )}
 
-            <div className="page-actions">
+            <div className={'pb-page-actions'}>
               <button
-                className="page-action-btn"
+                className={'pb-page-action-btn'}
                 title="Rename"
                 onClick={e => { e.stopPropagation(); startRename(page); }}
               >
                 ✎
               </button>
               <button
-                className="page-action-btn danger"
+                className={"pb-page-action-btn pb-danger"}
                 title="Delete page"
                 disabled={pages.length <= 1}
                 onClick={e => { e.stopPropagation(); onDeletePage(page.id); }}
@@ -90,7 +90,7 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
         ))}
       </div>
 
-      <button className="add-page-btn" onClick={onAddPage}>
+      <button className={'pb-add-page-btn'} onClick={onAddPage}>
         + Add Page
       </button>
     </aside>

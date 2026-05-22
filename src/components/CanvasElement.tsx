@@ -1,5 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import type { CanvasElement as El, BuilderState } from '../types';
+
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
 
@@ -298,8 +299,16 @@ export function CanvasElement({
     ? `${el.style.shadow.x}px ${el.style.shadow.y}px ${el.style.shadow.blur}px ${el.style.shadow.spread}px ${el.style.shadow.color}`
     : undefined;
 
+  const ANIM_CLASSES: Record<string, string> = {
+    'fade-in': 'pb-anim-fade-in',
+    'slide-up': 'pb-anim-slide-up',
+    'slide-left': 'pb-anim-slide-left',
+    'zoom-in': 'pb-anim-zoom-in',
+  };
   const animClass = previewMode && el.animation.type !== 'none'
-    ? animVisible ? ` anim-${el.animation.type}` : ' anim-pending'
+    ? animVisible
+      ? ANIM_CLASSES[el.animation.type] ?? ''
+      : 'pb-anim-pending'
     : '';
 
   const wrapperStyle: React.CSSProperties = {
@@ -325,19 +334,20 @@ export function CanvasElement({
   return (
     <div
       ref={wrapperRef}
+      data-el-id={el.id}
       style={wrapperStyle}
-      className={`canvas-el${selected && !previewMode ? ' selected' : ''}${el.state.locked ? ' locked' : ''}${animClass}`}
+      className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked', animClass || null].filter(Boolean).join(' ')}
       onMouseDown={handleBodyMouseDown}
       onDoubleClick={previewMode ? undefined : handleDoubleClick}
       onContextMenu={previewMode ? undefined : handleContextMenu}
     >
       {editing && el.type === 'text' && (
-        <div className="rich-text-toolbar" onMouseDown={e => e.preventDefault()}>
+        <div className={'pb-rich-text-toolbar'} onMouseDown={e => e.preventDefault()}>
           <button onClick={() => document.execCommand('bold')}><b>B</b></button>
           <button onClick={() => document.execCommand('italic')}><i>I</i></button>
           <button onClick={() => document.execCommand('underline')}><u>U</u></button>
           <button onClick={() => document.execCommand('strikeThrough')}><s>S</s></button>
-          <div className="rich-toolbar-sep" />
+          <div className={'pb-rich-toolbar-sep'} />
           <button onClick={() => {
             const url = prompt('Enter URL:');
             if (url) document.execCommand('createLink', false, url);
@@ -351,32 +361,32 @@ export function CanvasElement({
       {selected && !editing && !previewMode && (
         <>
           {(onDuplicate || onDelete) && (
-            <div className="el-quick-bar" onMouseDown={e => e.stopPropagation()}>
+            <div className={'pb-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
               {onDuplicate && (
-                <button className="el-quick-btn" title="Duplicate (Ctrl+D)" onClick={e => { e.stopPropagation(); onDuplicate(); }}>
+                <button className={'pb-el-quick-btn'} title="Duplicate (Ctrl+D)" onClick={e => { e.stopPropagation(); onDuplicate(); }}>
                   ⧉
                 </button>
               )}
               {onDelete && (
-                <button className="el-quick-btn danger" title="Delete (Del)" onClick={e => { e.stopPropagation(); onDelete(); }}>
+                <button className={"pb-el-quick-btn pb-danger"} title="Delete (Del)" onClick={e => { e.stopPropagation(); onDelete(); }}>
                   ✕
                 </button>
               )}
             </div>
           )}
 
-          <div className="rotate-handle" onMouseDown={handleRotateMouseDown} title="Rotate" />
+          <div className={'pb-rotate-handle'} onMouseDown={handleRotateMouseDown} title="Rotate" />
 
           {HANDLE_DIRS.map(dir => (
             <div
               key={dir}
-              className="resize-handle"
+              className={'pb-resize-handle'}
               style={{ ...handlePos(dir), cursor: CURSOR[dir] }}
               onMouseDown={handleResizeMouseDown(dir)}
             />
           ))}
 
-          {el.state.locked && <div className="lock-indicator">🔒</div>}
+          {el.state.locked && <div className={'pb-lock-indicator'}>🔒</div>}
         </>
       )}
     </div>

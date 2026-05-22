@@ -1,12 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SectionView } from './SectionView';
+import { SectionDropZone } from './SectionDropZone';
 import { canvasDragShared } from './CanvasElement';
 import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
+
 export { CANVAS_W };
 export const BREAKPOINT_WIDTHS: Record<Breakpoint, number> = {
   desktop: CANVAS_W,
+  'large-desktop': 1440,
   tablet: 768,
   mobile: 375,
 };
@@ -48,9 +51,15 @@ interface Props {
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
   onDeleteGridCell?: (id: string) => void;
-  onAddElementToCell?: (type: ElementType, cellId: string) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
   onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
+  onDropGridLayout?: (sectionId: string | null, columnSpans: number[], atStart?: boolean) => void;
+  onAddNestedGrid?: (cellId: string, columnSpans: number[]) => void;
+  onRemoveColumnsBlock?: (blockId: string) => void;
+  onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
+  selectedContainerId?: string | null;
+  onSelectContainer?: (id: string) => void;
   zoom?: number;
 }
 
@@ -67,6 +76,8 @@ export function Canvas({
   onMoveElementToSection, onMoveElementToGridCell,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell,
+  onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock,
+  onAddContainer, selectedContainerId, onSelectContainer,
   zoom = 1,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
@@ -172,18 +183,21 @@ export function Canvas({
     onDuplicateElement, onDeleteElement,
     onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
     onMoveGridElement, onReorderGridCell,
+    onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock,
+    onAddContainer, selectedContainerId, onSelectContainer,
   };
 
-  const bpClass = breakpoint !== 'desktop' ? ` bp-${breakpoint}` : '';
+  const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };
+  const bpClass = BP_CLASS_MAP[breakpoint];
 
   return (
-    <div className={`canvas-wrapper${previewMode ? ' preview-mode' : ''}${bpClass}`}
+    <div className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
-      <div className="canvas-column" style={{ minWidth: canvasWidth, zoom: previewMode ? 1 : zoom }}>
+      <div className={'pb-canvas-column'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}) }}>
 
         {breakpoint !== 'desktop' && !previewMode && (
-          <div className="bp-width-indicator" style={{ width: canvasWidth }}>
+          <div className={'pb-bp-width-indicator'} style={{ width: canvasWidth }}>
             <span>{breakpoint === 'tablet' ? '768px — Tablet' : '375px — Mobile'}</span>
           </div>
         )}
@@ -199,24 +213,36 @@ export function Canvas({
           dragOverGridCellId={dragOverGridCellId}
         />
 
+        <SectionDropZone
+          atStart
+          onDrop={(_afterId, spans, atStart) => onDropGridLayout?.(null, spans, atStart)}
+        />
+
         {sections.map((sec, i) => (
-          <SectionView
-            key={sec.id}
-            {...commonProps}
-            section={sec}
-            role="section"
-            isSelected={selectedSectionId === sec.id}
-            onSelectSection={() => onSelectSection(sec.id)}
-            onAddSectionAfter={() => onAddSection(sec.id)}
-            onAddSectionBefore={i === 0 ? () => onAddSection(undefined, true) : undefined}
-            onDeleteSection={() => onDeleteSection(sec.id)}
-            onDuplicateSection={() => onDuplicateSection(sec.id)}
-            onMoveSectionUp={i > 0 ? () => onMoveSectionUp(i) : undefined}
-            onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
-            onMarqueeSelect={ids => onMultiSelect(ids, sec.id)}
-            isDragOverTarget={dragOverSectionId === sec.id}
-            dragOverGridCellId={dragOverGridCellId}
-          />
+          <React.Fragment key={sec.id}>
+            <SectionView
+              {...commonProps}
+              section={sec}
+              role="section"
+              isSelected={selectedSectionId === sec.id}
+              onSelectSection={() => onSelectSection(sec.id)}
+              onAddSectionAfter={() => onAddSection(sec.id)}
+              onAddSectionBefore={i === 0 ? () => onAddSection(undefined, true) : () => onAddSection(sections[i - 1].id)}
+              onAddGridSectionAfter={(spans: number[]) => onDropGridLayout?.(sec.id, spans)}
+              onAddGridSectionBefore={(spans: number[]) => i === 0 ? onDropGridLayout?.(null, spans, true) : onDropGridLayout?.(sections[i - 1].id, spans)}
+              onDeleteSection={() => onDeleteSection(sec.id)}
+              onDuplicateSection={() => onDuplicateSection(sec.id)}
+              onMoveSectionUp={i > 0 ? () => onMoveSectionUp(i) : undefined}
+              onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
+              onMarqueeSelect={ids => onMultiSelect(ids, sec.id)}
+              isDragOverTarget={dragOverSectionId === sec.id}
+              dragOverGridCellId={dragOverGridCellId}
+            />
+            <SectionDropZone
+              afterId={sec.id}
+              onDrop={(afterId, spans) => onDropGridLayout?.(afterId!, spans)}
+            />
+          </React.Fragment>
         ))}
 
         <SectionView

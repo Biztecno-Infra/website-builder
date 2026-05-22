@@ -1,11 +1,15 @@
-import React, { useRef, useState } from 'react';
+﻿import React, { useCallback, useRef, useState } from 'react';
+import { useDrop } from 'react-dnd';
 import { DraggableCellWrapper } from './DraggableCellWrapper';
+import { LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GridCellView } from './GridCellView';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  GridCell, GridSection, NodeMap, Section, SectionUpdate, ElementType,
+  GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
 } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
+import { sectionBgProps } from '../utils/sectionStyle';
+import { getCellColumnSpan } from '../utils/cellUtils';
 
 export { GRID_CELL_DND_TYPE } from './DraggableCellWrapper';
 
@@ -24,12 +28,14 @@ interface Props {
   onUpdateGridCell: (id: string, updates: Partial<GridCell>) => void;
   onAddGridCell: (sectionId: string, columnSpan?: number) => void;
   onDeleteGridCell: (id: string) => void;
-  onAddElementToCell: (type: ElementType, cellId: string) => void;
+  onAddElementToCell: (type: ElementType, cellId: string, x?: number, y?: number) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
+  onAddGridSectionBefore?: (columnSpans: number[]) => void;
+  onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
   onMoveSectionUp?: () => void;
@@ -39,9 +45,14 @@ interface Props {
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
   dragOverGridCellId?: string | null;
   onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
+  onDropGridLayout?: (sectionId: string, columnSpans: number[]) => void;
+  onRemoveColumnsBlock?: (blockId: string) => void;
+  onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
+  selectedContainerId?: string | null;
+  onSelectContainer?: (id: string) => void;
 }
 
 export function GridSectionView({
@@ -50,32 +61,55 @@ export function GridSectionView({
   canvasWidth, onSelectSection, onSelectGridCell,
   onSelectElement, onUpdateElement,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
-  onCommit, snapshot, onUpdateSection,
-  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection,
+  onCommit, snapshot,
+  onAddSectionBefore, onAddSectionAfter, onAddGridSectionBefore, onAddGridSectionAfter,
+  onDeleteSection, onDuplicateSection,
   onMoveSectionUp, onMoveSectionDown,
   previewMode, breakpoint = 'desktop',
   onUpdateResponsive, onDuplicateElement, onDeleteElement,
   onMoveGridElement,
   dragOverGridCellId,
   onReorderGridCell,
+  onDropGridLayout,
+  onRemoveColumnsBlock,
+  onAddContainer,
+  selectedContainerId,
+  onSelectContainer,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
 
+  const [{ isLayoutOver }, layoutDropRef] = useDrop<{ columnSpans: number[] }, void, { isLayoutOver: boolean }>({
+    accept: LAYOUT_DND_TYPE,
+    canDrop: () => role === 'section',
+    drop: (item, monitor) => {
+      if (monitor.didDrop() || role !== 'section') return;
+      onDropGridLayout?.(section.id, item.columnSpans);
+    },
+    collect: m => ({ isLayoutOver: m.isOver({ shallow: true }) && role === 'section' }),
+  });
+
+  const bgRefCallback = useCallback((node: HTMLDivElement | null) => {
+    (bgRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    (layoutDropRef as unknown as (el: HTMLDivElement | null) => void)(node);
+  }, [layoutDropRef]);
+
   const bg = section.style.background;
   const gridCfg = section.grid;
 
-  const secBgImage = bg.type === 'linear-gradient'
-    ? `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})`
-    : bg.type === 'radial-gradient'
-    ? `radial-gradient(circle, ${bg.from}, ${bg.to})`
-    : bg.image ? `url(${bg.image})` : undefined;
+  const gap =
+    breakpoint === 'mobile' ? (section.responsive?.mobile?.gap ?? section.responsive?.tablet?.gap ?? gridCfg.gap) :
+    breakpoint === 'tablet' ? (section.responsive?.tablet?.gap ?? gridCfg.gap) :
+    gridCfg.gap;
+  const rowGap =
+    breakpoint === 'mobile' ? (section.responsive?.mobile?.rowGap ?? section.responsive?.tablet?.rowGap ?? gridCfg.rowGap) :
+    breakpoint === 'tablet' ? (section.responsive?.tablet?.rowGap ?? gridCfg.rowGap) :
+    gridCfg.rowGap;
 
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative', width: '100%',
-    backgroundColor: bg.type === 'solid' ? (bg.color || '#ffffff') : undefined,
-    backgroundImage: secBgImage,
     backgroundSize: 'cover', backgroundPosition: 'center', boxSizing: 'border-box',
+    ...sectionBgProps(bg),
   };
 
   const pad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
@@ -92,25 +126,30 @@ export function GridSectionView({
     pointerEvents: 'none', zIndex: 0,
   } : undefined;
 
-  const getCellSpan = (cell: GridCell): number => {
-    if (breakpoint === 'mobile') return cell.responsive.mobile?.columnSpan ?? cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-    if (breakpoint === 'tablet') return cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-    return cell.columnSpan;
-  };
-
   const cells = section.children
     .map(id => nodes[id] as GridCell | undefined)
     .filter((c): c is GridCell => !!c);
 
-  const usedSpan = cells.reduce((sum, c) => sum + Math.min(getCellSpan(c), 12), 0);
+  const usedSpan = cells.reduce((sum, c) => sum + Math.min(getCellColumnSpan(c, breakpoint), 12), 0);
+
+  const scrollBehavior = section.scrollBehavior ?? 'normal';
+  const isSticky = scrollBehavior === 'sticky';
+  const isFixed  = scrollBehavior === 'fixed';
+  const hasActiveChild = !!(
+    (selectedGridCellId && section.children.includes(selectedGridCellId)) ||
+    (selectedId && nodes[selectedId] && 'parent' in nodes[selectedId]! && section.children.includes((nodes[selectedId] as { parent: string }).parent))
+  );
+  const outerStyle: React.CSSProperties = (isSticky || isFixed)
+    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
+    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
 
   return (
     <div
-      style={{ position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected) ? 1 : undefined }}
+      style={outerStyle}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div ref={bgRef} className="section-bg" style={sectionBgStyle}
+      <div ref={bgRefCallback} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
           e.stopPropagation(); onSelectSection(); onSelectGridCell(null);
@@ -119,13 +158,13 @@ export function GridSectionView({
         {overlayStyle && <div style={overlayStyle} />}
         {breakpoint !== 'desktop' && !previewMode && (
           <>
-            <div className="bp-margin-overlay bp-margin-left" style={{ width: `calc((100% - ${canvasWidth}px) / 2)` }} />
-            <div className="bp-margin-overlay bp-margin-right" style={{ width: `calc((100% - ${canvasWidth}px) / 2)` }} />
+            <div className={"pb-bp-margin-overlay pb-bp-margin-left"} style={{ width: `calc((100% - ${canvasWidth}px) / 2)` }} />
+            <div className={"pb-bp-margin-overlay pb-bp-margin-right"} style={{ width: `calc((100% - ${canvasWidth}px) / 2)` }} />
           </>
         )}
 
         <div
-          className="section-surface grid-section-surface"
+          className={"pb-section-surface pb-grid-section-surface"}
           data-section-id={section.id}
           style={sectionContentStyle}
           onMouseDown={e => {
@@ -134,38 +173,49 @@ export function GridSectionView({
           }}
         >
           {!previewMode && (hovered || isSelected) && (
-            <div className="section-label-badge">
+            <div
+              className={['pb-section-label-badge', 'pb-section-label-badge--clickable', isSelected && !selectedGridCellId && 'pb-section-label-badge--active'].filter(Boolean).join(' ')}
+              title="Click to select grid section"
+              onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell(null); }}
+            >
               {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
-              <span className="section-label-mode"> · Grid</span>
+              <span className={'pb-section-label-mode'}> · Grid</span>
+              {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
+              {isFixed  && <span className={'pb-section-label-mode'}> · Fixed</span>}
               {cells.length > 0 && (
-                <span className={`section-col-usage${usedSpan > 12 ? ' over' : usedSpan === 12 ? ' full' : ''}`}>
+                <span className={['pb-section-col-usage', usedSpan > 12 && 'pb-over', usedSpan === 12 && 'pb-full'].filter(Boolean).join(' ')}>
                   {usedSpan}/12
                 </span>
               )}
             </div>
           )}
 
-          {!previewMode && (hovered || isSelected) && role === 'section' && (
-            <div className="section-action-bar">
-              <button className="section-action-btn" title="Move up"
+          {!previewMode && isSelected && role === 'section' && (
+            <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
+              <button className={'pb-section-action-btn'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
-              <button className="section-action-btn" title="Move down"
+              <button className={'pb-section-action-btn'} title="Move down"
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
-              <button className="section-action-btn" title="Duplicate section"
+              <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
-              <div className="section-action-divider" />
-              <button className="section-action-btn danger" title="Delete section"
+              <div className={'pb-section-action-divider'} />
+              <button className={'pb-section-action-btn'} title="Add column"
+                onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>+ Col</button>
+              <div className={'pb-section-action-divider'} />
+              <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
             </div>
           )}
 
-          <div className="grid-area-wrapper">
+          <div className={'pb-grid-area-wrapper'}>
             <div
-              className="grid-cells-row"
+              className={'pb-grid-cells-row'}
               style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(12, 1fr)',
-                gap: `${gridCfg.rowGap}px ${gridCfg.gap}px`,
+                gap: `${rowGap}px ${gap}px`,
+                gridAutoRows: gridCfg.rowHeight ? `${gridCfg.rowHeight}px` : undefined,
+                minHeight: gridCfg.minHeight || undefined,
               }}
             >
               {cells.map((cell, index) => (
@@ -199,7 +249,7 @@ export function GridSectionView({
                     onUpdateElement={onUpdateElement}
                     onUpdateCell={updates => onUpdateGridCell(cell.id, updates)}
                     onDeleteCell={() => onDeleteGridCell(cell.id)}
-                    onAddElement={type => onAddElementToCell(type, cell.id)}
+                    onAddElement={(type, x, y) => onAddElementToCell(type, cell.id, x, y)}
                     onCommit={onCommit}
                     snapshot={snapshot}
                     previewMode={previewMode}
@@ -214,29 +264,27 @@ export function GridSectionView({
                     onAddElementToCell={onAddElementToCell}
                     onSelectGridCell={onSelectGridCell}
                     onReorderGridCell={onReorderGridCell}
+                    onRemoveColumnsBlock={onRemoveColumnsBlock}
+                    onAddContainer={onAddContainer}
+                    selectedContainerId={selectedContainerId}
+                    onSelectContainer={onSelectContainer}
                   />
                 </DraggableCellWrapper>
               ))}
             </div>
 
             {cells.length === 0 && !previewMode && (
-              <div className="grid-empty-state">
-                <span className="grid-empty-icon">⊞</span>
-                <span>Select this section, then use the right panel to add columns</span>
+              <div className={'pb-grid-empty-state'}>
+                <span className={'pb-grid-empty-icon'}>⊞</span>
+                <button className={'pb-grid-empty-add-btn'} onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>
+                  + Add first column
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {!previewMode && (hovered || isSelected) && onAddSectionBefore && (
-        <button className="section-add-btn section-add-btn--top" title="Add section above"
-          onClick={e => { e.stopPropagation(); onAddSectionBefore(); }}>+</button>
-      )}
-      {!previewMode && (hovered || isSelected) && onAddSectionAfter && (
-        <button className="section-add-btn section-add-btn--bottom" title="Add section below"
-          onClick={e => { e.stopPropagation(); onAddSectionAfter(); }}>+</button>
-      )}
     </div>
   );
 }

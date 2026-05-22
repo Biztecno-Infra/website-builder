@@ -39,7 +39,7 @@ const shad = (on = false, x = 0, y = 6, blur = 24, spread = -4, color = 'rgba(0,
   ({ enabled: on, x, y, blur, spread, color });
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
-const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
+const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
 const typo = (sz: number, w: string, color: string, align: A3 = 'left', lh = 1.5, ls = 0, tt: TextTransform = 'none') =>
   ({ family: 'Inter, sans-serif', size: sz, weight: w, color, align, lineHeight: lh, letterSpacing: ls, textTransform: tt });
@@ -278,8 +278,8 @@ export function makePortfolioState(): BuilderState {
     schema: '2.0',
     site: { name: 'Alex Chen', favicon: '', language: 'en' },
     theme: {
-      colors: { primary: C.green, secondary: C.teal, text: C.char, background: C.cream, light: C.stone, accent: C.teal },
-      fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
+      colors: { primary: C.green, secondary: C.teal, text: C.char, background: C.cream, light: C.stone, accent: C.teal, sectionBg: '#f8f9fa' },
+      fonts: { body: 'Inter, sans-serif' },
     },
     pages: [{ id: pageId, name: 'Alex Chen – Product Designer', slug: '/',
       seo: { title: 'Alex Chen — Product Designer', description: '6 years designing digital products people love to use.', ogImage: '' },

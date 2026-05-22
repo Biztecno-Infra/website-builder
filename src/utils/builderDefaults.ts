@@ -31,12 +31,12 @@ export const DEFAULT_CONTENT: ElementContent = {
   iconName: '★', iconSize: 40,
 };
 
-export const DEFAULT_INTERACTION: ElementInteraction = { linkUrl: '', linkTarget: '_self' };
+export const DEFAULT_INTERACTION: ElementInteraction = { type: 'link', linkUrl: '', linkTarget: '_self', smoothScroll: false };
 export const DEFAULT_ANIMATION: ElementAnimation = { type: 'none', trigger: 'load', duration: 600, delay: 0 };
 
 export const DEFAULT_THEME: SiteTheme = {
-  colors: { primary: '#006e75', secondary: '#0b978e', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c' },
-  fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
+  colors: { primary: '#006e75', secondary: '#0b978e', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c', sectionBg: '#ffffff' },
+  fonts: { body: 'Inter, sans-serif' },
 };
 
 export const DEFAULT_FLEX_LAYOUT: FlexItemLayout = {

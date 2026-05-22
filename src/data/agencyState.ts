@@ -36,7 +36,7 @@ const shad = (on = false, x = 0, y = 8, blur = 32, spread = -4, color = 'rgba(0,
   ({ enabled: on, x, y, blur, spread, color });
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
-const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
+const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
 const typo = (sz: number, w: string, color: string, align: A3 = 'left', lh = 1.5, ls = 0, tt: TextTransform = 'none', fam = 'Inter, sans-serif') =>
   ({ family: fam, size: sz, weight: w, color, align, lineHeight: lh, letterSpacing: ls, textTransform: tt });
@@ -274,8 +274,8 @@ export function makeAgencyState(): BuilderState {
     schema: '2.0',
     site: { name: 'Studio Craft', favicon: '', language: 'en' },
     theme: {
-      colors: { primary: C.orange, secondary: C.black, text: C.black, background: C.warm, light: C.offW, accent: C.orange },
-      fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
+      colors: { primary: C.orange, secondary: C.black, text: C.black, background: C.warm, light: C.offW, accent: C.orange, sectionBg: '#f8f9fa' },
+      fonts: { body: 'Inter, sans-serif' },
     },
     pages: [{ id: pageId, name: 'Studio Craft – Agency', slug: '/',
       seo: { title: 'Studio Craft — Creative Experiences For Ambitious Brands', description: 'Brand strategy, digital design, and web development.', ogImage: '' },

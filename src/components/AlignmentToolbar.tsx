@@ -1,5 +1,6 @@
 import type { CanvasElement } from '../types';
 
+
 interface Props {
   selectedIds: string[];
   elements: Record<string, CanvasElement>;
@@ -29,28 +30,28 @@ export function AlignmentToolbar({ selectedIds, elements, onUpdateElements }: Pr
   const totalH = els.reduce((s, e) => s + e.layout.height, 0);
 
   return (
-    <div className="align-toolbar">
-      <span className="align-toolbar-label">Align:</span>
+    <div className={'pb-align-toolbar'}>
+      <span className={'pb-align-toolbar-label'}>Align:</span>
 
-      <button className="align-btn" title="Align Left"
+      <button className={'pb-align-btn'} title="Align Left"
         onClick={() => align(el => ({ layout: { ...el.layout, x: minLeft } }))}>⊢</button>
-      <button className="align-btn" title="Center Horizontally"
+      <button className={'pb-align-btn'} title="Center Horizontally"
         onClick={() => align(el => ({ layout: { ...el.layout, x: Math.round(centerH - el.layout.width / 2) } }))}>⊣⊢</button>
-      <button className="align-btn" title="Align Right"
+      <button className={'pb-align-btn'} title="Align Right"
         onClick={() => align(el => ({ layout: { ...el.layout, x: maxRight - el.layout.width } }))}>⊣</button>
 
-      <div className="align-toolbar-sep" />
+      <div className={'pb-align-toolbar-sep'} />
 
-      <button className="align-btn" title="Align Top"
+      <button className={'pb-align-btn'} title="Align Top"
         onClick={() => align(el => ({ layout: { ...el.layout, y: minTop } }))}>⊤</button>
-      <button className="align-btn" title="Center Vertically"
+      <button className={'pb-align-btn'} title="Center Vertically"
         onClick={() => align(el => ({ layout: { ...el.layout, y: Math.round(centerV - el.layout.height / 2) } }))}>⊥⊤</button>
-      <button className="align-btn" title="Align Bottom"
+      <button className={'pb-align-btn'} title="Align Bottom"
         onClick={() => align(el => ({ layout: { ...el.layout, y: maxBottom - el.layout.height } }))}>⊥</button>
 
-      <div className="align-toolbar-sep" />
+      <div className={'pb-align-toolbar-sep'} />
 
-      <button className="align-btn" title="Distribute Horizontally" onClick={() => {
+      <button className={'pb-align-btn'} title="Distribute Horizontally" onClick={() => {
         const gap = (maxRight - minLeft - totalW) / Math.max(1, els.length - 1);
         const sorted = [...els].sort((a, b) => a.layout.x - b.layout.x);
         let cursor = minLeft;
@@ -61,7 +62,7 @@ export function AlignmentToolbar({ selectedIds, elements, onUpdateElements }: Pr
         }));
       }}>⇔</button>
 
-      <button className="align-btn" title="Distribute Vertically" onClick={() => {
+      <button className={'pb-align-btn'} title="Distribute Vertically" onClick={() => {
         const gap = (maxBottom - minTop - totalH) / Math.max(1, els.length - 1);
         const sorted = [...els].sort((a, b) => a.layout.y - b.layout.y);
         let cursor = minTop;

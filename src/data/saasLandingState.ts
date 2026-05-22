@@ -1,10 +1,10 @@
 /**
  * Demo page 1 — Flowdesk SaaS Landing
- * Purple/violet theme. Tests: nested grid (features panel), responsive breakpoints,
+ * Purple/violet theme. Tests: container grid (features panel), responsive breakpoints,
  * dark/light alternating sections, stat bar, pricing cards, testimonials.
  */
 import type {
-  BuilderState, CanvasElement, GridCell, GridSection,
+  BuilderState, CanvasElement, Container, GridCell, GridSection,
   ElementBackground, SectionBackground, Padding, Border, Shadow,
   FlexItemLayout, ElementResponsive, TextTransform, AnyNode,
 } from '../types';
@@ -43,7 +43,7 @@ const shad = (on = false, x = 0, y = 8, blur = 24, spread = -4, color = 'rgba(12
   ({ enabled: on, x, y, blur, spread, color });
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
-const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
+const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
 const typo = (sz: number, w: string, color: string, align: A3 = 'left', lh = 1.5, ls = 0, tt: TextTransform = 'none') =>
   ({ family: 'Inter, sans-serif', size: sz, weight: w, color, align, lineHeight: lh, letterSpacing: ls, textTransform: tt });
@@ -89,15 +89,15 @@ function cell(id: string, parent: string, span: number, children: string[],
   align: GridCell['style']['alignItems'] = 'flex-start',
   justify: GridCell['style']['justifyContent'] = 'flex-start',
   gap_ = 0, p = pad(0), bg = 'transparent',
-  res: GridCell['responsive'] = {}, border_ = bdr(0, 0, '#ccc', 'none'), minH?: number,
-  nested?: { gap: number; rowGap: number }): GridCell {
-  const c: GridCell = { id, type: 'grid-cell', parent, columnSpan: span, rowSpan: 1,
+  res: GridCell['responsive'] = {}, border_ = bdr(0, 0, '#ccc', 'none'), minH?: number): GridCell {
+  return { id, type: 'grid-cell', parent, columnSpan: span, rowSpan: 1,
     style: { layoutMode: mode, gap: gap_, padding: p,
       background: { type: 'solid', color: bg, image: '', position: 'center', from: '#7c3aed', to: '#6d28d9', angle: 135, overlay: 0 },
       border: border_, minHeight: minH, alignItems: align, justifyContent: justify },
     children, responsive: res };
-  if (nested) c.nestedGrid = nested;
-  return c;
+}
+function cont(id: string, parent: string, mode: Container['layoutMode'], gap_: number, rowGap: number, children: string[]): Container {
+  return { id, type: 'container', parent, layoutMode: mode, gap: gap_, rowGap, children };
 }
 function sec(id: string, role: GridSection['role'], label: string, children: string[],
   bg: SectionBackground, gap_ = 24, rowGap = 0, p: Padding = pad(0)): GridSection {
@@ -167,7 +167,7 @@ export function makeSaasLandingState(): BuilderState {
   });
   add(sec(MET, 'section', 'Metrics', metCells, secSolid(C.bgMid), 0, 0, pad(56, 0)));
 
-  // ══ FEATURES (left text + right 2×2 nested grid) ══
+  // ══ FEATURES (left text + right 2×2 grid container) ══
   const FEAT = 's1_feat';
   // Left panel
   add(t('e1_feye', 'c1_fl', 'Why teams choose Flowdesk', 11, '700', C.purple, 'left', 18, 1, pad(0), fl('fill'), {}, 2.5, 'uppercase'));
@@ -190,11 +190,11 @@ export function makeSaasLandingState(): BuilderState {
     'column', 'flex-start', 'center', 0, pad(0, 60, 0, 60), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }));
 
-  // Right panel: nested 2×2 grid of feature cards
+  // Right panel: 2×2 grid of feature cards inside a Container
   const fcards = [
-    { em: '⚡', title: 'Instant Sync',      desc: 'Changes sync across your team in real time. No more working from the wrong version.' },
-    { em: '🤖', title: 'Smart Automation',  desc: 'Set up automations in seconds. Let Flowdesk handle repetitive tasks automatically.' },
-    { em: '📊', title: 'Live Dashboards',   desc: 'See every project\'s health at a glance with team-wide customisable dashboards.' },
+    { em: '⚡', title: 'Instant Sync',        desc: 'Changes sync across your team in real time. No more working from the wrong version.' },
+    { em: '🤖', title: 'Smart Automation',    desc: 'Set up automations in seconds. Let Flowdesk handle repetitive tasks automatically.' },
+    { em: '📊', title: 'Live Dashboards',     desc: 'See every project\'s health at a glance with team-wide customisable dashboards.' },
     { em: '🔒', title: 'Bank-Level Security', desc: 'SOC 2 Type II certified. End-to-end encryption. Granular permissions. Always.' },
   ];
   const subCells = ['c1_fr1', 'c1_fr2', 'c1_fr3', 'c1_fr4'];
@@ -205,14 +205,14 @@ export function makeSaasLandingState(): BuilderState {
     add(t(`e1_fitl${i}`, cid, fc.title, 16, '700', C.textDark, 'left', 24, 1));
     add(s(`e1_fisp2${i}`, cid, 8));
     add(t(`e1_fidsc${i}`, cid, fc.desc, 14, 'normal', C.muted, 'left', 72, 1.7));
-    add(cell(cid, 'c1_fr', 6, [`e1_fic${i}`, `e1_fisp1${i}`, `e1_fitl${i}`, `e1_fisp2${i}`, `e1_fidsc${i}`],
+    add(cell(cid, 'cb_fr_grid', 6, [`e1_fic${i}`, `e1_fisp1${i}`, `e1_fitl${i}`, `e1_fisp2${i}`, `e1_fidsc${i}`],
       'column', 'flex-start', 'flex-start', 0, pad(28, 24), C.bgCard,
       { tablet: { columnSpan: 6 }, mobile: { columnSpan: 12 } },
       bdr(16, 1, C.border), 180));
   });
-  add(cell('c1_fr', FEAT, 7, subCells, 'column', 'flex-start', 'flex-start', 0, pad(0, 48, 0, 0),
-    'transparent', { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } },
-    bdr(0, 0), undefined, { gap: 20, rowGap: 20 }));
+  add(cont('cb_fr_grid', 'c1_fr', 'grid', 20, 20, subCells));
+  add(cell('c1_fr', FEAT, 7, ['cb_fr_grid'], 'column', 'flex-start', 'flex-start', 0, pad(0, 48, 0, 0),
+    'transparent', { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } }, bdr(0, 0)));
   add(sec(FEAT, 'section', 'Features', ['c1_fl', 'c1_fr'], secSolid('#f8f7ff'), 48, 0, pad(96, 0)));
 
   // ══ PRICING ══
@@ -376,8 +376,8 @@ export function makeSaasLandingState(): BuilderState {
     schema: '2.0',
     site: { name: 'Flowdesk', favicon: '', language: 'en' },
     theme: {
-      colors: { primary: C.purple, secondary: C.purpleLt, text: C.textDark, background: C.white, light: C.bgLight, accent: '#10b981' },
-      fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
+      colors: { primary: C.purple, secondary: C.purpleLt, text: C.textDark, background: C.white, light: C.bgLight, accent: '#10b981', sectionBg: '#f8f9fa' },
+      fonts: { body: 'Inter, sans-serif' },
     },
     pages: [{ id: pageId, name: 'Flowdesk – SaaS Landing', slug: '/',
       seo: { title: 'Flowdesk — Work Smarter, Not Harder', description: 'Bring tasks, docs, and team chat into one beautiful workspace.', ogImage: '' },

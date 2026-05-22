@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type { Breakpoint, GridCell } from '../types';
 
@@ -89,10 +89,13 @@ export function DraggableCellWrapper({
   return (
     <div
       ref={combinedRef}
-      className="grid-cell-wrapper"
+      className={'pb-grid-cell-wrapper'}
       style={{
         gridColumn: `span ${Math.min(span, 12)}`,
         gridRow: rowSpan > 1 ? `span ${rowSpan}` : undefined,
+        flexBasis: `calc(${(Math.min(span, 12) / 12) * 100}% - 16px)`,
+        flexGrow: 0,
+        flexShrink: 0,
         position: 'relative',
         opacity: isDragging ? 0.35 : 1,
       }}
@@ -100,15 +103,15 @@ export function DraggableCellWrapper({
       {!previewMode && (
         <div
           ref={dragHandle as (el: HTMLDivElement | null) => void}
-          className="grid-cell-drag-handle"
+          className={'pb-grid-cell-drag-handle'}
           title="Drag to reorder"
           onMouseDown={e => e.stopPropagation()}
         >
           ⠿
         </div>
       )}
-      {insertSide === 'before' && <div className="grid-cell-insert-indicator grid-cell-insert-indicator--before" />}
-      {insertSide === 'after'  && <div className="grid-cell-insert-indicator grid-cell-insert-indicator--after"  />}
+      {insertSide === 'before' && <div className={"pb-grid-cell-insert-indicator pb-grid-cell-insert-indicator--before"} />}
+      {insertSide === 'after'  && <div className={"pb-grid-cell-insert-indicator pb-grid-cell-insert-indicator--after"}  />}
       {children}
     </div>
   );

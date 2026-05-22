@@ -60,7 +60,7 @@ const shad = (
 
 const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
-const nolink = () => ({ linkUrl: '', linkTarget: '_self' as const });
+const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 
 const typo = (
   size: number,
@@ -277,9 +277,8 @@ function cell(
   responsive: GridCell['responsive'] = {},
   border = bdr(0, 0, 'transparent', 'none'),
   minHeight?: number,
-  nestedGrid?: { gap: number; rowGap: number },
 ): GridCell {
-  const node: GridCell = {
+  return {
     id, type: 'grid-cell', parent, columnSpan: span, rowSpan: 1,
     style: {
       layoutMode: mode,
@@ -294,8 +293,6 @@ function cell(
     children,
     responsive,
   };
-  if (nestedGrid) node.nestedGrid = nestedGrid;
-  return node;
 }
 
 function section(
@@ -560,8 +557,9 @@ export function makeDemoState(): BuilderState {
         background: C.white,
         light: C.soft,
         accent: C.coral,
+        sectionBg: '#f8f9fa',
       },
-      fonts: { heading: 'Inter, sans-serif', body: 'Inter, sans-serif' },
+      fonts: { body: 'Inter, sans-serif' },
     },
     pages: [{
       id: pageId,

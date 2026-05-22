@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { makeDemoState } from '../data/demoState';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
-  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement,
-  ColumnStyle, ElementLayout, ElementType, FreeSection, GridCell,
+  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, CellLayoutMode,
+  ColumnStyle, Container, ContainerLayoutMode, ElementLayout, ElementType, FreeSection, GridCell,
   GridSection, NodeMap, Page, Section, SectionRole,
   SectionUpdate, SiteTheme, TextAlign, TextTransform,
 } from '../types';
@@ -29,8 +29,13 @@ const newId = () => `el_${Date.now()}_${_idCounter++}`;
 const newSectionId = () => `sec_${Date.now()}_${_idCounter++}`;
 const newPageId = () => `page_${Date.now()}_${_idCounter++}`;
 const newGridCellId = () => `gc_${Date.now()}_${_idCounter++}`;
+const newColumnsId  = () => `cb_${Date.now()}_${_idCounter++}`;
 
 // ── Type guards ────────────────────────────────────────────────────────
+
+function isContainer(node: AnyNode): node is Container {
+  return node.type === 'container';
+}
 
 function isSection(node: AnyNode): node is Section {
   return (node as Section).type === 'section';
@@ -53,13 +58,13 @@ function isFreeSection(node: AnyNode): node is FreeSection {
 
 // ── Factory helpers ────────────────────────────────────────────────────
 
-function makeSection(id: string, role: SectionRole, partial?: SectionUpdate): Section {
+function makeSection(id: string, role: SectionRole, partial?: SectionUpdate, bgColor?: string): Section {
   return {
     id, type: 'section', role,
     label: role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : 'Section',
     layout: { height: role === 'header' ? 80 : role === 'footer' ? 100 : 400 },
     style: {
-      background: { ...DEFAULT_SECTION_BG, color: role === 'footer' ? '#f5f5f5' : '#ffffff' },
+      background: { ...DEFAULT_SECTION_BG, color: bgColor ?? (role === 'footer' ? '#f5f5f5' : '#ffffff') },
       columns: { count: 1, widths: [], styles: {} },
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
     },
@@ -88,25 +93,33 @@ function makeGridCell(id: string, parentId: string, columnSpan = 4): GridCell {
 
 // Recursively delete a grid cell and all its descendants (elements or sub-cells)
 function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
-  if (cell.nestedGrid) {
-    for (const subId of cell.children) {
-      const sub = nodes[subId] as GridCell | undefined;
-      if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
+  for (const childId of cell.children) {
+    const child = nodes[childId];
+    if (child?.type === 'container') {
+      const block = child as Container;
+      for (const subId of block.children) {
+        const sub = nodes[subId] as GridCell | undefined;
+        if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
+      }
     }
-  } else {
-    for (const elId of cell.children) delete nodes[elId];
+    delete nodes[childId];
   }
 }
 
-// Collect all leaf element IDs from a cell (recursing into nested grids)
+// Collect all leaf element IDs from a cell (recursing into columns blocks)
 function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
-  if (cell.nestedGrid) {
-    return cell.children.flatMap(subId => {
-      const sub = nodes[subId] as GridCell | undefined;
-      return sub ? collectElementIds(sub, nodes) : [];
-    });
-  }
-  return cell.children;
+  return cell.children.flatMap(childId => {
+    const child = nodes[childId];
+    if (!child) return [];
+    if (child.type === 'container') {
+      const block = child as Container;
+      return block.children.flatMap(subId => {
+        const sub = nodes[subId] as GridCell | undefined;
+        return sub ? collectElementIds(sub, nodes) : [];
+      });
+    }
+    return [childId];
+  });
 }
 
 function removeNodesForSection(nodes: NodeMap, sec: Section): void {
@@ -123,20 +136,18 @@ function removeNodesForSection(nodes: NodeMap, sec: Section): void {
 function removeFromParent(nodes: NodeMap, parentId: string, childId: string): void {
   const parent = nodes[parentId];
   if (!parent) return;
-  if (isSection(parent)) {
-    nodes[parentId] = { ...parent, children: parent.children.filter(c => c !== childId) };
-  } else if (isGridCell(parent)) {
-    nodes[parentId] = { ...parent, children: parent.children.filter(c => c !== childId) };
+  if (isSection(parent) || isGridCell(parent) || isContainer(parent)) {
+    const p = parent as { children: string[] };
+    nodes[parentId] = { ...parent, children: p.children.filter(c => c !== childId) } as AnyNode;
   }
 }
 
 function appendToParent(nodes: NodeMap, parentId: string, childId: string): void {
   const parent = nodes[parentId];
   if (!parent) return;
-  if (isSection(parent)) {
-    nodes[parentId] = { ...parent, children: [...parent.children, childId] };
-  } else if (isGridCell(parent)) {
-    nodes[parentId] = { ...parent, children: [...parent.children, childId] };
+  if (isSection(parent) || isGridCell(parent) || isContainer(parent)) {
+    const p = parent as { children: string[] };
+    nodes[parentId] = { ...parent, children: [...p.children, childId] } as AnyNode;
   }
 }
 
@@ -160,7 +171,7 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
 
   switch (type) {
     case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, content: { ...base.content, plain: 'Click to edit text' } };
-    case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
+    case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
     case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, style: { ...base.style, background: { ...base.style.background, color: '#0B978E' }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
     case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: '#f1f5f9' }, border: { radius: 0, width: 2, color: '#cbd5e1', style: 'solid' } } };
     case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: '#dddddd' }, border: { ...base.style.border, radius: 2 } } };
@@ -245,7 +256,7 @@ function migrateOldElement(r: Record<string, unknown>, parentId: string): Canvas
       typography: { family: (r.fontFamily as string) ?? 'Inter, sans-serif', size: (r.fontSize as number) ?? 16, weight: (r.fontWeight as string) ?? 'normal', color: (r.color as string) ?? '#333333', align: (r.textAlign as TextAlign) ?? 'left', lineHeight: (r.lineHeight as number) ?? 1.5, letterSpacing: 0, textTransform: 'none' as TextTransform },
     },
     content: { plain: (r.text as string) ?? '', rich: (r.richText as string) ?? '', src: (r.src as string) ?? '', alt: (r.alt as string) ?? 'image', objectFit: (r.objectFit as import('../types').ObjectFit) ?? 'cover', label: (r.label as string) ?? 'Button', videoUrl: (r.videoUrl as string) ?? '', iconName: (r.iconName as string) ?? '★', iconSize: (r.iconSize as number) ?? 40 },
-    interaction: { linkUrl: (r.linkUrl as string) ?? '', linkTarget: (r.linkTarget as '_self' | '_blank') ?? '_self' },
+    interaction: { type: 'link', linkUrl: (r.linkUrl as string) ?? '', linkTarget: (r.linkTarget as '_self' | '_blank') ?? '_self', smoothScroll: false },
     animation: { type: (r.animationType as import('../types').AnimationType) ?? 'none', trigger: (r.animationTrigger as import('../types').AnimationTrigger) ?? 'load', duration: (r.animationDuration as number) ?? 600, delay: (r.animationDelay as number) ?? 0 },
     state: { hidden: (r.hidden as boolean) ?? false, locked: (r.locked as boolean) ?? false },
     responsive: {
@@ -336,8 +347,8 @@ function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
   const oldTheme = r.theme as Record<string, unknown> | undefined;
   const oldColors = oldTheme?.colors as string[] | undefined;
   const theme: SiteTheme = {
-    colors: { primary: oldColors?.[0] ?? '#006e75', secondary: oldColors?.[1] ?? '#0b978e', text: oldColors?.[2] ?? '#333333', background: oldColors?.[3] ?? '#ffffff', light: oldColors?.[4] ?? '#f5f5f5', accent: oldColors?.[5] ?? '#e74c3c' },
-    fonts: { heading: (oldTheme?.headingFont as string) ?? 'Inter, sans-serif', body: (oldTheme?.bodyFont as string) ?? 'Inter, sans-serif' },
+    colors: { primary: oldColors?.[0] ?? '#006e75', secondary: oldColors?.[1] ?? '#0b978e', text: oldColors?.[2] ?? '#333333', background: oldColors?.[3] ?? '#ffffff', light: oldColors?.[4] ?? '#f5f5f5', accent: oldColors?.[5] ?? '#e74c3c', sectionBg: DEFAULT_THEME.colors.sectionBg },
+    fonts: { body: (oldTheme?.bodyFont as string) ?? ((oldTheme as any)?.fonts?.body as string) ?? 'Inter, sans-serif' },
   };
 
   return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en' }, theme, pages, activePageId, nodes };
@@ -349,7 +360,9 @@ export function migrateState(raw: unknown): BuilderState {
   const r = raw as Record<string, unknown>;
   if (r.schema === '2.0' && r.nodes) {
     const nodes = hydrateNodes(r.nodes as Record<string, unknown>);
-    return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: { ...DEFAULT_THEME, ...((r.theme as object) ?? {}) }, pages: (r.pages as Page[]) ?? [], activePageId: (r.activePageId as string) ?? '', nodes };
+    const rt = (r.theme as Partial<SiteTheme> | undefined);
+    const mergedTheme: SiteTheme = { ...DEFAULT_THEME, ...rt, colors: { ...DEFAULT_THEME.colors, ...(rt?.colors ?? {}) }, fonts: { ...DEFAULT_THEME.fonts, ...(rt?.fonts ?? {}) } };
+    return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: mergedTheme, pages: (r.pages as Page[]) ?? [], activePageId: (r.activePageId as string) ?? '', nodes };
   }
   if ((r.pages || r.sections || r.elements) && (r.header || r.sections || r.elements)) {
     return migrateFromOldFormat(r);
@@ -417,6 +430,7 @@ export function useBuilderStore() {
     return map;
   }, [state]);
 
+
   const allOrder = useMemo(() => {
     const page = getActivePage(state);
     return [page.header, ...page.sections, page.footer].flatMap(secId => {
@@ -443,8 +457,17 @@ export function useBuilderStore() {
         const cel = node as CanvasElement;
         const parent = stateRef.current.nodes[cel.parent];
         if (parent && isGridCell(parent)) {
-          setSelectedSectionId(parent.parent);
           setSelectedGridCellId(parent.id);
+          // Walk up through GridCells AND Containers until we reach a Section
+          let ancestorId = parent.parent;
+          let ancestor = stateRef.current.nodes[ancestorId];
+          while (ancestor && (isGridCell(ancestor) || isContainer(ancestor))) {
+            ancestorId = isGridCell(ancestor)
+              ? (ancestor as GridCell).parent
+              : (ancestor as Container).parent;
+            ancestor = stateRef.current.nodes[ancestorId];
+          }
+          setSelectedSectionId(ancestorId);
         } else {
           setSelectedSectionId(cel.parent);
         }
@@ -507,7 +530,7 @@ export function useBuilderStore() {
     push(stateRef.current);
     const page = getActivePage(stateRef.current);
     const secId = newSectionId();
-    const sec = makeSection(secId, 'section', { label: `Section ${page.sections.length + 1}` });
+    const sec = makeSection(secId, 'section', { label: `Section ${page.sections.length + 1}` }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
       const p = getActivePage(s);
       let sections: string[];
@@ -596,21 +619,24 @@ export function useBuilderStore() {
       if (src.layoutMode === 'grid') {
         const deepCopyCell = (cell: GridCell, newParentId: string): string => {
           const newCellId = newGridCellId();
-          let newCellChildren: string[];
-          if (cell.nestedGrid) {
-            newCellChildren = cell.children.map(subId => {
-              const sub = nodes[subId] as GridCell | undefined;
-              return sub ? deepCopyCell(sub, newCellId) : '';
-            }).filter(Boolean);
-          } else {
-            newCellChildren = cell.children.map(elId => {
-              const el = nodes[elId] as CanvasElement | undefined;
-              if (!el) return '';
+          const newCellChildren = cell.children.map(childId => {
+              const child = nodes[childId];
+              if (!child) return '';
+              if (child.type === 'container') {
+                const block = child as Container;
+                const newBlockId = newColumnsId();
+                const newSubIds = block.children.map(subId => {
+                  const sub = nodes[subId] as GridCell | undefined;
+                  return sub ? deepCopyCell(sub, newBlockId) : '';
+                }).filter(Boolean);
+                nodes[newBlockId] = { ...block, id: newBlockId, parent: newCellId, children: newSubIds } as Container;
+                return newBlockId;
+              }
+              const el = child as CanvasElement;
               const newElId = newId();
               nodes[newElId] = { ...el, id: newElId, parent: newCellId };
               return newElId;
             }).filter(Boolean);
-          }
           nodes[newCellId] = { ...cell, id: newCellId, parent: newParentId, children: newCellChildren };
           return newCellId;
         };
@@ -634,11 +660,11 @@ export function useBuilderStore() {
 
   // ── Element ops ────────────────────────────────────────────────────
 
-  const addElementToCell = useCallback((type: ElementType, cellId: string) => {
+  const addElementToCell = useCallback((type: ElementType, cellId: string, x = 0, y = 0) => {
     const s = stateRef.current;
     const cell = s.nodes[cellId] as GridCell | undefined;
     if (!cell) return;
-    const el = createDefaultElement(type, cell.children.length, cellId, 0, 0, stateRef.current.theme.fonts.body);
+    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme.fonts.body);
     push(s);
     setState(prev => {
       const c = prev.nodes[cellId] as GridCell | undefined;
@@ -650,27 +676,21 @@ export function useBuilderStore() {
 
   const addElement = useCallback((type: ElementType) => {
     const s = stateRef.current;
-    // If a grid cell is selected, add there (skip nested-grid containers)
+    // If a grid cell is selected, add directly there
     const gcId = selectedGridCellIdRef.current;
     if (gcId && s.nodes[gcId] && isGridCell(s.nodes[gcId])) {
-      const selCell = s.nodes[gcId] as GridCell;
-      if (!selCell.nestedGrid) { addElementToCell(type, gcId); return; }
+      addElementToCell(type, gcId); return;
     }
     const page = getActivePage(s);
     const sectionId = selectedSectionId ?? page.sections[0];
     if (!sectionId) return;
     const sec = s.nodes[sectionId] as Section | undefined;
     if (!sec) return;
-    // Grid section with no cell selected — add to first non-nested cell
+    // Grid section with no cell selected — add to first available cell
     if (sec.layoutMode === 'grid') {
       for (const cellId of sec.children) {
         const c = s.nodes[cellId] as GridCell | undefined;
-        if (!c) continue;
-        if (c.nestedGrid) {
-          if (c.children.length > 0) { addElementToCell(type, c.children[0]); return; }
-        } else {
-          addElementToCell(type, cellId); return;
-        }
+        if (c) { addElementToCell(type, cellId); return; }
       }
       return;
     }
@@ -701,8 +721,8 @@ export function useBuilderStore() {
   const updateElement = useCallback((id: string, updates: Partial<CanvasElement>) => {
     setState(s => {
       const el = s.nodes[id];
-      if (!el || isSection(el) || isGridCell(el)) return s;
-      return { ...s, nodes: { ...s.nodes, [id]: { ...el, ...updates } } };
+      if (!el || isSection(el) || isGridCell(el) || isContainer(el)) return s;
+      return { ...s, nodes: { ...s.nodes, [id]: { ...el, ...updates } as CanvasElement } };
     });
   }, []);
 
@@ -711,7 +731,7 @@ export function useBuilderStore() {
       const nodes = { ...s.nodes };
       for (const { id, changes } of updates) {
         const el = nodes[id];
-        if (!el || isSection(el) || isGridCell(el)) continue;
+        if (!el || isSection(el) || isGridCell(el) || isContainer(el)) continue;
         nodes[id] = { ...el, ...changes } as CanvasElement;
       }
       return { ...s, nodes };
@@ -722,7 +742,7 @@ export function useBuilderStore() {
 
   const deleteElement = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
-    if (!node || isSection(node) || isGridCell(node)) return;
+    if (!node || isSection(node) || isGridCell(node) || isContainer(node)) return;
     const cel = node as CanvasElement;
     push(stateRef.current);
     setState(s => {
@@ -741,7 +761,7 @@ export function useBuilderStore() {
       const nodes = { ...s.nodes };
       for (const id of ids) {
         const el = nodes[id];
-        if (!el || isSection(el) || isGridCell(el)) continue;
+        if (!el || isSection(el) || isGridCell(el) || isContainer(el)) continue;
         const cel = el as CanvasElement;
         removeFromParent(nodes, cel.parent, id);
         delete nodes[id];
@@ -753,7 +773,7 @@ export function useBuilderStore() {
 
   const duplicateElement = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
-    if (!node || isSection(node) || isGridCell(node)) return;
+    if (!node || isSection(node) || isGridCell(node) || isContainer(node)) return;
     const cel = node as CanvasElement;
     const copy: CanvasElement = { ...cel, id: newId(), layout: { ...cel.layout, x: cel.layout.x + 20, y: cel.layout.y + 20, zIndex: cel.layout.zIndex + 1 } };
     push(stateRef.current);
@@ -768,7 +788,7 @@ export function useBuilderStore() {
 
   const copyElement = useCallback((id: string) => {
     const el = stateRef.current.nodes[id];
-    if (el && !isSection(el) && !isGridCell(el)) clipboard.current = el as CanvasElement;
+    if (el && !isSection(el) && !isGridCell(el) && !isContainer(el)) clipboard.current = el as CanvasElement;
   }, []);
 
   const pasteElement = useCallback(() => {
@@ -911,6 +931,7 @@ export function useBuilderStore() {
   const bringToFront = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
     if (!node || isSection(node) || isGridCell(node)) return;
+    push(stateRef.current);
     const cel = node as CanvasElement;
     setState(s => {
       const parent = s.nodes[cel.parent];
@@ -923,11 +944,12 @@ export function useBuilderStore() {
       nodes[cel.parent] = { ...parentNode, children } as AnyNode;
       return { ...s, nodes };
     });
-  }, []);
+  }, [push]);
 
   const sendToBack = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
     if (!node || isSection(node) || isGridCell(node)) return;
+    push(stateRef.current);
     const cel = node as CanvasElement;
     setState(s => {
       const parent = s.nodes[cel.parent];
@@ -940,7 +962,7 @@ export function useBuilderStore() {
       nodes[cel.parent] = { ...parentNode, children } as AnyNode;
       return { ...s, nodes };
     });
-  }, []);
+  }, [push]);
 
   const updateResponsive = useCallback((id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => {
     setState(s => {
@@ -959,32 +981,27 @@ export function useBuilderStore() {
     });
   }, []);
 
-  const addGridSection = useCallback((afterId?: string) => {
+  const addGridSection = useCallback((afterId?: string, columnSpans?: number[], atStart?: boolean) => {
     push(stateRef.current);
     const page = getActivePage(stateRef.current);
     const secId = newSectionId();
-    const cell1Id = newGridCellId();
-    const cell2Id = newGridCellId();
-    const cell3Id = newGridCellId();
+    const spans = columnSpans ?? [4, 4, 4];
+    const cellIds = spans.map(() => newGridCellId());
     const sec = makeSection(secId, 'section', {
       label: `Grid Section ${page.sections.length + 1}`,
       layoutMode: 'grid',
       grid: { gap: 24, rowGap: 24 },
-      children: [cell1Id, cell2Id, cell3Id],
-    });
-    const cell1 = makeGridCell(cell1Id, secId, 4);
-    const cell2 = makeGridCell(cell2Id, secId, 4);
-    const cell3 = makeGridCell(cell3Id, secId, 4);
+      children: cellIds,
+    }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
       const p = getActivePage(s);
       let sections: string[];
-      if (!afterId) { sections = [...p.sections, secId]; }
+      if (atStart) { sections = [secId, ...p.sections]; }
+      else if (!afterId) { sections = [...p.sections, secId]; }
       else { const idx = p.sections.indexOf(afterId); sections = [...p.sections]; sections.splice(idx + 1, 0, secId); }
-      return {
-        ...s,
-        nodes: { ...s.nodes, [secId]: sec, [cell1Id]: cell1, [cell2Id]: cell2, [cell3Id]: cell3 },
-        pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg),
-      };
+      const newNodes = { ...s.nodes, [secId]: sec };
+      spans.forEach((span, i) => { newNodes[cellIds[i]] = makeGridCell(cellIds[i], secId, span); });
+      return { ...s, nodes: newNodes, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
     });
     setSelectedSectionId(secId);
     setSelectedGridCellId(null);
@@ -1030,13 +1047,12 @@ export function useBuilderStore() {
   }, [push]);
 
   const updateGridCell = useCallback((id: string, updates: Partial<GridCell>) => {
-    push(stateRef.current);
     setState(s => {
       const cell = s.nodes[id];
       if (!cell || !isGridCell(cell)) return s;
       return { ...s, nodes: { ...s.nodes, [id]: { ...cell, ...updates } } };
     });
-  }, [push]);
+  }, []);
 
   const deleteGridCell = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
@@ -1059,65 +1075,75 @@ export function useBuilderStore() {
     if (fromIndex === toIndex) return;
     push(stateRef.current);
     setState(s => {
-      const parent = s.nodes[parentId] as Section | GridCell | undefined;
+      const parent = s.nodes[parentId] as Section | GridCell | Container | undefined;
       if (!parent) return s;
       if (parent.type === 'section' && (parent as Section).layoutMode !== 'grid') return s;
-      if (parent.type === 'grid-cell' && !(parent as GridCell).nestedGrid) return s;
-      const children = [...parent.children];
+      // grid-cell: allow reorder for nested grids AND flex cells (when ColumnsBlocks are children)
+      const children = [...(parent as { children: string[] }).children];
       const [moved] = children.splice(fromIndex, 1);
       children.splice(toIndex, 0, moved);
-      return { ...s, nodes: { ...s.nodes, [parentId]: { ...parent, children } as typeof parent } };
+      return { ...s, nodes: { ...s.nodes, [parentId]: { ...parent, children } as AnyNode } };
     });
   }, [push]);
 
-  const addNestedGrid = useCallback((cellId: string) => {
+  // Append a container (inline layout block) to a cell — never converts the whole cell.
+  const addContainer = useCallback((cellId: string, mode: ContainerLayoutMode = 'grid', columnSpans?: number[]) => {
     const node = stateRef.current.nodes[cellId];
     if (!node || !isGridCell(node)) return;
-    const cell = node as GridCell;
-    if (cell.nestedGrid) return; // already has nested grid
     push(stateRef.current);
-    const sub1 = newGridCellId(), sub2 = newGridCellId();
+    const blockId = newColumnsId();
+    const spans = columnSpans && columnSpans.length >= 2 ? columnSpans : [6, 6];
+    const subIds = spans.map(() => newGridCellId());
     setState(s => {
       const nodes = { ...s.nodes };
-      // Delete existing element children
-      for (const elId of cell.children) {
-        if (!isGridCell(nodes[elId])) delete nodes[elId];
-      }
-      const subCell1 = makeGridCell(sub1, cellId, 6);
-      const subCell2 = makeGridCell(sub2, cellId, 6);
-      nodes[sub1] = { ...subCell1, responsive: { mobile: { columnSpan: 12 } } };
-      nodes[sub2] = { ...subCell2, responsive: { mobile: { columnSpan: 12 } } };
-      nodes[cellId] = { ...cell, nestedGrid: { gap: 16, rowGap: 16 }, children: [sub1, sub2] };
+      const c = nodes[cellId] as GridCell;
+      nodes[blockId] = { id: blockId, type: 'container', parent: cellId, children: subIds, layoutMode: mode, gap: 16, rowGap: 0 } as Container;
+      subIds.forEach((id, i) => {
+        nodes[id] = { ...makeGridCell(id, blockId, spans[i]), ...(spans.length === 2 ? { responsive: { mobile: { columnSpan: 12 } } } : {}) };
+      });
+      nodes[cellId] = { ...c, children: [...c.children, blockId] };
       return { ...s, nodes };
     });
     setSelectedGridCellId(cellId);
   }, [push]);
 
-  const removeNestedGrid = useCallback((cellId: string) => {
-    const node = stateRef.current.nodes[cellId];
-    if (!node || !isGridCell(node)) return;
-    const cell = node as GridCell;
-    if (!cell.nestedGrid) return;
+  // Remove a container and all its sub-cell contents.
+  const removeContainer = useCallback((blockId: string) => {
+    const node = stateRef.current.nodes[blockId];
+    if (!node || node.type !== 'container') return;
+    const block = node as Container;
     push(stateRef.current);
     setState(s => {
       const nodes = { ...s.nodes };
-      for (const subId of cell.children) {
+      for (const subId of block.children) {
         const sub = nodes[subId] as GridCell | undefined;
         if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
       }
-      const { nestedGrid: _ng, ...rest } = cell;
-      nodes[cellId] = { ...rest, children: [] } as GridCell;
+      const parentCell = nodes[block.parent] as GridCell | undefined;
+      if (parentCell) nodes[block.parent] = { ...parentCell, children: parentCell.children.filter(id => id !== blockId) };
+      delete nodes[blockId];
       return { ...s, nodes };
     });
-    setSelectedGridCellId(cellId);
     setSelectedIds([]);
+    setSelectedGridCellId(null);
   }, [push]);
+
+  const updateContainer = useCallback((id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap' | 'responsive'>>) => {
+    setState(s => {
+      const node = s.nodes[id];
+      if (!node || !isContainer(node)) return s;
+      return { ...s, nodes: { ...s.nodes, [id]: { ...node, ...updates } as Container } };
+    });
+  }, []);
+
 
   const moveGridElement = useCallback((
     elementId: string,
     sourceCellId: string,
     targetCellId: string,
     insertIndex: number,
+    dropPos?: { x: number; y: number },
+    sourceCellMode?: CellLayoutMode,
   ) => {
     const s = stateRef.current;
     const src = s.nodes[sourceCellId] as GridCell | undefined;
@@ -1125,26 +1151,58 @@ export function useBuilderStore() {
     const el  = s.nodes[elementId]   as CanvasElement | undefined;
     if (!src || !tgt || !el) return;
 
+    // Use caller-supplied effective mode (respects responsive overrides) when available
+    const srcFree = sourceCellMode !== undefined ? sourceCellMode === 'free' : src.style.layoutMode === 'free';
+    const tgtFree = tgt.style.layoutMode === 'free';
+
     push(s);
     setState(prev => {
       const nodes = { ...prev.nodes };
       const srcCell = nodes[sourceCellId] as GridCell;
       const tgtCell = nodes[targetCellId] as GridCell;
+      const cel = nodes[elementId] as CanvasElement;
+
+      // Adapt element layout based on source → target container mode change
+      let updatedEl: CanvasElement = cel;
+      if (sourceCellId !== targetCellId) {
+        if (tgtFree && dropPos) {
+          // Any → free: place at drop coordinates, keep existing width/height
+          updatedEl = { ...cel, parent: targetCellId,
+            layout: { ...cel.layout, x: Math.max(0, Math.round(dropPos.x)), y: Math.max(0, Math.round(dropPos.y)) },
+          };
+        } else if (srcFree && !tgtFree) {
+          // Free → flex: reset to auto flex sizing, keep content dimensions
+          updatedEl = { ...cel, parent: targetCellId,
+            flexLayout: { widthMode: 'auto', widthValue: 0, flexGrow: 0, alignSelf: 'auto' },
+          };
+        } else {
+          updatedEl = { ...cel, parent: targetCellId };
+        }
+        nodes[elementId] = updatedEl;
+      } else if (tgtFree && dropPos) {
+        // Within-cell move in free mode: update x/y
+        nodes[elementId] = { ...cel, layout: { ...cel.layout,
+          x: Math.max(0, Math.round(dropPos.x)), y: Math.max(0, Math.round(dropPos.y)) } };
+      }
 
       if (sourceCellId === targetCellId) {
-        const children = [...srcCell.children];
-        const fromIdx  = children.indexOf(elementId);
-        if (fromIdx === -1) return prev;
-        children.splice(fromIdx, 1);
-        const idx = Math.max(0, Math.min(children.length, insertIndex > fromIdx ? insertIndex - 1 : insertIndex));
-        children.splice(idx, 0, elementId);
-        nodes[sourceCellId] = { ...srcCell, children };
+        if (!tgtFree) {
+          // Flex reorder
+          const children = [...srcCell.children];
+          const fromIdx  = children.indexOf(elementId);
+          if (fromIdx === -1) return prev;
+          children.splice(fromIdx, 1);
+          const idx = Math.max(0, Math.min(children.length, insertIndex > fromIdx ? insertIndex - 1 : insertIndex));
+          children.splice(idx, 0, elementId);
+          nodes[sourceCellId] = { ...srcCell, children };
+        }
+        // Free same-cell: only layout.x/y updated above, children order unchanged
       } else {
         nodes[sourceCellId] = { ...srcCell, children: srcCell.children.filter(id => id !== elementId) };
         const tgtChildren = [...tgtCell.children];
-        tgtChildren.splice(Math.max(0, Math.min(tgtChildren.length, insertIndex)), 0, elementId);
+        if (!tgtFree) tgtChildren.splice(Math.max(0, Math.min(tgtChildren.length, insertIndex)), 0, elementId);
+        else tgtChildren.push(elementId);
         nodes[targetCellId] = { ...tgtCell, children: tgtChildren };
-        nodes[elementId]    = { ...nodes[elementId] as CanvasElement, parent: targetCellId };
       }
       return { ...prev, nodes };
     });
@@ -1187,7 +1245,7 @@ export function useBuilderStore() {
     updateElement, updateElements, updateResponsive, pushSnapshot,
     deleteElement, deleteSelected, reorderElement, moveElementToSection, moveElementToGridCell,
     bringToFront, sendToBack, importState, updateTheme,
-    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, addNestedGrid, removeNestedGrid, moveGridElement,
+    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, removeColumnsBlock: removeContainer, addContainer, removeContainer, updateContainer, moveGridElement,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

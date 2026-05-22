@@ -1,0 +1,203 @@
+import React, { useCallback, useRef, useState } from 'react';
+import { useDrag, useDrop } from 'react-dnd';
+import type {
+  Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
+  CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+} from '../types';
+import { DraggableCellWrapper } from './DraggableCellWrapper';
+import { GridCellView } from './GridCellView';
+import { GRID_EL_DND_TYPE } from './GridElementView';
+import type { GridElDragItem } from './GridElementView';
+
+const MODE_LABEL: Record<ContainerLayoutMode, string> = {
+  grid:     'Columns',
+  'flex-col': 'Stack',
+  'flex-row': 'Row',
+};
+
+interface Props {
+  block: Container;
+  nodes: NodeMap;
+  cellChildIndex: number;
+  /** Position in parent cell's combined children list — used for unified DND. */
+  childIdx: number;
+  isSelected?: boolean;
+  onDragHover?: (afterChildIdx: number) => void;
+  onDropAtChildIdx?: (item: GridElDragItem, afterChildIdx: number) => void;
+  onSelectContainer?: (id: string) => void;
+  selectedGridCellId?: string | null;
+  selectedElementId: string | null;
+  onSelectGridCell?: (id: string | null) => void;
+  onSelectElement: (id: string) => void;
+  onUpdateElement: (id: string, updates: Partial<El>) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onDeleteGridCell?: (id: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: CellLayoutMode) => void;
+  onCommit: (prev: BuilderState) => void;
+  snapshot: BuilderState;
+  previewMode?: boolean;
+  breakpoint?: Breakpoint;
+  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
+  onDuplicateElement?: (id: string) => void;
+  onDeleteElement?: (id: string) => void;
+  onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
+  onRemoveColumnsBlock: (blockId: string) => void;
+  onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
+  selectedContainerId?: string | null;
+}
+
+export function ColumnsBlockView({
+  block, nodes,
+  cellChildIndex, childIdx,
+  isSelected, onSelectContainer,
+  onDragHover, onDropAtChildIdx,
+  selectedGridCellId, selectedElementId,
+  onSelectGridCell, onSelectElement,
+  onUpdateElement, onUpdateGridCell, onDeleteGridCell,
+  onAddElementToCell, onMoveGridElement,
+  onCommit, snapshot, previewMode,
+  breakpoint = 'desktop',
+  onUpdateResponsive, onDuplicateElement, onDeleteElement,
+  onReorderGridCell,
+  onRemoveColumnsBlock,
+  onAddContainer, selectedContainerId,
+}: Props) {
+  const subCells = block.children
+    .map(id => nodes[id])
+    .filter((n): n is GridCell => !!n && n.type === 'grid-cell');
+
+  const [hovered, setHovered] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  // Track hover side in a ref so the drop handler sees the latest value
+  const sideRef = useRef<'before' | 'after'>('after');
+
+  const [{ isDragging }, dragRef] = useDrag<GridElDragItem, void, { isDragging: boolean }>({
+    type: GRID_EL_DND_TYPE,
+    item: { kind: 'container', blockId: block.id, parentCellId: block.parent, fromChildIdx: childIdx },
+    canDrag: !previewMode,
+    collect: m => ({ isDragging: m.isDragging() }),
+  });
+
+  const [, dropRef] = useDrop<GridElDragItem, void, Record<string, never>>({
+    accept: GRID_EL_DND_TYPE,
+    hover(item, monitor) {
+      if (item.kind === 'container' && item.blockId === block.id) return;
+      const node = wrapperRef.current;
+      if (!node) return;
+      const offset = monitor.getClientOffset();
+      if (!offset) return;
+      const rect = node.getBoundingClientRect();
+      const side: 'before' | 'after' = offset.y < rect.top + rect.height / 2 ? 'before' : 'after';
+      sideRef.current = side;
+      onDragHover?.(side === 'after' ? childIdx : childIdx - 1);
+    },
+    drop(item, monitor) {
+      if (monitor.didDrop()) return;
+      if (item.kind === 'container' && item.blockId === block.id) return;
+      onDropAtChildIdx?.(item, sideRef.current === 'after' ? childIdx : childIdx - 1);
+    },
+  });
+
+  const combinedRef = useCallback((node: HTMLDivElement | null) => {
+    (wrapperRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+    (dropRef as (el: HTMLDivElement | null) => void)(node);
+  }, [dropRef]);
+
+  const resp = block.responsive ?? {};
+  const mode: import('../types').ContainerLayoutMode =
+    breakpoint === 'mobile'
+      ? (resp.mobile?.layoutMode ?? resp.tablet?.layoutMode ?? block.layoutMode)
+      : breakpoint === 'tablet'
+      ? (resp.tablet?.layoutMode ?? block.layoutMode)
+      : block.layoutMode;
+
+  const innerStyle: React.CSSProperties = mode === 'grid'
+    ? { display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: `${block.rowGap}px ${block.gap}px`, width: '100%' }
+    : mode === 'flex-col'
+    ? { display: 'flex', flexDirection: 'column', gap: `${block.gap}px`, width: '100%' }
+    : { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: `${block.gap}px`, width: '100%' };
+
+  return (
+    <div
+      ref={combinedRef}
+      className={'pb-container-wrapper'}
+      style={{ opacity: isDragging ? 0.35 : 1 }}
+    >
+      <div
+        className={['pb-container', isSelected ? 'pb-container--selected' : ''].filter(Boolean).join(' ')}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {!previewMode && (hovered || isSelected) && (
+          <div className={'pb-container-actions'}>
+            <span
+              className={'pb-container-label'}
+              onClick={e => { e.stopPropagation(); onSelectContainer?.(block.id); }}
+              style={{ cursor: 'pointer' }}
+            >{MODE_LABEL[mode]}</span>
+            <div
+              ref={dragRef as (el: HTMLDivElement | null) => void}
+              className={'pb-container-handle'}
+              title="Drag to reorder"
+              onMouseDown={e => e.stopPropagation()}
+            >⠿</div>
+            <button
+              className={'pb-container-delete'}
+              title="Remove container"
+              onClick={e => { e.stopPropagation(); onRemoveColumnsBlock(block.id); }}
+            >✕</button>
+          </div>
+        )}
+        <div className={'pb-container-inner'} style={innerStyle}>
+          {subCells.map((subCell, idx) => (
+            <DraggableCellWrapper
+              key={subCell.id}
+              cell={subCell}
+              index={idx}
+              parentId={block.id}
+              breakpoint={breakpoint}
+              previewMode={previewMode}
+              onReorderCell={(from, to) => onReorderGridCell?.(block.id, from, to)}
+            >
+              <GridCellView
+                cell={subCell}
+                nodes={nodes}
+                isSelected={selectedGridCellId === subCell.id}
+                selectedElementId={selectedElementId}
+                onSelectCell={() => onSelectGridCell?.(subCell.id)}
+                onSelectElement={onSelectElement}
+                onUpdateElement={onUpdateElement}
+                onUpdateCell={updates => onUpdateGridCell?.(subCell.id, updates)}
+                onDeleteCell={() => onDeleteGridCell?.(subCell.id)}
+                onAddElement={(type, x, y) => onAddElementToCell?.(type, subCell.id, x, y)}
+                onMoveGridElement={onMoveGridElement}
+                onCommit={onCommit}
+                snapshot={snapshot}
+                previewMode={previewMode}
+                breakpoint={breakpoint}
+                onUpdateResponsive={onUpdateResponsive}
+                onDuplicateElement={onDuplicateElement}
+                onDeleteElement={onDeleteElement}
+                isDragOverTarget={false}
+                selectedGridCellId={selectedGridCellId}
+                onUpdateGridCell={onUpdateGridCell}
+                onDeleteGridCell={onDeleteGridCell}
+                onAddElementToCell={onAddElementToCell}
+                onSelectGridCell={onSelectGridCell}
+                onReorderGridCell={onReorderGridCell}
+                onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
+                onAddContainer={onAddContainer}
+                selectedContainerId={selectedContainerId}
+                onSelectContainer={onSelectContainer}
+              />
+            </DraggableCellWrapper>
+          ))}
+          {subCells.length === 0 && !previewMode && (
+            <div className={'pb-container-empty'}>No columns yet</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
