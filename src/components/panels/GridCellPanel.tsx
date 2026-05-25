@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   Breakpoint, BorderStyle, BuilderState, GridCell, NodeMap,
   CellLayoutMode, SiteTheme,
@@ -21,6 +21,7 @@ interface Props {
   nodes: NodeMap;
   snapshot: BuilderState;
   onUpdateGridCell: (id: string, updates: Partial<GridCell>) => void;
+  onDeleteGridCell?: (id: string) => void;
   onAddGridCell?: (sectionId: string) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   breakpoint?: Breakpoint;
@@ -29,10 +30,22 @@ interface Props {
 
 export function GridCellPanel({
   gridCell: gc, nodes, snapshot,
-  onUpdateGridCell, onAddGridCell,
+  onUpdateGridCell, onDeleteGridCell, onAddGridCell,
   onPushSnapshot, breakpoint = 'desktop', theme,
 }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
+  const [renderedHeight, setRenderedHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const el = document.querySelector(`[data-grid-cell-id="${gc.id}"]`);
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const h = entries[0]?.contentRect.height;
+      if (h !== undefined) setRenderedHeight(Math.round(h));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [gc.id]);
   const gcFocus = () => { if (!focusSnapshot.current) focusSnapshot.current = snapshot; };
   const gcBlur = () => { if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; } };
   const { sec, toggle } = usePanelSections(CELL_PANEL_DEFAULTS, 'builder-sidebar-cell');
@@ -133,6 +146,18 @@ export function GridCellPanel({
     <aside className={'pb-right-sidebar'}>
       <div className={'pb-panel-header'}>
         <span className={'pb-panel-header-title'}>Grid Column</span>
+        {onDeleteGridCell && (
+          <button
+            className={'pb-panel-delete-btn'}
+            title="Delete this column"
+            onClick={() => {
+              const parent = nodes[gc.parent];
+              const siblings = (parent && 'children' in parent) ? (parent as { children: string[] }).children.length : 2;
+              if (siblings <= 1) { alert('At least one column is required.'); return; }
+              if (window.confirm('Delete this column and all its content?')) onDeleteGridCell(gc.id);
+            }}
+          >✕ Delete</button>
+        )}
       </div>
 
       {breakpoint !== 'desktop' && (
@@ -341,41 +366,24 @@ export function GridCellPanel({
         </div>
       </CollapsibleSection>
 
-      {/* ── Min Height ── */}
-      <CollapsibleSection sectionKey="minHeight" label="Min Height" isOpen={sec('minHeight')} onToggle={toggle}>
-        <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-          <label>Desktop</label>
-          <input type="number" value={style.minHeight ?? 40} min={0}
+      {/* ── Height ── */}
+      <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
+        {renderedHeight !== null && (
+          <div className={'pb-prop-row'} style={{ marginBottom: 4 }}>
+            <label style={{ color: '#888' }}>Actual</label>
+            <span style={{ fontSize: 12, color: '#0b978e', fontWeight: 600 }}>{renderedHeight}px</span>
+          </div>
+        )}
+        <div className={'pb-prop-row'}>
+          <label>Min H</label>
+          <input type="number" value={style.minHeight ?? 0} min={0}
             onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) } })} />
+            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) || undefined } })} />
           <span style={{ fontSize: 11, color: '#888' }}>px</span>
         </div>
-        <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-          <label>Tablet</label>
-          <input type="number" value={responsive.tablet?.minHeight ?? style.minHeight ?? 40} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, minHeight: Number(e.target.value) } } })} />
-          {responsive.tablet?.minHeight !== undefined && (
-            <button className={'pb-resp-clear-btn'} title="Reset to desktop" onClick={() => {
-              onPushSnapshot(snapshot);
-              const { minHeight: _mh, ...rest } = responsive.tablet ?? {};
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
-            }}>↺</button>
-          )}
-        </div>
-        <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-          <label>Mobile</label>
-          <input type="number" value={responsive.mobile?.minHeight ?? responsive.tablet?.minHeight ?? style.minHeight ?? 40} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, minHeight: Number(e.target.value) } } })} />
-          {responsive.mobile?.minHeight !== undefined && (
-            <button className={'pb-resp-clear-btn'} title="Reset to desktop" onClick={() => {
-              onPushSnapshot(snapshot);
-              const { minHeight: _mh, ...rest } = responsive.mobile ?? {};
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
-            }}>↺</button>
-          )}
-        </div>
+        <p style={{ margin: '4px 0 0', fontSize: 10, color: '#aaa', lineHeight: 1.4 }}>
+          Drag bottom edge to resize. Content grows beyond this floor.
+        </p>
       </CollapsibleSection>
 
       {/* ── Background ── */}

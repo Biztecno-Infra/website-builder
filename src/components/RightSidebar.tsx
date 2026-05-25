@@ -17,6 +17,7 @@ interface Props {
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onDeleteGridCell?: (id: string) => void;
   onAddGridCell?: (sectionId: string) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   onDelete: (id: string) => void;
@@ -33,7 +34,7 @@ interface Props {
 export function RightSidebar({
   element, section, gridCell = null, isInGridCell = false,
   nodes, snapshot,
-  onUpdate, onUpdateSection, onUpdateGridCell,
+  onUpdate, onUpdateSection, onUpdateGridCell, onDeleteGridCell,
   onAddGridCell,
   onPushSnapshot, onDelete,
   container, onUpdateContainer,
@@ -57,6 +58,7 @@ export function RightSidebar({
             nodes={nodes}
             snapshot={snapshot}
             onUpdateGridCell={onUpdateGridCell}
+            onDeleteGridCell={onDeleteGridCell}
             onAddGridCell={onAddGridCell}
             onPushSnapshot={onPushSnapshot}
             breakpoint={breakpoint}

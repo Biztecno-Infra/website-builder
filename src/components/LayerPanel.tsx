@@ -22,6 +22,7 @@ interface Props {
   selectedIds: string[];
   selectedSectionId: string | null;
   selectedGridCellId: string | null;
+  selectedContainerId?: string | null;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
@@ -67,6 +68,7 @@ interface SectionGroupProps {
   isSectionSelected: boolean;
   selectedIds: string[];
   selectedGridCellId: string | null;
+  selectedContainerId?: string | null;
   isDragOver: boolean;
   isDragging: boolean;
   onSelectElement: (id: string) => void;
@@ -84,7 +86,7 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, isDragOver, isDragging,
+  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, isDragOver, isDragging,
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
@@ -177,7 +179,7 @@ function SectionGroup({
               return (
                 <div key={block.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
                   <div
-                    className={'pb-layer-grid-cell-header'}
+                    className={['pb-layer-grid-cell-header', selectedContainerId === block.id && 'pb-selected'].filter(Boolean).join(' ')}
                     style={{ paddingLeft: 8, cursor: 'pointer' }}
                     onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); }}
                   >
@@ -420,7 +422,7 @@ function SectionGroup({
 
 export function LayerPanel({
   header, sections, footer, nodes,
-  selectedIds, selectedSectionId, selectedGridCellId,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement,
   onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement,
@@ -473,6 +475,7 @@ export function LayerPanel({
     nodes,
     selectedIds,
     selectedGridCellId,
+    selectedContainerId,
     onSelectElement,
     onSelectSection,
     onSelectGridCell,

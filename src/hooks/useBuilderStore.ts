@@ -1077,9 +1077,16 @@ export function useBuilderStore() {
 
   const updateGridCell = useCallback((id: string, updates: Partial<GridCell>) => {
     setState(s => {
-      const cell = s.nodes[id];
+      const cell = s.nodes[id] as GridCell | undefined;
       if (!cell || !isGridCell(cell)) return s;
-      return { ...s, nodes: { ...s.nodes, [id]: { ...cell, ...updates } } };
+      const merged: GridCell = { ...cell, ...updates };
+      if (updates.responsive) {
+        merged.responsive = {
+          tablet: { ...cell.responsive.tablet, ...updates.responsive.tablet },
+          mobile: { ...cell.responsive.mobile, ...updates.responsive.mobile },
+        };
+      }
+      return { ...s, nodes: { ...s.nodes, [id]: merged } };
     });
   }, []);
 
@@ -1115,48 +1122,20 @@ export function useBuilderStore() {
     });
   }, [push]);
 
-  // Add a column to an existing container, redistributing all sub-cell spans equally.
+  // Add a column to an existing container without touching existing cell spans.
   const addContainerColumn = useCallback((containerId: string) => {
-    const node = stateRef.current.nodes[containerId];
-    if (!node || node.type !== 'container') return;
-    const block = node as Container;
-    const newCount = block.children.length + 1;
-    const newSpan = Math.max(1, Math.floor(12 / newCount));
     const cellId = newGridCellId();
     push(stateRef.current);
     setState(s => {
       const nodes = { ...s.nodes };
-      const c = nodes[containerId] as Container;
+      const c = nodes[containerId] as Container | undefined;
       if (!c || c.type !== 'container') return s;
-      for (const childId of c.children) {
-        const child = nodes[childId] as GridCell | undefined;
-        if (child?.type === 'grid-cell') nodes[childId] = { ...child, columnSpan: newSpan };
-      }
-      nodes[cellId] = makeGridCell(cellId, containerId, newSpan);
+      nodes[cellId] = makeGridCell(cellId, containerId, 4);
       nodes[containerId] = { ...c, children: [...c.children, cellId] };
       return { ...s, nodes };
     });
     setSelectedGridCellId(cellId);
   }, [push]);
-
-  // Live-resize two adjacent grid cells by redistributing spans; no undo push (caller commits).
-  const resizeAdjacentGridCells = useCallback((cellId: string, neighborId: string | undefined, newSpan: number) => {
-    setState(s => {
-      const cell = s.nodes[cellId] as GridCell | undefined;
-      if (!cell || cell.type !== 'grid-cell') return s;
-      const clamped = Math.max(1, Math.min(12, newSpan));
-      const delta = clamped - cell.columnSpan;
-      if (delta === 0) return s;
-      const nodes = { ...s.nodes, [cellId]: { ...cell, columnSpan: clamped } };
-      if (neighborId) {
-        const nb = nodes[neighborId] as GridCell | undefined;
-        if (nb?.type === 'grid-cell') {
-          nodes[neighborId] = { ...nb, columnSpan: Math.max(1, nb.columnSpan - delta) };
-        }
-      }
-      return { ...s, nodes };
-    });
-  }, []);
 
   // Append a container (inline layout block) to a cell — never converts the whole cell.
   const addContainer = useCallback((cellId: string, mode: ContainerLayoutMode = 'grid', columnSpans?: number[]) => {
@@ -1319,7 +1298,7 @@ export function useBuilderStore() {
     updateElement, updateElements, updateResponsive, pushSnapshot,
     deleteElement, deleteSelected, reorderElement, moveElementToSection, moveElementToGridCell,
     bringToFront, sendToBack, importState, updateTheme,
-    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, resizeAdjacentGridCells, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, removeContainer, updateContainer, moveGridElement,
+    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, updateContainer, moveGridElement,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

@@ -3,6 +3,7 @@ import { useDrop } from 'react-dnd';
 import { DraggableCellWrapper } from './DraggableCellWrapper';
 import { LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GridCellView } from './GridCellView';
+import { canvasDragShared } from './CanvasElement';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
   GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
@@ -63,7 +64,7 @@ export function GridSectionView({
   canvasWidth, onSelectSection, onSelectGridCell,
   onSelectElement, onUpdateElement,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
-  onCommit, snapshot,
+  onCommit, snapshot, onUpdateSection,
   onAddSectionBefore, onAddSectionAfter, onAddGridSectionBefore, onAddGridSectionAfter,
   onDeleteSection, onDuplicateSection,
   onMoveSectionUp, onMoveSectionDown, onPromoteSection,
@@ -80,6 +81,24 @@ export function GridSectionView({
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
+
+  const handleMinHeightResizeMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const startH = section.grid.minHeight ?? 0;
+    onCommit(snapshot);
+    const onMove = (ev: MouseEvent) => {
+      const newH = Math.max(0, Math.round(startH + (ev.clientY - startY) / canvasDragShared.zoom));
+      onUpdateSection(section.id, { grid: { ...section.grid, minHeight: newH } });
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [section, onCommit, snapshot, onUpdateSection]);
 
   const [{ isLayoutOver }, layoutDropRef] = useDrop<{ columnSpans: number[] }, void, { isLayoutOver: boolean }>({
     accept: LAYOUT_DND_TYPE,
@@ -309,6 +328,14 @@ export function GridSectionView({
             )}
           </div>
         </div>
+
+        {!previewMode && (
+          <div
+            className={'pb-section-resize-handle'}
+            onMouseDown={handleMinHeightResizeMouseDown}
+            title="Drag to set minimum height"
+          />
+        )}
       </div>
 
     </div>

@@ -35,6 +35,7 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children }
         flexBasis: `calc(${(Math.min(span, 12) / 12) * 100}% - 16px)`,
         flexGrow: 0,
         flexShrink: 0,
+        minWidth: 0,
         position: 'relative',
       }}
     >

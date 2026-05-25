@@ -4,9 +4,9 @@ import type { Breakpoint, CellLayoutMode, GridCell, GridCellStyle } from '../typ
 // Single source of truth for breakpoint cascade used by both the editor and export.
 
 export function getCellColumnSpan(cell: GridCell, bp: Breakpoint): number {
-  if (bp === 'mobile') return cell.responsive.mobile?.columnSpan ?? cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-  if (bp === 'tablet') return cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
-  return cell.columnSpan;
+  if (bp === 'mobile') return cell.responsive.mobile?.columnSpan ?? cell.responsive.tablet?.columnSpan ?? cell.columnSpan ?? 4;
+  if (bp === 'tablet') return cell.responsive.tablet?.columnSpan ?? cell.columnSpan ?? 4;
+  return cell.columnSpan ?? 4;
 }
 
 export function getCellLayoutMode(cell: GridCell, bp: Breakpoint): CellLayoutMode {

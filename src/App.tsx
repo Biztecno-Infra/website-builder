@@ -122,7 +122,7 @@ export default function App() {
     pushSnapshot(state);
     const { fonts, colors } = state.theme;
     const updates = Object.values(nodes)
-      .filter((n): n is CanvasElement => n.type !== 'section' && n.type !== 'grid-cell')
+      .filter((n): n is CanvasElement => n.type !== 'section' && n.type !== 'grid-cell' && n.type !== 'container')
       .flatMap(el => {
         if (el.type === 'text') return [{ id: el.id, changes: { style: { ...el.style,
           typography: { ...el.style.typography, family: fonts.body, color: colors.text },
@@ -137,7 +137,14 @@ export default function App() {
     allSections.forEach(sec =>
       updateSection(sec.id, { style: { ...sec.style, background: { ...sec.style.background, type: 'solid', color: colors.sectionBg, image: '' } } })
     );
-  }, [nodes, state, header, sections, footer, pushSnapshot, updateElements, updateSection]);
+    // Reset grid cell backgrounds to transparent so section background shows through
+    Object.values(nodes).forEach(n => {
+      if (n.type === 'grid-cell') {
+        const cell = n as GridCell;
+        updateGridCell(cell.id, { style: { ...cell.style, background: { ...cell.style.background, type: 'solid', color: 'transparent', image: '', overlay: 0 } } });
+      }
+    });
+  }, [nodes, state, header, sections, footer, pushSnapshot, updateElements, updateSection, updateGridCell]);
 
   // Export HTML
   const handleExportHTML = () => {
@@ -340,6 +347,7 @@ export default function App() {
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
+          selectedContainerId={selectedContainerId}
           onSelect={setSelectedId}
           onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); }}
           onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); }}
@@ -591,6 +599,7 @@ export default function App() {
               onUpdate={updateElement}
               onUpdateSection={updateSection}
               onUpdateGridCell={updateGridCell}
+              onDeleteGridCell={selectedGridCellId ? deleteGridCell : undefined}
               onAddGridCell={addGridCell}
               onPushSnapshot={pushSnapshot}
               onDelete={deleteElement}

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container } from '../types';
 import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE } from './LeftSidebar';
+import { canvasDragShared } from './CanvasElement';
 import type { CellLayoutDragItem } from './LeftSidebar';
 import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
@@ -182,23 +183,6 @@ export function GridCellView({
     [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef],
   );
 
-  // ── Span resize ──────────────────────────────────────────────────────────
-  const handleSpanChange = useCallback((delta: number) => {
-    const newSpan = Math.max(1, Math.min(12, span + delta));
-    if (newSpan === span) return;
-    onCommit(snapshot);
-    if (bp === 'desktop') onUpdateCell({ columnSpan: newSpan });
-    else if (bp === 'tablet') onUpdateCell({ responsive: { ...cell.responsive, tablet: { ...cell.responsive.tablet, columnSpan: newSpan } } });
-    else onUpdateCell({ responsive: { ...cell.responsive, mobile: { ...cell.responsive.mobile, columnSpan: newSpan } } });
-  }, [span, bp, cell.responsive, onUpdateCell, onCommit, snapshot]);
-
-  const handleRowSpanChange = useCallback((delta: number) => {
-    const newSpan = Math.max(1, Math.min(6, rowSpan + delta));
-    if (newSpan === rowSpan) return;
-    onCommit(snapshot);
-    onUpdateCell({ rowSpan: newSpan });
-  }, [rowSpan, onUpdateCell, onCommit, snapshot]);
-
   const handleDragHover = useCallback((afterIdx: number) => setInsertAfterIndex(afterIdx), []);
 
   const handleDropAtChildIdx = useCallback((item: GridElDragItem, afterChildIdx: number) => {
@@ -253,9 +237,14 @@ export function GridCellView({
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
 
   const effectiveMinH =
-    bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH ?? 40)
-    : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH ?? 40)
-    : (desktopMinH ?? 40);
+    bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH)
+    : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH)
+    : desktopMinH;
+
+  // Only enforce a 40px floor on empty cells so they stay droppable.
+  // Cells with content shrink freely to fit.
+  const cellIsEmpty = flexChildren.length === 0 && allElements.length === 0;
+  const appliedMinH = effectiveMinH ?? (cellIsEmpty ? 40 : undefined);
 
   const effectiveFreeH =
     bp === 'mobile' ? (cell.responsive.mobile?.freeHeight ?? cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
@@ -276,63 +265,39 @@ export function GridCellView({
   const borderStyle = border?.style ?? 'none';
 
   const sharedCellStyle: React.CSSProperties = {
-    height: '100%', padding: padStr,
+    padding: padStr,
     backgroundColor: bgColor, backgroundImage: bgImage,
     backgroundSize: 'cover', backgroundPosition: 'center',
-    minHeight: effectiveMinH,
+    minHeight: appliedMinH,
     borderRadius, borderWidth, borderColor, borderStyle,
     position: 'relative', boxSizing: 'border-box',
   };
 
-  // ── Free / Flex toggle (desktop only) ─────────────────────────────────────
-  const handleToggleFree = useCallback((e: React.MouseEvent) => {
+  // ── Min-height resize drag ────────────────────────────────────────────────
+  const handleMinHeightDragMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    if (cellMode === 'free') {
-      onCommit(snapshot);
-      onUpdateCell({ style: { ...cell.style, layoutMode: 'column' } });
-    } else {
-      const hasContent = elements.length > 0;
-      if (hasContent && !window.confirm('Switch to Free Canvas? Elements will be positioned absolutely inside the cell.')) return;
-      onCommit(snapshot);
-      onUpdateCell({ style: { ...cell.style, layoutMode: 'free' }, freeHeight: cell.freeHeight ?? Math.max(cell.style.minHeight ?? 0, 320) });
-    }
-  }, [cellMode, cell, elements.length, onUpdateCell, onCommit, snapshot]);
+    const startY = e.clientY;
+    const startH = appliedMinH ?? 0;
+    onCommit(snapshot);
+    const onMove = (ev: MouseEvent) => {
+      const newH = Math.max(0, Math.round(startH + (ev.clientY - startY) / canvasDragShared.zoom));
+      if (bp === 'mobile') {
+        onUpdateCell({ responsive: { ...cell.responsive, mobile: { ...cell.responsive.mobile, minHeight: newH } } });
+      } else if (bp === 'tablet') {
+        onUpdateCell({ responsive: { ...cell.responsive, tablet: { ...cell.responsive.tablet, minHeight: newH } } });
+      } else {
+        onUpdateCell({ style: { ...cell.style, minHeight: newH } });
+      }
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, [effectiveMinH, bp, cell, onUpdateCell, onCommit, snapshot]);
 
-  // ── Shared toolbar ─────────────────────────────────────────────────────────
-  const toolbar = isSelected && !previewMode ? (
-    <div className={'pb-grid-cell-toolbar'} onMouseDown={e => e.stopPropagation()}>
-      <button className={'pb-grid-cell-span-btn'} title="Decrease column span"
-        onClick={e => { e.stopPropagation(); handleSpanChange(-1); }} disabled={span <= 1}>−</button>
-      <span className={'pb-grid-cell-span-label'}>col&nbsp;{span}/12</span>
-      <button className={'pb-grid-cell-span-btn'} title="Increase column span"
-        onClick={e => { e.stopPropagation(); handleSpanChange(1); }} disabled={span >= 12}>+</button>
-      <div className={'pb-grid-cell-toolbar-sep'} />
-      <button className={'pb-grid-cell-span-btn'} title="Decrease row span"
-        onClick={e => { e.stopPropagation(); handleRowSpanChange(-1); }} disabled={rowSpan <= 1}>−</button>
-      <span className={'pb-grid-cell-span-label'}>row&nbsp;{rowSpan}</span>
-      <button className={'pb-grid-cell-span-btn'} title="Increase row span"
-        onClick={e => { e.stopPropagation(); handleRowSpanChange(1); }} disabled={rowSpan >= 6}>+</button>
-      {bp === 'desktop' && (
-        <>
-          <div className={'pb-grid-cell-toolbar-sep'} />
-          <button
-            className={['pb-grid-cell-span-btn', cellMode === 'free' && 'pb-grid-cell-mode-active'].filter(Boolean).join(' ')}
-            title={cellMode === 'free' ? 'Free Canvas — click to switch to Flex' : 'Flex layout — click to switch to Free Canvas'}
-            onClick={handleToggleFree}
-          >
-            {cellMode === 'free' ? '⊞' : '≡'}
-          </button>
-        </>
-      )}
-      <div className={'pb-grid-cell-toolbar-sep'} />
-      <button className={'pb-grid-cell-delete-btn'} title="Remove column"
-        onClick={e => {
-          e.stopPropagation();
-          if (elements.length > 0 && !window.confirm('Delete this cell and all its content?')) return;
-          onDeleteCell();
-        }}>✕</button>
-    </div>
-  ) : null;
 
   // ── Free-canvas branch ────────────────────────────────────────────────────
   if (cellMode === 'free') {
@@ -380,11 +345,13 @@ export function GridCellView({
         {allElements.length === 0 && !previewMode && (
           <div className={'pb-grid-cell-empty'}>
             <span className={'pb-grid-cell-empty-icon'}>+</span>
-            {isPaletteOver ? 'Drop here' : 'Drop element into free canvas'}
+            <span className={'pb-grid-cell-empty-text'}>{isPaletteOver ? 'Drop here' : 'Drop element'}</span>
           </div>
         )}
 
-        {toolbar}
+        {!previewMode && (
+          <div className={'pb-grid-cell-height-resize-handle'} onMouseDown={handleMinHeightDragMouseDown} title="Drag to set minimum height" />
+        )}
       </div>
     );
   }
@@ -493,9 +460,9 @@ export function GridCellView({
       }
 
       {flexChildren.length === 0 && !previewMode && (
-        <div className={'pb-grid-cell-empty'}>
+        <div className={'pb-grid-cell-empty pb-grid-cell-empty--overlay'}>
           <span className={'pb-grid-cell-empty-icon'}>+</span>
-          {isPaletteOver ? 'Drop here' : 'Drop element or drag from panel'}
+          <span className={'pb-grid-cell-empty-text'}>{isPaletteOver ? 'Drop here' : 'Drop element'}</span>
         </div>
       )}
 
@@ -545,7 +512,9 @@ export function GridCellView({
         </div>
       )}
 
-      {toolbar}
+      {!previewMode && (
+        <div className={'pb-grid-cell-height-resize-handle'} onMouseDown={handleMinHeightDragMouseDown} title="Drag to set minimum height" />
+      )}
     </div>
   );
 }

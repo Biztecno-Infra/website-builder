@@ -137,6 +137,7 @@ interface Props {
   selectedIds: string[];
   selectedSectionId: string | null;
   selectedGridCellId: string | null;
+  selectedContainerId?: string | null;
   onSelect: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
@@ -166,7 +167,7 @@ interface Props {
 
 export function LeftSidebar({
   onAdd, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
-  selectedIds, selectedSectionId, selectedGridCellId,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
   onSelect, onSelectGridCell, onSelectContainer, onScrollToElement,
   onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
   nodes, header, sections, footer, onSelectSection,
@@ -294,6 +295,7 @@ export function LeftSidebar({
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
+          selectedContainerId={selectedContainerId}
           onSelectElement={onSelect}
           onSelectSection={onSelectSection}
           onSelectGridCell={onSelectGridCell}

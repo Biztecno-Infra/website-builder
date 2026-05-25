@@ -221,7 +221,10 @@ export function Canvas({
               onAddGridSectionAfter={(spans: number[]) => onDropGridLayout?.(sec.id, spans)}
               onAddGridSectionBefore={(spans: number[]) => i === 0 ? onDropGridLayout?.(null, spans, true) : onDropGridLayout?.(sections[i - 1].id, spans)}
               onPromoteSection={onPromoteSection ? (role) => onPromoteSection(sec.id, role) : undefined}
-              onDeleteSection={sections.length > 1 ? () => onDeleteSection(sec.id) : undefined}
+              onDeleteSection={() => {
+                if (sections.length <= 1) { alert('At least one section is required.'); return; }
+                onDeleteSection(sec.id);
+              }}
               onDuplicateSection={() => onDuplicateSection(sec.id)}
               onMoveSectionUp={i > 0 ? () => onMoveSectionUp(i) : undefined}
               onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
