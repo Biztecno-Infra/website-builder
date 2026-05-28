@@ -172,12 +172,12 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
   switch (type) {
     case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, content: { ...base.content, plain: 'Click to edit text' } };
     case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
-    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, style: { ...base.style, background: { ...base.style.background, color: '#0B978E' }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
+    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: '#0B978E' }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
     case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: '#f1f5f9' }, border: { radius: 0, width: 2, color: '#cbd5e1', style: 'solid' } } };
     case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: '#dddddd' }, border: { ...base.style.border, radius: 2 } } };
     case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
     case 'spacer':  return { ...base, layout: { ...base.layout, width: 200, height: 60 } };
-    case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: '#006e75' } } };
+    case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: '#006e75' } } };
   }
 }
 
@@ -523,6 +523,10 @@ export function useBuilderStore() {
 
   const updatePageSlug = useCallback((id: string, slug: string) => {
     setState(s => ({ ...s, pages: s.pages.map(p => p.id === id ? { ...p, slug } : p) }));
+  }, []);
+
+  const updatePageLayout = useCallback((id: string, layoutWidth: 'fixed' | 'fluid', maxWidth?: number) => {
+    setState(s => ({ ...s, pages: s.pages.map(p => p.id === id ? { ...p, layoutWidth, ...(maxWidth !== undefined ? { maxWidth } : {}) } : p) }));
   }, []);
 
   const setActivePage = useCallback((id: string) => {
@@ -1019,7 +1023,7 @@ export function useBuilderStore() {
     const sec = makeSection(secId, 'section', {
       label: `Grid Section ${page.sections.length + 1}`,
       layoutMode: 'grid',
-      grid: { gap: 16, rowGap: 16 },
+      grid: { gap: 16, rowGap: 16, contentWidth: 'constrained', maxWidth: 1280 },
       children: cellIds,
     }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
@@ -1039,13 +1043,15 @@ export function useBuilderStore() {
   const addSectionFromTemplate = useCallback((
     buildFn: (ids: TemplateIds) => TemplateResult,
     afterId?: string,
+    atStart?: boolean,
   ) => {
     push(stateRef.current);
     const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId });
     setState(s => {
       const p = getActivePage(s);
       let sections: string[];
-      if (!afterId) { sections = [...p.sections, result.sectionId]; }
+      if (atStart) { sections = [result.sectionId, ...p.sections]; }
+      else if (!afterId) { sections = [...p.sections, result.sectionId]; }
       else { const idx = p.sections.indexOf(afterId); sections = [...p.sections]; sections.splice(idx + 1, 0, result.sectionId); }
       return { ...s, nodes: { ...s.nodes, ...result.nodes }, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
     });
@@ -1150,7 +1156,7 @@ export function useBuilderStore() {
       const c = nodes[cellId] as GridCell;
       nodes[blockId] = { id: blockId, type: 'container', parent: cellId, children: subIds, layoutMode: mode, gap: 8, rowGap: 0 } as Container;
       subIds.forEach((id, i) => {
-        nodes[id] = { ...makeGridCell(id, blockId, spans[i]), ...(spans.length === 2 ? { responsive: { mobile: { columnSpan: 12 } } } : {}) };
+        nodes[id] = makeGridCell(id, blockId, spans[i]);
       });
       nodes[cellId] = { ...c, children: [...c.children, blockId] };
       return { ...s, nodes };
@@ -1292,7 +1298,7 @@ export function useBuilderStore() {
     pages: state.pages, activePageId: state.activePageId, activePage,
     selectedId, selectedIds, selectedSectionId, selectedGridCellId,
     setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, toggleSelectedId,
-    addPage, deletePage, renamePage, updatePageSlug, setActivePage, reorderPage,
+    addPage, deletePage, renamePage, updatePageSlug, updatePageLayout, setActivePage, reorderPage,
     addSection, addGridSection, addSectionFromTemplate, deleteSection, promoteSection, updateSection, reorderSection, duplicateSection,
     addElement, addElementAt, addElementToCell, duplicateElement, copyElement, pasteElement,
     updateElement, updateElements, updateResponsive, pushSnapshot,

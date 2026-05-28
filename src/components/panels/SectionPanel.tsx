@@ -1,6 +1,6 @@
 ﻿import { useRef, useState } from 'react';
 import type {
-  Breakpoint, BgType, BuilderState, Section, GridSection, GridCell,
+  Breakpoint, BgType, BuilderState, ContentWidthMode, Section, GridSection, GridCell,
   NodeMap, SectionUpdate, ColumnStyle, SectionBackground, SiteTheme,
 } from '../../types';
 import { equalWidths } from '../../hooks/useBuilderStore';
@@ -191,6 +191,27 @@ export function SectionPanel({
         )}
         {isGrid && (
           <>
+            <div className={'pb-prop-row'}>
+              <label>Width</label>
+              <div className={'pb-layout-mode-toggle'}>
+                {(['constrained', 'full', 'fluid'] as ContentWidthMode[]).map(m => (
+                  <button key={m}
+                    className={['pb-layout-mode-btn', gridCfg.contentWidth === m && 'pb-active'].filter(Boolean).join(' ')}
+                    title={{ constrained: 'Max-width centered content', full: 'Full viewport width', fluid: 'Full width with padding' }[m]}
+                    onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: m } })}
+                  >{{ constrained: 'Fixed', full: 'Full', fluid: 'Fluid' }[m]}</button>
+                ))}
+              </div>
+            </div>
+            {(gridCfg.contentWidth ?? 'constrained') === 'constrained' && (
+              <div className={'pb-prop-row'}>
+                <label>Max W</label>
+                <input type="number" value={gridCfg.maxWidth ?? 1280} min={320} max={3840}
+                  onFocus={onNumberFocus} onBlur={onNumberBlur}
+                  onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, maxWidth: Math.max(320, Number(e.target.value)) } })} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+            )}
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Col. Gap</label>
               <input type="number" value={gridCfg.gap} min={0}

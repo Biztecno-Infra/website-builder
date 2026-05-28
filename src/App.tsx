@@ -81,6 +81,7 @@ export default function App() {
     addElementToCell,
     moveGridElement,
     moveElementToGridCell,
+    updatePageLayout,
   } = useBuilderStore();
 
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
@@ -217,7 +218,12 @@ export default function App() {
 
       if (e.key === 'Escape') {
         if (previewMode) { setPreviewMode(false); return; }
-        setSelectedIds([]); setSelectedSectionId(null); setSelectedGridCellId(null); return;
+        // Step up selection one level at a time
+        if (selectedIds.length > 0) { setSelectedIds([]); return; }
+        if (selectedContainerId) { setSelectedContainerId(null); return; }
+        if (selectedGridCellId) { setSelectedGridCellId(null); return; }
+        if (selectedSectionId) { setSelectedSectionId(null); return; }
+        return;
       }
 
       if (previewMode) return;
@@ -497,6 +503,19 @@ export default function App() {
                 >📱</button>
               </div>
               <div className={'pb-toolbar-divider'} />
+              <div className={'pb-layout-switcher'}>
+                <button
+                  className={['pb-bp-btn', (activePage.layoutWidth ?? 'fixed') === 'fixed' && 'pb-active'].filter(Boolean).join(' ')}
+                  onClick={() => updatePageLayout(activePage.id, 'fixed')}
+                  title="Fixed width — content centered at max-width"
+                >Fixed</button>
+                <button
+                  className={['pb-bp-btn', activePage.layoutWidth === 'fluid' && 'pb-active'].filter(Boolean).join(' ')}
+                  onClick={() => updatePageLayout(activePage.id, 'fluid')}
+                  title="Fluid width — content stretches full width"
+                >Fluid</button>
+              </div>
+              <div className={'pb-toolbar-divider'} />
               <div className={'pb-zoom-control'}>
                 <button className={'pb-zoom-btn'} onClick={() => changeZoom(-10)} title="Zoom out (Ctrl+-)">−</button>
                 <button className={'pb-zoom-value'} onClick={() => setZoom(1)} title="Reset zoom (Ctrl+0)">
@@ -578,6 +597,7 @@ export default function App() {
               onMoveElementToGridCell={moveElementToGridCell}
               onReorderGridCell={reorderGridCell}
               onDropGridLayout={(sectionId, columnSpans, atStart) => addGridSection(sectionId ?? undefined, columnSpans, atStart)}
+              onDropTemplate={(afterId, buildFn, atStart) => addSectionFromTemplate(buildFn, afterId, atStart)}
               onRemoveColumnsBlock={removeColumnsBlock}
               onAddContainer={(cellId, mode, spans) => addContainer(cellId, mode, spans)}
               onUpdateContainer={updateContainer}
@@ -585,6 +605,8 @@ export default function App() {
               selectedContainerId={selectedContainerId}
               onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); }}
               zoom={zoom}
+              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              maxWidth={activePage.maxWidth ?? 1200}
             />
 
             <RightSidebar

@@ -53,6 +53,7 @@ interface Props {
   onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
   onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
   onDropGridLayout?: (sectionId: string | null, columnSpans: number[], atStart?: boolean) => void;
+  onDropTemplate?: (afterId: string | undefined, buildFn: (ids: import('../data/sectionTemplates').TemplateIds) => import('../data/sectionTemplates').TemplateResult, atStart?: boolean) => void;
   onAddNestedGrid?: (cellId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onPromoteSection?: (sectionId: string, role: 'header' | 'footer') => void;
@@ -62,6 +63,8 @@ interface Props {
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
   zoom?: number;
+  layoutWidth?: 'fixed' | 'fluid';
+  maxWidth?: number;
 }
 
 export function Canvas({
@@ -77,9 +80,11 @@ export function Canvas({
   onMoveElementToSection, onMoveElementToGridCell,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell,
-  onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock, onPromoteSection,
+  onDropGridLayout, onDropTemplate, onAddNestedGrid, onRemoveColumnsBlock, onPromoteSection,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   zoom = 1,
+  layoutWidth = 'fixed',
+  maxWidth = 1200,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
@@ -195,7 +200,23 @@ export function Canvas({
     <div className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
-      <div className={'pb-canvas-column'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}) }}>
+      <div className={'pb-canvas-column'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
+
+        {layoutWidth === 'fixed' && !previewMode && breakpoint === 'desktop' && (
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              bottom: 0,
+              left: (CANVAS_W - maxWidth) / 2,
+              right: (CANVAS_W - maxWidth) / 2,
+              borderLeft: '1px dashed rgba(0,110,117,0.3)',
+              borderRight: '1px dashed rgba(0,110,117,0.3)',
+              pointerEvents: 'none',
+              zIndex: 9999,
+            }}
+          />
+        )}
 
         {breakpoint !== 'desktop' && !previewMode && (
           <div className={'pb-bp-width-indicator'} style={{ width: canvasWidth }}>
@@ -206,12 +227,14 @@ export function Canvas({
         <SectionDropZone
           atStart
           onDrop={(_afterId, spans, atStart) => onDropGridLayout?.(null, spans, atStart)}
+          onDropTemplate={(afterId, buildFn, atStart) => onDropTemplate?.(afterId, buildFn, atStart)}
         />
 
         {sections.map((sec, i) => (
           <React.Fragment key={sec.id}>
             <SectionView
               {...commonProps}
+              pageLayoutWidth={layoutWidth}
               section={sec}
               role={sec.role}
               isSelected={selectedSectionId === sec.id}
@@ -235,6 +258,7 @@ export function Canvas({
             <SectionDropZone
               afterId={sec.id}
               onDrop={(afterId, spans) => onDropGridLayout?.(afterId!, spans)}
+              onDropTemplate={(afterId, buildFn) => onDropTemplate?.(afterId, buildFn)}
             />
           </React.Fragment>
         ))}

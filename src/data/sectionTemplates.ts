@@ -58,10 +58,6 @@ function mkText(id: string, parent: string, text: string, sz: number, w: string,
     content: { plain: text, rich: '' }, interaction: nolink(), animation: noanim(), state: nostate(),
     responsive: {}, flexLayout: flex };
 }
-function mkEyebrow(id: string, parent: string, text: string, color = '#006e75'): CanvasElement {
-  return mkText(id, parent, text, 11, '700', color, 'center', 18, 1, pad(0), fl('fill'));
-  // override textTransform via spread
-}
 function mkBtn(id: string, parent: string, label: string, bg: string, color: string,
   sz = 15, radius = 8, p = pad(12, 28), flex = fl('auto'), bdColor?: string, bdW = 0): CanvasElement {
   return { id, type: 'button', parent, layout: { x: 0, y: 0, width: 160, height: 44, zIndex: 0, rotation: 0 },
@@ -88,6 +84,12 @@ function mkIcon(id: string, parent: string, icon: string, sz = 32, color = '#006
     content: { iconName: icon, iconSize: sz }, interaction: nolink(), animation: noanim(), state: nostate(),
     responsive: {}, flexLayout: fl('auto') };
 }
+function mkImg(id: string, parent: string, h: number, radius = 16): CanvasElement {
+  return { id, type: 'image', parent, layout: { x: 0, y: 0, width: 400, height: h, zIndex: 0, rotation: 0 },
+    style: { opacity: 1, background: elBg('#e2e8f0'), padding: pad(0), border: bdr(radius), shadow: shad(true, 0, 8, 32, -4, 'rgba(0,0,0,0.12)'), typography: typo(16, 'normal', '#64748b') },
+    content: { src: 'https://placehold.co/800x500/e2e8f0/94a3b8?text=Your+Image', plain: '' },
+    interaction: nolink(), animation: noanim(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
+}
 function mkDivider(id: string, parent: string, color = '#e2e8f0'): CanvasElement {
   return { id, type: 'divider', parent, layout: { x: 0, y: 0, width: 400, height: 2, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(color), padding: pad(8, 0), border: bdr(), shadow: shad(), typography: typo(16, 'normal', '#333') },
@@ -110,7 +112,7 @@ function mkSec(id: string, children: string[], bg: SectionBackground, gap_ = 24,
   return { id, type: 'section', layoutMode: 'grid', role: 'section', label,
     layout: { height: 600 },
     style: { background: bg, columns: { count: 1, widths: [100], styles: {} }, padding: p },
-    children, grid: { gap: gap_, rowGap } };
+    children, grid: { gap: gap_, rowGap, contentWidth: 'constrained', maxWidth: 1280 } };
 }
 
 function reg(nodes: Record<string, AnyNode>, ...items: AnyNode[]): void {
@@ -133,7 +135,8 @@ function buildHero(ids: TemplateIds): TemplateResult {
   const note = mkText(ids.el(), cid, 'No credit card required', 13, 'normal', 'rgba(255,255,255,0.45)', 'center', 20, 1);
 
   const cell = mkCell(cid, secId, 12, [e1.id, sp1.id, e2.id, sp2.id, btn.id, sp3.id, note.id],
-    'column', 'center', 'flex-start', 0, pad(100, 40));
+    'column', 'center', 'flex-start', 0, pad(100, 40), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
   const sec = mkSec(secId, [cid], secSolid('#0f172a'), 0, 0, pad(0), 'Hero');
 
   reg(nodes, e1, sp1, e2, sp2, btn, sp3, note, cell, sec);
@@ -233,7 +236,7 @@ function buildFeatures4(ids: TemplateIds): TemplateResult {
     reg(nodes, ic, sp1, tl, sp2, ds, cardCell);
   });
 
-  const sec = mkSec(secId, cardCells, secSolid('#f8fafc'), 20, 20, pad(72, 0), 'Features 4-col');
+  const sec = mkSec(secId, cardCells, secSolid('#f8fafc'), 20, 20, pad(72, 40), 'Features 4-col');
   reg(nodes, sec);
   return { sectionId: secId, nodes };
 }
@@ -254,17 +257,17 @@ function buildTwoColumn(ids: TemplateIds): TemplateResult {
   const sp4 = mkSp(ids.el(), cleft, 32);
   const btn = mkBtn(ids.el(), cleft, 'Learn More →', '#0f172a', '#ffffff');
 
-  const box = mkBox(ids.el(), cright, 380, '#006e75', '#0b978e', 16);
+  const img = mkImg(ids.el(), cright, 380);
 
   const cellL = mkCell(cleft, secId, 6, [eye.id, sp1.id, h2.id, sp2.id, body.id, sp3.id, chk.id, sp4.id, btn.id],
     'column', 'flex-start', 'center', 0, pad(0, 60, 0, 60), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
-  const cellR = mkCell(cright, secId, 6, [box.id],
-    'column', 'stretch', 'center', 0, pad(0, 60, 0, 0), 'transparent',
+  const cellR = mkCell(cright, secId, 6, [img.id],
+    'column', 'center', 'center', 0, pad(20, 40), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
   const sec = mkSec(secId, [cleft, cright], secSolid('#ffffff'), 0, 0, pad(80, 0), 'Two Column');
 
-  reg(nodes, eye, sp1, h2, sp2, body, sp3, chk, sp4, btn, box, cellL, cellR, sec);
+  reg(nodes, eye, sp1, h2, sp2, body, sp3, chk, sp4, btn, img, cellL, cellR, sec);
   return { sectionId: secId, nodes };
 }
 
@@ -329,7 +332,8 @@ function buildCTA(ids: TemplateIds): TemplateResult {
   const btn = mkBtn(ids.el(), cid, 'Start Free Trial →', '#ffffff', '#006e75', 16, 8, pad(16, 36));
 
   const cell = mkCell(cid, secId, 12, [h2.id, sp1.id, sub.id, sp2.id, btn.id],
-    'column', 'center', 'flex-start', 0, pad(96, 40));
+    'column', 'center', 'flex-start', 0, pad(96, 40), 'transparent',
+    { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
   const sec = mkSec(secId, [cid], secGrad('#006e75', '#0b978e', 135), 0, 0, pad(0), 'CTA Banner');
 
   reg(nodes, h2, sp1, sub, sp2, btn, cell, sec);
@@ -381,19 +385,31 @@ function buildPricing(ids: TemplateIds): TemplateResult {
 function buildNavbar(ids: TemplateIds): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
   const secId = ids.sec();
-  const cleft = ids.cell();
-  const cright = ids.cell();
+  const clogo = ids.cell();
+  const cnav  = ids.cell();
+  const cbtn  = ids.cell();
 
-  const logo = mkText(ids.el(), cleft, 'Your Brand', 20, '700', '#0f172a', 'left', 30, 1, pad(0), fl('auto'));
-  const nav = mkText(ids.el(), cright, 'Home  ·  About  ·  Features  ·  Pricing', 14, 'normal', '#64748b', 'right', 24, 1, pad(0), fl('auto'));
-  const btn = mkBtn(ids.el(), cright, 'Sign Up', '#006e75', '#ffffff', 13, 6, pad(8, 16));
+  const logo     = mkText(ids.el(), clogo, 'Your Brand', 20, '700',    '#0f172a', 'center', 30, 1, pad(0), fl('auto'));
+  const lnkHome  = mkText(ids.el(), cnav,  'Home',       14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
+  const lnkAbout = mkText(ids.el(), cnav,  'About',      14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
+  const lnkFeats = mkText(ids.el(), cnav,  'Features',   14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
+  const lnkPrice = mkText(ids.el(), cnav,  'Pricing',    14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
+  const btn      = mkBtn(ids.el(),  cbtn,  'Sign Up', '#006e75', '#ffffff', 13, 6, pad(8, 16));
 
-  const cellL = mkCell(cleft, secId, 3, [logo.id], 'row', 'center', 'flex-start', 0, pad(16, 32));
-  const cellR = mkCell(cright, secId, 9, [nav.id, btn.id], 'row', 'center', 'flex-end', 20, pad(16, 32),
-    'transparent', { tablet: { columnSpan: 9 }, mobile: { columnSpan: 9 } });
-  const sec = mkSec(secId, [cleft, cright], secSolid('#ffffff'), 0, 0, pad(0), 'Navbar');
+  // Desktop: [Logo:3] [Nav links (4 texts, row):7] [Sign Up:2] = 12 cols
+  // Mobile: all span 12, stack vertically, centered
+  const cellLogo = mkCell(clogo, secId, 3, [logo.id], 'row', 'center', 'center', 0, pad(16, 24),
+    'transparent', { tablet: { columnSpan: 3 }, mobile: { columnSpan: 12 } });
+  const cellNav  = mkCell(cnav,  secId, 7,
+    [lnkHome.id, lnkAbout.id, lnkFeats.id, lnkPrice.id],
+    'row', 'center', 'center', 28, pad(16, 16),
+    'transparent', { tablet: { columnSpan: 6 }, mobile: { columnSpan: 12 } });
+  const cellBtn  = mkCell(cbtn,  secId, 2, [btn.id], 'row', 'center', 'center', 0, pad(16, 24),
+    'transparent', { tablet: { columnSpan: 3 }, mobile: { columnSpan: 12 } });
 
-  reg(nodes, logo, nav, btn, cellL, cellR, sec);
+  const sec = mkSec(secId, [clogo, cnav, cbtn], secSolid('#ffffff'), 0, 0, pad(0), 'Navbar');
+
+  reg(nodes, logo, lnkHome, lnkAbout, lnkFeats, lnkPrice, btn, cellLogo, cellNav, cellBtn, sec);
   return { sectionId: secId, nodes };
 }
 
@@ -432,15 +448,15 @@ function buildFooter(ids: TemplateIds): TemplateResult {
 // ─── Exported template list ──────────────────────────────────────────────────
 
 export const SECTION_TEMPLATES: SectionTemplate[] = [
-  { key: 'navbar',       label: 'Navbar',          desc: 'Logo + nav links + CTA button',          icon: '☰',  build: buildNavbar },
-  { key: 'hero',         label: 'Hero – Centered',  desc: 'Full-width headline, sub & CTA',         icon: '⬛',  build: buildHero },
-  // { key: 'hero-split',   label: 'Hero – Split',     desc: 'Text left, visual right',                icon: '◧',  build: buildHeroSplit },
-  { key: 'features-3',   label: 'Features 3-col',   desc: '3 icon + title + description cards',     icon: '⊞',  build: buildFeatures3 },
-  // { key: 'features-4',   label: 'Features 4-col',   desc: '4 compact feature cards',                icon: '⊟',  build: buildFeatures4 },
-  { key: 'two-column',   label: 'Two Column',        desc: 'Text left + visual block right',         icon: '◫',  build: buildTwoColumn },
-  // { key: 'stats',        label: 'Stats Bar',         desc: '4 key numbers on dark background',       icon: '★',  build: buildStats },
-  // { key: 'testimonial',  label: 'Testimonial',       desc: 'Centered quote with name & role',        icon: '❝',  build: buildTestimonial },
-  { key: 'cta',          label: 'CTA Banner',        desc: 'Full-width call to action + button',     icon: '→',  build: buildCTA },
-  // { key: 'pricing',      label: 'Pricing',           desc: '3-tier pricing cards',                   icon: '◈',  build: buildPricing },
-  { key: 'footer',       label: 'Footer',            desc: 'Brand + 2 link columns, dark bg',        icon: '⬇',  build: buildFooter },
+  { key: 'navbar',      label: 'Navbar',          desc: 'Logo + nav links + CTA button',      icon: '☰',  build: buildNavbar      },
+  { key: 'hero',        label: 'Hero – Centered', desc: 'Full-width headline, sub & CTA',     icon: '⬛', build: buildHero        },
+  { key: 'features-4',  label: 'Features 4-col',  desc: '4 compact feature cards',             icon: '⊟',  build: buildFeatures4   },
+  { key: 'two-column',  label: 'Two Column',       desc: 'Text left + visual block right',     icon: '◫',  build: buildTwoColumn   },
+  { key: 'cta',         label: 'CTA Banner',       desc: 'Full-width call to action + button', icon: '→',  build: buildCTA         },
+  { key: 'footer',      label: 'Footer',           desc: 'Brand + 2 link columns, dark bg',   icon: '⬇',  build: buildFooter      },
+  // { key: 'hero-split',  label: 'Hero – Split',    desc: 'Text left, visual right',             icon: '◧',  build: buildHeroSplit   },
+  // { key: 'features-3',  label: 'Features 3-col',  desc: '3 icon + title + description cards', icon: '⊞',  build: buildFeatures3   },
+  // { key: 'stats',        label: 'Stats Bar',       desc: '4 key numbers on dark background',   icon: '★',  build: buildStats       },
+  // { key: 'testimonial',  label: 'Testimonial',     desc: 'Centered quote with name & role',    icon: '❝',  build: buildTestimonial },
+  // { key: 'pricing',      label: 'Pricing',         desc: '3-tier pricing cards',               icon: '◈',  build: buildPricing     },
 ];

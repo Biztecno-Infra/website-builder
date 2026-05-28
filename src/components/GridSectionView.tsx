@@ -6,7 +6,7 @@ import { GridCellView } from './GridCellView';
 import { canvasDragShared } from './CanvasElement';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
+  ContentWidthMode, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
 } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
@@ -56,6 +56,7 @@ interface Props {
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
+  pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 export function GridSectionView({
@@ -78,6 +79,7 @@ export function GridSectionView({
   onAddContainer, onUpdateContainer, onAddSubCell,
   selectedContainerId,
   onSelectContainer,
+  pageLayoutWidth = 'fixed',
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -135,10 +137,14 @@ export function GridSectionView({
 
   const pad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
 
+  const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
+  const maxW = gridCfg.maxWidth ?? 1280;
+
   const sectionContentStyle: React.CSSProperties = {
-    position: 'relative', width: canvasWidth, margin: '0 auto', boxSizing: 'border-box',
+    position: 'relative', boxSizing: 'border-box', width: '100%',
     outline: isSelected ? '2px solid #006e75' : undefined, outlineOffset: -2,
     paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
+    ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
   };
 
   const overlayStyle: React.CSSProperties | undefined = bg.overlay > 0 ? {
@@ -235,18 +241,25 @@ export function GridSectionView({
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
-              {onPromoteSection && (
-                <>
-                  <div className={'pb-section-action-divider'} />
-                  <button className={'pb-section-action-btn'} title="Set as Header"
-                    onClick={e => { e.stopPropagation(); onPromoteSection('header'); }}>H</button>
-                  <button className={'pb-section-action-btn'} title="Set as Footer"
-                    onClick={e => { e.stopPropagation(); onPromoteSection('footer'); }}>F</button>
-                </>
-              )}
               <div className={'pb-section-action-divider'} />
               <button className={'pb-section-action-btn'} title="Add column"
                 onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>+ Col</button>
+              <div className={'pb-section-action-divider'} />
+              {(() => {
+                const effectiveMode = section.grid.contentWidth ?? (pageLayoutWidth === 'fixed' ? 'constrained' : 'full');
+                const isOverride = section.grid.contentWidth != null;
+                const isBoxed = effectiveMode === 'constrained';
+                return (
+                  <button
+                    className={['pb-section-action-btn', 'pb-section-width-toggle', isOverride && 'pb-section-width-override'].filter(Boolean).join(' ')}
+                    title={isBoxed ? 'Section is Boxed (max-width) — click for Full width' : 'Section is Full width — click for Boxed (max-width)'}
+                    onClick={e => {
+                      e.stopPropagation();
+                      onUpdateSection(section.id, { grid: { ...section.grid, contentWidth: isBoxed ? 'full' : 'constrained' } });
+                    }}
+                  >{isBoxed ? '⊡ Boxed' : '⊞ Full'}</button>
+                );
+              })()}
               <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
@@ -264,12 +277,37 @@ export function GridSectionView({
                 minHeight: gridCfg.minHeight || undefined,
               }}
             >
-              {cells.map((cell) => (
+              {cells.map((cell, idx) => {
+                const nextCell = cells[idx + 1];
+                return (
                 <DraggableCellWrapper
                   key={cell.id}
                   cell={cell}
                   breakpoint={breakpoint}
                   previewMode={previewMode}
+                  isLast={!nextCell}
+                  onResizeDragStart={nextCell ? (e, span, el) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const startX = e.clientX;
+                    const unitWidth = el.getBoundingClientRect().width / span;
+                    const startLeft = getCellColumnSpan(cell, breakpoint);
+                    const startRight = getCellColumnSpan(nextCell, breakpoint);
+                    const total = startLeft + startRight;
+                    onCommit(snapshot);
+                    const onMove = (ev: MouseEvent) => {
+                      const delta = Math.round((ev.clientX - startX) / unitWidth);
+                      const newLeft = Math.max(1, Math.min(total - 1, startLeft + delta));
+                      onUpdateGridCell(cell.id, { columnSpan: newLeft });
+                      onUpdateGridCell(nextCell.id, { columnSpan: total - newLeft });
+                    };
+                    const onUp = () => {
+                      document.removeEventListener('mousemove', onMove);
+                      document.removeEventListener('mouseup', onUp);
+                    };
+                    document.addEventListener('mousemove', onMove);
+                    document.addEventListener('mouseup', onUp);
+                  } : undefined}
                 >
                   <GridCellView
                     cell={cell}
@@ -315,7 +353,8 @@ export function GridSectionView({
                     onSelectContainer={onSelectContainer}
                   />
                 </DraggableCellWrapper>
-              ))}
+              );
+              })}
             </div>
 
             {cells.length === 0 && !previewMode && (
@@ -329,15 +368,15 @@ export function GridSectionView({
           </div>
         </div>
 
-        {!previewMode && (
-          <div
-            className={'pb-section-resize-handle'}
-            onMouseDown={handleMinHeightResizeMouseDown}
-            title="Drag to set minimum height"
-          />
-        )}
       </div>
 
+      {!previewMode && (
+        <div
+          className={'pb-section-resize-handle'}
+          onMouseDown={handleMinHeightResizeMouseDown}
+          title="Drag to set minimum height"
+        />
+      )}
     </div>
   );
 }

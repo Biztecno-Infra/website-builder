@@ -618,6 +618,18 @@
   color: #ef4444;
 }
 
+.pb-section-width-toggle {
+  width: auto !important;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pb-section-width-override {
+  color: #006e75;
+}
+
 /* ─── Section hover insert buttons ─── */
 .pb-section-insert-btn {
   position: absolute;
@@ -1942,6 +1954,24 @@
   box-shadow: 0 1px 3px rgba(0,0,0,0.12);
 }
 
+/* ─── Layout switcher (Fixed / Fluid) ─── */
+.pb-layout-switcher {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #f0f0f0;
+  border-radius: 6px;
+  padding: 2px;
+}
+
+.pb-layout-switcher .pb-bp-btn {
+  width: auto;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 /* ─── Zoom control ─── */
 .pb-zoom-control {
   display: flex;
@@ -2312,6 +2342,61 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   padding: 0 6px;
+}
+
+/* ─── Column divider drag handle ─── */
+.pb-col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  z-index: 40;
+  background: transparent;
+}
+.pb-col-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  bottom: 15%;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  background: #0b978e;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.pb-grid-cell-wrapper:hover .pb-col-resize-handle::after,
+.pb-col-resize-handle:hover::after {
+  opacity: 1;
+}
+
+/* ─── Sub-cell delete button (inside container columns) ─── */
+.pb-sub-cell-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 60;
+  transition: opacity 0.15s;
+  line-height: 1;
+  padding: 0;
+}
+.pb-grid-cell-wrapper:hover .pb-sub-cell-delete-btn {
+  opacity: 1;
 }
 
 /* ─── Cell wrapper stacking ─── */

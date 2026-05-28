@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import type { Breakpoint, GridCell } from '../types';
 
 function getCellSpan(cell: GridCell, bp: Breakpoint): number {
@@ -12,11 +12,15 @@ interface Props {
   breakpoint: Breakpoint;
   previewMode?: boolean;
   children: React.ReactNode;
+  isLast?: boolean;
+  onResizeDragStart?: (e: React.MouseEvent, span: number, el: HTMLDivElement) => void;
+  onDeleteCell?: () => void;
 }
 
-export function DraggableCellWrapper({ cell, breakpoint, previewMode, children }: Props) {
+export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, isLast, onResizeDragStart, onDeleteCell }: Props) {
   const span = getCellSpan(cell, breakpoint);
   const rowSpan = cell.rowSpan ?? 1;
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const hidden =
     breakpoint === 'tablet' ? (cell.responsive.tablet?.hidden ?? false)
@@ -27,6 +31,7 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children }
 
   return (
     <div
+      ref={wrapperRef}
       className={'pb-grid-cell-wrapper'}
       onMouseDown={e => e.stopPropagation()}
       style={{
@@ -40,6 +45,22 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children }
       }}
     >
       {children}
+      {!isLast && !previewMode && (
+        <div
+          className={'pb-col-resize-handle'}
+          onMouseDown={e => {
+            if (wrapperRef.current) onResizeDragStart?.(e, span, wrapperRef.current);
+          }}
+        />
+      )}
+      {onDeleteCell && !previewMode && (
+        <button
+          className={'pb-sub-cell-delete-btn'}
+          title="Delete column"
+          onMouseDown={e => e.stopPropagation()}
+          onClick={e => { e.stopPropagation(); onDeleteCell(); }}
+        >✕</button>
+      )}
     </div>
   );
 }

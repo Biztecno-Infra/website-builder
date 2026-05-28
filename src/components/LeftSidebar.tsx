@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type React from 'react';
 import { useDrag } from 'react-dnd';
 import type { CanvasElement, ContainerLayoutMode, ElementType, NodeMap, Page, Section, SiteTheme } from '../types';
-import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
+import type { SectionTemplate, TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import { SECTION_TEMPLATES } from '../data/sectionTemplates';
 import { LayerPanel } from './LayerPanel';
 import { PagePanel } from './PagePanel';
@@ -11,6 +11,9 @@ import { ThemePanel } from './ThemePanel';
 export const DND_TYPE = 'PALETTE_ITEM';
 export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
 export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
+export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
+
+export interface TemplateDragItem { buildFn: (ids: TemplateIds) => TemplateResult }
 
 interface LayoutDragItem { columnSpans: number[] }
 export interface CellLayoutDragItem { mode: ContainerLayoutMode; columnSpans?: number[] }
@@ -117,6 +120,33 @@ function PaletteItem({ type, icon, label, onAdd }: PaletteItemProps) {
   );
 }
 
+function TemplateCard({ tpl, onAdd }: {
+  tpl: SectionTemplate;
+  onAdd: (buildFn: (ids: TemplateIds) => TemplateResult) => void;
+}) {
+  const [{ isDragging }, dragRef] = useDrag<TemplateDragItem, void, { isDragging: boolean }>({
+    type: TEMPLATE_DND_TYPE,
+    item: { buildFn: tpl.build },
+    collect: m => ({ isDragging: m.isDragging() }),
+  });
+  return (
+    <button
+      ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
+      className={'pb-template-card'}
+      title={`${tpl.desc} — drag to position`}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+      onClick={() => onAdd(tpl.build)}
+    >
+      <span className={'pb-template-card-icon'}>{tpl.icon}</span>
+      <div className={'pb-template-card-info'}>
+        <span className={'pb-template-card-label'}>{tpl.label}</span>
+        <span className={'pb-template-card-desc'}>{tpl.desc}</span>
+      </div>
+      <span className={'pb-palette-drag-icon'}>⠿</span>
+    </button>
+  );
+}
+
 const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
   { type: 'text',    icon: '',  label: 'Text'    },
   { type: 'image',   icon: '',  label: 'Image'   },
@@ -204,15 +234,12 @@ export function LeftSidebar({
 
       {activeTab === 'elements' && (
         <aside className={'pb-left-sidebar'}>
-          <div className={'pb-sidebar-section-title'}>Sections</div>
-          <div className={'pb-section-type-list'}>
-            <button className={'pb-section-type-btn'} onClick={onAddFreeSection} title="Add a free-layout section">
-              <span className={'pb-section-type-icon'}>⬜</span>
-              <div className={'pb-section-type-info'}>
-                <span className={'pb-section-type-label'}>Free Section</span>
-                <span className={'pb-section-type-desc'}>Absolute positioning</span>
-              </div>
-            </button>
+
+          <div className={'pb-sidebar-section-title'}>Elements</div>
+          <div className={'pb-palette-list'}>
+            {PALETTE.map(item => (
+              <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
+            ))}
           </div>
 
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Grid Layouts</div>
@@ -226,6 +253,15 @@ export function LeftSidebar({
                 onAdd={onAddGridSection}
               />
             ))}
+          </div>
+          <div className={'pb-section-type-list'} style={{ marginTop: 4 }}>
+            <button className={'pb-section-type-btn'} onClick={onAddFreeSection} title="Add a free-layout section">
+              <span className={'pb-section-type-icon'}>⬜</span>
+              <div className={'pb-section-type-info'}>
+                <span className={'pb-section-type-label'}>Free Section</span>
+                <span className={'pb-section-type-desc'}>Absolute positioning</span>
+              </div>
+            </button>
           </div>
 
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Cell Layouts</div>
@@ -257,31 +293,10 @@ export function LeftSidebar({
           {templatesOpen && (
             <div className={'pb-template-card-list'}>
               {SECTION_TEMPLATES.map(tpl => (
-                <button
-                  key={tpl.key}
-                  className={'pb-template-card'}
-                  title={tpl.desc}
-                  onClick={() => onAddSectionFromTemplate(tpl.build)}
-                >
-                  <span className={'pb-template-card-icon'}>{tpl.icon}</span>
-                  <div className={'pb-template-card-info'}>
-                    <span className={'pb-template-card-label'}>{tpl.label}</span>
-                    <span className={'pb-template-card-desc'}>{tpl.desc}</span>
-                  </div>
-                </button>
+                <TemplateCard key={tpl.key} tpl={tpl} onAdd={onAddSectionFromTemplate} />
               ))}
             </div>
           )}
-
-
-
-          <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Elements</div>
-          <div className={'pb-palette-list'}>
-            {PALETTE.map(item => (
-              <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
-            ))}
-          </div>
-
 
         </aside>
       )}

@@ -269,6 +269,7 @@ export function GridCellView({
     backgroundColor: bgColor, backgroundImage: bgImage,
     backgroundSize: 'cover', backgroundPosition: 'center',
     minHeight: appliedMinH,
+    height: '100%',
     borderRadius, borderWidth, borderColor, borderStyle,
     position: 'relative', boxSizing: 'border-box',
   };
@@ -349,9 +350,6 @@ export function GridCellView({
           </div>
         )}
 
-        {!previewMode && (
-          <div className={'pb-grid-cell-height-resize-handle'} onMouseDown={handleMinHeightDragMouseDown} title="Drag to set minimum height" />
-        )}
       </div>
     );
   }
@@ -384,6 +382,7 @@ export function GridCellView({
         gap,
         alignItems: getCellAlignItems(cell, bp),
         justifyContent: getCellJustifyContent(cell, bp),
+        overflow: flexChildren.some(c => c.type === 'container') ? 'visible' : 'hidden',
       }}
       onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
     >
@@ -512,7 +511,7 @@ export function GridCellView({
         </div>
       )}
 
-      {!previewMode && (
+      {!previewMode && !flexChildren.some(c => c.type === 'container') && (
         <div className={'pb-grid-cell-height-resize-handle'} onMouseDown={handleMinHeightDragMouseDown} title="Drag to set minimum height" />
       )}
     </div>

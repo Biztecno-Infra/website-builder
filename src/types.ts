@@ -179,11 +179,15 @@ export interface SectionLayout {
   height: number;
 }
 
+export type ContentWidthMode = 'constrained' | 'full' | 'fluid';
+
 export interface GridConfig {
   gap: number;
   rowGap: number;
   minHeight?: number;
   rowHeight?: number;
+  contentWidth?: ContentWidthMode;
+  maxWidth?: number;
 }
 
 // ── Section node — discriminated union ────────────────────────────────
@@ -326,6 +330,8 @@ export interface Page {
   slug: string;
   seo: PageSEO;
   sections: string[];  // All sections in render order — role on each node determines header/footer identity
+  layoutWidth?: 'fixed' | 'fluid';  // default 'fixed'
+  maxWidth?: number;                 // default 1200, used when layoutWidth is 'fixed'
 }
 
 // ── Site & Theme ───────────────────────────────────────────────────────

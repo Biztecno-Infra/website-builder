@@ -234,9 +234,9 @@ export function GridElementView({
         position: 'relative',
         ...flexSizing,
         alignSelf,
-        ...(el.type === 'image' || el.type === 'video'
-          ? { height: el.layout.height }
-          : { minHeight: el.layout.height }),
+        ...(el.type === 'text' || el.type === 'button'
+          ? {}
+          : { height: el.layout.height }),
         opacity: isDragging ? 0.35 : el.style.opacity,
         boxShadow: shadow,
         borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,

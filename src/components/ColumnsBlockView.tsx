@@ -6,6 +6,7 @@ import type {
 } from '../types';
 import { DraggableCellWrapper } from './DraggableCellWrapper';
 import { GridCellView } from './GridCellView';
+import { getCellColumnSpan } from '../utils/cellUtils';
 import { GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
 
@@ -127,6 +128,7 @@ export function ColumnsBlockView({
     >
       <div
         className={['pb-container', isSelected ? 'pb-container--selected' : ''].filter(Boolean).join(' ')}
+        onClick={e => { e.stopPropagation(); if (!previewMode) onSelectContainer?.(block.id); }}
       >
         {!previewMode && (
           <div
@@ -189,12 +191,38 @@ export function ColumnsBlockView({
           </div>
         )}
         <div className={'pb-container-inner'} style={innerStyle}>
-          {subCells.map((subCell, idx) => (
+          {subCells.map((subCell, idx) => {
+            const nextSubCell = subCells[idx + 1];
+            return (
             <DraggableCellWrapper
               key={subCell.id}
               cell={subCell}
               breakpoint={breakpoint}
               previewMode={previewMode}
+              isLast={!nextSubCell}
+              onDeleteCell={subCells.length > 1 ? () => onDeleteGridCell?.(subCell.id) : undefined}
+              onResizeDragStart={nextSubCell ? (e, span, el) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const startX = e.clientX;
+                const unitWidth = el.getBoundingClientRect().width / span;
+                const startLeft = getCellColumnSpan(subCell, breakpoint);
+                const startRight = getCellColumnSpan(nextSubCell, breakpoint);
+                const total = startLeft + startRight;
+                onCommit(snapshot);
+                const onMove = (ev: MouseEvent) => {
+                  const delta = Math.round((ev.clientX - startX) / unitWidth);
+                  const newLeft = Math.max(1, Math.min(total - 1, startLeft + delta));
+                  onUpdateGridCell?.(subCell.id, { columnSpan: newLeft });
+                  onUpdateGridCell?.(nextSubCell.id, { columnSpan: total - newLeft });
+                };
+                const onUp = () => {
+                  document.removeEventListener('mousemove', onMove);
+                  document.removeEventListener('mouseup', onUp);
+                };
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+              } : undefined}
             >
               <GridCellView
                 cell={subCell}
@@ -230,7 +258,8 @@ export function ColumnsBlockView({
                 onSelectContainer={onSelectContainer}
               />
             </DraggableCellWrapper>
-          ))}
+            );
+          })}
           {subCells.length === 0 && !previewMode && (
             <div className={'pb-container-empty'}>No columns yet</div>
           )}

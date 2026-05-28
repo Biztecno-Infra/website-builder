@@ -61,6 +61,7 @@ interface Props {
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
+  pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -344,15 +345,6 @@ function FreeSectionView({
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
-              {onPromoteSection && (
-                <>
-                  <div className={'pb-section-action-divider'} />
-                  <button className={'pb-section-action-btn'} title="Set as Header"
-                    onClick={e => { e.stopPropagation(); onPromoteSection('header'); }}>H</button>
-                  <button className={'pb-section-action-btn'} title="Set as Footer"
-                    onClick={e => { e.stopPropagation(); onPromoteSection('footer'); }}>F</button>
-                </>
-              )}
               <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>

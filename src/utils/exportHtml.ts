@@ -2,10 +2,8 @@ import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Containe
 import { sectionBgCssStr } from './sectionStyle';
 
 const CANVAS_W = 1280;
-const LARGE_DESKTOP_W = 1440;
 const TABLET_W = 768;
 const MOBILE_W = 375;
-const SCALE_LD = LARGE_DESKTOP_W / CANVAS_W;
 
 const SYSTEM_FONTS = new Set([
   'Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Courier New',
@@ -254,10 +252,12 @@ function renderGridElement(el: CanvasElement): string {
     : '';
 
   const wrapRadiusCss = el.style.border.radius > 0 ? `;border-radius:${el.style.border.radius}px` : '';
-  // image/video use exact height; text/button/etc use min-height so content can grow
-  const heightProp = (el.type === 'image' || el.type === 'video') ? 'height' : 'min-height';
+  // text/button are content-sized in grid mode; all other types keep explicit height
+  const heightCss = (el.type === 'text' || el.type === 'button')
+    ? ''
+    : `${el.type === 'image' || el.type === 'video' ? 'height' : 'min-height'}:${el.layout.height}px;`;
   // Flex-sizing is class-based (ge-{id}); only non-flex properties here
-  const wrapStyle = `${heightProp}:${el.layout.height}px;box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${wrapRadiusCss}${animVars}`;
+  const wrapStyle = `${heightCss}box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${wrapRadiusCss}${animVars}`;
 
   let animClass = '';
   let animData = '';
@@ -394,7 +394,7 @@ function sectionPositionCss(sec: Section): string {
   return 'position:relative';
 }
 
-function renderGridSection(sec: GridSection, nodes: NodeMap): string {
+function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
@@ -408,9 +408,17 @@ function renderGridSection(sec: GridSection, nodes: NodeMap): string {
   const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
 
+  // Per-section override wins; fall back to page layout mode
+  const hasExplicitMode = sec.grid.contentWidth != null;
+  const contentMode = hasExplicitMode ? sec.grid.contentWidth! : (pageFixed ? 'constrained' : 'full');
+  const maxW = sec.grid.maxWidth ?? pageMaxWidth;
+  const widthCss = contentMode === 'constrained'
+    ? `width:100%;max-width:${maxW}px;margin:0 auto`
+    : `width:100%`;
+
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%">
     ${overlay}
-    <div class="sc sc-grid-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);overflow:visible;padding:${padCss};box-sizing:border-box">
+    <div class="sc-grid-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
     </div>
   </div>`;
@@ -449,8 +457,8 @@ function renderColumnBgs(sec: Section): string {
   return colDivs ? `<div style="position:absolute;inset:0;pointer-events:none">${colDivs}</div>` : '';
 }
 
-function renderSection(sec: Section, nodes: NodeMap): string {
-  if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes);
+function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
+  if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
 
   const bg = sec.style.background;
   const overlay = bg.overlay > 0
@@ -821,16 +829,10 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
   }
 
   const base = baseRules.join('');
-  // .sc max-width changes go inside the media queries too — same-specificity, later-wins
-  const largeDesktop = `@media(min-width:${CANVAS_W + 1}px){.sc{max-width:${LARGE_DESKTOP_W}px}}`;
-  const tablet = tabletRules.length
-    ? `@media(max-width:${TABLET_W}px){.sc{max-width:${TABLET_W}px}${tabletRules.join('')}}`
-    : `@media(max-width:${TABLET_W}px){.sc{max-width:${TABLET_W}px}}`;
-  const mobile = mobileRules.length
-    ? `@media(max-width:${TABLET_W - 1}px){.sc{max-width:${MOBILE_W}px}${mobileRules.join('')}}`
-    : `@media(max-width:${TABLET_W - 1}px){.sc{max-width:${MOBILE_W}px}}`;
+  const tablet = tabletRules.length ? `@media(max-width:${TABLET_W}px){${tabletRules.join('')}}` : '';
+  const mobile = mobileRules.length ? `@media(max-width:${TABLET_W - 1}px){${mobileRules.join('')}}` : '';
 
-  return [base, largeDesktop, tablet, mobile].filter(Boolean).join('\n');
+  return [base, tablet, mobile].filter(Boolean).join('\n');
 }
 
 const ANIM_CSS = `
@@ -867,12 +869,15 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   const nodes = state.nodes;
   const sections = page.sections.map(id => nodes[id] as Section).filter(Boolean);
 
+  const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
+  const pageMaxWidth = page.maxWidth ?? 1200;
+
   const googleFonts = collectGoogleFonts(state, sections);
   const fontLinks = googleFonts
     .map(f => `  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=${f.replace(/ /g, '+')}:wght@300;400;500;600;700&display=swap">`)
     .join('\n');
 
-  const sectionsHtml = sections.map(sec => renderSection(sec, nodes)).join('\n');
+  const sectionsHtml = sections.map(sec => renderSection(sec, nodes, pageFixed, pageMaxWidth)).join('\n');
   const elementCss = generateElementCSS(sections, nodes);
   const smoothScrollCss = hasSmoothScrollAnywhere(nodes) ? 'html{scroll-behavior:smooth}' : '';
 
@@ -898,7 +903,7 @@ ${fontLinks}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:clip}
     body{font-family:${state.theme.fonts.body};background-color:${state.theme.colors.background}}
-    .sc{width:100%;max-width:${CANVAS_W}px;margin:0 auto;position:relative;overflow:hidden}
+    ${pageFixed ? `.sc{width:100%;max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden}` : `.sc{width:100%;position:relative;overflow:hidden}`}
     ${smoothScrollCss}
     ${ANIM_CSS}
     ${elementCss}
