@@ -1,4 +1,4 @@
-﻿import React, { useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import type { CanvasElement, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
@@ -95,6 +95,19 @@ function SectionGroup({
 
   const draggable = role === 'section';
   const isGrid = section.layoutMode === 'grid';
+
+  useEffect(() => {
+    if (!selectedIds.length) return;
+    function dfs(nodeId: string): boolean {
+      const node = nodes[nodeId];
+      if (!node) return false;
+      if (node.type === 'grid-cell' || node.type === 'container') {
+        return (node as GridCell | Container).children.some(dfs);
+      }
+      return selectedIds.includes(nodeId);
+    }
+    if (section.children.some(dfs)) setCollapsed(false);
+  }, [selectedIds]);
 
   // ── Grid layout rendering ─────────────────────────────────────────────────
   if (isGrid) {
@@ -430,6 +443,12 @@ export function LayerPanel({
   const sectionDragFromIndex = useRef<number | null>(null);
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
+  const layerListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const selected = layerListRef.current?.querySelector<HTMLElement>('.pb-selected');
+    selected?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }, [selectedIds, selectedSectionId]);
 
   function countCellElementsDeep(cell: GridCell): number {
     return cell.children.reduce((sum, id) => {
@@ -492,7 +511,7 @@ export function LayerPanel({
       <div className={'pb-sidebar-section-title'}>
         Layers <span className={'pb-layer-count'}>({totalElements})</span>
       </div>
-      <div className={'pb-layer-list'}>
+      <div className={'pb-layer-list'} ref={layerListRef}>
         <SectionGroup
           {...commonSectionProps}
           section={header} role="header" index={-1}
