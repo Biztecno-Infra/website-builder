@@ -834,6 +834,74 @@
   z-index: 9999;
 }
 
+/* ─── Drag position guides ─── */
+.pb-drag-guide-v {
+  position: absolute;
+  width: 1.5px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1a73e8 0px, #1a73e8 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-h {
+  position: absolute;
+  height: 1.5px;
+  background: repeating-linear-gradient(
+    to right,
+    #1a73e8 0px, #1a73e8 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-lbl {
+  position: absolute;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Label on a vertical guide: sits to the right, centered on the line */
+.pb-drag-guide-lbl--v {
+  left: 5px;
+  transform: translateY(-50%);
+}
+
+/* Label on a horizontal guide: sits below, centered on the line */
+.pb-drag-guide-lbl--h {
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.pb-drag-size-lbl {
+  position: absolute;
+  background: rgba(26, 115, 232, 0.88);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translateX(-50%);
+}
+
 /* ─── Marquee selection rect ─── */
 .pb-marquee-rect {
   position: absolute;

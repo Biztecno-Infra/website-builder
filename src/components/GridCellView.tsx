@@ -3,6 +3,7 @@ import { useDrop } from 'react-dnd';
 import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container } from '../types';
 import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE } from './LeftSidebar';
 import { canvasDragShared } from './CanvasElement';
+import { DragGuides } from './DragGuides';
 import type { CellLayoutDragItem } from './LeftSidebar';
 import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
@@ -88,6 +89,10 @@ export function GridCellView({
   // ── Insertion-line state ─────────────────────────────────────────────────
   const [insertAfterIndex, setInsertAfterIndex] = useState<number | null>(null);
 
+  // ── Drag-guide state (free-canvas mode only) ─────────────────────────────
+  type LiveDragPos = { x: number; y: number; width: number; height: number; cellW: number };
+  const [liveDragPos, setLiveDragPos] = useState<LiveDragPos | null>(null);
+
   // Refs for coordinate calculation in free-mode drops
   const cellDomRef = useRef<HTMLDivElement>(null);
   const cellModeRef = useRef<CellLayoutMode>(cell.style.layoutMode);
@@ -116,21 +121,37 @@ export function GridCellView({
   // ── Drop: existing grid elements (reorder / cross-cell move / free-drop) ─
   const [{ isGridElOver }, gridElDropRef] = useDrop<GridElDragItem, void, { isGridElOver: boolean }>({
     accept: GRID_EL_DND_TYPE,
-    hover(_item, monitor) {
-      if (!monitor.isOver({ shallow: true }) || cellModeRef.current === 'free') return;
+    hover(item, monitor) {
+      if (!monitor.isOver({ shallow: true })) return;
+      if (cellModeRef.current === 'free') {
+        if (item.kind !== 'element') return;
+        const clientOffset = monitor.getClientOffset();
+        const initClient   = monitor.getInitialClientOffset();
+        const initSource   = monitor.getInitialSourceClientOffset();
+        if (clientOffset && cellDomRef.current) {
+          const rect  = cellDomRef.current.getBoundingClientRect();
+          const grabX = (initClient?.x ?? 0) - (initSource?.x ?? 0);
+          const grabY = (initClient?.y ?? 0) - (initSource?.y ?? 0);
+          const x = Math.max(0, clientOffset.x - rect.left - grabX);
+          const y = Math.max(0, clientOffset.y - rect.top  - grabY);
+          const el = nodes[item.elementId] as El | undefined;
+          if (el) setLiveDragPos({ x: Math.round(x), y: Math.round(y), width: el.layout.width, height: el.layout.height, cellW: rect.width });
+        }
+        return;
+      }
       setInsertAfterIndex(flexChildrenWithIndex.length - 1);
     },
     drop(item, monitor) {
       if (monitor.didDrop()) return;
+      setLiveDragPos(null);
       if (item.kind === 'element') {
         const { elementId, sourceCellId, sourceCellMode } = item;
         if (cellModeRef.current === 'free') {
-          // Calculate drop position relative to this cell, correcting for grab offset
           const clientOffset = monitor.getClientOffset();
           const initClient   = monitor.getInitialClientOffset();
           const initSource   = monitor.getInitialSourceClientOffset();
           if (clientOffset && cellDomRef.current) {
-            const rect = cellDomRef.current.getBoundingClientRect();
+            const rect  = cellDomRef.current.getBoundingClientRect();
             const grabX = (initClient?.x ?? 0) - (initSource?.x ?? 0);
             const grabY = (initClient?.y ?? 0) - (initSource?.y ?? 0);
             const x = clientOffset.x - rect.left - grabX;
@@ -142,14 +163,13 @@ export function GridCellView({
           setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
         }
       }
-      // containers handled by child drop targets; nothing needed here
       setInsertAfterIndex(null);
     },
     collect: m => ({ isGridElOver: m.isOver({ shallow: false }) }),
   });
 
   useEffect(() => {
-    if (!isGridElOver) setInsertAfterIndex(null);
+    if (!isGridElOver) { setInsertAfterIndex(null); setLiveDragPos(null); }
   }, [isGridElOver]);
 
   // Accept grid layout presets dropped into a cell → create a nested container
@@ -213,8 +233,10 @@ export function GridCellView({
       const nx = Math.max(0, Math.round(me.clientX - cellRect.left - grabX));
       const ny = Math.max(0, Math.round(me.clientY - cellRect.top - grabY));
       onUpdateElement(el.id, { layout: { ...el.layout, x: nx, y: ny } });
+      setLiveDragPos({ x: nx, y: ny, width: el.layout.width, height: el.layout.height, cellW: cellRect.width });
     };
     const onUp = () => {
+      setLiveDragPos(null);
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
     };
@@ -357,6 +379,13 @@ export function GridCellView({
           </div>
         )}
 
+        {liveDragPos && !previewMode && (
+          <DragGuides
+            x={liveDragPos.x} y={liveDragPos.y}
+            width={liveDragPos.width} height={liveDragPos.height}
+            sectionWidth={liveDragPos.cellW} sectionHeight={effectiveFreeH}
+          />
+        )}
       </div>
     );
   }

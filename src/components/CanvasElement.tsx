@@ -3,6 +3,7 @@ import type { CanvasElement as El, BuilderState } from '../types';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
+export interface DragInfo { x: number; y: number; width: number; height: number; }
 
 export interface ActiveCanvasDrag {
   id: string;
@@ -31,7 +32,7 @@ interface Props {
   snapEnabled: boolean;
   onContextMenu: (x: number, y: number) => void;
   sectionElements?: El[];
-  onGuides?: (guides: GuideLine[]) => void;
+  onGuides?: (guides: GuideLine[], dragInfo?: DragInfo) => void;
   previewMode?: boolean;
   onDuplicate?: () => void;
   onDelete?: () => void;
@@ -174,12 +175,18 @@ export function CanvasElement({
       if (canvasDragShared.isCrossSection) return;
 
       const z = canvasDragShared.zoom;
+      const di: DragInfo = { x: 0, y: 0, width: el.layout.width, height: el.layout.height };
       if (sectionElements && onGuides) {
         const { nx, ny, guides } = computeGuides(originX + dx / z, originY + dy / z, el, sectionElements, snapEnabled);
-        onGuides(guides);
+        di.x = nx; di.y = ny;
+        onGuides(guides, di);
         onUpdate({ layout: { ...el.layout, x: nx, y: ny } });
       } else {
-        onUpdate({ layout: { ...el.layout, x: snap(originX + dx / z, snapEnabled), y: snap(originY + dy / z, snapEnabled) } });
+        const nx = snap(originX + dx / z, snapEnabled);
+        const ny = snap(originY + dy / z, snapEnabled);
+        di.x = nx; di.y = ny;
+        onGuides?.([], di);
+        onUpdate({ layout: { ...el.layout, x: nx, y: ny } });
       }
     };
 
