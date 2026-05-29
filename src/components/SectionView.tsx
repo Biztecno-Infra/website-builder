@@ -202,13 +202,18 @@ function FreeSectionView({
     ...sectionBgProps(bg),
   };
 
+  const scrollBehavior = section.scrollBehavior ?? 'normal';
+  const isSticky = scrollBehavior === 'sticky';
+  const isFixed  = scrollBehavior === 'fixed';
+  const hasActiveChild = !!(selectedId && section.children.includes(selectedId));
+
   const sectionContentStyle: React.CSSProperties = {
     position: 'relative',
     width: canvasWidth,
     height: '100%',
     margin: '0 auto',
     boxSizing: 'border-box',
-    outline: isSelected ? '2px solid #006e75' : (isOver || isDragOverTarget) ? '2px dashed #0b978e' : undefined,
+    outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : (isOver || isDragOverTarget) ? '2px dashed #0b978e' : undefined,
     outlineOffset: -2,
   };
 
@@ -264,12 +269,8 @@ function FreeSectionView({
     document.addEventListener('mouseup', onUp);
   };
 
-  const scrollBehavior = section.scrollBehavior ?? 'normal';
-  const isSticky = scrollBehavior === 'sticky';
-  const isFixed  = scrollBehavior === 'fixed';
   // Fixed renders as sticky in the editor canvas — true position:fixed would escape the canvas DOM.
   // The export emits genuine position:fixed.
-  const hasActiveChild = !!(selectedId && section.children.includes(selectedId));
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
     ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
     : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
@@ -280,7 +281,7 @@ function FreeSectionView({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {!previewMode && (hovered || isSelected) && (
+      {!previewMode && !hasActiveChild && (hovered || isSelected) && (
         <>
           <button
             className={'pb-section-insert-btn pb-section-insert-btn--above'}
@@ -329,7 +330,7 @@ function FreeSectionView({
           style={sectionContentStyle}
           onMouseDown={handleSurfaceMouseDown}
         >
-          {!previewMode && (hovered || isSelected) && (
+          {!previewMode && !hasActiveChild && (hovered || isSelected) && (
             <div className={'pb-section-label-badge'}>
               {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
               {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
@@ -337,7 +338,7 @@ function FreeSectionView({
             </div>
           )}
 
-          {!previewMode && isSelected && (
+          {!previewMode && isSelected && !hasActiveChild && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
               <button className={'pb-section-action-btn'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>

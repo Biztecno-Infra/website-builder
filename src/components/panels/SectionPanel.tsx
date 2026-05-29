@@ -19,6 +19,7 @@ interface Props {
   snapshot: BuilderState;
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddGridCell?: (sectionId: string) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   breakpoint?: Breakpoint;
   theme: SiteTheme;
@@ -26,7 +27,7 @@ interface Props {
 
 export function SectionPanel({
   section, nodes, snapshot,
-  onUpdateSection, onAddGridCell, onPushSnapshot,
+  onUpdateSection, onAddGridCell, onUpdateGridCell, onPushSnapshot,
   breakpoint = 'desktop', theme,
 }: Props) {
   const [selectedColIdx, setSelectedColIdx] = useState(0);
@@ -359,11 +360,28 @@ export function SectionPanel({
                   );
                 })}
               </div>
-              {onAddGridCell && (
-                <button className={'pb-grid-col-add-btn'} onClick={() => onAddGridCell(section.id)}>
-                  <span>+</span> Add Column
-                </button>
-              )}
+              <div style={{ display: 'flex', gap: 4 }}>
+                {onAddGridCell && (
+                  <button className={'pb-grid-col-add-btn'} style={{ flex: 1 }} onClick={() => onAddGridCell(section.id)}>
+                    <span>+</span> Add Column
+                  </button>
+                )}
+                {onUpdateGridCell && section.children.length > 1 && (
+                  <button
+                    className={'pb-grid-col-add-btn'}
+                    title="Distribute all columns to equal widths"
+                    onClick={() => {
+                      onPushSnapshot(snapshot);
+                      const n = section.children.length;
+                      const base = Math.floor(12 / n);
+                      const rem = 12 - base * n;
+                      section.children.forEach((cellId, i) => {
+                        onUpdateGridCell(cellId, { columnSpan: base + (i < rem ? 1 : 0) });
+                      });
+                    }}
+                  >= Equal</button>
+                )}
+              </div>
             </div>
           </>
         )}

@@ -2120,7 +2120,8 @@
   white-space: nowrap;
 }
 
-.pb-el-quick-bar .pb-el-quick-btn {
+.pb-el-quick-bar .pb-el-quick-btn,
+.pb-grid-el-quick-bar .pb-el-quick-btn {
   background: transparent;
   border: none;
   color: #ffffff;
@@ -2135,22 +2136,25 @@
   transition: background 0.1s, color 0.1s;
 }
 
-.pb-el-quick-bar .pb-el-quick-btn:hover {
+.pb-el-quick-bar .pb-el-quick-btn:hover,
+.pb-grid-el-quick-bar .pb-el-quick-btn:hover {
   background: rgba(255,255,255,0.14);
 }
 
-.pb-el-quick-bar .pb-el-quick-btn.pb-danger {
+.pb-el-quick-bar .pb-el-quick-btn.pb-danger,
+.pb-grid-el-quick-bar .pb-el-quick-btn.pb-danger {
   color: #f87171;
 }
 
-.pb-el-quick-bar .pb-el-quick-btn.pb-danger:hover {
+.pb-el-quick-bar .pb-el-quick-btn.pb-danger:hover,
+.pb-grid-el-quick-bar .pb-el-quick-btn.pb-danger:hover {
   background: #ef4444;
   color: #fff;
 }
 
 /* ─── Grid section ─── */
 .pb-grid-section-surface {
-  padding: 16px 0 8px;
+  padding: 0;
 }
 
 .pb-section-col-usage {
@@ -2178,6 +2182,7 @@
   position: relative;
   width: 100%;
 }
+
 
 
 .pb-grid-cells-row {
@@ -2233,12 +2238,19 @@
   position: relative;
 }
 
-.pb-grid-cell:not(.pb-grid-cell--selected):hover {
+.pb-grid-cell:not(.pb-grid-cell--selected):not(.pb-child-selected):hover {
   outline: 1px dashed #0b978e;
 }
 
 .pb-grid-cell--selected {
   outline: 2px solid #006e75;
+}
+
+/* Parent cell when a child element/container owns selection — subtle tint, no border */
+.pb-grid-cell.pb-child-selected,
+.pb-grid-cell.pb-child-selected:hover {
+  outline: none !important;
+  background: rgba(0, 110, 117, 0.025) !important;
 }
 
 .pb-grid-cell--drop-over {
@@ -2348,12 +2360,18 @@
 .pb-col-resize-handle {
   position: absolute;
   top: 0;
-  right: -5px;
+  right: -3px;
   bottom: 0;
-  width: 10px;
+  width: 6px;
   cursor: col-resize;
   z-index: 40;
   background: transparent;
+  /* Disable by default so the 6px zone doesn't block element drag.
+     Re-enabled on cell-wrapper hover so resize still works. */
+  pointer-events: none;
+}
+.pb-grid-cell-wrapper:hover .pb-col-resize-handle {
+  pointer-events: auto;
 }
 .pb-col-resize-handle::after {
   content: '';
@@ -2468,29 +2486,22 @@
   padding: 6px 6px 20px; /* bottom leaves room for the NESTED label */
 }
 
-/* Sub-cells inside a nested container: purple selection instead of teal */
-.pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell:not(.pb-grid-cell--selected):hover {
-  outline: 1px dashed #8b5cf6;
+/* Sub-cells inside nested containers use the same teal system — nesting depth shown by indentation not color */
+.pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell:not(.pb-grid-cell--selected):not(.pb-child-selected):hover {
+  outline: 1px dashed #0b978e;
 }
 .pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell--selected {
-  outline: 2px solid #7c3aed;
-}
-/* Double-nested sub-cells: blue selection */
-.pb-grid-cell--nested-container .pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell:not(.pb-grid-cell--selected):hover {
-  outline: 1px dashed #3b82f6;
-}
-.pb-grid-cell--nested-container .pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell--selected {
-  outline: 2px solid #2563eb;
+  outline: 2px solid #006e75;
 }
 
-/* Sub-cell empty state: matches nesting color */
+/* Sub-cell empty state */
 .pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell-empty {
-  border-color: #c4b5fd;
-  color: #a78bfa;
+  border-color: rgba(0, 110, 117, 0.3);
+  color: #0b978e;
 }
 .pb-grid-cell--nested-container .pb-nested-grid-container .pb-grid-cell:hover .pb-grid-cell-empty {
-  border-color: #8b5cf6;
-  color: #7c3aed;
+  border-color: #0b978e;
+  color: #006e75;
 }
 
 /* Empty nested grid placeholder */
@@ -2500,12 +2511,12 @@
   align-items: center;
   justify-content: center;
   min-height: 64px;
-  color: #a78bfa;
+  color: #0b978e;
   font-size: 11px;
   font-weight: 500;
-  border: 1.5px dashed #c4b5fd;
+  border: 1.5px dashed rgba(0, 110, 117, 0.35);
   border-radius: 5px;
-  background: rgba(124, 58, 237, 0.03);
+  background: rgba(0, 110, 117, 0.03);
   user-select: none;
 }
 
@@ -2524,14 +2535,20 @@
 .pb-container {
   position: relative;
   width: 100%;
-  border: 1.5px dashed #bfdbfe;
+  border: 1.5px dashed rgba(0, 110, 117, 0.3);
   border-radius: 6px;
   overflow: visible;
 }
 
 .pb-container--selected {
-  border-color: #3b82f6;
+  border-color: #006e75;
   border-style: solid;
+}
+
+/* Dim container when a child element owns selection */
+.pb-container--child-selected {
+  border-color: rgba(0, 110, 117, 0.15);
+  background: rgba(0, 110, 117, 0.02);
 }
 
 .pb-container-actions {
@@ -2544,7 +2561,7 @@
   z-index: 30;
 }
 
-.pb-container-wrapper:hover .pb-container-actions,
+/* Toolbar only shows when container is selected — not on hover */
 .pb-container-actions--expanded {
   display: flex;
   z-index: 30;
@@ -2552,10 +2569,10 @@
 
 .pb-container-label {
   padding: 1px 5px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.25);
   border-radius: 3px;
-  color: #3b82f6;
+  color: #006e75;
   font-size: 9px;
   font-weight: 600;
   line-height: 1.6;
@@ -2567,10 +2584,10 @@
 .pb-container-handle {
   cursor: grab;
   padding: 1px 4px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.25);
   border-radius: 3px;
-  color: #3b82f6;
+  color: #006e75;
   font-size: 11px;
   line-height: 1.4;
   user-select: none;
@@ -2580,16 +2597,36 @@
   cursor: grabbing;
 }
 
+/* Subtle container type label — visible on hover when not selected */
+.pb-container-hover-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(0, 110, 117, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  user-select: none;
+  z-index: 2;
+}
+
+.pb-container-wrapper:hover .pb-container-hover-label {
+  opacity: 1;
+}
+
 .pb-container-delete {
-  background: none;
-  border: 1px solid #bfdbfe;
+  background: rgba(0, 110, 117, 0.06);
+  border: 1px solid rgba(0, 110, 117, 0.2);
   padding: 1px 4px;
   cursor: pointer;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 10px;
   line-height: 1.4;
   border-radius: 3px;
-  background: #eff6ff;
 }
 
 .pb-container-delete:hover {
@@ -2600,8 +2637,8 @@
 
 /* Expanded container toolbar (when selected) */
 .pb-container-actions--expanded {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(0, 110, 117, 0.07);
+  border: 1px solid rgba(0, 110, 117, 0.2);
   border-radius: 4px;
   padding: 2px 4px;
   gap: 3px;
@@ -2623,25 +2660,25 @@
 }
 
 .pb-ctb-mode-btn:hover {
-  background: #dbeafe;
-  color: #3b82f6;
+  background: rgba(0, 110, 117, 0.1);
+  color: #006e75;
 }
 
 .pb-ctb-mode-btn--active {
-  background: #3b82f6;
+  background: #006e75;
   color: #fff;
-  border-color: #2563eb;
+  border-color: #005a60;
 }
 
 .pb-ctb-mode-btn--active:hover {
-  background: #2563eb;
+  background: #005a60;
   color: #fff;
 }
 
 .pb-ctb-sep {
   width: 1px;
   height: 14px;
-  background: #bfdbfe;
+  background: rgba(0, 110, 117, 0.2);
   flex-shrink: 0;
   margin: 0 1px;
 }
@@ -2659,7 +2696,7 @@
   width: 36px;
   padding: 1px 3px;
   font-size: 10px;
-  border: 1px solid #bfdbfe;
+  border: 1px solid rgba(0, 110, 117, 0.25);
   border-radius: 3px;
   background: #fff;
   color: #334155;
@@ -2670,23 +2707,23 @@
   padding: 1px 6px;
   font-size: 9px;
   font-weight: 700;
-  border: 1px solid #bfdbfe;
+  border: 1px solid rgba(0, 110, 117, 0.3);
   border-radius: 3px;
   cursor: pointer;
-  color: #3b82f6;
+  color: #006e75;
   background: none;
   line-height: 1.6;
   letter-spacing: 0.02em;
 }
 
 .pb-ctb-add-btn:hover {
-  background: #3b82f6;
+  background: #006e75;
   color: #fff;
-  border-color: #2563eb;
+  border-color: #005a60;
 }
 
 .pb-container-inner {
-  padding: 6px;
+  padding: 0;
 }
 
 .pb-container-empty {
@@ -2694,12 +2731,17 @@
   align-items: center;
   justify-content: center;
   min-height: 40px;
-  color: #93c5fd;
+  color: #0b978e;
   font-size: 11px;
-  border: 1px dashed #bfdbfe;
+  border: 1px dashed rgba(0, 110, 117, 0.3);
   border-radius: 4px;
-  background: #f0f9ff;
+  background: rgba(0, 110, 117, 0.03);
   user-select: none;
+}
+
+/* ─── Section child-selected state — suppress section border when child owns selection ─── */
+.pb-section--child-selected {
+  outline: none !important;
 }
 
 /* ─── Grid element (inside grid cell) ─── */
@@ -2711,7 +2753,7 @@
   cursor: pointer;
 }
 
-.pb-grid-el:not(.pb-grid-el--selected):hover {
+.pb-grid-el--hovered:not(.pb-grid-el--selected) {
   outline: 1px dashed #0b978e;
 }
 
@@ -3000,4 +3042,12 @@
   font-size: 12px;
   flex-shrink: 0;
   margin-right: 2px;
+}
+
+/* ─── Stabilization: all builder UI transitions/animations disabled ──────
+   Remove this block when interaction model is stable enough to re-add motion.
+   Canvas element .pb-anim-* animations are intentionally excluded.          */
+.pb-app *:not([class*="pb-anim-"]) {
+  transition: none !important;
+  animation: none !important;
 }

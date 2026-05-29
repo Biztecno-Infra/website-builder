@@ -149,13 +149,8 @@ export function GridCellPanel({
         {onDeleteGridCell && (
           <button
             className={'pb-panel-delete-btn'}
-            title="Delete this column"
-            onClick={() => {
-              const parent = nodes[gc.parent];
-              const siblings = (parent && 'children' in parent) ? (parent as { children: string[] }).children.length : 2;
-              if (siblings <= 1) { alert('At least one column is required.'); return; }
-              if (window.confirm('Delete this column and all its content?')) onDeleteGridCell(gc.id);
-            }}
+            title="Delete this column (Ctrl+Z to undo)"
+            onClick={() => { onDeleteGridCell(gc.id); }}
           >✕ Delete</button>
         )}
       </div>

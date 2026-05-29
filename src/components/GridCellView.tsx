@@ -300,6 +300,12 @@ export function GridCellView({
   }, [effectiveMinH, bp, cell, onUpdateCell, onCommit, snapshot]);
 
 
+  // True when a descendant element or container owns selection — cell should show tint, not border
+  const hasSelectedChild = !previewMode && !isSelected && !!(
+    (selectedElementId && cell.children.includes(selectedElementId)) ||
+    (selectedContainerId && cell.children.includes(selectedContainerId))
+  );
+
   // ── Free-canvas branch ────────────────────────────────────────────────────
   if (cellMode === 'free') {
     return (
@@ -309,6 +315,7 @@ export function GridCellView({
         className={[
           'pb-grid-cell',
           isSelected && !previewMode && 'pb-grid-cell--selected',
+          hasSelectedChild && 'pb-child-selected',
           (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
           (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
         ].filter(Boolean).join(' ')}
@@ -369,6 +376,7 @@ export function GridCellView({
       className={[
         'pb-grid-cell',
         isSelected && !previewMode && 'pb-grid-cell--selected',
+        hasSelectedChild && 'pb-child-selected',
         (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
         isGridElOver && 'pb-grid-cell--el-over',
         isRow && 'pb-grid-cell--flex-row',

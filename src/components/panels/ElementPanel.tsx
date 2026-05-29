@@ -769,47 +769,7 @@ export function ElementPanel({
         })()}
       </CollapsibleSection>
 
-      {/* ── Animation ── */}
-      <CollapsibleSection sectionKey="animation" label={<>Animation {allBpBadge}</>}
-        isOpen={sec('animation')} onToggle={toggleSection}>
-        <div className={'pb-prop-row'}>
-          <label>Effect</label>
-          <select value={element.animation.type}
-            onChange={e => commitChange({ animation: { ...element.animation, type: e.target.value as AnimationType } })}>
-            <option value="none">None</option>
-            <option value="fade-in">Fade In</option>
-            <option value="slide-up">Slide Up</option>
-            <option value="slide-left">Slide Left</option>
-            <option value="zoom-in">Zoom In</option>
-          </select>
-        </div>
-        {element.animation.type !== 'none' && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Trigger</label>
-              <select value={element.animation.trigger}
-                onChange={e => commitChange({ animation: { ...element.animation, trigger: e.target.value as AnimationTrigger } })}>
-                <option value="load">On Load</option>
-                <option value="scroll">On Scroll</option>
-              </select>
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Duration</label>
-              <input type="number" value={element.animation.duration} min={100} max={3000} step={100}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeAnim({ duration: Number(e.target.value) })} />
-              <span style={{ fontSize: 11, color: '#888' }}>ms</span>
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Delay</label>
-              <input type="number" value={element.animation.delay} min={0} max={3000} step={100}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeAnim({ delay: Number(e.target.value) })} />
-              <span style={{ fontSize: 11, color: '#888' }}>ms</span>
-            </div>
-          </>
-        )}
-      </CollapsibleSection>
+      {/* Animation panel hidden during stabilization — data + export still intact */}
 
       {/* ── Advanced ── */}
       <CollapsibleSection sectionKey="advanced" label={<>Advanced {allBpBadge}</>}
@@ -820,6 +780,15 @@ export function ElementPanel({
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => changeLayout({ rotation: Number(e.target.value) })} />
           <span style={{ fontSize: 11, color: '#888' }}>°</span>
+        </div>
+        <div className={'pb-prop-row'}>
+          <label>Lock</label>
+          <button
+            className={['pb-toolbar-btn', element.state.locked && 'pb-active'].filter(Boolean).join(' ')}
+            style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
+            title={element.state.locked ? 'Unlock element — allow drag/resize' : 'Lock element — prevent drag/resize'}
+            onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { state: { ...element.state, locked: !element.state.locked } }); }}
+          >{element.state.locked ? '🔒 Locked' : '🔓 Unlocked'}</button>
         </div>
       </CollapsibleSection>
 

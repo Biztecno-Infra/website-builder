@@ -218,8 +218,9 @@ export default function App() {
 
       if (e.key === 'Escape') {
         if (previewMode) { setPreviewMode(false); return; }
-        // Step up selection one level at a time
+        // Bubble up selection one level at a time: element → container → cell → section → deselect
         if (selectedIds.length > 0) { setSelectedIds([]); return; }
+        if (selectedId) { setSelectedId(null); return; }
         if (selectedContainerId) { setSelectedContainerId(null); return; }
         if (selectedGridCellId) { setSelectedGridCellId(null); return; }
         if (selectedSectionId) { setSelectedSectionId(null); return; }
@@ -230,7 +231,8 @@ export default function App() {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        if (selectedIds.length > 0) deleteSelected();
+        if (selectedIds.length > 0) { deleteSelected(); return; }
+        if (selectedId) { deleteElement(selectedId); setSelectedId(null); return; }
         return;
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedId) {
@@ -566,10 +568,10 @@ export default function App() {
               selectedIds={selectedIds}
               selectedSectionId={selectedSectionId}
               selectedGridCellId={selectedGridCellId}
-              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); }}
-              onSelectElement={(id, shift) => shift ? toggleSelectedId(id) : setSelectedId(id)}
-              onSelectGridCell={id => { setSelectedGridCellId(id); }}
-              onDeselect={() => { setSelectedIds([]); setSelectedSectionId(null); setSelectedGridCellId(null); }}
+              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); } }}
+              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); }}
+              onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
               onUpdate={updateElement}
               onCommit={pushSnapshot}
               snapshot={state}

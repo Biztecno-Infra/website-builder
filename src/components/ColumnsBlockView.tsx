@@ -120,6 +120,14 @@ export function ColumnsBlockView({
     ? { display: 'flex', flexDirection: 'column', gap: `${block.gap}px`, width: '100%' }
     : { display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: `${block.gap}px`, width: '100%' };
 
+  // True when a descendant element owns selection — container should dim, not show its own border
+  const hasSelectedChild = !previewMode && !isSelected && !!(
+    selectedElementId && block.children.some(subCellId => {
+      const subCell = nodes[subCellId] as GridCell | undefined;
+      return subCell?.children.includes(selectedElementId);
+    })
+  );
+
   return (
     <div
       ref={combinedRef}
@@ -127,9 +135,12 @@ export function ColumnsBlockView({
       style={{ opacity: isDragging ? 0.35 : 1 }}
     >
       <div
-        className={['pb-container', isSelected ? 'pb-container--selected' : ''].filter(Boolean).join(' ')}
+        className={['pb-container', isSelected && 'pb-container--selected', hasSelectedChild && 'pb-container--child-selected'].filter(Boolean).join(' ')}
         onClick={e => { e.stopPropagation(); if (!previewMode) onSelectContainer?.(block.id); }}
       >
+        {!previewMode && !isSelected && (
+          <span className={'pb-container-hover-label'} title="Click to select container">{MODE_LABEL[mode]}</span>
+        )}
         {!previewMode && (
           <div
             className={['pb-container-actions', isSelected ? 'pb-container-actions--expanded' : ''].filter(Boolean).join(' ')}
@@ -200,7 +211,7 @@ export function ColumnsBlockView({
               breakpoint={breakpoint}
               previewMode={previewMode}
               isLast={!nextSubCell}
-              onDeleteCell={subCells.length > 1 ? () => onDeleteGridCell?.(subCell.id) : undefined}
+              onDeleteCell={() => onDeleteGridCell?.(subCell.id)}
               onResizeDragStart={nextSubCell ? (e, span, el) => {
                 e.preventDefault();
                 e.stopPropagation();

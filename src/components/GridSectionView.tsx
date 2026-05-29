@@ -140,19 +140,6 @@ export function GridSectionView({
   const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
   const maxW = gridCfg.maxWidth ?? 1280;
 
-  const sectionContentStyle: React.CSSProperties = {
-    position: 'relative', boxSizing: 'border-box', width: '100%',
-    outline: isSelected ? '2px solid #006e75' : undefined, outlineOffset: -2,
-    paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
-    ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
-  };
-
-  const overlayStyle: React.CSSProperties | undefined = bg.overlay > 0 ? {
-    position: 'absolute', inset: 0,
-    backgroundColor: `rgba(0,0,0,${bg.overlay})`,
-    pointerEvents: 'none', zIndex: 0,
-  } : undefined;
-
   const cells = section.children
     .map(id => nodes[id] as GridCell | undefined)
     .filter((c): c is GridCell => !!c);
@@ -162,10 +149,33 @@ export function GridSectionView({
   const scrollBehavior = section.scrollBehavior ?? 'normal';
   const isSticky = scrollBehavior === 'sticky';
   const isFixed  = scrollBehavior === 'fixed';
+  // True when a descendant (cell, element, or container) owns the selection — section should dim
   const hasActiveChild = !!(
     (selectedGridCellId && section.children.includes(selectedGridCellId)) ||
-    (selectedId && nodes[selectedId] && 'parent' in nodes[selectedId]! && section.children.includes((nodes[selectedId] as { parent: string }).parent))
+    (selectedId && (() => {
+      const el = nodes[selectedId];
+      if (!el || !('parent' in el)) return false;
+      const p1 = (el as any).parent as string;
+      if (section.children.includes(p1)) return true;        // element → cell in section
+      const p1Node = nodes[p1];
+      if (!p1Node || !('parent' in p1Node)) return false;
+      const p2 = (p1Node as any).parent as string;
+      return section.children.includes(p2);                  // element → container → cell in section
+    })())
   );
+
+  const sectionContentStyle: React.CSSProperties = {
+    position: 'relative', boxSizing: 'border-box', width: '100%',
+    outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : undefined, outlineOffset: -2,
+    paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
+    ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
+  };
+
+  const overlayStyle: React.CSSProperties | undefined = bg.overlay > 0 ? {
+    position: 'absolute', inset: 0,
+    backgroundColor: `rgba(0,0,0,${bg.overlay})`,
+    pointerEvents: 'none', zIndex: 0,
+  } : undefined;
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
     ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
     : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
@@ -176,7 +186,7 @@ export function GridSectionView({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {!previewMode && (hovered || isSelected) && (
+      {!previewMode && !hasActiveChild && (hovered || isSelected) && (
         <>
           <button
             className={'pb-section-insert-btn pb-section-insert-btn--above'}
@@ -206,6 +216,25 @@ export function GridSectionView({
           </>
         )}
 
+        {/* Label badge lives on pb-section-bg so surface needs no top padding */}
+        {!previewMode && !hasActiveChild && (hovered || isSelected) && (
+          <div
+            className={['pb-section-label-badge', 'pb-section-label-badge--clickable', isSelected && !selectedGridCellId && 'pb-section-label-badge--active'].filter(Boolean).join(' ')}
+            title="Click to select grid section"
+            onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell(null); }}
+          >
+            {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
+            <span className={'pb-section-label-mode'}> · Grid</span>
+            {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
+            {isFixed  && <span className={'pb-section-label-mode'}> · Fixed</span>}
+            {cells.length > 0 && (
+              <span className={['pb-section-col-usage', usedSpan > 12 && 'pb-over', usedSpan === 12 && 'pb-full'].filter(Boolean).join(' ')}>
+                {usedSpan}/12
+              </span>
+            )}
+          </div>
+        )}
+
         <div
           className={"pb-section-surface pb-grid-section-surface"}
           data-section-id={section.id}
@@ -215,25 +244,7 @@ export function GridSectionView({
             e.stopPropagation(); onSelectSection(); onSelectGridCell(null);
           }}
         >
-          {!previewMode && (hovered || isSelected) && (
-            <div
-              className={['pb-section-label-badge', 'pb-section-label-badge--clickable', isSelected && !selectedGridCellId && 'pb-section-label-badge--active'].filter(Boolean).join(' ')}
-              title="Click to select grid section"
-              onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell(null); }}
-            >
-              {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
-              <span className={'pb-section-label-mode'}> · Grid</span>
-              {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
-              {isFixed  && <span className={'pb-section-label-mode'}> · Fixed</span>}
-              {cells.length > 0 && (
-                <span className={['pb-section-col-usage', usedSpan > 12 && 'pb-over', usedSpan === 12 && 'pb-full'].filter(Boolean).join(' ')}>
-                  {usedSpan}/12
-                </span>
-              )}
-            </div>
-          )}
-
-          {!previewMode && isSelected && (
+          {!previewMode && isSelected && !hasActiveChild && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
               <button className={'pb-section-action-btn'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>

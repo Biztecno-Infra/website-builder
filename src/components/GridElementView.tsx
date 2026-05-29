@@ -74,12 +74,13 @@ export function GridElementView({
   const el = applyBreakpoint(rawEl, breakpoint);
 
   const [editing, setEditing] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   // ── Drag source ──────────────────────────────────────────────────────────
   const [{ isDragging }, dragRef] = useDrag<GridElDragItem, void, { isDragging: boolean }>({
     type: GRID_EL_DND_TYPE,
     item: { kind: 'element', elementId: rawEl.id, sourceCellId: cellId, fromChildIdx: childIdx, sourceCellMode: cellMode },
-    canDrag: !previewMode && !editing && !disableDrag,
+    canDrag: !previewMode && !editing && !disableDrag && !rawEl.state.locked,
     collect: m => ({ isDragging: m.isDragging() }),
   });
 
@@ -181,7 +182,7 @@ export function GridElementView({
       <div
         ref={mergedRef}
         data-el-id={rawEl.id}
-        className={['pb-grid-el', isSelected && !previewMode && 'pb-grid-el--selected', isDragging && 'pb-grid-el--dragging'].filter(Boolean).join(' ')}
+        className={['pb-grid-el', isSelected && !previewMode && 'pb-grid-el--selected', hovered && !isSelected && !previewMode && 'pb-grid-el--hovered', isDragging && 'pb-grid-el--dragging'].filter(Boolean).join(' ')}
         style={{
           position: 'absolute',
           left: rawEl.layout.x,
@@ -198,6 +199,8 @@ export function GridElementView({
         }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         onContextMenu={e => { if (!previewMode) e.preventDefault(); }}
       >
         <ElementContent
@@ -228,6 +231,7 @@ export function GridElementView({
       className={[
         'pb-grid-el',
         isSelected && !previewMode && 'pb-grid-el--selected',
+        hovered && !isSelected && !previewMode && 'pb-grid-el--hovered',
         isDragging && 'pb-grid-el--dragging',
       ].filter(Boolean).join(' ')}
       style={{
@@ -245,6 +249,8 @@ export function GridElementView({
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       onContextMenu={e => { if (!previewMode) e.preventDefault(); }}
     >
       <ElementContent

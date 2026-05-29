@@ -253,21 +253,23 @@ function buildTwoColumn(ids: TemplateIds): TemplateResult {
   const sp2 = mkSp(ids.el(), cleft, 18);
   const body = mkText(ids.el(), cleft, 'Describe the value you provide in a couple of sentences. Focus on outcomes your customers care about most.', 16, 'normal', '#475569', 'left', 72, 1.75);
   const sp3 = mkSp(ids.el(), cleft, 12);
-  const chk = mkText(ids.el(), cleft, '✓  Benefit one\n✓  Benefit two\n✓  Benefit three', 15, 'normal', '#475569', 'left', 72, 2.1);
+  const chk1 = mkText(ids.el(), cleft, '✓  Benefit one',   15, 'normal', '#475569', 'left', 26, 1.6);
+  const chk2 = mkText(ids.el(), cleft, '✓  Benefit two',   15, 'normal', '#475569', 'left', 26, 1.6);
+  const chk3 = mkText(ids.el(), cleft, '✓  Benefit three', 15, 'normal', '#475569', 'left', 26, 1.6);
   const sp4 = mkSp(ids.el(), cleft, 32);
   const btn = mkBtn(ids.el(), cleft, 'Learn More →', '#0f172a', '#ffffff');
 
   const img = mkImg(ids.el(), cright, 380);
 
-  const cellL = mkCell(cleft, secId, 6, [eye.id, sp1.id, h2.id, sp2.id, body.id, sp3.id, chk.id, sp4.id, btn.id],
-    'column', 'flex-start', 'center', 0, pad(0, 60, 0, 60), 'transparent',
+  const cellL = mkCell(cleft, secId, 6, [eye.id, sp1.id, h2.id, sp2.id, body.id, sp3.id, chk1.id, chk2.id, chk3.id, sp4.id, btn.id],
+    'column', 'flex-start', 'center', 6, pad(0, 60, 0, 60), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
   const cellR = mkCell(cright, secId, 6, [img.id],
     'column', 'center', 'center', 0, pad(20, 40), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
   const sec = mkSec(secId, [cleft, cright], secSolid('#ffffff'), 0, 0, pad(80, 0), 'Two Column');
 
-  reg(nodes, eye, sp1, h2, sp2, body, sp3, chk, sp4, btn, img, cellL, cellR, sec);
+  reg(nodes, eye, sp1, h2, sp2, body, sp3, chk1, chk2, chk3, sp4, btn, img, cellL, cellR, sec);
   return { sectionId: secId, nodes };
 }
 
@@ -430,18 +432,28 @@ function buildFooter(ids: TemplateIds): TemplateResult {
 
   const colTitle1 = mkText(ids.el(), cm, 'PRODUCT', 11, '700', '#e2e8f0', 'left', 20, 1);
   const dv1 = mkDivider(ids.el(), cm, '#374151');
-  const links1 = mkText(ids.el(), cm, 'Features\nPricing\nChangelog\nDocs', 13, 'normal', '#6b7280', 'left', 88, 2.2);
-  const cellM = mkCell(cm, secId, 3, [colTitle1.id, dv1.id, links1.id], 'column', 'flex-start', 'flex-start', 0, pad(48, 24),
+  const lnk1a = mkText(ids.el(), cm, 'Features',  13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1b = mkText(ids.el(), cm, 'Pricing',   13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1c = mkText(ids.el(), cm, 'Changelog', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1d = mkText(ids.el(), cm, 'Docs',      13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const cellM = mkCell(cm, secId, 3, [colTitle1.id, dv1.id, lnk1a.id, lnk1b.id, lnk1c.id, lnk1d.id],
+    'column', 'flex-start', 'flex-start', 6, pad(48, 24),
     'transparent', { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } });
 
   const colTitle2 = mkText(ids.el(), cr, 'COMPANY', 11, '700', '#e2e8f0', 'left', 20, 1);
   const dv2 = mkDivider(ids.el(), cr, '#374151');
-  const links2 = mkText(ids.el(), cr, 'About\nBlog\nCareers\nContact', 13, 'normal', '#6b7280', 'left', 88, 2.2);
-  const cellR = mkCell(cr, secId, 4, [colTitle2.id, dv2.id, links2.id], 'column', 'flex-start', 'flex-start', 0, pad(48, 32, 48, 24),
+  const lnk2a = mkText(ids.el(), cr, 'About',   13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2b = mkText(ids.el(), cr, 'Blog',    13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2c = mkText(ids.el(), cr, 'Careers', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2d = mkText(ids.el(), cr, 'Contact', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const cellR = mkCell(cr, secId, 4, [colTitle2.id, dv2.id, lnk2a.id, lnk2b.id, lnk2c.id, lnk2d.id],
+    'column', 'flex-start', 'flex-start', 6, pad(48, 32, 48, 24),
     'transparent', { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } });
 
   const sec = mkSec(secId, [cl, cm, cr], secSolid('#111827'), 0, 0, pad(0), 'Footer');
-  reg(nodes, logo, sp1, desc, sp2, copy, cellL, colTitle1, dv1, links1, cellM, colTitle2, dv2, links2, cellR, sec);
+  reg(nodes, logo, sp1, desc, sp2, copy, cellL,
+    colTitle1, dv1, lnk1a, lnk1b, lnk1c, lnk1d, cellM,
+    colTitle2, dv2, lnk2a, lnk2b, lnk2c, lnk2d, cellR, sec);
   return { sectionId: secId, nodes };
 }
 

@@ -521,6 +521,8 @@ function generateCellCSS(
       }
     }
     if (tCell?.minHeight !== undefined && tCell.layoutMode !== 'free') tParts.push(`min-height:${tCell.minHeight}px`);
+    // freeHeight override when cell stays in free mode across breakpoints
+    if (isFreeCell && tCell?.layoutMode === undefined && tCell?.freeHeight !== undefined) tParts.push(`height:${tCell.freeHeight}px`);
     if (tCell?.alignItems !== undefined) tParts.push(`align-items:${tCell.alignItems}`);
     if (tCell?.justifyContent !== undefined) tParts.push(`justify-content:${tCell.justifyContent}`);
     if (tParts.length) tabletRules.push(`.gc-${cell.id}{${tParts.join(';')}}`);
@@ -528,6 +530,8 @@ function generateCellCSS(
 
   // Mobile cell overrides
   const mCell = cell.responsive.mobile;
+  const effectiveTabletMode = tCell?.layoutMode ?? desktopMode;
+  const isFreeAtMobile = effectiveTabletMode === 'free';
   if (mCell?.hidden) {
     mobileRules.push(`.gc-${cell.id}{display:none}`);
   } else {
@@ -535,13 +539,15 @@ function generateCellCSS(
     if (mCell?.columnSpan !== undefined) mParts.push(`grid-column:span ${Math.min(mCell.columnSpan, 12)}`);
     if (mCell?.layoutMode !== undefined) {
       if (mCell.layoutMode === 'free') {
-        const freeH = mCell.freeHeight ?? cell.freeHeight ?? 320;
+        const freeH = mCell.freeHeight ?? tCell?.freeHeight ?? cell.freeHeight ?? 320;
         mParts.push(`position:relative;height:${freeH}px;overflow:hidden;display:block`);
       } else {
         mParts.push(`display:flex;${cellDirectionCss(mCell.layoutMode)}`);
       }
     }
     if (mCell?.minHeight !== undefined && mCell.layoutMode !== 'free') mParts.push(`min-height:${mCell.minHeight}px`);
+    // freeHeight override when cell stays in free mode across breakpoints
+    if (isFreeAtMobile && mCell?.layoutMode === undefined && mCell?.freeHeight !== undefined) mParts.push(`height:${mCell.freeHeight}px`);
     if (mCell?.alignItems !== undefined) mParts.push(`align-items:${mCell.alignItems}`);
     if (mCell?.justifyContent !== undefined) mParts.push(`justify-content:${mCell.justifyContent}`);
     if (mParts.length) mobileRules.push(`.gc-${cell.id}{${mParts.join(';')}}`);

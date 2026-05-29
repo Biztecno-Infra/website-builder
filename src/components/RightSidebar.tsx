@@ -92,6 +92,7 @@ export function RightSidebar({
         snapshot={snapshot}
         onUpdateSection={onUpdateSection}
         onAddGridCell={onAddGridCell}
+        onUpdateGridCell={onUpdateGridCell}
         onPushSnapshot={onPushSnapshot}
         breakpoint={breakpoint}
         theme={theme}

@@ -151,16 +151,18 @@ function appendToParent(nodes: NodeMap, parentId: string, childId: string): void
   }
 }
 
-function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, themeFont?: string): CanvasElement {
+function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, theme?: SiteTheme): CanvasElement {
   const offset = (count % 8) * 20;
   const cx = Math.round(CANVAS_W / 2 - 100 + offset);
   const cy = Math.round(150 + offset);
   const id = newId();
+  const tc = theme?.colors ?? DEFAULT_THEME.colors;
+  const tf = theme?.fonts.body ?? DEFAULT_STYLE.typography.family;
 
   const base: CanvasElement = {
     id, type, parent: parentId,
     layout: { x: dropX ?? cx, y: dropY ?? cy, width: 200, height: 100, zIndex: count, rotation: 0 },
-    style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: themeFont ?? DEFAULT_STYLE.typography.family } },
+    style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: tf, color: tc.text } },
     content: { ...DEFAULT_CONTENT },
     interaction: { ...DEFAULT_INTERACTION },
     animation: { ...DEFAULT_ANIMATION },
@@ -172,12 +174,12 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
   switch (type) {
     case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, content: { ...base.content, plain: 'Click to edit text' } };
     case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
-    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: '#0B978E' }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
-    case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: '#f1f5f9' }, border: { radius: 0, width: 2, color: '#cbd5e1', style: 'solid' } } };
-    case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: '#dddddd' }, border: { ...base.style.border, radius: 2 } } };
+    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: tc.primary }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
+    case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { radius: 0, width: 2, color: tc.light, style: 'solid' } } };
+    case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { ...base.style.border, radius: 2 } } };
     case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
     case 'spacer':  return { ...base, layout: { ...base.layout, width: 200, height: 60 } };
-    case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: '#006e75' } } };
+    case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: tc.primary } } };
   }
 }
 
@@ -697,7 +699,7 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const cell = s.nodes[cellId] as GridCell | undefined;
     if (!cell) return;
-    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme.fonts.body);
+    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme);
     push(s);
     setState(prev => {
       const c = prev.nodes[cellId] as GridCell | undefined;
@@ -727,7 +729,7 @@ export function useBuilderStore() {
       }
       return;
     }
-    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme.fonts.body);
+    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme);
     push(s);
     setState(prev => {
       const section = prev.nodes[sectionId] as Section | undefined;
@@ -741,7 +743,7 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const node = s.nodes[sectionId];
     if (!node || !isFreeSection(node)) return;  // grid sections don't accept direct element drops
-    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme.fonts.body);
+    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme);
     push(s);
     setState(prev => {
       const sec = prev.nodes[sectionId];
@@ -1023,7 +1025,7 @@ export function useBuilderStore() {
     const sec = makeSection(secId, 'section', {
       label: `Grid Section ${page.sections.length + 1}`,
       layoutMode: 'grid',
-      grid: { gap: 16, rowGap: 16, contentWidth: 'constrained', maxWidth: 1280 },
+      grid: { gap: 16, rowGap: 0, contentWidth: 'constrained', maxWidth: 1280 },
       children: cellIds,
     }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
