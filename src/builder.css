@@ -49,11 +49,37 @@
 .pb-left-panel {
   display: flex;
   flex-direction: row;
-  width: 16.8rem;
+  position: relative;
   flex-shrink: 0;
   height: 100vh;
   border-right: 1px solid #dddddd;
   background: #ffffff;
+}
+
+.pb-left-panel-resizer {
+  position: absolute;
+  right: -3px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.pb-left-panel-resizer::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.pb-left-panel-resizer:hover::after {
+  background: #006e75;
+  opacity: 0.5;
 }
 
 /* ─── Tab strip ─── */

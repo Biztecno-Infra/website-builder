@@ -195,6 +195,10 @@ interface Props {
   onApplyTheme: () => void;
 }
 
+const MIN_WIDTH = 220;
+const MAX_WIDTH = 520;
+const DEFAULT_WIDTH = 268; // 16.8rem
+
 export function LeftSidebar({
   onAdd, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
   selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
@@ -206,9 +210,31 @@ export function LeftSidebar({
 }: Props) {
   const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme'>('elements');
   const [templatesOpen, setTemplatesOpen] = useState(true);
+  const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
+
+  const handleResizerMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMouseMove = (ev: MouseEvent) => {
+      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startWidth + ev.clientX - startX));
+      setPanelWidth(next);
+    };
+    const onMouseUp = () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
 
   return (
-    <div className={'pb-left-panel'}>
+    <div className={'pb-left-panel'} style={{ width: panelWidth }}>
       <div className={'pb-tab-strip'}>
         <button className={['pb-tab-btn', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('elements')} title="Elements">
@@ -337,6 +363,8 @@ export function LeftSidebar({
       {activeTab === 'theme' && (
         <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} />
       )}
+
+      <div className={'pb-left-panel-resizer'} onMouseDown={handleResizerMouseDown} />
     </div>
   );
 }
