@@ -446,8 +446,19 @@ export function LayerPanel({
   const layerListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const selected = layerListRef.current?.querySelector<HTMLElement>('.pb-selected');
-    selected?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    // Delay so collapsed sections have time to expand (setCollapsed re-render) before scrolling
+    const t = setTimeout(() => {
+      const list = layerListRef.current;
+      if (!list) return;
+      const selected = list.querySelector<HTMLElement>('.pb-selected');
+      if (!selected) return;
+      const listTop = list.getBoundingClientRect().top;
+      const elTop = selected.getBoundingClientRect().top;
+      const relativeTop = elTop - listTop + list.scrollTop;
+      // Centre the row in the visible area
+      list.scrollTo({ top: relativeTop - list.clientHeight / 2 + selected.offsetHeight / 2 });
+    }, 60);
+    return () => clearTimeout(t);
   }, [selectedIds, selectedSectionId]);
 
   function countCellElementsDeep(cell: GridCell): number {
