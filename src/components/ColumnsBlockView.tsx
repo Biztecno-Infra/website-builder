@@ -272,7 +272,19 @@ export function ColumnsBlockView({
             );
           })}
           {subCells.length === 0 && !previewMode && (
-            <div className={'pb-container-empty'}>No columns yet</div>
+            <div className={'pb-container-empty'}>
+              <span style={{ marginBottom: 6, color: '#94a3b8', fontSize: 11 }}>Empty container</span>
+              <button
+                className={'pb-container-empty-add'}
+                onClick={e => { e.stopPropagation(); onAddSubCell?.(block.id); }}
+                title="Add a column to this container"
+              >+ Add Column</button>
+              <button
+                className={'pb-container-empty-remove'}
+                onClick={e => { e.stopPropagation(); onRemoveColumnsBlock(block.id); }}
+                title="Remove this empty container"
+              >Remove container</button>
+            </div>
           )}
         </div>
       </div>

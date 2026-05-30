@@ -93,6 +93,7 @@ export interface ElementContent {
   videoUrl?: string;
   iconName?: string;
   iconSize?: number;
+  iconSvg?: string;
 }
 
 export type InteractionType = 'link' | 'scroll-to-section' | 'scroll-to-top';

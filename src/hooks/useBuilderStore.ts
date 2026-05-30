@@ -1102,17 +1102,30 @@ export function useBuilderStore() {
     const node = stateRef.current.nodes[id];
     if (!node || !isGridCell(node)) return;
     const cell = node as GridCell;
+    const parentId = cell.parent;
+    const parentNode = stateRef.current.nodes[parentId];
     push(stateRef.current);
     setState(s => {
       const nodes = { ...s.nodes };
       removeGridCellNodes(nodes, cell);
       delete nodes[id];
-      const parent = nodes[cell.parent] as Section | GridCell | undefined;
-      if (parent) nodes[cell.parent] = { ...parent, children: parent.children.filter(c => c !== id) } as typeof parent;
+      const parent = nodes[parentId] as Section | GridCell | undefined;
+      if (parent) nodes[parentId] = { ...parent, children: parent.children.filter(c => c !== id) } as typeof parent;
       return { ...s, nodes };
     });
-    setSelectedGridCellId(null);
     setSelectedIds([]);
+    // After delete: navigate to parent context so user keeps their place
+    if (parentNode && isSection(parentNode)) {
+      // Deleted a top-level cell — select the section
+      setSelectedSectionId(parentId);
+      setSelectedGridCellId(null);
+    } else if (parentNode && isContainer(parentNode)) {
+      // Deleted a sub-cell inside a container — select the container's parent cell
+      const containerParentCellId = (parentNode as Container).parent;
+      setSelectedGridCellId(containerParentCellId ?? null);
+    } else {
+      setSelectedGridCellId(null);
+    }
   }, [push]);
 
   const reorderGridCell = useCallback((parentId: string, fromIndex: number, toIndex: number) => {
@@ -1184,7 +1197,7 @@ export function useBuilderStore() {
       return { ...s, nodes };
     });
     setSelectedIds([]);
-    setSelectedGridCellId(null);
+    setSelectedGridCellId(block.parent);  // select parent cell so user keeps context
   }, [push]);
 
   const updateContainer = useCallback((id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap' | 'responsive'>>) => {

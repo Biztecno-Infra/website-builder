@@ -25,9 +25,6 @@ interface Props {
   onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onCopyStyle?: () => void;
-  onPasteStyle?: () => void;
-  hasCopiedStyle?: boolean;
   theme: SiteTheme;
 }
 
@@ -39,7 +36,6 @@ export function RightSidebar({
   onPushSnapshot, onDelete,
   container, onUpdateContainer,
   breakpoint = 'desktop', onUpdateResponsive,
-  onCopyStyle, onPasteStyle, hasCopiedStyle = false,
   theme,
 }: Props) {
   if (!element && container && onUpdateContainer) {
@@ -122,9 +118,6 @@ export function RightSidebar({
       onDelete={onDelete}
       breakpoint={breakpoint}
       onUpdateResponsive={onUpdateResponsive}
-      onCopyStyle={onCopyStyle}
-      onPasteStyle={onPasteStyle}
-      hasCopiedStyle={hasCopiedStyle}
       theme={theme}
     />
   );

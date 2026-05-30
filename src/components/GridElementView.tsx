@@ -1,4 +1,5 @@
 ﻿import React, { useCallback, useRef, useState } from 'react';
+import { richTextState } from '../utils/richTextState';
 import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';
@@ -147,6 +148,10 @@ export function GridElementView({
 
   const handleEditBlur = () => {
     if (!editing) return;
+    if (richTextState.applyingFormat) {
+      setTimeout(() => editRef.current?.focus(), 0);
+      return;
+    }
     const html = editRef.current?.innerHTML ?? '';
     const text = editRef.current?.innerText ?? '';
     onCommit(snapshot);
@@ -157,7 +162,10 @@ export function GridElementView({
 
   const handleEditKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      if (editRef.current) editRef.current.innerText = el.type === 'button' ? (el.content.label ?? '') : (el.content.plain ?? '');
+      if (editRef.current) {
+        if (el.type === 'button') editRef.current.innerText = el.content.label ?? '';
+        else editRef.current.innerHTML = el.content.rich || el.content.plain || '';
+      }
       setEditing(false);
     }
     if (e.key === 'Enter' && el.type === 'button') {

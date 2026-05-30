@@ -92,7 +92,6 @@ export default function App() {
   const [previewMode, setPreviewMode] = useState(false);
   const [previewMobile, setPreviewMobile] = useState(false);
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
-  const [styleClipboard, setStyleClipboard] = useState<CanvasElement['style'] | null>(null);
 
   const changeZoom = useCallback((delta: number) =>
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
@@ -102,6 +101,8 @@ export default function App() {
     const el = document.querySelector<HTMLElement>(`[data-el-id="${id}"]`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.remove('pb-canvas-el--flash');
+    void el.offsetWidth; // force reflow so animation restarts every time
     el.classList.add('pb-canvas-el--flash');
     setTimeout(() => el.classList.remove('pb-canvas-el--flash'), 1300);
   }, []);
@@ -367,7 +368,7 @@ export default function App() {
           header={header}
           sections={sections}
           footer={footer}
-          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); }}
+          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
           pages={pages}
           activePageId={activePageId}
           onSetActivePage={setActivePage}
@@ -629,9 +630,6 @@ export default function App() {
               onDelete={deleteElement}
               breakpoint={breakpoint}
               onUpdateResponsive={updateResponsive}
-              onCopyStyle={selectedElement ? () => setStyleClipboard(selectedElement.style) : undefined}
-              onPasteStyle={selectedElement && styleClipboard ? () => { pushSnapshot(state); updateElement(selectedElement.id, { style: styleClipboard }); } : undefined}
-              hasCopiedStyle={styleClipboard !== null}
               theme={state.theme}
             />
           </div>

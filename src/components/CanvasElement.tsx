@@ -1,5 +1,6 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import type { CanvasElement as El, BuilderState } from '../types';
+import { richTextState } from '../utils/richTextState';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
@@ -222,6 +223,11 @@ export function CanvasElement({
 
   const handleEditBlur = () => {
     if (!editing) return;
+    if (richTextState.applyingFormat) {
+      // A sidebar formatting button was clicked — stay in edit mode and re-focus
+      setTimeout(() => editRef.current?.focus(), 0);
+      return;
+    }
     const html = editRef.current?.innerHTML ?? '';
     const text = editRef.current?.innerText ?? '';
     onCommit(snapshot);
@@ -232,7 +238,10 @@ export function CanvasElement({
 
   const handleEditKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
-      editRef.current!.innerText = el.type === 'button' ? (el.content.label ?? '') : (el.content.plain ?? '');
+      if (editRef.current) {
+        if (el.type === 'button') editRef.current.innerText = el.content.label ?? '';
+        else editRef.current.innerHTML = el.content.rich || el.content.plain || '';
+      }
       setEditing(false);
     }
     if (e.key === 'Enter' && el.type === 'button') {
@@ -348,20 +357,6 @@ export function CanvasElement({
       onDoubleClick={previewMode ? undefined : handleDoubleClick}
       onContextMenu={previewMode ? undefined : handleContextMenu}
     >
-      {editing && el.type === 'text' && (
-        <div className={'pb-rich-text-toolbar'} onMouseDown={e => e.preventDefault()}>
-          <button onClick={() => document.execCommand('bold')}><b>B</b></button>
-          <button onClick={() => document.execCommand('italic')}><i>I</i></button>
-          <button onClick={() => document.execCommand('underline')}><u>U</u></button>
-          <button onClick={() => document.execCommand('strikeThrough')}><s>S</s></button>
-          <div className={'pb-rich-toolbar-sep'} />
-          <button onClick={() => {
-            const url = prompt('Enter URL:');
-            if (url) document.execCommand('createLink', false, url);
-          }}>🔗</button>
-          <button onClick={() => document.execCommand('unlink')} title="Remove link">✕🔗</button>
-        </div>
-      )}
       <ElementContent el={el} editing={editing} editRef={editRef}
         onBlur={handleEditBlur} onKeyDown={handleEditKeyDown} />
 
@@ -589,11 +584,15 @@ export function ElementContent({
   }
 
   if (el.type === 'icon') {
+    const iconSize = el.content.iconSize ?? 40;
+    const iconColor = typography.color;
     return (
       <div style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: padStr }}>
-        <span style={{ fontSize: el.content.iconSize, color: typography.color, lineHeight: 1 }}>
-          {el.content.iconName}
-        </span>
+        {el.content.iconSvg
+          ? <div style={{ width: iconSize, height: iconSize, color: iconColor, flexShrink: 0 }}
+                 dangerouslySetInnerHTML={{ __html: el.content.iconSvg }} />
+          : <span style={{ fontSize: iconSize, color: iconColor, lineHeight: 1 }}>{el.content.iconName ?? '★'}</span>
+        }
       </div>
     );
   }

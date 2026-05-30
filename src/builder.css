@@ -761,10 +761,14 @@
   padding: 3px 7px;
   border-radius: 4px;
   line-height: 1;
-  transition: background 0.1s;
 }
 
 .pb-rich-text-toolbar button:hover { background: #334155; }
+
+.pb-rich-text-toolbar button.pb-rtt-active {
+  background: #334155;
+  color: #38bdf8;
+}
 
 .pb-rich-toolbar-sep {
   width: 1px;
@@ -772,6 +776,27 @@
   background: #334155;
   margin: 0 3px;
 }
+
+.pb-rtt-color-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 700;
+  font-style: normal;
+  user-select: none;
+  border-bottom: 3px solid #e2e8f0;
+  padding: 0 7px;
+  box-sizing: border-box;
+}
+
+.pb-rtt-color-btn:hover { background: #334155; }
 
 /* ─── Theme panel ─── */
 .pb-theme-colors { display: flex; flex-direction: column; gap: 6px; padding: 4px 8px; }
@@ -2624,7 +2649,7 @@
 
 .pb-container-actions {
   position: absolute;
-  bottom: -22px;
+  top: -26px;
   right: 0;
   display: none;
   align-items: center;
@@ -2713,7 +2738,7 @@
   border-radius: 4px;
   padding: 2px 4px;
   gap: 3px;
-  bottom: -28px;
+  top: -30px;
 }
 
 .pb-ctb-mode-btn {
@@ -2799,15 +2824,46 @@
 
 .pb-container-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
-  color: #0b978e;
-  font-size: 11px;
+  gap: 6px;
+  min-height: 64px;
+  padding: 12px;
   border: 1px dashed rgba(0, 110, 117, 0.3);
   border-radius: 4px;
   background: rgba(0, 110, 117, 0.03);
   user-select: none;
+}
+
+.pb-container-empty-add {
+  padding: 4px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #006e75;
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pb-container-empty-add:hover {
+  background: #006e75;
+  color: #fff;
+}
+
+.pb-container-empty-remove {
+  padding: 2px 10px;
+  font-size: 10px;
+  color: #94a3b8;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pb-container-empty-remove:hover {
+  color: #ef4444;
 }
 
 /* ─── Section child-selected state — suppress section border when child owns selection ─── */
@@ -3117,8 +3173,8 @@
 
 /* ─── Stabilization: all builder UI transitions/animations disabled ──────
    Remove this block when interaction model is stable enough to re-add motion.
-   Canvas element .pb-anim-* animations are intentionally excluded.          */
-.pb-app *:not([class*="pb-anim-"]) {
+   Canvas element .pb-anim-* and the layer-panel flash are intentionally excluded. */
+.pb-app *:not([class*="pb-anim-"]):not(.pb-canvas-el--flash) {
   transition: none !important;
   animation: none !important;
 }

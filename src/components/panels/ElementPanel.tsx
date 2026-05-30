@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import type {
   Breakpoint, BorderStyle, BgType, AnimationType, AnimationTrigger,
   CanvasElement, BuilderState, TextAlign, ObjectFit,
@@ -8,6 +8,7 @@ import type {
   InteractionType, ElementInteraction, Section,
 } from '../../types';
 import { applyBreakpoint, CANVAS_W } from '../../hooks/useBuilderStore';
+import { richTextState } from '../../utils/richTextState';
 import { injectGoogleFont } from '../../utils/fonts';
 import { ThemeSwatches } from './ThemeSwatches';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
@@ -32,21 +33,50 @@ interface Props {
   onDelete: (id: string) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onCopyStyle?: () => void;
-  onPasteStyle?: () => void;
-  hasCopiedStyle?: boolean;
   theme: SiteTheme;
 }
 
 export function ElementPanel({
   element, isInGridCell = false, nodes, snapshot,
   onUpdate, onPushSnapshot, onDelete,
-  breakpoint = 'desktop', onUpdateResponsive,
-  onCopyStyle, onPasteStyle, hasCopiedStyle = false, theme,
+  breakpoint = 'desktop', onUpdateResponsive, theme,
 }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
   const [flexAdvanced, setFlexAdvanced] = useState(false);
+  const sidebarEditRef = useRef<HTMLDivElement>(null);
   const { sec, toggle: toggleSection } = usePanelSections(ELEMENT_SECTION_DEFAULTS, 'builder-sidebar-el');
+
+  // Sync sidebar rich text div when element changes (e.g. different element selected)
+  useEffect(() => {
+    const div = sidebarEditRef.current;
+    if (!div) return;
+    const current = div.innerHTML;
+    const target = element.content.rich || element.content.plain || '';
+    if (current !== target) div.innerHTML = target;
+  }, [element.id, element.content.rich, element.content.plain]);
+
+  // Save selection into richTextState on every selectionchange inside a contentEditable
+  useEffect(() => {
+    const onSelChange = () => {
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+      const range = sel.getRangeAt(0);
+      const node = range.commonAncestorContainer as Element;
+      const editable = (node.nodeType === 1 ? node : node.parentElement)?.closest('[contenteditable]');
+      if (editable) richTextState.savedRange = range.cloneRange();
+    };
+    document.addEventListener('selectionchange', onSelChange);
+    return () => document.removeEventListener('selectionchange', onSelChange);
+  }, []);
+
+  const applyInlineFormat = (cmd: string, value?: string) => {
+    const range = richTextState.savedRange;
+    if (!range) return;
+    const sel = window.getSelection();
+    if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+    document.execCommand(cmd, false, value);
+    richTextState.applyingFormat = false;
+  };
 
   const id = element.id;
 
@@ -104,13 +134,6 @@ export function ElementPanel({
       <div className={'pb-panel-header'}>
         <span className={'pb-panel-header-title'}>{elementLabel}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {onCopyStyle && (
-            <button className={'pb-panel-action-btn'} title="Copy style" onClick={onCopyStyle}>⧉ Copy</button>
-          )}
-          {onPasteStyle && (
-            <button className={'pb-panel-action-btn'} title={hasCopiedStyle ? 'Paste style' : 'Copy a style first'}
-              disabled={!hasCopiedStyle} onClick={onPasteStyle}>⊞ Paste</button>
-          )}
           <button className={'pb-delete-btn'} onClick={() => onDelete(id)} title="Delete (Del)">✕</button>
         </div>
       </div>
@@ -310,12 +333,85 @@ export function ElementPanel({
       {/* ── Typography (Text + Button) ── */}
       {(element.type === 'text' || element.type === 'button') && (
         <CollapsibleSection sectionKey="typography" label="Typography" isOpen={sec('typography')} onToggle={toggleSection}>
+
+          {/* Inline formatting — double-click text on canvas, select text, then click below.
+              Selection is tracked automatically via selectionchange and restored before execCommand. */}
+          {element.type === 'text' && (
+            <div style={{ padding: '4px 0 10px', borderBottom: '1px solid #eee' }}>
+              <div style={{ fontSize: 10, color: '#94a3b8', marginBottom: 6, lineHeight: 1.4 }}>
+                Double-click text on canvas → select → apply:
+              </div>
+              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                {([
+                  { label: 'B', tag: 'b', cmd: 'bold',          title: 'Bold' },
+                  { label: 'I', tag: 'i', cmd: 'italic',        title: 'Italic' },
+                  { label: 'U', tag: 'u', cmd: 'underline',     title: 'Underline' },
+                  { label: 'S', tag: 's', cmd: 'strikeThrough', title: 'Strikethrough' },
+                ] as const).map(({ label, tag: Tag, cmd: c, title }) => (
+                  <button key={c}
+                    title={title}
+                    onMouseDown={() => { richTextState.applyingFormat = true; }}
+                    onClick={() => applyInlineFormat(c)}
+                    style={{ width: 28, height: 26, border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  ><Tag style={{ pointerEvents: 'none' }}>{label}</Tag></button>
+                ))}
+                {/* Color picker */}
+                <label
+                  title="Text color"
+                  style={{ width: 28, height: 26, border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, position: 'relative', flexShrink: 0 }}
+                  onMouseDown={() => { richTextState.applyingFormat = true; }}
+                >
+                  <span style={{ borderBottom: '3px solid #006e75', lineHeight: 1, paddingBottom: 1 }}>A</span>
+                  <input
+                    type="color"
+                    style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+                    tabIndex={-1}
+                    onChange={e => applyInlineFormat('foreColor', e.target.value)}
+                    onClick={e => e.stopPropagation()}
+                  />
+                </label>
+                <button
+                  title="Clear all inline formatting"
+                  onMouseDown={() => { richTextState.applyingFormat = true; }}
+                  onClick={() => applyInlineFormat('removeFormat')}
+                  style={{ padding: '0 8px', height: 26, border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 10, color: '#64748b' }}
+                >Clear</button>
+                <button
+                  title="Wrap selection in a link"
+                  onMouseDown={() => { richTextState.applyingFormat = true; }}
+                  onClick={() => { const url = prompt('URL (include https://)'); if (url) applyInlineFormat('createLink', url); else richTextState.applyingFormat = false; }}
+                  style={{ padding: '0 8px', height: 26, border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 10, color: '#64748b' }}
+                >Link</button>
+                <button
+                  title="Remove link"
+                  onMouseDown={() => { richTextState.applyingFormat = true; }}
+                  onClick={() => applyInlineFormat('unlink')}
+                  style={{ padding: '0 8px', height: 26, border: '1px solid #e2e8f0', borderRadius: 4, background: '#fff', cursor: 'pointer', fontSize: 10, color: '#64748b' }}
+                >Unlink</button>
+              </div>
+            </div>
+          )}
+
           {element.type === 'text' && (
             <div className={"pb-prop-row pb-full"}>
               <label>Text</label>
-              <textarea value={element.content.plain} rows={3}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeContent({ plain: e.target.value })} />
+              <div
+                ref={sidebarEditRef}
+                contentEditable
+                suppressContentEditableWarning
+                style={{ minHeight: 64, padding: '6px 8px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, lineHeight: 1.5, background: '#fff', outline: 'none', wordBreak: 'break-word', cursor: 'text' }}
+                onFocus={onFocus}
+                onBlur={() => {
+                  if (richTextState.applyingFormat) return;
+                  onBlur();
+                  const div = sidebarEditRef.current;
+                  if (div) changeContent({ rich: div.innerHTML, plain: div.innerText });
+                }}
+                onInput={() => {
+                  const div = sidebarEditRef.current;
+                  if (div) changeContent({ rich: div.innerHTML, plain: div.innerText });
+                }}
+              />
             </div>
           )}
           {element.type === 'button' && (
@@ -488,16 +584,11 @@ export function ElementPanel({
       {element.type === 'icon' && (
         <CollapsibleSection sectionKey="icon" label="Icon" isOpen={sec('icon')} onToggle={toggleSection}>
           <div className={'pb-prop-row'}>
-            <label>Symbol</label>
-            <input type="text" value={element.content.iconName}
-              onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ iconName: e.target.value })} />
-          </div>
-          <div className={'pb-prop-row'}>
             <label>Size</label>
-            <input type="number" value={element.content.iconSize} min={8} max={200}
+            <input type="number" value={element.content.iconSize ?? 40} min={8} max={200}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ iconSize: Number(e.target.value) })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
           </div>
           <div className={'pb-prop-row'}>
             <label>Color</label>
@@ -505,6 +596,56 @@ export function ElementPanel({
               value={element.style.typography.color.startsWith('#') ? element.style.typography.color : '#333333'}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeTypo({ color: e.target.value })} />
+            <span style={{ fontSize: 10, color: '#888' }}>applies to SVG + symbol</span>
+          </div>
+
+          {/* SVG paste area */}
+          <div style={{ padding: '8px 0 4px' }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6 }}>
+              Paste SVG code
+            </div>
+            <textarea
+              rows={5}
+              placeholder={'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">\n  <path d="M12 2..."/>\n</svg>'}
+              value={element.content.iconSvg ?? ''}
+              style={{ width: '100%', fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 4, padding: '6px 8px', color: '#334155', background: '#f8fafc', lineHeight: 1.5 }}
+              onChange={e => {
+                onPushSnapshot(snapshot);
+                const raw = e.target.value.trim();
+                if (!raw) { changeContent({ iconSvg: undefined }); return; }
+                // Sanitize: strip scripts and event handlers
+                let clean = raw
+                  .replace(/<script[\s\S]*?<\/script>/gi, '')
+                  .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
+                  .replace(/javascript:/gi, '');
+                // Make color-controllable: set fill="currentColor" on the <svg> root
+                // so the element's Color picker works
+                clean = clean.replace(/(<svg\b[^>]*)\sfill\s*=\s*["'][^"']*["']/i, '$1')
+                              .replace(/(<svg\b)([^>]*>)/, '$1 fill="currentColor"$2');
+                changeContent({ iconSvg: clean });
+              }}
+            />
+            {element.content.iconSvg && (
+              <button
+                style={{ marginTop: 4, fontSize: 11, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                onClick={() => { onPushSnapshot(snapshot); changeContent({ iconSvg: undefined }); }}
+              >✕ Clear SVG</button>
+            )}
+          </div>
+
+          {/* Fallback: emoji / text symbol when no SVG pasted */}
+          {!element.content.iconSvg && (
+            <div className={'pb-prop-row'}>
+              <label>Symbol</label>
+              <input type="text" value={element.content.iconName ?? '★'}
+                placeholder="★ or any emoji"
+                onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeContent({ iconName: e.target.value })} />
+            </div>
+          )}
+
+          <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5, paddingTop: 6 }}>
+            Get SVGs free from heroicons.com, tabler.io/icons, or icons.getbootstrap.com
           </div>
         </CollapsibleSection>
       )}
