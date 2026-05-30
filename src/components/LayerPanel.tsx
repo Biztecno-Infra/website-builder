@@ -17,7 +17,7 @@ function inferColumnIndex(el: CanvasElement, cols: SectionColumns): number {
 interface Props {
   header: Section;
   sections: Section[];
-  footer: Section;
+  footer: Section | undefined;
   nodes: NodeMap;
   selectedIds: string[];
   selectedSectionId: string | null;
@@ -465,7 +465,7 @@ export function LayerPanel({
     }, 0);
   }
 
-  const totalElements = [header, ...sections, footer].reduce((sum, s) => {
+  const totalElements = ([header, ...sections, footer] as (Section | undefined)[]).filter((s): s is Section => !!s).reduce((sum, s) => {
     if (s.layoutMode === 'grid') {
       return sum + s.children.reduce((cSum, cellId) => {
         const cell = nodes[cellId] as GridCell | undefined;
@@ -538,13 +538,15 @@ export function LayerPanel({
           />
         ))}
 
-        <SectionGroup
-          {...commonSectionProps}
-          section={footer} role="footer" index={-1}
-          isSectionSelected={selectedSectionId === footer.id}
-          isDragOver={false} isDragging={false}
-          onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
-        />
+        {footer && (
+          <SectionGroup
+            {...commonSectionProps}
+            section={footer} role="footer" index={-1}
+            isSectionSelected={selectedSectionId === footer.id}
+            isDragOver={false} isDragging={false}
+            onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
+          />
+        )}
       </div>
     </aside>
   );

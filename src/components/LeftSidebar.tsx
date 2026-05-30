@@ -180,7 +180,7 @@ interface Props {
   nodes: NodeMap;
   header: Section;
   sections: Section[];
-  footer: Section;
+  footer: Section | undefined;
   onSelectSection: (id: string) => void;
   // Page props
   pages: Page[];

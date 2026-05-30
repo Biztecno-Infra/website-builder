@@ -1291,7 +1291,7 @@ export function useBuilderStore() {
   const allSections = activePage.sections.map(id => state.nodes[id] as Section).filter(Boolean);
   // Derive header/footer/sections for backward-compat with LayerPanel/LeftSidebar
   const header = allSections.find(s => s.role === 'header') ?? allSections[0];
-  const footer = allSections.find(s => s.role === 'footer') ?? allSections[allSections.length - 1];
+  const footer = allSections.find(s => s.role === 'footer');
   const sections = allSections.filter(s => s !== header && s !== footer);
 
   return {
