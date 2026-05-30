@@ -834,6 +834,74 @@
   z-index: 9999;
 }
 
+/* ─── Drag position guides ─── */
+.pb-drag-guide-v {
+  position: absolute;
+  width: 1.5px;
+  background: repeating-linear-gradient(
+    to bottom,
+    #1a73e8 0px, #1a73e8 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-h {
+  position: absolute;
+  height: 1.5px;
+  background: repeating-linear-gradient(
+    to right,
+    #1a73e8 0px, #1a73e8 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-lbl {
+  position: absolute;
+  background: #1a73e8;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Label on a vertical guide: sits to the right, centered on the line */
+.pb-drag-guide-lbl--v {
+  left: 5px;
+  transform: translateY(-50%);
+}
+
+/* Label on a horizontal guide: sits below, centered on the line */
+.pb-drag-guide-lbl--h {
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.pb-drag-size-lbl {
+  position: absolute;
+  background: rgba(26, 115, 232, 0.88);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translateX(-50%);
+}
+
 /* ─── Marquee selection rect ─── */
 .pb-marquee-rect {
   position: absolute;
@@ -1553,8 +1621,9 @@
 }
 
 .pb-layer-section-header.pb-selected {
-  background: #e0f2f2;
-  color: #006e75;
+  background: #006e75;
+  color: #fff;
+  border-left: 3px solid #00454a;
 }
 
 .pb-layer-collapse-btn {
@@ -1589,7 +1658,7 @@
 }
 
 .pb-layer-section-header.pb-selected .pb-layer-section-name {
-  color: #006e75;
+  color: #fff;
 }
 
 .pb-layer-section-count {
@@ -1669,10 +1738,10 @@
 }
 
 .pb-layer-grid-cell-header.pb-selected {
-  background: #cceee8;
-  color: #006e75;
-  border-left: 2px solid #006e75;
-  margin-left: -2px;
+  background: #008a92;
+  color: #fff;
+  border-left: 3px solid #00454a;
+  margin-left: -3px;
 }
 
 .pb-layer-grid-cell-span {
@@ -1723,8 +1792,10 @@
 }
 
 .pb-layer-row.pb-selected {
-  background: #e8f5f5;
-  color: #006e75;
+  background: #006e75;
+  color: #fff;
+  border-left: 3px solid #00454a;
+  padding-left: 21px;
 }
 
 .pb-layer-row.pb-layer-hidden {
@@ -1749,7 +1820,7 @@
 }
 
 .pb-layer-row.pb-selected .pb-layer-type-icon {
-  background: #006e75;
+  background: rgba(255,255,255,0.25);
   color: #fff;
 }
 

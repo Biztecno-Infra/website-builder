@@ -92,11 +92,17 @@ export function ElementPanel({
     ? <span className={'pb-desktop-only-badge'} style={{ marginLeft: 6 }}>all bp</span>
     : null;
 
+  const ELEMENT_TYPE_LABELS: Record<string, string> = {
+    text: 'Text', image: 'Image', button: 'Button', box: 'Box',
+    divider: 'Divider', video: 'Video', spacer: 'Spacer', icon: 'Icon',
+  };
+  const elementLabel = ELEMENT_TYPE_LABELS[element.type] ?? element.type;
+
   return (
     <aside className={'pb-right-sidebar'}>
       {/* ── Panel header ── */}
       <div className={'pb-panel-header'}>
-        <span className={'pb-panel-header-title'}>Properties</span>
+        <span className={'pb-panel-header-title'}>{elementLabel}</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {onCopyStyle && (
             <button className={'pb-panel-action-btn'} title="Copy style" onClick={onCopyStyle}>⧉ Copy</button>

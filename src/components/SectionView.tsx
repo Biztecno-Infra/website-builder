@@ -2,7 +2,8 @@
 import type React from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasElement, canvasDragShared } from './CanvasElement';
-import type { GuideLine } from './CanvasElement';
+import type { GuideLine, DragInfo } from './CanvasElement';
+import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
 import { DND_TYPE, LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
@@ -111,6 +112,7 @@ function FreeSectionView({
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
   const [guides, setGuides] = useState<GuideLine[]>([]);
+  const [dragInfo, setDragInfo] = useState<DragInfo | null>(null);
   const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
   const bg = section.style.background;
@@ -416,6 +418,14 @@ function FreeSectionView({
               : <div key={i} className={'pb-guide-h'} style={{ top: g.pos }} />
           )}
 
+          {dragInfo && (
+            <DragGuides
+              x={dragInfo.x} y={dragInfo.y}
+              width={dragInfo.width} height={dragInfo.height}
+              sectionWidth={canvasWidth} sectionHeight={sectionHeight}
+            />
+          )}
+
           {marquee && (
             <div className={'pb-marquee-rect'} style={{
               left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h,
@@ -459,7 +469,7 @@ function FreeSectionView({
                 snapEnabled={snapEnabled}
                 onContextMenu={(x, y) => onContextMenu(id, x, y)}
                 sectionElements={sectionElements}
-                onGuides={setGuides}
+                onGuides={(gs, di) => { setGuides(gs); setDragInfo(di ?? null); }}
                 previewMode={previewMode}
                 onDuplicate={onDuplicateElement ? () => onDuplicateElement(id) : undefined}
                 onDelete={onDeleteElement ? () => onDeleteElement(id) : undefined}

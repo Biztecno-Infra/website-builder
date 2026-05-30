@@ -402,11 +402,18 @@ export function SectionPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>Color</label>
-              <input type="color" value={secBgColor}
+              <input type="color" value={secBgColor} disabled={bg.color === 'transparent'}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateBg({ color: e.target.value })} />
+              <label className={'pb-transparent-label'}>
+                <input type="checkbox" checked={bg.color === 'transparent'}
+                  onChange={e => { onPushSnapshot(snapshot); updateBg({ color: e.target.checked ? 'transparent' : '#ffffff' }); }} />
+                {' '}Transparent
+              </label>
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); updateBg({ color: c }); }} />
+            {bg.color !== 'transparent' && (
+              <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); updateBg({ color: c }); }} />
+            )}
           </>
         )}
         {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (

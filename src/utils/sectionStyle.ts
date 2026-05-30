@@ -15,7 +15,7 @@ export function sectionBgProps(bg: SectionBackground): {
   if (bg.image) {
     return { backgroundImage: `url(${bg.image})`, backgroundSize: 'cover', backgroundPosition: 'center' };
   }
-  return { backgroundColor: bg.color || '#ffffff' };
+  return { backgroundColor: bg.color === 'transparent' ? 'transparent' : (bg.color || '#ffffff') };
 }
 
 // Serializes sectionBgProps() to a CSS string — used by the HTML export.
@@ -27,5 +27,5 @@ export function sectionBgCssStr(bg: SectionBackground): string {
     if (p.backgroundPosition) parts.push(`background-position:${p.backgroundPosition}`);
     return parts.join(';');
   }
-  return `background-color:${p.backgroundColor ?? '#ffffff'}`;
+  return `background-color:${p.backgroundColor === 'transparent' ? 'transparent' : (p.backgroundColor ?? '#ffffff')}`;
 }
