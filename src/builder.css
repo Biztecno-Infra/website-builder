@@ -2359,6 +2359,7 @@
   transition: outline 0.1s, background 0.1s;
   outline: 1px dashed transparent;
   position: relative;
+  min-width: 0;   /* allow cell to shrink below content size in CSS grid */
 }
 
 .pb-grid-cell:not(.pb-grid-cell--selected):not(.pb-child-selected):hover {
@@ -2483,33 +2484,33 @@
 .pb-col-resize-handle {
   position: absolute;
   top: 0;
-  right: -3px;
+  right: -5px;
   bottom: 0;
-  width: 6px;
+  width: 10px;
   cursor: col-resize;
-  z-index: 40;
+  z-index: 50;
   background: transparent;
-  /* Disable by default so the 6px zone doesn't block element drag.
-     Re-enabled on cell-wrapper hover so resize still works. */
-  pointer-events: none;
-}
-.pb-grid-cell-wrapper:hover .pb-col-resize-handle {
+  /* Always interactive so resize works regardless of cell content */
   pointer-events: auto;
 }
 .pb-col-resize-handle::after {
   content: '';
   position: absolute;
   left: 50%;
-  top: 15%;
-  bottom: 15%;
+  top: 0;
+  bottom: 0;
   width: 2px;
   transform: translateX(-50%);
   border-radius: 1px;
   background: #0b978e;
   opacity: 0;
-  transition: opacity 0.15s;
 }
-.pb-grid-cell-wrapper:hover .pb-col-resize-handle::after,
+/* Show divider when section is hovered or when handle itself is hovered */
+.pb-section-surface:hover .pb-col-resize-handle::after,
+.pb-grid-section-surface:hover .pb-col-resize-handle::after,
+.pb-col-resize-handle:hover::after {
+  opacity: 0.4;
+}
 .pb-col-resize-handle:hover::after {
   opacity: 1;
 }
@@ -2544,6 +2545,7 @@
 .pb-grid-cell-wrapper {
   z-index: 0;
   overflow: visible;
+  min-width: 0;   /* grid item must be 0 to allow column to shrink below content */
 }
 
 .pb-grid-cell-wrapper:hover {
