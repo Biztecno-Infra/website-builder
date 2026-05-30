@@ -5,6 +5,18 @@ const CANVAS_W = 1280;
 const TABLET_W = 768;
 const MOBILE_W = 375;
 
+function toYouTubeEmbedUrl(url: string): string {
+  if (!url) return url;
+  if (url.includes('youtube.com/embed/')) return url;
+  // youtu.be/VIDEO_ID
+  const short = url.match(/youtu\.be\/([^?&\s]+)/);
+  if (short) return `https://www.youtube.com/embed/${short[1]}`;
+  // youtube.com/watch?v=VIDEO_ID
+  const standard = url.match(/[?&]v=([^&\s]+)/);
+  if (standard) return `https://www.youtube.com/embed/${standard[1]}`;
+  return url;
+}
+
 const SYSTEM_FONTS = new Set([
   'Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Courier New',
   'Verdana', 'Tahoma', 'Trebuchet MS', 'Impact', 'Comic Sans MS',
@@ -161,13 +173,17 @@ function renderElement(el: CanvasElement): string {
       if (!el.content.videoUrl) {
         inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
       } else {
-        const embedUrl = el.content.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/');
-        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen title="video"></iframe></div>`;
+        const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
+        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
       }
       break;
     }
     case 'icon': {
-      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}"><span style="font-size:${el.content.iconSize}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '')}</span></div>`;
+      const iconSz = el.content.iconSize ?? 40;
+      const iconInner = el.content.iconSvg
+        ? `<span style="display:inline-flex;width:${iconSz}px;height:${iconSz}px;color:${typography.color}">${el.content.iconSvg}</span>`
+        : `<span style="font-size:${iconSz}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '★')}</span>`;
+      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${iconInner}</div>`;
       break;
     }
     case 'spacer': {
@@ -226,7 +242,7 @@ function renderFreeElement(el: CanvasElement): string {
     case 'button': inner = `<div class="ec-${el.id}" style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer">${el.content.label ?? ''}</div>`; break;
     case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${el.content.src}" alt="${el.content.alt ?? ''}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
     case 'divider': { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; break; }
-    case 'icon':   inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}"><span style="font-size:${el.content.iconSize}px;color:${typography.color};line-height:1">${el.content.iconName ?? ''}</span></div>`; break;
+    case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${typography.color};line-height:1">${el.content.iconName ?? '★'}</span>`}</div>`; break; }
     case 'spacer': inner = `<div style="width:100%;height:${el.layout.height}px"></div>`; break;
     default:       inner = `<div style="${cStyle};padding:${pad}"></div>`;
   }
@@ -297,14 +313,16 @@ function renderGridElement(el: CanvasElement): string {
       if (!el.content.videoUrl) {
         inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
       } else {
-        const embedUrl = el.content.videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/');
-        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen title="video"></iframe></div>`;
+        const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
+        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
       }
       break;
     }
-    case 'icon':
-      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}"><span style="font-size:${el.content.iconSize}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '')}</span></div>`;
+    case 'icon': {
+      const isz2 = el.content.iconSize ?? 40;
+      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz2}px;height:${isz2}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz2}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '★')}</span>`}</div>`;
       break;
+    }
     case 'spacer':
       inner = `<div style="width:100%;height:${el.layout.height}px"></div>`;
       break;
