@@ -94,6 +94,7 @@ export interface ElementContent {
   iconName?: string;
   iconSize?: number;
   iconSvg?: string;
+  orientation?: 'horizontal' | 'vertical';
 }
 
 export type InteractionType = 'link' | 'scroll-to-section' | 'scroll-to-top';

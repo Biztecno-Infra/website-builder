@@ -172,11 +172,11 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
   };
 
   switch (type) {
-    case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, content: { ...base.content, plain: 'Click to edit text' } };
+    case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, content: { ...base.content, plain: 'Click to edit text' } };
     case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
     case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: tc.primary }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
     case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { radius: 0, width: 2, color: tc.light, style: 'solid' } } };
-    case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { ...base.style.border, radius: 2 } } };
+    case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { ...base.style.border, radius: 2 } }, content: { ...base.content, orientation: 'horizontal' } };
     case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
     case 'spacer':  return { ...base, layout: { ...base.layout, width: 200, height: 60 } };
     case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: tc.primary } } };

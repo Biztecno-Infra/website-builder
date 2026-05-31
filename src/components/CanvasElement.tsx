@@ -545,10 +545,20 @@ export function ElementContent({
   }
 
   if (el.type === 'divider') {
-    const innerH = el.layout.height - padding.top - padding.bottom || 2;
+    const isVertical = el.content.orientation === 'vertical';
+    if (isVertical) {
+      const innerW = Math.max(1, el.layout.width - padding.left - padding.right || 2);
+      return (
+        <div style={{ ...base, display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: padStr }}>
+          <div style={{ width: innerW, height: '100%',
+            backgroundColor: background.color || '#dddddd', borderRadius: border.radius }} />
+        </div>
+      );
+    }
+    const innerH = Math.max(1, el.layout.height - padding.top - padding.bottom || 2);
     return (
       <div style={{ ...base, display: 'flex', alignItems: 'center', padding: padStr }}>
-        <div style={{ width: '100%', height: Math.max(1, innerH),
+        <div style={{ width: '100%', height: innerH,
           backgroundColor: background.color || '#dddddd', borderRadius: border.radius }} />
       </div>
     );

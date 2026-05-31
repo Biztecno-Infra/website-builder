@@ -165,8 +165,13 @@ function renderElement(el: CanvasElement): string {
       break;
     }
     case 'divider': {
-      const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
-      inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      if (el.content.orientation === 'vertical') {
+        const innerW = Math.max(2, el.layout.width - padding.left - padding.right);
+        inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${innerW}px;height:100%;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      } else {
+        const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
+        inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      }
       break;
     }
     case 'video': {
@@ -241,7 +246,7 @@ function renderFreeElement(el: CanvasElement): string {
     case 'text':   inner = `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${(el.content.rich || el.content.plain) ?? ''}</div>`; break;
     case 'button': inner = `<div class="ec-${el.id}" style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer">${el.content.label ?? ''}</div>`; break;
     case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${el.content.src}" alt="${el.content.alt ?? ''}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
-    case 'divider': { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; break; }
+    case 'divider': { if (el.content.orientation === 'vertical') { const iw = Math.max(2, el.layout.width - padding.left - padding.right); inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${iw}px;height:100%;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } else { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } break; }
     case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${typography.color};line-height:1">${el.content.iconName ?? '★'}</span>`}</div>`; break; }
     case 'spacer': inner = `<div style="width:100%;height:${el.layout.height}px"></div>`; break;
     default:       inner = `<div style="${cStyle};padding:${pad}"></div>`;
@@ -305,8 +310,13 @@ function renderGridElement(el: CanvasElement): string {
       break;
     }
     case 'divider': {
-      const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
-      inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      if (el.content.orientation === 'vertical') {
+        const innerW = Math.max(2, el.layout.width - padding.left - padding.right);
+        inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${innerW}px;height:100%;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      } else {
+        const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
+        inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+      }
       break;
     }
     case 'video': {

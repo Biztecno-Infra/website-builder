@@ -650,6 +650,27 @@ export function ElementPanel({
         </CollapsibleSection>
       )}
 
+      {/* ── Divider ── */}
+      {element.type === 'divider' && (
+        <CollapsibleSection sectionKey="divider" label="Divider" isOpen={sec('divider')} onToggle={toggleSection}>
+          <div className={'pb-prop-row'}>
+            <label>Orientation</label>
+            <select value={element.content.orientation ?? 'horizontal'}
+              onChange={e => {
+                const newOrientation = e.target.value as 'horizontal' | 'vertical';
+                const isChanging = newOrientation !== (element.content.orientation ?? 'horizontal');
+                commitChange({
+                  content: { ...element.content, orientation: newOrientation },
+                  ...(isChanging ? { layout: { ...element.layout, width: element.layout.height, height: element.layout.width } } : {}),
+                });
+              }}>
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
+            </select>
+          </div>
+        </CollapsibleSection>
+      )}
+
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label={<>Background {allBpBadge}</>}
         isOpen={sec('background')} onToggle={toggleSection}>
