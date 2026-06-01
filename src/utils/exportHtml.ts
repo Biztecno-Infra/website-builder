@@ -211,13 +211,16 @@ function renderElement(el: CanvasElement): string {
 // Returns only the flex/width/align-self declarations that go in a class rule.
 function flexItemClassCss(fl: FlexItemLayout, cellMode: CellLayoutMode): string {
   const grow = fl.flexGrow === 1 ? ';flex-grow:1' : '';
+  // In a column cell, clamp every item to the column width and let it shrink
+  // below its content so content-sized children never overflow a narrow column.
+  const colClamp = cellMode === 'column' ? ';max-width:100%;min-width:0' : '';
   let sizing: string;
   switch (fl.widthMode) {
     // fill already implies grow via flex shorthand — the flexGrow field has no additional effect
-    case 'fill':    sizing = cellMode === 'column' ? 'width:100%' : 'flex:1 1 0;min-width:0'; break;
-    case 'auto':    sizing = `width:auto;flex-shrink:1${grow}`; break;
-    case 'fixed':   sizing = `width:${fl.widthValue}px;flex-shrink:0${grow}`; break;
-    case 'percent': sizing = `width:${fl.widthValue}%;flex-shrink:1${grow}`; break;
+    case 'fill':    sizing = cellMode === 'column' ? `width:100%${colClamp}` : 'flex:1 1 0;min-width:0'; break;
+    case 'auto':    sizing = `width:auto;flex-shrink:1${colClamp}${grow}`; break;
+    case 'fixed':   sizing = `width:${fl.widthValue}px;flex-shrink:0${colClamp}${grow}`; break;
+    case 'percent': sizing = `width:${fl.widthValue}%;flex-shrink:1${colClamp}${grow}`; break;
   }
   const alignSelf = fl.alignSelf !== 'auto' ? `;align-self:${fl.alignSelf}` : '';
   return `${sizing}${alignSelf}`;

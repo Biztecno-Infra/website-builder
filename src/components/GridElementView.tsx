@@ -17,16 +17,21 @@ export type GridElDragItem =
 // ── Flex width resolver (also used by export) ──────────────────────────────
 export function resolveFlexItemWidth(fl: FlexItemLayout, cellMode: CellLayoutMode): React.CSSProperties {
   const grow = fl.flexGrow === 1;
+  // In a column cell the cross axis is the width; a content-sized child whose
+  // intrinsic min-content exceeds a narrow (e.g. mobile) column would otherwise
+  // overflow horizontally. Cap every column-mode item at the column width and
+  // let it shrink below its content (flex items default to min-width:auto).
+  const colClamp = cellMode === 'column' ? { maxWidth: '100%', minWidth: 0 } : {};
   switch (fl.widthMode) {
     case 'fill':
       // fill already implies grow; the explicit flexGrow field has no additional effect here
-      return cellMode === 'column' ? { width: '100%' } : { flex: '1 1 0', minWidth: 0 };
+      return cellMode === 'column' ? { width: '100%', ...colClamp } : { flex: '1 1 0', minWidth: 0 };
     case 'auto':
-      return { width: 'auto', flexShrink: 1, ...(grow ? { flexGrow: 1 } : {}) };
+      return { width: 'auto', flexShrink: 1, ...colClamp, ...(grow ? { flexGrow: 1 } : {}) };
     case 'fixed':
-      return { width: fl.widthValue, flexShrink: 0, ...(grow ? { flexGrow: 1 } : {}) };
+      return { width: fl.widthValue, flexShrink: 0, ...colClamp, ...(grow ? { flexGrow: 1 } : {}) };
     case 'percent':
-      return { width: `${fl.widthValue}%`, flexShrink: 1, ...(grow ? { flexGrow: 1 } : {}) };
+      return { width: `${fl.widthValue}%`, flexShrink: 1, ...colClamp, ...(grow ? { flexGrow: 1 } : {}) };
   }
 }
 
