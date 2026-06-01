@@ -135,7 +135,12 @@ export function GridSectionView({
     ...sectionBgProps(bg),
   };
 
-  const pad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const desktopPad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const pad = breakpoint === 'mobile'
+    ? { ...desktopPad, ...section.responsive?.tablet?.padding, ...section.responsive?.mobile?.padding }
+    : breakpoint === 'tablet'
+    ? { ...desktopPad, ...section.responsive?.tablet?.padding }
+    : desktopPad;
 
   const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
   const maxW = gridCfg.maxWidth ?? 1280;

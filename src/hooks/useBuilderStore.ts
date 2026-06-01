@@ -151,7 +151,7 @@ function appendToParent(nodes: NodeMap, parentId: string, childId: string): void
   }
 }
 
-function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, theme?: SiteTheme): CanvasElement {
+function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, theme?: SiteTheme, useAccent = false): CanvasElement {
   const offset = (count % 8) * 20;
   const cx = Math.round(CANVAS_W / 2 - 100 + offset);
   const cy = Math.round(150 + offset);
@@ -174,7 +174,7 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
   switch (type) {
     case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, content: { ...base.content, plain: 'Click to edit text' } };
     case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
-    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: tc.primary }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: 'Click me' } };
+    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: useAccent ? tc.accent : tc.primary }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: useAccent ? 'Learn more' : 'Click me' } };
     case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { radius: 0, width: 2, color: tc.light, style: 'solid' } } };
     case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { ...base.style.border, radius: 2 } }, content: { ...base.content, orientation: 'horizontal' } };
     case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
@@ -699,7 +699,9 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const cell = s.nodes[cellId] as GridCell | undefined;
     if (!cell) return;
-    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme);
+    // Second button in the same cell uses accent color instead of primary
+    const hasButton = type === 'button' && cell.children.some(id => s.nodes[id]?.type === 'button');
+    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme, hasButton);
     push(s);
     setState(prev => {
       const c = prev.nodes[cellId] as GridCell | undefined;
@@ -729,7 +731,8 @@ export function useBuilderStore() {
       }
       return;
     }
-    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme);
+    const hasButton = type === 'button' && sec.children.some(id => stateRef.current.nodes[id]?.type === 'button');
+    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme, hasButton);
     push(s);
     setState(prev => {
       const section = prev.nodes[sectionId] as Section | undefined;
@@ -743,7 +746,8 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const node = s.nodes[sectionId];
     if (!node || !isFreeSection(node)) return;  // grid sections don't accept direct element drops
-    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme);
+    const hasButton = type === 'button' && node.children.some(id => stateRef.current.nodes[id]?.type === 'button');
+    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme, hasButton);
     push(s);
     setState(prev => {
       const sec = prev.nodes[sectionId];
@@ -757,7 +761,12 @@ export function useBuilderStore() {
     setState(s => {
       const el = s.nodes[id];
       if (!el || isSection(el) || isGridCell(el) || isContainer(el)) return s;
-      return { ...s, nodes: { ...s.nodes, [id]: { ...el, ...updates } as CanvasElement } };
+      // Deep-merge content so partial content updates never drop existing content fields
+      const merged = { ...el, ...updates } as CanvasElement;
+      if (updates.content) {
+        merged.content = { ...(el as CanvasElement).content, ...updates.content };
+      }
+      return { ...s, nodes: { ...s.nodes, [id]: merged } };
     });
   }, []);
 
@@ -1043,12 +1052,22 @@ export function useBuilderStore() {
   }, [push]);
 
   const addSectionFromTemplate = useCallback((
-    buildFn: (ids: TemplateIds) => TemplateResult,
+    buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult,
     afterId?: string,
     atStart?: boolean,
   ) => {
     push(stateRef.current);
-    const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId });
+    const theme = stateRef.current.theme;
+    console.log('[template] inserting with theme primary:', theme.colors.primary);
+    const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId }, theme);
+    // Apply theme font to all text/button elements in the template
+    const fontFamily = theme.fonts.body;
+    Object.values(result.nodes).forEach(node => {
+      if (node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container') {
+        const el = node as CanvasElement;
+        if (el.style?.typography) el.style.typography.family = fontFamily;
+      }
+    });
     setState(s => {
       const p = getActivePage(s);
       let sections: string[];

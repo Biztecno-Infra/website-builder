@@ -35,7 +35,7 @@ export const DEFAULT_INTERACTION: ElementInteraction = { type: 'link', linkUrl: 
 export const DEFAULT_ANIMATION: ElementAnimation = { type: 'none', trigger: 'load', duration: 600, delay: 0 };
 
 export const DEFAULT_THEME: SiteTheme = {
-  colors: { primary: '#006e75', secondary: '#0b978e', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c', sectionBg: '#ffffff' },
+  colors: { primary: '#006e75', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c', sectionBg: '#ffffff' },
   fonts: { body: 'Inter, sans-serif' },
 };
 

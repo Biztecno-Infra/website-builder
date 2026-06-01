@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { SiteTheme, ThemeColors } from '../types';
 import { injectGoogleFont } from '../utils/fonts';
 
@@ -16,15 +16,18 @@ const FONT_OPTIONS = [
   'Merriweather, serif',
 ];
 
-const COLOR_FIELDS: Array<{ key: keyof ThemeColors; label: string }> = [
-  { key: 'primary',    label: 'Primary'    },
-  { key: 'secondary',  label: 'Secondary'  },
-  { key: 'text',       label: 'Text'       },
-  { key: 'light',      label: 'Light'      },
-  { key: 'background', label: 'Background' },
-  { key: 'accent',     label: 'Accent'     },
+const COLOR_FIELDS: Array<{
+  key: keyof ThemeColors;
+  label: string;
+  desc: string;
+}> = [
+  { key: 'primary',    label: 'Primary',     desc: 'Buttons & icons'           },
+  { key: 'accent',     label: 'Accent',      desc: 'Accent buttons'            },
+  { key: 'text',       label: 'Text',        desc: 'Default text color'        },
+  { key: 'background', label: 'Page Bg',     desc: 'Page/body background'      },
+  { key: 'light',      label: 'Light',       desc: 'Boxes & dividers'          },
+  { key: 'sectionBg',  label: 'Section Bg',  desc: 'New section background'    },
 ];
-
 
 interface Props {
   theme: SiteTheme;
@@ -32,83 +35,94 @@ interface Props {
   onApplyTheme?: () => void;
 }
 
+function ColorCard({
+  colorKey, label, desc, value, onChange,
+}: {
+  colorKey: string; label: string; desc: string; value: string; onChange: (v: string) => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const safe = value?.startsWith('#') ? value : '#006e75';
+
+  return (
+    <div className={'pb-tc-card'} onClick={() => inputRef.current?.click()} title={`Change ${label}`}>
+      <div className={'pb-tc-swatch'} style={{ background: safe }}>
+        <input
+          ref={inputRef}
+          type="color"
+          value={safe}
+          onChange={e => onChange(e.target.value)}
+          style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
+          tabIndex={-1}
+          onClick={e => e.stopPropagation()}
+        />
+      </div>
+      <div className={'pb-tc-info'}>
+        <span className={'pb-tc-label'}>{label}</span>
+        <span className={'pb-tc-hex'}>{safe}</span>
+        <span className={'pb-tc-desc'}>{desc}</span>
+      </div>
+    </div>
+  );
+}
+
 export function ThemePanel({ theme, onUpdate, onApplyTheme }: Props) {
   useEffect(() => {
     injectGoogleFont(theme.fonts.body);
   }, [theme.fonts.body]);
 
-  const updateColor = (key: keyof ThemeColors, value: string) => {
+  const updateColor = (key: keyof ThemeColors, value: string) =>
     onUpdate({ colors: { ...theme.colors, [key]: value } });
-  };
 
   return (
     <aside className={'pb-left-sidebar'}>
       <div className={'pb-sidebar-section-title'}>Site Theme</div>
 
+      {/* ── Colors ── */}
       <div className={'pb-prop-section'}>
-        <div className={'pb-section-header'}>Brand Colors</div>
-        <div className={'pb-theme-colors'}>
-          {COLOR_FIELDS.map(({ key, label }) => (
-            <div key={key} className={'pb-theme-color-row'}>
-              <input
-                type="color"
-                value={(theme.colors[key] ?? '#006e75').startsWith('#') ? theme.colors[key] : '#006e75'}
-                onChange={e => updateColor(key, e.target.value)}
-                className={'pb-theme-color-swatch'}
-                title={label}
-              />
-              <span className={'pb-theme-color-label'}>{label}</span>
-              <span className={'pb-theme-color-hex'}>{theme.colors[key]}</span>
-            </div>
+        <div className={'pb-section-header'}>Colors</div>
+        <div className={'pb-tc-grid'}>
+          {COLOR_FIELDS.map(({ key, label, desc }) => (
+            <ColorCard
+              key={key}
+              colorKey={key}
+              label={label}
+              desc={desc}
+              value={theme.colors[key] ?? '#ffffff'}
+              onChange={v => updateColor(key, v)}
+            />
           ))}
         </div>
       </div>
 
+      {/* ── Font ── */}
       <div className={'pb-prop-section'}>
-        <div className={'pb-section-header'}>Section Background</div>
-        <p style={{ fontSize: 11, color: '#888', margin: '0 0 8px' }}>
-          Applied to all sections when you click "Apply Theme to Canvas".
-        </p>
-        <div className={'pb-theme-colors'}>
-          <div className={'pb-theme-color-row'}>
-            <input
-              type="color"
-              value={(theme.colors.sectionBg ?? '#ffffff').startsWith('#') ? theme.colors.sectionBg : '#ffffff'}
-              onChange={e => updateColor('sectionBg', e.target.value)}
-              className={'pb-theme-color-swatch'}
-              title="Section Background"
-            />
-            <span className={'pb-theme-color-label'}>Color</span>
-            <span className={'pb-theme-color-hex'}>{theme.colors.sectionBg ?? '#ffffff'}</span>
-          </div>
+        <div className={'pb-section-header'}>Font</div>
+        <select
+          value={theme.fonts.body}
+          onChange={e => onUpdate({ fonts: { body: e.target.value } })}
+          style={{ width: '100%', fontSize: 12, padding: '6px 8px', border: '1px solid #ddd', borderRadius: 4 }}
+        >
+          {FONT_OPTIONS.map(f => (
+            <option key={f} value={f} style={{ fontFamily: f }}>
+              {f.split(',')[0].replace(/'/g, '')}
+            </option>
+          ))}
+        </select>
+        <div style={{ marginTop: 8, padding: '10px 12px', background: '#f8fafc', borderRadius: 6, fontFamily: theme.fonts.body }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: '#111' }}>Aa — {theme.fonts.body.split(',')[0].replace(/'/g, '')}</div>
+          <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>The quick brown fox jumps over the lazy dog</div>
         </div>
       </div>
 
-      <div className={'pb-prop-section'}>
-        <div className={'pb-section-header'}>Typography</div>
-        <div className={"pb-prop-row pb-full"}>
-          <label>Site Font</label>
-          <select
-            value={theme.fonts.body}
-            onChange={e => onUpdate({ fonts: { body: e.target.value } })}
-          >
-            {FONT_OPTIONS.map(f => (
-              <option key={f} value={f} style={{ fontFamily: f }}>
-                {f.split(',')[0].replace(/'/g, '')}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
+      {/* ── Apply ── */}
       {onApplyTheme && (
         <div className={'pb-prop-section'}>
-          <div className={'pb-section-header'}>Apply</div>
-          <p style={{ fontSize: 11, color: '#888', margin: '0 0 8px' }}>
-            Push theme fonts &amp; colors onto all existing text and button elements on the canvas.
+          <div className={'pb-section-header'}>Apply to Canvas</div>
+          <p style={{ fontSize: 11, color: '#888', lineHeight: 1.5, margin: '0 0 10px' }}>
+            Updates elements that were created with the previous theme colors. Font updates everywhere.
           </p>
           <button className={'pb-apply-theme-btn'} onClick={onApplyTheme}>
-            Apply Theme to Canvas
+            Apply Theme
           </button>
         </div>
       )}

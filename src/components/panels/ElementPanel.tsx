@@ -587,7 +587,11 @@ export function ElementPanel({
             <label>Size</label>
             <input type="number" value={element.content.iconSize ?? 40} min={8} max={200}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ iconSize: Number(e.target.value) })} />
+              onChange={e => {
+                // Use current element.content from closure but push snapshot first
+                // so undo captures the state before this change
+                onUpdate(id, { content: { ...element.content, iconSize: Number(e.target.value) } });
+              }} />
             <span style={{ fontSize: 11, color: '#888' }}>px</span>
           </div>
           <div className={'pb-prop-row'}>
@@ -610,16 +614,17 @@ export function ElementPanel({
               value={element.content.iconSvg ?? ''}
               style={{ width: '100%', fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 4, padding: '6px 8px', color: '#334155', background: '#f8fafc', lineHeight: 1.5 }}
               onChange={e => {
-                onPushSnapshot(snapshot);
                 const raw = e.target.value.trim();
-                if (!raw) { changeContent({ iconSvg: undefined }); return; }
+                // Never auto-clear on empty — use the ✕ button for that.
+                // This prevents accidental loss when switching breakpoints triggers re-renders.
+                if (!raw) return;
+                onPushSnapshot(snapshot);
                 // Sanitize: strip scripts and event handlers
                 let clean = raw
                   .replace(/<script[\s\S]*?<\/script>/gi, '')
                   .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
                   .replace(/javascript:/gi, '');
                 // Make color-controllable: set fill="currentColor" on the <svg> root
-                // so the element's Color picker works
                 clean = clean.replace(/(<svg\b[^>]*)\sfill\s*=\s*["'][^"']*["']/i, '$1')
                               .replace(/(<svg\b)([^>]*>)/, '$1 fill="currentColor"$2');
                 changeContent({ iconSvg: clean });
@@ -640,7 +645,7 @@ export function ElementPanel({
               <input type="text" value={element.content.iconName ?? '★'}
                 placeholder="★ or any emoji"
                 onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeContent({ iconName: e.target.value })} />
+                onChange={e => { if (e.target.value) changeContent({ iconName: e.target.value }); }} />
             </div>
           )}
 

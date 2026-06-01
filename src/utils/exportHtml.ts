@@ -446,7 +446,7 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
 
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%">
     ${overlay}
-    <div class="sc-grid-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
+    <div class="sc-grid-${sec.id} sc-pad-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
     </div>
   </div>`;
@@ -507,7 +507,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     : '';
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%">
     ${overlay}
-    <div class="sc sc-free-${sec.id}" style="min-height:${sec.layout.height}px${freePadCss}">
+    <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="min-height:${sec.layout.height}px${freePadCss}">
       ${columnBgs}
       ${elements}
     </div>
@@ -549,10 +549,14 @@ function generateCellCSS(
       }
     }
     if (tCell?.minHeight !== undefined && tCell.layoutMode !== 'free') tParts.push(`min-height:${tCell.minHeight}px`);
-    // freeHeight override when cell stays in free mode across breakpoints
     if (isFreeCell && tCell?.layoutMode === undefined && tCell?.freeHeight !== undefined) tParts.push(`height:${tCell.freeHeight}px`);
     if (tCell?.alignItems !== undefined) tParts.push(`align-items:${tCell.alignItems}`);
     if (tCell?.justifyContent !== undefined) tParts.push(`justify-content:${tCell.justifyContent}`);
+    if (tCell?.padding !== undefined) {
+      const dp = cell.style.padding;
+      const p = { ...dp, ...tCell.padding };
+      tParts.push(`padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`);
+    }
     if (tParts.length) tabletRules.push(`.gc-${cell.id}{${tParts.join(';')}}`);
   }
 
@@ -574,8 +578,13 @@ function generateCellCSS(
       }
     }
     if (mCell?.minHeight !== undefined && mCell.layoutMode !== 'free') mParts.push(`min-height:${mCell.minHeight}px`);
-    // freeHeight override when cell stays in free mode across breakpoints
     if (isFreeAtMobile && mCell?.layoutMode === undefined && mCell?.freeHeight !== undefined) mParts.push(`height:${mCell.freeHeight}px`);
+    if (mCell?.padding !== undefined) {
+      const dp = cell.style.padding;
+      const tp = tCell?.padding;
+      const p = { ...dp, ...tp, ...mCell.padding };
+      mParts.push(`padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`);
+    }
     if (mCell?.alignItems !== undefined) mParts.push(`align-items:${mCell.alignItems}`);
     if (mCell?.justifyContent !== undefined) mParts.push(`justify-content:${mCell.justifyContent}`);
     if (mParts.length) mobileRules.push(`.gc-${cell.id}{${mParts.join(';')}}`);
@@ -860,6 +869,19 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
     const mSH = sec.responsive?.mobile?.height ?? sec.responsive?.tablet?.height ?? Math.round(sec.layout.height * mScale);
     tabletRules.push(`.sc-free-${sec.id}{min-height:${tSH}px}`);
     mobileRules.push(`.sc-free-${sec.id}{min-height:${mSH}px}`);
+
+    // Section-level responsive padding (both free and grid sections share .sc-pad-{id})
+    const dp = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+    const tPad = sec.responsive?.tablet?.padding;
+    const mPad = sec.responsive?.mobile?.padding;
+    if (tPad) {
+      const p = { ...dp, ...tPad };
+      tabletRules.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
+    }
+    if (mPad) {
+      const p = { ...dp, ...tPad, ...mPad };
+      mobileRules.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
+    }
   }
 
   const base = baseRules.join('');
@@ -936,7 +958,7 @@ ${fontLinks}
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{overflow-x:clip}
-    body{font-family:${state.theme.fonts.body};background-color:${state.theme.colors.background}}
+    body{font-family:${state.theme.fonts.body};color:${state.theme.colors.text};background-color:${state.theme.colors.background}}
     ${pageFixed ? `.sc{width:100%;max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden}` : `.sc{width:100%;position:relative;overflow:hidden}`}
     ${smoothScrollCss}
     ${ANIM_CSS}

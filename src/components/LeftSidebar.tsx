@@ -13,7 +13,7 @@ export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
 export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
 
-export interface TemplateDragItem { buildFn: (ids: TemplateIds) => TemplateResult }
+export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 
 interface LayoutDragItem { columnSpans: number[] }
 export interface CellLayoutDragItem { mode: ContainerLayoutMode; columnSpans?: number[] }
@@ -60,6 +60,7 @@ function CellLayoutItem({ label, icon, mode, columnSpans, disabled, onAdd }: {
 }
 
 const LAYOUT_PRESETS: Array<{ label: string; desc: string; columnSpans: number[] }> = [
+  { label: '1 Column',      desc: 'Full width',            columnSpans: [12]            },
   { label: '2 Columns',     desc: '50 / 50',              columnSpans: [6, 6]          },
   { label: '3 Columns',     desc: '33 / 33 / 33',         columnSpans: [4, 4, 4]       },
   { label: '4 Columns',     desc: '25 / 25 / 25 / 25',    columnSpans: [3, 3, 3, 3]    },
@@ -122,7 +123,7 @@ function PaletteItem({ type, icon, label, onAdd }: PaletteItemProps) {
 
 function TemplateCard({ tpl, onAdd }: {
   tpl: SectionTemplate;
-  onAdd: (buildFn: (ids: TemplateIds) => TemplateResult) => void;
+  onAdd: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
 }) {
   const [{ isDragging }, dragRef] = useDrag<TemplateDragItem, void, { isDragging: boolean }>({
     type: TEMPLATE_DND_TYPE,
@@ -162,7 +163,7 @@ interface Props {
   onAdd: (type: ElementType) => void;
   onAddFreeSection: () => void;
   onAddGridSection: (columnSpans: number[]) => void;
-  onAddSectionFromTemplate: (buildFn: (ids: TemplateIds) => TemplateResult) => void;
+  onAddSectionFromTemplate: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
   onAddContainer?: (mode: ContainerLayoutMode, columnSpans?: number[]) => void;
   selectedIds: string[];
   selectedSectionId: string | null;

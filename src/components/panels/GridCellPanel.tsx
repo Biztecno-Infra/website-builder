@@ -142,17 +142,51 @@ export function GridCellPanel({
     }
   };
 
+  // Card mode: cell has a visible border and non-transparent background
+  const isCard = (gc.style.border?.width ?? 0) > 0 && gc.style.border?.style !== 'none';
+
+  const toggleCard = () => {
+    onPushSnapshot(snapshot);
+    if (isCard) {
+      // Remove card style
+      onUpdateGridCell(gc.id, {
+        style: {
+          ...gc.style,
+          background: { ...gc.style.background, color: 'transparent' },
+          border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
+        },
+      });
+    } else {
+      // Apply card style using theme colors
+      onUpdateGridCell(gc.id, {
+        style: {
+          ...gc.style,
+          background: { ...gc.style.background, color: theme.colors.background },
+          border: { radius: 8, width: 1, color: theme.colors.light, style: 'solid' },
+        },
+      });
+    }
+  };
+
   return (
     <aside className={'pb-right-sidebar'}>
       <div className={'pb-panel-header'}>
         <span className={'pb-panel-header-title'}>Grid Column</span>
-        {onDeleteGridCell && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           <button
-            className={'pb-panel-delete-btn'}
-            title="Delete this column (Ctrl+Z to undo)"
-            onClick={() => { onDeleteGridCell(gc.id); }}
-          >✕ Delete</button>
-        )}
+            className={['pb-toolbar-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
+            style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
+            title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
+            onClick={toggleCard}
+          >{isCard ? '▪ Card' : '□ Card'}</button>
+          {onDeleteGridCell && (
+            <button
+              className={'pb-panel-delete-btn'}
+              title="Delete this column (Ctrl+Z to undo)"
+              onClick={() => { onDeleteGridCell(gc.id); }}
+            >✕ Delete</button>
+          )}
+        </div>
       </div>
 
       {breakpoint !== 'desktop' && (
@@ -335,30 +369,54 @@ export function GridCellPanel({
             onChange={e => onUpdateGridCell(gc.id, { style: { ...style, gap: Number(e.target.value) } })} />
           <span style={{ fontSize: 11, color: '#888' }}>px</span>
         </div>
-        <div className={'pb-prop-row'}>
-          <label>Pad Top</label>
-          <input type="number" value={style.padding.top} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, top: Number(e.target.value) } } })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Pad Right</label>
-          <input type="number" value={style.padding.right} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, right: Number(e.target.value) } } })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Pad Bottom</label>
-          <input type="number" value={style.padding.bottom} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, bottom: Number(e.target.value) } } })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Pad Left</label>
-          <input type="number" value={style.padding.left} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, left: Number(e.target.value) } } })} />
-        </div>
+        {/* Padding — responsive-aware. On tablet/mobile, writes to responsive override. */}
+        {(() => {
+          const bpPadOverride =
+            breakpoint === 'mobile' ? responsive.mobile?.padding
+            : breakpoint === 'tablet' ? responsive.tablet?.padding
+            : undefined;
+          const effPad = { ...style.padding, ...bpPadOverride };
+          const padIsOverridden = isDesktop ? false : bpPadOverride !== undefined;
+
+          const updatePad = (key: keyof typeof style.padding, val: number) => {
+            if (isDesktop) {
+              onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, [key]: val } } });
+            } else if (breakpoint === 'tablet') {
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, padding: { ...style.padding, ...responsive.tablet?.padding, [key]: val } } } });
+            } else {
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, padding: { ...style.padding, ...responsive.tablet?.padding, ...responsive.mobile?.padding, [key]: val } } } });
+            }
+          };
+
+          const clearPadOverride = () => {
+            if (breakpoint === 'tablet') {
+              const { padding: _p, ...rest } = responsive.tablet ?? {};
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+            } else {
+              const { padding: _p, ...rest } = responsive.mobile ?? {};
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+            }
+          };
+
+          return (
+            <>
+              {(['top','right','bottom','left'] as const).map(side => (
+                <div key={side} className={['pb-prop-row', padIsOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
+                  <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
+                  <input type="number" value={effPad[side]} min={0}
+                    onFocus={gcFocus} onBlur={gcBlur}
+                    onChange={e => updatePad(side, Number(e.target.value))} />
+                </div>
+              ))}
+              {!isDesktop && padIsOverridden && (
+                <div className={'pb-resp-ref-row'}>
+                  <span className={'pb-resp-ref-label'}>🖥 Desktop: {style.padding.top}/{style.padding.right}/{style.padding.bottom}/{style.padding.left}</span>
+                  <button className={'pb-resp-clear-btn'} onClick={clearPadOverride}>↺ Reset</button>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </CollapsibleSection>
 
       {/* ── Height ── */}

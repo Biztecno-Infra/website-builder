@@ -53,7 +53,7 @@ interface Props {
   onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
   onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
   onDropGridLayout?: (sectionId: string | null, columnSpans: number[], atStart?: boolean) => void;
-  onDropTemplate?: (afterId: string | undefined, buildFn: (ids: import('../data/sectionTemplates').TemplateIds) => import('../data/sectionTemplates').TemplateResult, atStart?: boolean) => void;
+  onDropTemplate?: (afterId: string | undefined, buildFn: (ids: import('../data/sectionTemplates').TemplateIds, theme: import('../types').SiteTheme) => import('../data/sectionTemplates').TemplateResult, atStart?: boolean) => void;
   onAddNestedGrid?: (cellId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onPromoteSection?: (sectionId: string, role: 'header' | 'footer') => void;

@@ -5,8 +5,9 @@
 import type {
   AnyNode, CanvasElement, GridCell, GridSection,
   ElementBackground, SectionBackground, Padding, Border, Shadow,
-  FlexItemLayout, TextTransform,
+  FlexItemLayout, TextTransform, SiteTheme,
 } from '../types';
+import { DEFAULT_THEME } from '../utils/builderDefaults';
 
 // ─── ID generator contract ───────────────────────────────────────────────────
 export interface TemplateIds {
@@ -25,7 +26,7 @@ export interface SectionTemplate {
   label: string;
   desc: string;
   icon: string;
-  build: (ids: TemplateIds) => TemplateResult;
+  build: (ids: TemplateIds, theme: SiteTheme) => TemplateResult;
 }
 
 // ─── Shared helpers (identical signature to demoState helpers) ───────────────
@@ -121,23 +122,24 @@ function reg(nodes: Record<string, AnyNode>, ...items: AnyNode[]): void {
 
 // ─── Template definitions ────────────────────────────────────────────────────
 
-function buildHero(ids: TemplateIds): TemplateResult {
+function buildHero(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
   const cid = ids.cell();
 
-  const e1 = mkText(ids.el(), cid, 'YOUR HEADLINE GOES HERE', 54, '700', '#ffffff', 'center', 140, 1.1);
+  const e1 = mkText(ids.el(), cid, 'YOUR HEADLINE GOES HERE', 54, '700', T.text, 'center', 140, 1.1);
   const sp1 = mkSp(ids.el(), cid, 20);
-  const e2 = mkText(ids.el(), cid, 'Add a supporting subtitle that tells visitors what you do and why they should care.', 18, 'normal', 'rgba(255,255,255,0.7)', 'center', 60, 1.7);
+  const e2 = mkText(ids.el(), cid, 'Add a supporting subtitle that tells visitors what you do and why they should care.', 18, 'normal', T.text, 'center', 60, 1.7);
   const sp2 = mkSp(ids.el(), cid, 36);
-  const btn = mkBtn(ids.el(), cid, 'Get Started →', '#006e75', '#ffffff', 16, 8, pad(16, 36));
+  const btn = mkBtn(ids.el(), cid, 'Get Started →', T.primary, '#ffffff', 16, 8, pad(16, 36));
   const sp3 = mkSp(ids.el(), cid, 12);
-  const note = mkText(ids.el(), cid, 'No credit card required', 13, 'normal', 'rgba(255,255,255,0.45)', 'center', 20, 1);
+  const note = mkText(ids.el(), cid, 'No credit card required', 13, 'normal', T.text, 'center', 20, 1);
 
   const cell = mkCell(cid, secId, 12, [e1.id, sp1.id, e2.id, sp2.id, btn.id, sp3.id, note.id],
     'column', 'center', 'flex-start', 0, pad(100, 40), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
-  const sec = mkSec(secId, [cid], secSolid('#0f172a'), 0, 0, pad(0), 'Hero');
+  const sec = mkSec(secId, [cid], secSolid(T.sectionBg), 0, 0, pad(0), 'Hero');
 
   reg(nodes, e1, sp1, e2, sp2, btn, sp3, note, cell, sec);
   return { sectionId: secId, nodes };
@@ -210,8 +212,9 @@ function buildFeatures3(ids: TemplateIds): TemplateResult {
   return { sectionId: secId, nodes };
 }
 
-function buildFeatures4(ids: TemplateIds): TemplateResult {
+function buildFeatures4(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
 
   const items = [
@@ -224,40 +227,41 @@ function buildFeatures4(ids: TemplateIds): TemplateResult {
   items.forEach(item => {
     const cid = ids.cell();
     cardCells.push(cid);
-    const ic = mkIcon(ids.el(), cid, item.icon, 26, '#006e75');
+    const ic = mkIcon(ids.el(), cid, item.icon, 26, T.primary);
     const sp1 = mkSp(ids.el(), cid, 12);
-    const tl = mkText(ids.el(), cid, item.title, 15, '700', '#0f172a', 'left', 22, 1.1);
+    const tl = mkText(ids.el(), cid, item.title, 15, '700', T.text, 'left', 22, 1.1);
     const sp2 = mkSp(ids.el(), cid, 6);
-    const ds = mkText(ids.el(), cid, item.desc, 13, 'normal', '#64748b', 'left', 60, 1.7);
+    const ds = mkText(ids.el(), cid, item.desc, 13, 'normal', T.text, 'left', 60, 1.7);
     const cardCell = mkCell(cid, secId, 3, [ic.id, sp1.id, tl.id, sp2.id, ds.id],
-      'column', 'flex-start', 'flex-start', 0, pad(28, 24), '#ffffff',
+      'column', 'flex-start', 'flex-start', 0, pad(28, 24), T.background,  /* card bg = page bg */
       { tablet: { columnSpan: 6 }, mobile: { columnSpan: 12 } },
-      bdr(12, 1, '#e2e8f0'), 180);
+      bdr(12, 1, T.light), 180);
     reg(nodes, ic, sp1, tl, sp2, ds, cardCell);
   });
 
-  const sec = mkSec(secId, cardCells, secSolid('#f8fafc'), 20, 20, pad(72, 40), 'Features 4-col');
+  const sec = mkSec(secId, cardCells, secSolid(T.sectionBg), 20, 20, pad(72, 40), 'Features 4-col');
   reg(nodes, sec);
   return { sectionId: secId, nodes };
 }
 
-function buildTwoColumn(ids: TemplateIds): TemplateResult {
+function buildTwoColumn(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
   const cleft = ids.cell();
   const cright = ids.cell();
 
-  const eye = mkText(ids.el(), cleft, 'WHY CHOOSE US', 11, '700', '#006e75', 'left', 18, 1);
+  const eye = mkText(ids.el(), cleft, 'WHY CHOOSE US', 11, '700', T.primary, 'left', 18, 1);
   const sp1 = mkSp(ids.el(), cleft, 14);
-  const h2 = mkText(ids.el(), cleft, 'Built for speed,\ndesigned for growth.', 36, '700', '#0f172a', 'left', 96, 1.2);
+  const h2 = mkText(ids.el(), cleft, 'Built for speed,\ndesigned for growth.', 36, '700', T.text, 'left', 96, 1.2);
   const sp2 = mkSp(ids.el(), cleft, 18);
-  const body = mkText(ids.el(), cleft, 'Describe the value you provide in a couple of sentences. Focus on outcomes your customers care about most.', 16, 'normal', '#475569', 'left', 72, 1.75);
+  const body = mkText(ids.el(), cleft, 'Describe the value you provide in a couple of sentences. Focus on outcomes your customers care about most.', 16, 'normal', T.text, 'left', 72, 1.75);
   const sp3 = mkSp(ids.el(), cleft, 12);
-  const chk1 = mkText(ids.el(), cleft, '✓  Benefit one',   15, 'normal', '#475569', 'left', 26, 1.6);
-  const chk2 = mkText(ids.el(), cleft, '✓  Benefit two',   15, 'normal', '#475569', 'left', 26, 1.6);
-  const chk3 = mkText(ids.el(), cleft, '✓  Benefit three', 15, 'normal', '#475569', 'left', 26, 1.6);
+  const chk1 = mkText(ids.el(), cleft, '✓  Benefit one',   15, 'normal', T.text, 'left', 26, 1.6);
+  const chk2 = mkText(ids.el(), cleft, '✓  Benefit two',   15, 'normal', T.text, 'left', 26, 1.6);
+  const chk3 = mkText(ids.el(), cleft, '✓  Benefit three', 15, 'normal', T.text, 'left', 26, 1.6);
   const sp4 = mkSp(ids.el(), cleft, 32);
-  const btn = mkBtn(ids.el(), cleft, 'Learn More →', '#0f172a', '#ffffff');
+  const btn = mkBtn(ids.el(), cleft, 'Learn More →', T.text, '#ffffff');
 
   const img = mkImg(ids.el(), cright, 380);
 
@@ -267,7 +271,7 @@ function buildTwoColumn(ids: TemplateIds): TemplateResult {
   const cellR = mkCell(cright, secId, 6, [img.id],
     'column', 'center', 'center', 0, pad(20, 40), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
-  const sec = mkSec(secId, [cleft, cright], secSolid('#ffffff'), 0, 0, pad(80, 0), 'Two Column');
+  const sec = mkSec(secId, [cleft, cright], secSolid(T.sectionBg), 0, 0, pad(80, 0), 'Two Column');
 
   reg(nodes, eye, sp1, h2, sp2, body, sp3, chk1, chk2, chk3, sp4, btn, img, cellL, cellR, sec);
   return { sectionId: secId, nodes };
@@ -322,21 +326,22 @@ function buildTestimonial(ids: TemplateIds): TemplateResult {
   return { sectionId: secId, nodes };
 }
 
-function buildCTA(ids: TemplateIds): TemplateResult {
+function buildCTA(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
   const cid = ids.cell();
 
-  const h2 = mkText(ids.el(), cid, 'Ready to get started?', 42, '700', '#ffffff', 'center', 56, 1.2);
+  const h2 = mkText(ids.el(), cid, 'Ready to get started?', 42, '700', T.background, 'center', 56, 1.2);
   const sp1 = mkSp(ids.el(), cid, 16);
-  const sub = mkText(ids.el(), cid, 'Join thousands of users who are already seeing results. Start your free trial today.', 18, 'normal', 'rgba(255,255,255,0.75)', 'center', 28, 1.6);
+  const sub = mkText(ids.el(), cid, 'Join thousands of users who are already seeing results. Start your free trial today.', 18, 'normal', T.background, 'center', 28, 1.6);
   const sp2 = mkSp(ids.el(), cid, 40);
-  const btn = mkBtn(ids.el(), cid, 'Start Free Trial →', '#ffffff', '#006e75', 16, 8, pad(16, 36));
+  const btn = mkBtn(ids.el(), cid, 'Start Free Trial →', T.background, T.primary, 16, 8, pad(16, 36));
 
   const cell = mkCell(cid, secId, 12, [h2.id, sp1.id, sub.id, sp2.id, btn.id],
     'column', 'center', 'flex-start', 0, pad(96, 40), 'transparent',
     { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
-  const sec = mkSec(secId, [cid], secGrad('#006e75', '#0b978e', 135), 0, 0, pad(0), 'CTA Banner');
+  const sec = mkSec(secId, [cid], secGrad(T.primary, T.accent || T.primary, 135), 0, 0, pad(0), 'CTA Banner');
 
   reg(nodes, h2, sp1, sub, sp2, btn, cell, sec);
   return { sectionId: secId, nodes };
@@ -384,19 +389,20 @@ function buildPricing(ids: TemplateIds): TemplateResult {
   return { sectionId: secId, nodes };
 }
 
-function buildNavbar(ids: TemplateIds): TemplateResult {
+function buildNavbar(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
   const clogo = ids.cell();
   const cnav  = ids.cell();
   const cbtn  = ids.cell();
 
-  const logo     = mkText(ids.el(), clogo, 'Your Brand', 20, '700',    '#0f172a', 'center', 30, 1, pad(0), fl('auto'));
-  const lnkHome  = mkText(ids.el(), cnav,  'Home',       14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
-  const lnkAbout = mkText(ids.el(), cnav,  'About',      14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
-  const lnkFeats = mkText(ids.el(), cnav,  'Features',   14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
-  const lnkPrice = mkText(ids.el(), cnav,  'Pricing',    14, 'normal', '#64748b', 'center', 24, 1, pad(0), fl('auto'));
-  const btn      = mkBtn(ids.el(),  cbtn,  'Sign Up', '#006e75', '#ffffff', 13, 6, pad(8, 16));
+  const logo     = mkText(ids.el(), clogo, 'Your Brand', 20, '700',    T.text,    'center', 30, 1, pad(0), fl('auto'));
+  const lnkHome  = mkText(ids.el(), cnav,  'Home',       14, 'normal', T.text, 'center', 24, 1, pad(0), fl('auto'));
+  const lnkAbout = mkText(ids.el(), cnav,  'About',      14, 'normal', T.text, 'center', 24, 1, pad(0), fl('auto'));
+  const lnkFeats = mkText(ids.el(), cnav,  'Features',   14, 'normal', T.text, 'center', 24, 1, pad(0), fl('auto'));
+  const lnkPrice = mkText(ids.el(), cnav,  'Pricing',    14, 'normal', T.text, 'center', 24, 1, pad(0), fl('auto'));
+  const btn      = mkBtn(ids.el(),  cbtn,  'Sign Up', T.primary, '#ffffff', 13, 6, pad(8, 16));
 
   // Desktop: [Logo:3] [Nav links (4 texts, row):7] [Sign Up:2] = 12 cols
   // Mobile: all span 12, stack vertically, centered
@@ -409,48 +415,49 @@ function buildNavbar(ids: TemplateIds): TemplateResult {
   const cellBtn  = mkCell(cbtn,  secId, 2, [btn.id], 'row', 'center', 'center', 0, pad(16, 24),
     'transparent', { tablet: { columnSpan: 3 }, mobile: { columnSpan: 12 } });
 
-  const sec = mkSec(secId, [clogo, cnav, cbtn], secSolid('#ffffff'), 0, 0, pad(0), 'Navbar');
+  const sec = mkSec(secId, [clogo, cnav, cbtn], secSolid(T.sectionBg), 0, 0, pad(0), 'Navbar');
 
   reg(nodes, logo, lnkHome, lnkAbout, lnkFeats, lnkPrice, btn, cellLogo, cellNav, cellBtn, sec);
   return { sectionId: secId, nodes };
 }
 
-function buildFooter(ids: TemplateIds): TemplateResult {
+function buildFooter(ids: TemplateIds, theme: SiteTheme = DEFAULT_THEME): TemplateResult {
   const nodes: Record<string, AnyNode> = {};
+  const T = theme.colors;
   const secId = ids.sec();
   const cl = ids.cell();
   const cm = ids.cell();
   const cr = ids.cell();
 
-  const logo = mkText(ids.el(), cl, 'Your Brand', 20, '700', '#ffffff', 'left', 30, 1, pad(0), fl('auto'));
+  const logo = mkText(ids.el(), cl, 'Your Brand', 20, '700', T.primary, 'left', 30, 1, pad(0), fl('auto'));
   const sp1 = mkSp(ids.el(), cl, 10);
-  const desc = mkText(ids.el(), cl, 'A short description of your product or company that explains what you do.', 13, 'normal', '#6b7280', 'left', 52, 1.7);
+  const desc = mkText(ids.el(), cl, 'A short description of your product or company that explains what you do.', 13, 'normal', T.text, 'left', 52, 1.7);
   const sp2 = mkSp(ids.el(), cl, 20);
-  const copy = mkText(ids.el(), cl, `© ${new Date().getFullYear()} Your Brand. All rights reserved.`, 12, 'normal', '#4b5563', 'left', 20);
+  const copy = mkText(ids.el(), cl, `© ${new Date().getFullYear()} Your Brand. All rights reserved.`, 12, 'normal', T.text, 'left', 20);
   const cellL = mkCell(cl, secId, 5, [logo.id, sp1.id, desc.id, sp2.id, copy.id], 'column', 'flex-start', 'flex-start', 0, pad(48, 40, 48, 32),
     'transparent', { tablet: { columnSpan: 12 }, mobile: { columnSpan: 12 } });
 
-  const colTitle1 = mkText(ids.el(), cm, 'PRODUCT', 11, '700', '#e2e8f0', 'left', 20, 1);
-  const dv1 = mkDivider(ids.el(), cm, '#374151');
-  const lnk1a = mkText(ids.el(), cm, 'Features',  13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk1b = mkText(ids.el(), cm, 'Pricing',   13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk1c = mkText(ids.el(), cm, 'Changelog', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk1d = mkText(ids.el(), cm, 'Docs',      13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const colTitle1 = mkText(ids.el(), cm, 'PRODUCT', 11, '700', T.text, 'left', 20, 1);
+  const dv1 = mkDivider(ids.el(), cm, T.light);
+  const lnk1a = mkText(ids.el(), cm, 'Features',  13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1b = mkText(ids.el(), cm, 'Pricing',   13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1c = mkText(ids.el(), cm, 'Changelog', 13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk1d = mkText(ids.el(), cm, 'Docs',      13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
   const cellM = mkCell(cm, secId, 3, [colTitle1.id, dv1.id, lnk1a.id, lnk1b.id, lnk1c.id, lnk1d.id],
     'column', 'flex-start', 'flex-start', 6, pad(48, 24),
     'transparent', { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } });
 
-  const colTitle2 = mkText(ids.el(), cr, 'COMPANY', 11, '700', '#e2e8f0', 'left', 20, 1);
-  const dv2 = mkDivider(ids.el(), cr, '#374151');
-  const lnk2a = mkText(ids.el(), cr, 'About',   13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk2b = mkText(ids.el(), cr, 'Blog',    13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk2c = mkText(ids.el(), cr, 'Careers', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
-  const lnk2d = mkText(ids.el(), cr, 'Contact', 13, 'normal', '#6b7280', 'left', 24, 1.6, pad(0), fl('fill'));
+  const colTitle2 = mkText(ids.el(), cr, 'COMPANY', 11, '700', T.text, 'left', 20, 1);
+  const dv2 = mkDivider(ids.el(), cr, T.light);
+  const lnk2a = mkText(ids.el(), cr, 'About',   13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2b = mkText(ids.el(), cr, 'Blog',    13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2c = mkText(ids.el(), cr, 'Careers', 13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
+  const lnk2d = mkText(ids.el(), cr, 'Contact', 13, 'normal', T.text, 'left', 24, 1.6, pad(0), fl('fill'));
   const cellR = mkCell(cr, secId, 4, [colTitle2.id, dv2.id, lnk2a.id, lnk2b.id, lnk2c.id, lnk2d.id],
     'column', 'flex-start', 'flex-start', 6, pad(48, 32, 48, 24),
     'transparent', { tablet: { columnSpan: 6 }, mobile: { columnSpan: 6 } });
 
-  const sec = mkSec(secId, [cl, cm, cr], secSolid('#111827'), 0, 0, pad(0), 'Footer');
+  const sec = mkSec(secId, [cl, cm, cr], secSolid(T.sectionBg), 0, 0, pad(0), 'Footer');
   reg(nodes, logo, sp1, desc, sp2, copy, cellL,
     colTitle1, dv1, lnk1a, lnk1b, lnk1c, lnk1d, cellM,
     colTitle2, dv2, lnk2a, lnk2b, lnk2c, lnk2d, cellR, sec);

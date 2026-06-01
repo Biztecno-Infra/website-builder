@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import type { CanvasElement as El, BuilderState } from '../types';
 import { richTextState } from '../utils/richTextState';
+import { ElementQuickBar } from './ElementQuickBar';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
@@ -362,19 +363,9 @@ export function CanvasElement({
 
       {selected && !editing && !previewMode && (
         <>
+          {/* Portal-based bar — renders at document.body so overflow:hidden never clips it */}
           {(onDuplicate || onDelete) && (
-            <div className={'pb-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
-              {onDuplicate && (
-                <button className={'pb-el-quick-btn'} title="Duplicate (Ctrl+D)" onClick={e => { e.stopPropagation(); onDuplicate(); }}>
-                  ⧉
-                </button>
-              )}
-              {onDelete && (
-                <button className={"pb-el-quick-btn pb-danger"} title="Delete (Del)" onClick={e => { e.stopPropagation(); onDelete(); }}>
-                  ✕
-                </button>
-              )}
-            </div>
+            <ElementQuickBar anchorRef={wrapperRef} onDuplicate={onDuplicate} onDelete={onDelete} />
           )}
 
           <div className={'pb-rotate-handle'} onMouseDown={handleRotateMouseDown} title="Rotate" />
@@ -587,9 +578,7 @@ export function ElementContent({
 
   if (el.type === 'spacer') {
     return (
-      <div style={{ ...base, backgroundColor: 'transparent',
-        backgroundImage: 'repeating-linear-gradient(45deg, #e5e5e5 0, #e5e5e5 1px, transparent 0, transparent 50%)',
-        backgroundSize: '8px 8px', opacity: 0.4 }} />
+      <div style={{ ...base, backgroundColor: 'transparent', backgroundImage: 'none' }} />
     );
   }
 

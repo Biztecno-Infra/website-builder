@@ -4,12 +4,13 @@ import { useDrop } from 'react-dnd';
 import { LAYOUT_DND_TYPE, TEMPLATE_DND_TYPE } from './LeftSidebar';
 import type { TemplateDragItem } from './LeftSidebar';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
+import type { SiteTheme } from '../types';
 
 interface Props {
   afterId?: string;
   atStart?: boolean;
   onDrop: (afterId: string | undefined, columnSpans: number[], atStart?: boolean) => void;
-  onDropTemplate?: (afterId: string | undefined, buildFn: (ids: TemplateIds) => TemplateResult, atStart?: boolean) => void;
+  onDropTemplate?: (afterId: string | undefined, buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult, atStart?: boolean) => void;
 }
 
 export function SectionDropZone({ afterId, atStart, onDrop, onDropTemplate }: Props) {

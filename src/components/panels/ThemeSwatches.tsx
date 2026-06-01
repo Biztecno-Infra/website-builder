@@ -3,7 +3,6 @@ import type { ThemeColors } from '../../types';
 export function ThemeSwatches({ colors, onPick }: { colors: ThemeColors; onPick: (c: string) => void }) {
   const swatches: [string, string][] = [
     ['Primary', colors.primary],
-    ['Secondary', colors.secondary],
     ['Accent', colors.accent],
     ['Text', colors.text],
     ['Light', colors.light],

@@ -143,30 +143,54 @@ export function SectionPanel({
                 }}>↺</button>
               )}
             </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Top</label>
-              <input type="number" value={secPad.top} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ top: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Right</label>
-              <input type="number" value={secPad.right} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ right: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Bottom</label>
-              <input type="number" value={secPad.bottom} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ bottom: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Left</label>
-              <input type="number" value={secPad.left} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ left: Number(e.target.value) })} />
-            </div>
+            {/* Section padding — responsive: reads/writes breakpoint override when not on desktop */}
+            {(() => {
+              const bpPadOverride =
+                breakpoint === 'mobile' ? section.responsive?.mobile?.padding
+                : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
+                : undefined;
+              const effPad = { ...secPad, ...bpPadOverride };
+              const padOverridden = breakpoint !== 'desktop' && bpPadOverride !== undefined;
+
+              const updateBpPad = (key: keyof typeof secPad, val: number) => {
+                if (breakpoint === 'desktop') {
+                  updateSecPad({ [key]: val });
+                } else if (breakpoint === 'tablet') {
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...secPad, ...section.responsive?.tablet?.padding, [key]: val } } } });
+                } else {
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...secPad, ...section.responsive?.tablet?.padding, ...section.responsive?.mobile?.padding, [key]: val } } } });
+                }
+              };
+
+              const clearPadBp = () => {
+                if (breakpoint === 'tablet') {
+                  const { padding: _p, ...rest } = section.responsive?.tablet ?? {};
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+                } else {
+                  const { padding: _p, ...rest } = section.responsive?.mobile ?? {};
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+                }
+              };
+
+              return (
+                <>
+                  {(['top','right','bottom','left'] as const).map(side => (
+                    <div key={side} className={['pb-prop-row', padOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
+                      <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
+                      <input type="number" value={effPad[side]} min={0}
+                        onFocus={onNumberFocus} onBlur={onNumberBlur}
+                        onChange={e => updateBpPad(side, Number(e.target.value))} />
+                    </div>
+                  ))}
+                  {breakpoint !== 'desktop' && padOverridden && (
+                    <div className={'pb-resp-ref-row'}>
+                      <span className={'pb-resp-ref-label'}>🖥 Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
+                      <button className={'pb-resp-clear-btn'} onClick={clearPadBp}>↺ Reset</button>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className={'pb-prop-row'}>
               <label>Columns</label>
               <select
@@ -309,30 +333,54 @@ export function SectionPanel({
                 }>↺</button>
               )}
             </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Top</label>
-              <input type="number" value={secPad.top} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ top: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Right</label>
-              <input type="number" value={secPad.right} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ right: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Bottom</label>
-              <input type="number" value={secPad.bottom} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ bottom: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Pad Left</label>
-              <input type="number" value={secPad.left} min={0}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateSecPad({ left: Number(e.target.value) })} />
-            </div>
+            {/* Section padding — responsive: reads/writes breakpoint override when not on desktop */}
+            {(() => {
+              const bpPadOverride =
+                breakpoint === 'mobile' ? section.responsive?.mobile?.padding
+                : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
+                : undefined;
+              const effPad = { ...secPad, ...bpPadOverride };
+              const padOverridden = breakpoint !== 'desktop' && bpPadOverride !== undefined;
+
+              const updateBpPad = (key: keyof typeof secPad, val: number) => {
+                if (breakpoint === 'desktop') {
+                  updateSecPad({ [key]: val });
+                } else if (breakpoint === 'tablet') {
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...secPad, ...section.responsive?.tablet?.padding, [key]: val } } } });
+                } else {
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...secPad, ...section.responsive?.tablet?.padding, ...section.responsive?.mobile?.padding, [key]: val } } } });
+                }
+              };
+
+              const clearPadBp = () => {
+                if (breakpoint === 'tablet') {
+                  const { padding: _p, ...rest } = section.responsive?.tablet ?? {};
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: Object.keys(rest).length ? rest : undefined } });
+                } else {
+                  const { padding: _p, ...rest } = section.responsive?.mobile ?? {};
+                  onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+                }
+              };
+
+              return (
+                <>
+                  {(['top','right','bottom','left'] as const).map(side => (
+                    <div key={side} className={['pb-prop-row', padOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
+                      <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
+                      <input type="number" value={effPad[side]} min={0}
+                        onFocus={onNumberFocus} onBlur={onNumberBlur}
+                        onChange={e => updateBpPad(side, Number(e.target.value))} />
+                    </div>
+                  ))}
+                  {breakpoint !== 'desktop' && padOverridden && (
+                    <div className={'pb-resp-ref-row'}>
+                      <span className={'pb-resp-ref-label'}>🖥 Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
+                      <button className={'pb-resp-clear-btn'} onClick={clearPadBp}>↺ Reset</button>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
             <div className={'pb-grid-col-manager'}>
               <div className={'pb-grid-col-manager-label'}>
                 Columns

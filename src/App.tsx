@@ -6,9 +6,10 @@ import { Canvas } from './components/Canvas';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
-import { useBuilderStore, makeEmpty } from './hooks/useBuilderStore';
+import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
 import { makeDemoState } from './data/demoState';
+import { makeKnightState } from './data/knightState';
 import { makeSaasLandingState } from './data/saasLandingState';
 import { makeAgencyState } from './data/agencyState';
 import { makePortfolioState } from './data/portfolioState';
@@ -97,6 +98,11 @@ export default function App() {
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
   const importRef = useRef<HTMLInputElement>(null);
 
+  // Tracks the theme colors from the last time Apply Theme was run.
+  // On first apply, defaults to DEFAULT_THEME so elements built with
+  // default colors get picked up correctly.
+  const lastAppliedThemeRef = useRef(DEFAULT_THEME.colors);
+
   const scrollCanvasToElement = useCallback((id: string) => {
     const el = document.querySelector<HTMLElement>(`[data-el-id="${id}"]`);
     if (!el) return;
@@ -120,33 +126,83 @@ export default function App() {
   const selectedSection = allSections.find(s => s.id === selectedSectionId) ?? null;
 
   const handleApplyTheme = useCallback(() => {
-    if (!window.confirm('Apply theme fonts, colors & section backgrounds to the canvas? (Ctrl+Z to undo)')) return;
+    if (!window.confirm('Apply theme colors & font to matching elements? (Ctrl+Z to undo)')) return;
     pushSnapshot(state);
     const { fonts, colors } = state.theme;
+
+    // Compare element colors against the LAST APPLIED theme colors (not the default).
+    // This correctly handles: user builds with teal → changes to blue → Apply updates teal→blue.
+    // Next Apply: blue→whatever new color they set.
+    const old = lastAppliedThemeRef.current;
+
+    const match = (a: string | undefined, b: string) =>
+      (a ?? '').toLowerCase() === b.toLowerCase();
+
     const updates = Object.values(nodes)
-      .filter((n): n is CanvasElement => n.type !== 'section' && n.type !== 'grid-cell' && n.type !== 'container')
+      .filter((n): n is CanvasElement =>
+        n.type !== 'section' && n.type !== 'grid-cell' && n.type !== 'container')
       .flatMap(el => {
-        if (el.type === 'text') return [{ id: el.id, changes: { style: { ...el.style,
-          typography: { ...el.style.typography, family: fonts.body, color: colors.text },
-        } } }];
-        if (el.type === 'button') return [{ id: el.id, changes: { style: { ...el.style,
-          background: { ...el.style.background, color: colors.primary },
+        const elText = el.style.typography.color;
+        const elBg   = el.style.background.color ?? '';
+
+        if (el.type === 'text') {
+          const newColor = match(elText, old.text) ? colors.text : elText;
+          return [{ id: el.id, changes: { style: { ...el.style,
+            typography: { ...el.style.typography, family: fonts.body, color: newColor },
+          } } }];
+        }
+        if (el.type === 'button') {
+          // Buttons can use primary or accent — check both
+          const newBg = match(elBg, old.primary) ? colors.primary
+            : match(elBg, old.accent) ? colors.accent
+            : elBg;
+          const newTextColor = match(elText, old.text) ? colors.text
+            : match(elText, old.background) ? colors.background
+            : elText;
+          return [{ id: el.id, changes: { style: { ...el.style,
+            background: { ...el.style.background, color: newBg },
+            typography: { ...el.style.typography, family: fonts.body, color: newTextColor },
+          } } }];
+        }
+        if (el.type === 'box' || el.type === 'divider') {
+          const newBg = match(elBg, old.light) ? colors.light : elBg;
+          return [{ id: el.id, changes: { style: { ...el.style,
+            background: { ...el.style.background, color: newBg },
+          } } }];
+        }
+        if (el.type === 'icon') {
+          // Icons use primary color — update typography.color if it matched old primary
+          const newColor = match(elText, old.primary) ? colors.primary
+            : match(elText, old.accent) ? colors.accent
+            : elText;
+          return [{ id: el.id, changes: { style: { ...el.style,
+            typography: { ...el.style.typography, color: newColor },
+          } } }];
+        }
+        // All other elements: just update font family
+        return [{ id: el.id, changes: { style: { ...el.style,
           typography: { ...el.style.typography, family: fonts.body },
         } } }];
-        return [];
       });
+
     updateElements(updates);
-    allSections.forEach(sec =>
-      updateSection(sec.id, { style: { ...sec.style, background: { ...sec.style.background, type: 'solid', color: colors.sectionBg, image: '' } } })
-    );
-    // Reset grid cell backgrounds to transparent so section background shows through
-    Object.values(nodes).forEach(n => {
-      if (n.type === 'grid-cell') {
-        const cell = n as GridCell;
-        updateGridCell(cell.id, { style: { ...cell.style, background: { ...cell.style.background, type: 'solid', color: 'transparent', image: '', overlay: 0 } } });
+
+    // Sections: only update if they were using the old sectionBg or background
+    allSections.forEach(sec => {
+      const secBg = sec.style.background.color ?? '';
+      if (match(secBg, old.sectionBg) || match(secBg, old.background)) {
+        const newBg = match(secBg, old.sectionBg) ? colors.sectionBg : colors.background;
+        updateSection(sec.id, { style: { ...sec.style,
+          background: { ...sec.style.background, type: 'solid', color: newBg, image: '' },
+        } });
       }
     });
-  }, [nodes, state, header, sections, footer, pushSnapshot, updateElements, updateSection, updateGridCell]);
+
+    // Grid cell backgrounds are intentional (cards etc.) — never auto-reset them
+
+    // Record the theme we just applied — next Apply compares against this
+    lastAppliedThemeRef.current = colors;
+  }, [nodes, state, allSections, pushSnapshot, updateElements, updateSection]);
 
   // Export HTML
   const handleExportHTML = () => {
@@ -463,6 +519,11 @@ export default function App() {
               >
                 🍋 Lemon Squeezy
               </button> */}
+              <button
+                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
+                title="Load Knight showcase"
+                onClick={() => { importState(makeKnightState()); }}
+              >⚔ Knight</button>
               <button
                 className={"pb-toolbar-btn pb-toolbar-btn--danger"}
                 title="Clear canvas and start with an empty page (undoable)"

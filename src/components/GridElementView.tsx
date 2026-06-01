@@ -4,6 +4,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
+import { ElementQuickBar } from './ElementQuickBar';
 
 
 // ── DND contract (imported by GridCellView) ────────────────────────────────
@@ -219,10 +220,7 @@ export function GridElementView({
           onKeyDown={handleEditKeyDown}
         />
         {isSelected && !previewMode && (
-          <div className={'pb-grid-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
-            {onDuplicate && <button className={'pb-el-quick-btn'} title="Duplicate" onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>}
-            {onDelete && <button className={"pb-el-quick-btn pb-danger"} title="Delete" onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>}
-          </div>
+          <ElementQuickBar anchorRef={domRef} onDuplicate={onDuplicate} onDelete={onDelete} />
         )}
       </div>
     );
@@ -270,14 +268,7 @@ export function GridElementView({
       />
 
       {isSelected && !previewMode && (
-        <div className={'pb-grid-el-quick-bar'} onMouseDown={e => e.stopPropagation()}>
-          {onDuplicate && (
-            <button className={'pb-el-quick-btn'} title="Duplicate" onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>
-          )}
-          {onDelete && (
-            <button className={"pb-el-quick-btn pb-danger"} title="Delete" onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>
-          )}
-        </div>
+        <ElementQuickBar anchorRef={domRef} onDuplicate={onDuplicate} onDelete={onDelete} />
       )}
     </div>
   );

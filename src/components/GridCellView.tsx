@@ -9,6 +9,7 @@ import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
 import { ColumnsBlockView } from './ColumnsBlockView';
 import { getCellColumnSpan, getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../utils/cellUtils';
+import { applyBreakpoint } from '../hooks/useBuilderStore';
 
 interface Props {
   cell: GridCell;
@@ -219,21 +220,28 @@ export function GridCellView({
   }, [cell.id, onMoveGridElement, onReorderGridCell]);
 
   // ── Overlay element drag ──────────────────────────────────────────────────
-  const handleOverlayMouseDown = useCallback((el: El, e: React.MouseEvent<HTMLDivElement>) => {
+  const handleOverlayMouseDown = useCallback((rawEl: El, e: React.MouseEvent<HTMLDivElement>) => {
     if (previewMode) return;
     e.stopPropagation();
-    onSelectElement(el.id);
+    onSelectElement(rawEl.id);
     if (!cellDomRef.current) return;
     const cellRect = cellDomRef.current.getBoundingClientRect();
     const elRect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const grabX = e.clientX - elRect.left;
     const grabY = e.clientY - elRect.top;
     onCommit(snapshot);
+    const bpNow = breakpoint ?? 'desktop';
     const onMove = (me: MouseEvent) => {
       const nx = Math.max(0, Math.round(me.clientX - cellRect.left - grabX));
       const ny = Math.max(0, Math.round(me.clientY - cellRect.top - grabY));
-      onUpdateElement(el.id, { layout: { ...el.layout, x: nx, y: ny } });
-      setLiveDragPos({ x: nx, y: ny, width: el.layout.width, height: el.layout.height, cellW: cellRect.width });
+      if (bpNow === 'desktop') {
+        // Desktop: write to main layout
+        onUpdateElement(rawEl.id, { layout: { ...rawEl.layout, x: nx, y: ny } });
+      } else {
+        // Tablet/mobile: write to responsive override — never touch desktop layout
+        onUpdateResponsive?.(rawEl.id, bpNow, { layout: { x: nx, y: ny } });
+      }
+      setLiveDragPos({ x: nx, y: ny, width: rawEl.layout.width, height: rawEl.layout.height, cellW: cellRect.width });
     };
     const onUp = () => {
       setLiveDragPos(null);
@@ -242,7 +250,7 @@ export function GridCellView({
     };
     document.addEventListener('mousemove', onMove);
     document.addEventListener('mouseup', onUp);
-  }, [previewMode, onSelectElement, onCommit, snapshot, onUpdateElement]);
+  }, [previewMode, onSelectElement, onCommit, snapshot, onUpdateElement, breakpoint, onUpdateResponsive]);
 
   // ── Hidden check ──────────────────────────────────────────────────────────
   const hidden = bp === 'tablet'
@@ -256,7 +264,16 @@ export function GridCellView({
   // ── Shared style helpers ───────────────────────────────────────────────────
   const cellMode = getCellLayoutMode(cell, bp);
   const { gap, padding, border, minHeight: desktopMinH } = cell.style;
-  const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
+
+  // Responsive padding — cascade: mobile overrides tablet, tablet overrides desktop
+  const bpPadding =
+    bp === 'mobile'
+      ? { ...padding, ...cell.responsive.tablet?.padding, ...cell.responsive.mobile?.padding }
+      : bp === 'tablet'
+      ? { ...padding, ...cell.responsive.tablet?.padding }
+      : padding;
+
+  const padStr = `${bpPadding.top}px ${bpPadding.right}px ${bpPadding.bottom}px ${bpPadding.left}px`;
 
   const effectiveMinH =
     bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH)
@@ -504,10 +521,13 @@ export function GridCellView({
 
       {overlayEls.length > 0 && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 50 }}>
-          {overlayEls.map(el => (
+          {overlayEls.map(rawOverlay => {
+            // Apply breakpoint so tablet/mobile position overrides are respected
+            const el = applyBreakpoint(rawOverlay, bp);
+            return (
             <div
-              key={el.id}
-              className={['pb-grid-overlay-el', selectedElementId === el.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
+              key={rawOverlay.id}
+              className={['pb-grid-overlay-el', selectedElementId === rawOverlay.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
               style={{
                 position: 'absolute',
                 left: el.layout.x,
@@ -520,31 +540,32 @@ export function GridCellView({
                 boxSizing: 'border-box',
                 pointerEvents: 'all',
               }}
-              onMouseDown={e => handleOverlayMouseDown(el, e)}
-              onClick={e => { e.stopPropagation(); if (!previewMode) onSelectElement(el.id); }}
+              onMouseDown={e => handleOverlayMouseDown(rawOverlay, e)}
+              onClick={e => { e.stopPropagation(); if (!previewMode) onSelectElement(rawOverlay.id); }}
               onDragStart={e => e.preventDefault()}
             >
               <GridElementView
-                element={el}
+                element={rawOverlay}
                 cellId={cell.id}
                 childIdx={0}
                 cellMode={cellMode}
                 isSelected={false}
-                onSelect={() => onSelectElement(el.id)}
-                onUpdate={updates => onUpdateElement(el.id, updates)}
+                onSelect={() => onSelectElement(rawOverlay.id)}
+                onUpdate={updates => onUpdateElement(rawOverlay.id, updates)}
                 onCommit={onCommit}
                 snapshot={snapshot}
                 previewMode={previewMode}
                 disableDrag={true}
                 breakpoint={breakpoint}
                 onUpdateResponsive={onUpdateResponsive}
-                onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
-                onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
+                onDuplicate={onDuplicateElement ? () => onDuplicateElement(rawOverlay.id) : undefined}
+                onDelete={onDeleteElement ? () => onDeleteElement(rawOverlay.id) : undefined}
                 onDragHover={() => {}}
                 onDropAtChildIdx={() => {}}
               />
             </div>
-          ))}
+          );
+          })}
         </div>
       )}
 

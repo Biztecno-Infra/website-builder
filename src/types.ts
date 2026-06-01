@@ -197,8 +197,8 @@ export interface GridConfig {
 export type SectionScrollBehavior = 'normal' | 'sticky' | 'fixed';
 
 export interface SectionResponsive {
-  tablet?: { height?: number; gap?: number; rowGap?: number };
-  mobile?: { height?: number; gap?: number; rowGap?: number };
+  tablet?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding> };
+  mobile?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding> };
 }
 
 interface SectionBase {
@@ -267,6 +267,7 @@ export interface GridCellBpOverride {
   freeHeight?: number;
   alignItems?: GridCellStyle['alignItems'];
   justifyContent?: GridCellStyle['justifyContent'];
+  padding?: Partial<Padding>;
 }
 
 export interface GridCellResponsive {
@@ -345,13 +346,13 @@ export interface SiteMetadata {
 }
 
 export interface ThemeColors {
-  primary: string;
-  secondary: string;
-  text: string;
-  background: string;
-  light: string;
-  accent: string;
-  sectionBg: string;
+  primary: string;    // buttons, icons — applied on element creation + Apply Theme
+  text: string;       // all text elements — applied on creation + Apply Theme + export body color
+  background: string; // page/body background — export only + Apply Theme sections
+  light: string;      // box/divider elements — applied on creation + Apply Theme
+  accent: string;     // accent buttons — Apply Theme only
+  sectionBg: string;  // new section default bg — applied on section creation + Apply Theme
+  secondary?: string; // kept for JSON back-compat only — not exposed in UI
 }
 
 export interface SiteTheme {
