@@ -306,7 +306,7 @@ export function GridCellView({
   const sharedCellStyle: React.CSSProperties = {
     padding: padStr,
     backgroundColor: bgColor, backgroundImage: bgImage,
-    backgroundSize: 'cover', backgroundPosition: 'center',
+    backgroundSize: 'cover', backgroundPosition: cell.style.background.position || 'center',
     minHeight: appliedMinH,
     height: '100%',
     borderRadius, borderWidth, borderColor, borderStyle,

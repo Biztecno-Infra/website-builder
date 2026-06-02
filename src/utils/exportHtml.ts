@@ -370,7 +370,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
   let bgCss = '';
   if (bg.type === 'linear-gradient') bgCss = `background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`;
   else if (bg.type === 'radial-gradient') bgCss = `background-image:radial-gradient(circle,${bg.from},${bg.to})`;
-  else if (bg.image) bgCss = `background-image:url(${bg.image});background-size:cover;background-position:center`;
+  else if (bg.image) bgCss = `background-image:url(${bg.image});background-size:cover;background-position:${bg.position || 'center'}`;
   else if (bg.color && bg.color !== 'transparent') bgCss = `background-color:${bg.color}`;
 
   const { padding, gap, border, minHeight } = cell.style;

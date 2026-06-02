@@ -9,6 +9,7 @@ import type {
 } from '../../types';
 import { applyBreakpoint, CANVAS_W } from '../../hooks/useBuilderStore';
 import { richTextState } from '../../utils/richTextState';
+import { createCleanPasteHandler } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
 import { ThemeSwatches } from './ThemeSwatches';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
@@ -411,6 +412,7 @@ export function ElementPanel({
                   const div = sidebarEditRef.current;
                   if (div) changeContent({ rich: div.innerHTML, plain: div.innerText });
                 }}
+                onPaste={createCleanPasteHandler()}
               />
             </div>
           )}

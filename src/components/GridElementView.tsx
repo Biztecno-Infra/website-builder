@@ -1,5 +1,6 @@
 ﻿import React, { useCallback, useRef, useState } from 'react';
 import { richTextState } from '../utils/richTextState';
+import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { useDrag, useDrop } from 'react-dnd';
 import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';

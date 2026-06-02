@@ -452,6 +452,38 @@ export function GridCellPanel({
           </label>
         </div>
         <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: c, type: 'solid' } } }); }} />
+
+        {/* Cell background image */}
+        <div className={'pb-prop-row'}>
+          <label>Image URL</label>
+          <input
+            type="text"
+            placeholder="https://... or leave empty"
+            value={style.background.image ?? ''}
+            onFocus={gcFocus} onBlur={gcBlur}
+            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, image: e.target.value } } })}
+          />
+        </div>
+        {style.background.image && (
+          <>
+            <div className={'pb-prop-row'}>
+              <label>Overlay</label>
+              <input
+                type="range" min={0} max={0.9} step={0.05}
+                value={style.background.overlay ?? 0}
+                onChange={e => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, overlay: Number(e.target.value) } } })}
+                style={{ flex: 1 }}
+              />
+              <span style={{ fontSize: 11, color: '#888', minWidth: 28 }}>{Math.round((style.background.overlay ?? 0) * 100)}%</span>
+            </div>
+            <div className={'pb-prop-row'}>
+              <button
+                style={{ fontSize: 11, color: '#ef4444', background: 'none', border: '1px solid #fca5a5', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}
+                onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, image: '' } } }); }}
+              >✕ Remove image</button>
+            </div>
+          </>
+        )}
       </CollapsibleSection>
 
       {/* ── Border ── */}

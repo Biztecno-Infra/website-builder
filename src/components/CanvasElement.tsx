@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import type { CanvasElement as El, BuilderState } from '../types';
 import { richTextState } from '../utils/richTextState';
+import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { ElementQuickBar } from './ElementQuickBar';
 
 
@@ -443,6 +444,7 @@ export function ElementContent({
           suppressContentEditableWarning
           onBlur={onBlur}
           onKeyDown={onKeyDown}
+          onPaste={createCleanPasteHandler()}
           style={{
             ...base,
             padding: padStr,
@@ -507,6 +509,7 @@ export function ElementContent({
           suppressContentEditableWarning
           onBlur={onBlur}
           onKeyDown={onKeyDown}
+          onPaste={createCleanPasteHandler()}
           style={{
             ...base,
             display: 'flex', alignItems: 'center', justifyContent: 'center',

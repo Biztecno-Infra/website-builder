@@ -235,12 +235,38 @@ export default function App() {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const raw = JSON.parse(ev.target?.result as string);
-        importState(migrateState(raw));
-      } catch { /* ignore invalid files */ }
+        const text = ev.target?.result as string;
+        if (!text?.trim()) { alert('The file is empty.'); return; }
+
+        let raw: unknown;
+        try { raw = JSON.parse(text); }
+        catch { alert('Invalid file — could not parse JSON. Make sure you are uploading a file exported from this builder.'); return; }
+
+        // Validate it looks like a builder state
+        const r = raw as Record<string, unknown>;
+        const hasSchema = r.schema === '2.0';
+        const hasNodes  = r.nodes && typeof r.nodes === 'object';
+        const hasPages  = Array.isArray(r.pages) && (r.pages as unknown[]).length > 0;
+
+        if (!hasSchema || !hasNodes || !hasPages) {
+          alert('This JSON does not appear to be a valid page builder file.\n\nMake sure you are uploading a file downloaded using the "JSON" export button.');
+          return;
+        }
+
+        if (!window.confirm(`Import "${file.name}"?\n\nThis will replace your current canvas. You can undo with Ctrl+Z.`)) return;
+
+        // migrateState + importState handles all defaults, hydration, and undo
+        const migrated = migrateState(raw);
+        importState(migrated);
+
+      } catch (err) {
+        alert('Something went wrong importing the file. Please try again.');
+        console.error('Import error:', err);
+      }
     };
+    reader.onerror = () => alert('Could not read the file. Please try again.');
     reader.readAsText(file);
-    e.target.value = '';
+    e.target.value = ''; // allow re-importing same file
   };
 
   // Close context menu on outside click
@@ -589,9 +615,6 @@ export default function App() {
               </div>
             </div>
             <div className={'pb-toolbar-right'}>
-              {/* <button className={'pb-toolbar-btn'} onClick={() => setPreviewMode(true)} title="Preview">
-                ▶ Preview
-              </button> */}
               <div className={'pb-toolbar-divider'} />
               <button className={'pb-toolbar-btn'} onClick={handleExportHTML} title="Export HTML">
                  HTML
@@ -599,9 +622,9 @@ export default function App() {
               <button className={'pb-toolbar-btn'} onClick={handleExportJSON} title="Export JSON">
                  JSON
               </button>
-              {/* <button className={'pb-toolbar-btn'} onClick={() => importRef.current?.click()} title="Import JSON">
+              <button className={'pb-toolbar-btn'} onClick={() => importRef.current?.click()} title="Import a JSON file exported from this builder">
                 ↑ Import
-              </button> */}
+              </button>
               <input
                 ref={importRef}
                 type="file"
