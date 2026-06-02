@@ -169,10 +169,13 @@ export function GridSectionView({
     })())
   );
 
+  const secBorder = section.style.border;
   const sectionContentStyle: React.CSSProperties = {
     position: 'relative', boxSizing: 'border-box', width: '100%',
     outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : undefined, outlineOffset: -2,
     paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
+    ...(secBorder?.radius ? { borderRadius: secBorder.radius } : {}),
+    ...(secBorder?.width && secBorder.width > 0 ? { border: `${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}` } : {}),
     ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
   };
 
@@ -181,6 +184,12 @@ export function GridSectionView({
     backgroundColor: `rgba(0,0,0,${bg.overlay})`,
     pointerEvents: 'none', zIndex: 0,
   } : undefined;
+  // Hide section at current breakpoint if configured
+  const bpHidden =
+    breakpoint === 'mobile' ? section.responsive?.mobile?.hidden :
+    breakpoint === 'tablet' ? section.responsive?.tablet?.hidden : false;
+  if (bpHidden) return null;
+
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
     ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
     : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };

@@ -639,7 +639,12 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
     ? `width:100%;max-width:${maxW}px;margin:0 auto`
     : `width:100%`;
 
-  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%">
+  const secBorder = sec.style.border;
+  const borderCss = secBorder && secBorder.width > 0
+    ? `;border:${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}${secBorder.radius ? `;border-radius:${secBorder.radius}px` : ''}`
+    : secBorder?.radius ? `;border-radius:${secBorder.radius}px` : '';
+
+  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}">
     ${overlay}
     <div class="sc-grid-${sec.id} sc-pad-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
@@ -1058,6 +1063,10 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         }
       }
     }
+
+    // Section-level visibility per breakpoint
+    if (sec.responsive?.tablet?.hidden) tabletRules.push(`#sec-${sec.id}{display:none}`);
+    if (sec.responsive?.mobile?.hidden) mobileRules.push(`#sec-${sec.id}{display:none}`);
 
     // Free section responsive heights — explicit override, else proportional fallback
     const tSH = sec.responsive?.tablet?.height ?? Math.round(sec.layout.height * tScale);

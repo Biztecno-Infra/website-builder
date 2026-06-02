@@ -412,8 +412,8 @@ function loadFromStorage(): BuilderState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrateState(JSON.parse(raw));
     for (const key of LEGACY_KEYS) { const old = localStorage.getItem(key); if (old) return migrateState(JSON.parse(old)); }
-    return makeDemoState();
-  } catch { return makeDemoState(); }
+    return makeEmpty();  // fresh install → clean empty canvas
+  } catch { return makeEmpty(); }
 }
 
 function saveToStorage(s: BuilderState) {

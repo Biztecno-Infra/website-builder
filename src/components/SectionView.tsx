@@ -271,6 +271,12 @@ function FreeSectionView({
     document.addEventListener('mouseup', onUp);
   };
 
+  // Hide section at current breakpoint if configured
+  const bpHidden =
+    breakpoint === 'mobile' ? section.responsive?.mobile?.hidden :
+    breakpoint === 'tablet' ? section.responsive?.tablet?.hidden : false;
+  if (bpHidden) return null;
+
   // Fixed renders as sticky in the editor canvas — true position:fixed would escape the canvas DOM.
   // The export emits genuine position:fixed.
   const outerStyle: React.CSSProperties = (isSticky || isFixed)

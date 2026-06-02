@@ -10,6 +10,7 @@ import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
   layout: true,
   background: true,
+  border: false,
   columnStyles: false,
 };
 
@@ -433,6 +434,85 @@ export function SectionPanel({
             </div>
           </>
         )}
+      </CollapsibleSection>
+
+      {/* ── Visibility ── */}
+      <div className={'pb-prop-section'}>
+        <div className={'pb-section-header'}>Visibility</div>
+        <div className={'pb-prop-row'}>
+          <label>Hide on Tablet</label>
+          <input type="checkbox"
+            checked={!!section.responsive?.tablet?.hidden}
+            onChange={e => {
+              const { hidden: _h, ...restTablet } = section.responsive?.tablet ?? {};
+              onUpdateSection(section.id, {
+                responsive: { ...section.responsive, tablet: e.target.checked ? { ...section.responsive?.tablet, hidden: true } : (Object.keys(restTablet).length ? restTablet : undefined) }
+              });
+            }} />
+        </div>
+        <div className={'pb-prop-row'}>
+          <label>Hide on Mobile</label>
+          <input type="checkbox"
+            checked={!!section.responsive?.mobile?.hidden}
+            onChange={e => {
+              const { hidden: _h, ...restMobile } = section.responsive?.mobile ?? {};
+              onUpdateSection(section.id, {
+                responsive: { ...section.responsive, mobile: e.target.checked ? { ...section.responsive?.mobile, hidden: true } : (Object.keys(restMobile).length ? restMobile : undefined) }
+              });
+            }} />
+        </div>
+        <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5, paddingTop: 4 }}>
+          Use this to show a desktop navbar and a separate mobile navbar.
+        </div>
+      </div>
+
+      {/* ── Border ── */}
+      <CollapsibleSection sectionKey="border" label="Border" isOpen={sec('border')} onToggle={toggle}>
+        {(() => {
+          const b = section.style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' as const };
+          const update = (updates: Partial<typeof b>) =>
+            onUpdateSection(section.id, { style: { ...section.style, border: { ...b, ...updates } } });
+          return (
+            <>
+              <div className={'pb-prop-row'}>
+                <label>Radius</label>
+                <input type="number" value={b.radius} min={0}
+                  onFocus={onNumberFocus} onBlur={onNumberBlur}
+                  onChange={e => update({ radius: Number(e.target.value) })} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+              <div className={'pb-prop-row'}>
+                <label>Width</label>
+                <input type="number" value={b.width} min={0}
+                  onFocus={onNumberFocus} onBlur={onNumberBlur}
+                  onChange={e => {
+                    const w = Number(e.target.value);
+                    update({ width: w, ...(w > 0 && b.style === 'none' ? { style: 'solid' } : {}) });
+                  }} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+              {b.width > 0 && (
+                <>
+                  <div className={'pb-prop-row'}>
+                    <label>Style</label>
+                    <select value={b.style}
+                      onChange={e => update({ style: e.target.value as typeof b.style })}>
+                      <option value="solid">Solid</option>
+                      <option value="dashed">Dashed</option>
+                      <option value="dotted">Dotted</option>
+                    </select>
+                  </div>
+                  <div className={'pb-prop-row'}>
+                    <label>Color</label>
+                    <input type="color"
+                      value={b.color.startsWith('#') ? b.color : '#cccccc'}
+                      onChange={e => update({ color: e.target.value })} />
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
       </CollapsibleSection>
 
       {/* ── Background ── */}

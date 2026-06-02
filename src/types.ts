@@ -267,6 +267,7 @@ export interface SectionStyle {
   background: SectionBackground;
   columns: SectionColumns;
   padding: Padding;
+  border?: Border;
 }
 
 export interface SectionLayout {
@@ -289,8 +290,8 @@ export interface GridConfig {
 export type SectionScrollBehavior = 'normal' | 'sticky' | 'fixed';
 
 export interface SectionResponsive {
-  tablet?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding> };
-  mobile?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding> };
+  tablet?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding>; hidden?: boolean };
+  mobile?: { height?: number; gap?: number; rowGap?: number; padding?: Partial<Padding>; hidden?: boolean };
 }
 
 interface SectionBase {

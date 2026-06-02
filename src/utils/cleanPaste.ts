@@ -15,14 +15,12 @@ export function cleanPastedHTML(html: string): string {
     el.removeAttribute('id');
     el.removeAttribute('data-*');
 
-    // Remove external links but keep the text content
+    // Remove ALL links — keep the text, discard the href
     if (el.tagName === 'A') {
-      const href = (el as HTMLAnchorElement).href;
-      // If it's an external link (not an anchor #), unwrap it
-      if (!href.startsWith('#')) {
-        const parent = el.parentNode;
-        while (el.firstChild) parent?.insertBefore(el.firstChild, el);
-        parent?.removeChild(el);
+      const parent = el.parentNode;
+      if (parent) {
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
       }
     }
 
