@@ -1,7 +1,8 @@
-import type { AnyNode, CanvasElement, Container, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { AnyNode, CanvasElement, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
   DEFAULT_ANIMATION, DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
+  interactionToAction,
 } from './builderDefaults';
 
 // ── Primitive helpers ──────────────────────────────────────────────────────
@@ -140,6 +141,7 @@ export function sparsifyNode(node: AnyNode): Obj {
   if (el.responsive && Object.keys(el.responsive).length > 0)
     out.responsive = el.responsive;
   if (el.overlayInCell) out.overlayInCell = true;
+  if (el.action && el.action.type !== 'none') out.action = el.action;
   return out;
 }
 
@@ -177,11 +179,20 @@ export function hydrateNode(raw: Obj): AnyNode {
   }
 
   // CanvasElement
-  return {
+  const hydrated = {
     ...(hydrateVal(raw, ELEMENT_DEFAULTS) as Obj),
     id: raw.id, type: raw.type, parent: raw.parent,
     responsive: raw.responsive ?? {},
-  } as AnyNode;
+  } as CanvasElement;
+  // Unify click behavior: explicit `action` wins; otherwise migrate the legacy
+  // `interaction` model so older saved docs keep working with the new editor/export.
+  if (raw.action) {
+    hydrated.action = raw.action as ElementAction;
+  } else {
+    const migrated = interactionToAction(hydrated.interaction);
+    if (migrated) hydrated.action = migrated;
+  }
+  return hydrated;
 }
 
 // ── NodeMap-level helpers ──────────────────────────────────────────────────

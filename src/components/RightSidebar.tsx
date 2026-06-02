@@ -1,6 +1,6 @@
 import type {
   Breakpoint, CanvasElement, BuilderState, Container, Section, SectionUpdate, GridCell,
-  BreakpointOverride, NodeMap, SiteTheme,
+  BreakpointOverride, NodeMap, Page, SiteTheme,
 } from '../types';
 import { GridCellPanel } from './panels/GridCellPanel';
 import { SectionPanel } from './panels/SectionPanel';
@@ -26,6 +26,7 @@ interface Props {
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   theme: SiteTheme;
+  pages: Page[];
 }
 
 export function RightSidebar({
@@ -36,7 +37,7 @@ export function RightSidebar({
   onPushSnapshot, onDelete,
   container, onUpdateContainer,
   breakpoint = 'desktop', onUpdateResponsive,
-  theme,
+  theme, pages,
 }: Props) {
   if (!element && container && onUpdateContainer) {
     return (
@@ -119,6 +120,7 @@ export function RightSidebar({
       breakpoint={breakpoint}
       onUpdateResponsive={onUpdateResponsive}
       theme={theme}
+      pages={pages}
     />
   );
 }

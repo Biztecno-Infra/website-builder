@@ -1,6 +1,6 @@
 import type {
-  ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
-  ElementStyle, FlexItemLayout, GridCellStyle, Padding, SectionBackground,
+  ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
+  ElementStyle, FlexItemLayout, FormField, GridCellStyle, Padding, SectionBackground,
   SiteTheme, TextTransform,
 } from '../types';
 
@@ -32,7 +32,34 @@ export const DEFAULT_CONTENT: ElementContent = {
 };
 
 export const DEFAULT_INTERACTION: ElementInteraction = { type: 'link', linkUrl: '', linkTarget: '_self', smoothScroll: false };
+export const DEFAULT_ACTION: ElementAction = { type: 'none', target: '_self', smoothScroll: true };
 export const DEFAULT_ANIMATION: ElementAnimation = { type: 'none', trigger: 'load', duration: 600, delay: 0 };
+
+// Default fields for a freshly-dropped Form element.
+export function defaultFormFields(): FormField[] {
+  return [
+    { id: 'ff_name',  type: 'text',     label: 'Name',    name: 'name',    placeholder: 'Your name',          helpText: '', defaultValue: '', required: true,  width: 'full', validation: {} },
+    { id: 'ff_email', type: 'email',    label: 'Email',   name: 'email',   placeholder: 'you@example.com',    helpText: '', defaultValue: '', required: true,  width: 'full', validation: { preset: 'email' } },
+    { id: 'ff_msg',   type: 'textarea', label: 'Message', name: 'message', placeholder: 'How can we help?',   helpText: '', defaultValue: '', required: false, width: 'full', validation: {}, rows: 4 },
+  ];
+}
+
+// Migrate the legacy `interaction` model onto the unified `action` model.
+// Returns null when there is nothing meaningful to migrate.
+export function interactionToAction(i: ElementInteraction | undefined): ElementAction | null {
+  if (!i) return null;
+  if (i.type === 'scroll-to-section') {
+    if (!i.targetSectionId) return null;
+    return { type: 'scroll-to-section', targetSectionId: i.targetSectionId, smoothScroll: i.smoothScroll };
+  }
+  if (i.type === 'scroll-to-top') {
+    return { type: 'scroll-to-top', smoothScroll: i.smoothScroll };
+  }
+  if (i.linkUrl) {
+    return { type: 'external-url', url: i.linkUrl, target: i.linkTarget };
+  }
+  return null;
+}
 
 export const DEFAULT_THEME: SiteTheme = {
   colors: { primary: '#006e75', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c', sectionBg: '#ffffff' },

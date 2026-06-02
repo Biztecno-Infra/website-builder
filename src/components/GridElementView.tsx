@@ -224,6 +224,7 @@ export function GridElementView({
           editRef={editRef}
           onBlur={handleEditBlur}
           onKeyDown={handleEditKeyDown}
+          breakpoint={breakpoint}
         />
         {isSelected && !previewMode && (
           <ElementQuickBar anchorRef={domRef} onDuplicate={onDuplicate} onDelete={onDelete} />
@@ -271,6 +272,7 @@ export function GridElementView({
         editRef={editRef}
         onBlur={handleEditBlur}
         onKeyDown={handleEditKeyDown}
+        breakpoint={breakpoint}
       />
 
       {isSelected && !previewMode && (

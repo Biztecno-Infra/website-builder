@@ -1,8 +1,9 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
-import type { CanvasElement as El, BuilderState } from '../types';
+import type { CanvasElement as El, BuilderState, Breakpoint } from '../types';
 import { richTextState } from '../utils/richTextState';
 import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { ElementQuickBar } from './ElementQuickBar';
+import { FormPreview } from './FormPreview';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
@@ -40,6 +41,8 @@ interface Props {
   onDuplicate?: () => void;
   onDelete?: () => void;
   sectionId: string;
+  /** active builder breakpoint — drives responsive in-element previews (e.g. Form field stacking) */
+  breakpoint?: Breakpoint;
 }
 
 const SNAP = 8;
@@ -125,7 +128,7 @@ function computeGuides(
 
 export function CanvasElement({
   element: el, isSelected, isMultiSelected, onSelect, onUpdate, onCommit, snapshot, snapEnabled, onContextMenu,
-  sectionElements, onGuides, previewMode, onDuplicate, onDelete, sectionId,
+  sectionElements, onGuides, previewMode, onDuplicate, onDelete, sectionId, breakpoint = 'desktop',
 }: Props) {
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLDivElement>(null);
@@ -360,7 +363,7 @@ export function CanvasElement({
       onContextMenu={previewMode ? undefined : handleContextMenu}
     >
       <ElementContent el={el} editing={editing} editRef={editRef}
-        onBlur={handleEditBlur} onKeyDown={handleEditKeyDown} />
+        onBlur={handleEditBlur} onKeyDown={handleEditKeyDown} breakpoint={breakpoint} />
 
       {selected && !editing && !previewMode && (
         <>
@@ -388,13 +391,14 @@ export function CanvasElement({
 }
 
 export function ElementContent({
-  el, editing, editRef, onBlur, onKeyDown,
+  el, editing, editRef, onBlur, onKeyDown, breakpoint = 'desktop',
 }: {
   el: El;
   editing: boolean;
   editRef: React.RefObject<HTMLDivElement | null>;
   onBlur: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
+  breakpoint?: Breakpoint;
 }) {
   const { padding, background, border, typography } = el.style;
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
@@ -595,6 +599,14 @@ export function ElementContent({
                  dangerouslySetInnerHTML={{ __html: el.content.iconSvg }} />
           : <span style={{ fontSize: iconSize, color: iconColor, lineHeight: 1 }}>{el.content.iconName ?? '★'}</span>
         }
+      </div>
+    );
+  }
+
+  if (el.type === 'form') {
+    return (
+      <div style={{ ...base, padding: padStr }}>
+        <FormPreview el={el} stackFields={breakpoint === 'mobile'} />
       </div>
     );
   }

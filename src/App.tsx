@@ -715,6 +715,7 @@ export default function App() {
               breakpoint={breakpoint}
               onUpdateResponsive={updateResponsive}
               theme={state.theme}
+              pages={state.pages}
             />
           </div>
 

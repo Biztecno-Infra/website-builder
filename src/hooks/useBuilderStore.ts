@@ -12,6 +12,7 @@ import { hydrateNodes, sparsifyNodes } from '../utils/sparse';
 import {
   DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
   DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
+  defaultFormFields,
 } from '../utils/builderDefaults';
 
 export {
@@ -180,6 +181,14 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
     case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
     case 'spacer':  return { ...base, layout: { ...base.layout, width: 200, height: 60 } };
     case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: tc.primary } } };
+    case 'form':    return {
+      ...base,
+      layout: { ...base.layout, width: 420, height: 360 },
+      flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' },
+      style: { ...base.style, typography: { ...base.style.typography, color: tc.text } },
+      content: { ...base.content, formFields: defaultFormFields(), fieldGap: 14, submitLabel: 'Submit' },
+      action: { type: 'submit-form', email: '', subject: 'New form submission' },
+    };
   }
 }
 

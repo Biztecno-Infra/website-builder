@@ -473,6 +473,7 @@ function FreeSectionView({
                 previewMode={previewMode}
                 onDuplicate={onDuplicateElement ? () => onDuplicateElement(id) : undefined}
                 onDelete={onDeleteElement ? () => onDeleteElement(id) : undefined}
+                breakpoint={breakpoint}
               />
             );
           })}

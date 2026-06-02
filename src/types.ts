@@ -1,4 +1,4 @@
-export type ElementType = 'text' | 'image' | 'button' | 'box' | 'divider' | 'video' | 'spacer' | 'icon';
+export type ElementType = 'text' | 'image' | 'button' | 'box' | 'divider' | 'video' | 'spacer' | 'icon' | 'form';
 export type TextAlign = 'left' | 'center' | 'right';
 export type ObjectFit = 'cover' | 'contain' | 'fill';
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
@@ -95,6 +95,95 @@ export interface ElementContent {
   iconSize?: number;
   iconSvg?: string;
   orientation?: 'horizontal' | 'vertical';
+  // ── Form element ──
+  formFields?: FormField[];
+  /** px gap between fields in the form's wrapping flex layout */
+  fieldGap?: number;
+  /** label shown on the form's submit button */
+  submitLabel?: string;
+}
+
+// ── Form field model ───────────────────────────────────────────────────
+
+export type FormFieldType =
+  | 'text' | 'email' | 'number' | 'textarea'
+  | 'select' | 'checkbox' | 'radio' | 'date';
+
+export type ValidationPreset = 'none' | 'email' | 'url' | 'number';
+
+export interface FormFieldValidation {
+  preset?: ValidationPreset;
+  minLength?: number;
+  maxLength?: number;
+  /** number/date min/max — number for 'number', ISO date string for 'date' */
+  min?: number | string;
+  max?: number | string;
+  /** raw regex source (no slashes) */
+  pattern?: string;
+  errorMessage?: string;
+}
+
+export interface FormFieldOption {
+  label: string;
+  value: string;
+}
+
+export interface FormField {
+  id: string;
+  type: FormFieldType;
+  /** visible label */
+  label: string;
+  /** submission key — used as the input name */
+  name: string;
+  placeholder?: string;
+  helpText?: string;
+  defaultValue?: string;
+  required: boolean;
+  /** layout width within the form's wrapping flex row */
+  width: 'full' | 'half';
+  validation: FormFieldValidation;
+  /** select / radio / checkbox choices */
+  options?: FormFieldOption[];
+  /** textarea row count */
+  rows?: number;
+}
+
+// ── Action model (shared by buttons + form submit) ──────────────────────
+
+export type ActionType =
+  | 'none'
+  | 'submit-form'
+  | 'external-url'
+  | 'internal-page'
+  | 'send-email'
+  | 'make-call'
+  | 'send-sms'
+  | 'download-file'
+  | 'open-popup'
+  | 'scroll-to-section'
+  | 'scroll-to-top';
+
+export interface ElementAction {
+  type: ActionType;
+  /** external-url / download-file */
+  url?: string;
+  /** external-url link target */
+  target?: '_self' | '_blank';
+  /** internal-page */
+  pageId?: string;
+  /** send-email — and the recipient for a submit-form action */
+  email?: string;
+  subject?: string;
+  /** send-email body / send-sms message */
+  body?: string;
+  /** make-call / send-sms */
+  phone?: string;
+  /** open-popup */
+  popupId?: string;
+  /** scroll-to-section */
+  targetSectionId?: string;
+  /** scroll-to-section / scroll-to-top */
+  smoothScroll?: boolean;
 }
 
 export type InteractionType = 'link' | 'scroll-to-section' | 'scroll-to-top';
@@ -151,7 +240,10 @@ export interface CanvasElement {
   layout: ElementLayout;
   style: ElementStyle;
   content: ElementContent;
+  /** @deprecated legacy click model — migrated into `action` on load, kept for back-compat hydration */
   interaction: ElementInteraction;
+  /** unified click/submit behavior — shared by buttons and form submit */
+  action?: ElementAction;
   animation: ElementAnimation;
   state: ElementState;
   responsive: ElementResponsive;

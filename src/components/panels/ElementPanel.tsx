@@ -5,18 +5,22 @@ import type {
   BreakpointOverride, ElementBackground, ElementLayout, ElementContent,
   ElementAnimation, Border, Padding, Shadow, Typography,
   FlexWidthMode, NodeMap, TextTransform, SiteTheme,
-  InteractionType, ElementInteraction, Section,
+  ElementAction, FormField, Page,
 } from '../../types';
 import { applyBreakpoint, CANVAS_W } from '../../hooks/useBuilderStore';
+import { DEFAULT_ACTION } from '../../utils/builderDefaults';
 import { richTextState } from '../../utils/richTextState';
 import { createCleanPasteHandler } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
 import { ThemeSwatches } from './ThemeSwatches';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
+import { ActionEditor } from './ActionEditor';
+import { FormFieldsEditor } from './FormFieldsEditor';
 
 const ELEMENT_SECTION_DEFAULTS: Record<string, boolean> = {
   layout: true, sizing: true,
   typography: true, image: true, video: true, icon: true,
+  form: true, action: true,
   background: true, border: true, spacing: true,
   shadow: false, interactions: false, animation: false,
   advanced: false, responsive: false,
@@ -35,12 +39,13 @@ interface Props {
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   theme: SiteTheme;
+  pages: Page[];
 }
 
 export function ElementPanel({
   element, isInGridCell = false, nodes, snapshot,
   onUpdate, onPushSnapshot, onDelete,
-  breakpoint = 'desktop', onUpdateResponsive, theme,
+  breakpoint = 'desktop', onUpdateResponsive, theme, pages,
 }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
   const [flexAdvanced, setFlexAdvanced] = useState(false);
@@ -92,6 +97,17 @@ export function ElementPanel({
   const changeContent = (c: Partial<ElementContent>) => change({ content: { ...element.content, ...c } });
   const changeAnim   = (a: Partial<ElementAnimation>) => change({ animation: { ...element.animation, ...a } });
 
+  const currentAction: ElementAction = element.action ?? DEFAULT_ACTION;
+  // Commit-on-change: dropdowns/checkboxes commit immediately; text inputs use onFocus/onBlur for the undo snapshot.
+  const changeAction = (updates: Partial<ElementAction>) => {
+    if (focusSnapshot.current === null) onPushSnapshot(snapshot);
+    change({ action: { ...currentAction, ...updates } });
+  };
+  const setFormFields = (formFields: FormField[], commit: boolean) => {
+    if (commit) onPushSnapshot(snapshot);
+    changeContent({ formFields });
+  };
+
   const changeResp = (updates: Partial<BreakpointOverride>) => {
     if (breakpoint !== 'desktop' && onUpdateResponsive) {
       onUpdateResponsive(id, breakpoint, updates);
@@ -125,7 +141,7 @@ export function ElementPanel({
 
   const ELEMENT_TYPE_LABELS: Record<string, string> = {
     text: 'Text', image: 'Image', button: 'Button', box: 'Box',
-    divider: 'Divider', video: 'Video', spacer: 'Spacer', icon: 'Icon',
+    divider: 'Divider', video: 'Video', spacer: 'Spacer', icon: 'Icon', form: 'Form',
   };
   const elementLabel = ELEMENT_TYPE_LABELS[element.type] ?? element.type;
 
@@ -543,6 +559,52 @@ export function ElementPanel({
         </CollapsibleSection>
       )}
 
+      {/* ── Form ── */}
+      {element.type === 'form' && (
+        <CollapsibleSection sectionKey="form" label="Form Fields" isOpen={sec('form')} onToggle={toggleSection}>
+          <FormFieldsEditor
+            fields={element.content.formFields ?? []}
+            onChange={fields => setFormFields(fields, true)}
+            onChangeNoCommit={fields => setFormFields(fields, false)}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          />
+          <div style={{ height: 1, background: '#e2e8f0', margin: '10px 0' }} />
+          <div className={'pb-prop-row'}>
+            <label>Submit Label</label>
+            <input type="text" value={element.content.submitLabel ?? 'Submit'}
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ submitLabel: e.target.value })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Field Gap</label>
+            <input type="number" min={0} max={48} value={element.content.fieldGap ?? 14}
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ fieldGap: Number(e.target.value) })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* ── Action (Form submit + Button) ── */}
+      {(element.type === 'form' || element.type === 'button') && (
+        <CollapsibleSection
+          sectionKey="action"
+          label={element.type === 'form' ? 'Submit Action' : 'Action'}
+          isOpen={sec('action')} onToggle={toggleSection}
+        >
+          <ActionEditor
+            action={currentAction}
+            onChange={changeAction}
+            nodes={nodes}
+            pages={pages}
+            allowSubmit={element.type === 'form'}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          />
+        </CollapsibleSection>
+      )}
+
       {/* ── Image ── */}
       {element.type === 'image' && (
         <CollapsibleSection sectionKey="image" label="Image" isOpen={sec('image')} onToggle={toggleSection}>
@@ -871,77 +933,6 @@ export function ElementPanel({
         {!element.style.shadow.enabled && (
           <div style={{ fontSize: 11, color: '#aaa', padding: '2px 0 4px' }}>Enable via the On toggle above</div>
         )}
-      </CollapsibleSection>
-
-      {/* ── Interactions ── */}
-      <CollapsibleSection sectionKey="interactions" label="Interactions" isOpen={sec('interactions')} onToggle={toggleSection}>
-        {(() => {
-          const iType: InteractionType = element.interaction?.type ?? 'link';
-          const changeInteraction = (updates: Partial<ElementInteraction>) =>
-            commitChange({ interaction: { ...element.interaction, ...updates } as ElementInteraction });
-          const allSections = Object.values(nodes)
-            .filter((n): n is Section => n.type === 'section')
-            .sort((a, b) => a.label.localeCompare(b.label));
-          return (
-            <>
-              <div className={'pb-prop-row'}>
-                <label>Type</label>
-                <div className={'pb-layout-mode-toggle'}>
-                  <button className={['pb-layout-mode-btn', iType === 'link' && 'pb-active'].filter(Boolean).join(' ')}
-                    onClick={() => changeInteraction({ type: 'link' })}>Link</button>
-                  <button className={['pb-layout-mode-btn', iType === 'scroll-to-section' && 'pb-active'].filter(Boolean).join(' ')}
-                    onClick={() => changeInteraction({ type: 'scroll-to-section' })}>↓ Section</button>
-                  <button className={['pb-layout-mode-btn', iType === 'scroll-to-top' && 'pb-active'].filter(Boolean).join(' ')}
-                    onClick={() => changeInteraction({ type: 'scroll-to-top' })}>↑ Top</button>
-                </div>
-              </div>
-              {iType === 'link' && (
-                <>
-                  <div className={"pb-prop-row pb-full"}>
-                    <label>URL</label>
-                    <input type="text" value={element.interaction?.linkUrl ?? ''} placeholder="https://..."
-                      onFocus={onFocus} onBlur={onBlur}
-                      onChange={e => change({ interaction: { ...element.interaction, linkUrl: e.target.value } as ElementInteraction })} />
-                  </div>
-                  <div className={'pb-prop-row'}>
-                    <label>Target</label>
-                    <select value={element.interaction?.linkTarget ?? '_self'}
-                      onChange={e => commitChange({ interaction: { ...element.interaction, linkTarget: e.target.value as '_self' | '_blank' } as ElementInteraction })}>
-                      <option value="_self">Same tab</option>
-                      <option value="_blank">New tab</option>
-                    </select>
-                  </div>
-                </>
-              )}
-              {iType === 'scroll-to-section' && (
-                <>
-                  <div className={'pb-prop-row'}>
-                    <label>Section</label>
-                    <select value={element.interaction?.targetSectionId ?? ''}
-                      onChange={e => changeInteraction({ targetSectionId: e.target.value })}>
-                      <option value="">— pick section —</option>
-                      {allSections.map(s => (
-                        <option key={s.id} value={s.id}>{s.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className={'pb-prop-row'}>
-                    <label>Smooth</label>
-                    <input type="checkbox" checked={!!(element.interaction?.smoothScroll)}
-                      onChange={e => changeInteraction({ smoothScroll: e.target.checked })} />
-                  </div>
-                </>
-              )}
-              {iType === 'scroll-to-top' && (
-                <div className={'pb-prop-row'}>
-                  <label>Smooth</label>
-                  <input type="checkbox" checked={!!(element.interaction?.smoothScroll)}
-                    onChange={e => changeInteraction({ smoothScroll: e.target.checked })} />
-                </div>
-              )}
-            </>
-          );
-        })()}
       </CollapsibleSection>
 
       {/* Animation panel hidden during stabilization — data + export still intact */}

@@ -1,9 +1,12 @@
-import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, FlexItemLayout, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
 import { sectionBgCssStr } from './sectionStyle';
+import { interactionToAction } from './builderDefaults';
+import { fieldHelpNote } from './formFormat';
 
 const CANVAS_W = 1280;
 const TABLET_W = 768;
 const MOBILE_W = 375;
+const MOBILE_BREAK = TABLET_W - 1; // 767 — matches the mobile @media boundary used elsewhere
 
 function toYouTubeEmbedUrl(url: string): string {
   if (!url) return url;
@@ -93,6 +96,20 @@ function elContentStyle(el: CanvasElement): string {
   return parts.join(';');
 }
 
+// Background + border declarations only (no width/height) — for wrappers that
+// already get their sizing elsewhere (e.g. grid flex classes).
+function elBgBorderCss(el: CanvasElement): string {
+  const parts: string[] = [];
+  const bg = el.style.background;
+  const border = el.style.border;
+  if (bg.type === 'linear-gradient') parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
+  else if (bg.type === 'radial-gradient') parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
+  else if (bg.image) parts.push(`background-image:url(${bg.image});background-size:cover;background-position:${bg.position}`);
+  else if (bg.color && bg.color !== 'transparent') parts.push(`background-color:${bg.color}`);
+  if (border.width > 0) parts.push(`border:${border.width}px ${border.style} ${border.color}`);
+  return parts.join(';');
+}
+
 function esc(str: string): string {
   return (str ?? '')
     .replace(/&/g, '&amp;')
@@ -101,25 +118,184 @@ function esc(str: string): string {
     .replace(/"/g, '&quot;');
 }
 
+// Page slug lookup for internal-page actions — set at the start of exportHtml().
+let PAGE_SLUGS: Record<string, string> = {};
+
+// The element's effective action: prefer the unified `action`, else migrate the
+// legacy `interaction` model so older docs still export working links.
+function actionOf(el: CanvasElement): ElementAction | null {
+  if (el.action && el.action.type !== 'none') return el.action;
+  return interactionToAction(el.interaction);
+}
+
+function smsHref(phone: string, body?: string): string {
+  const num = phone.replace(/[^+\d]/g, '');
+  const q = body ? `?&body=${encodeURIComponent(body)}` : '';
+  return `sms:${num}${q}`;
+}
+
+function mailtoHref(email: string, subject?: string, body?: string): string {
+  const params: string[] = [];
+  if (subject) params.push(`subject=${encodeURIComponent(subject)}`);
+  if (body) params.push(`body=${encodeURIComponent(body)}`);
+  return `mailto:${email}${params.length ? `?${params.join('&')}` : ''}`;
+}
+
+// Resolve a non-form action into an anchor href/target/onclick. Returns null for
+// actions that don't map to a link (none / submit-form / unconfigured / inert).
+function resolveAction(a: ElementAction | null): { href: string; target: string; onclick?: string } | null {
+  if (!a) return null;
+  switch (a.type) {
+    case 'scroll-to-section':
+      if (!a.targetSectionId) return null;
+      return { href: `#sec-${a.targetSectionId}`, target: '_self' };
+    case 'scroll-to-top':
+      return { href: '#', target: '_self', onclick: "window.scrollTo({top:0,behavior:'smooth'});return false;" };
+    case 'external-url':
+      if (!a.url) return null;
+      return { href: esc(a.url), target: a.target ?? '_self' };
+    case 'download-file':
+      if (!a.url) return null;
+      return { href: esc(a.url), target: '_blank' };
+    case 'internal-page': {
+      if (!a.pageId) return null;
+      const slug = PAGE_SLUGS[a.pageId];
+      return slug ? { href: esc(slug), target: '_self' } : null;
+    }
+    case 'send-email':
+      if (!a.email) return null;
+      return { href: esc(mailtoHref(a.email, a.subject, a.body)), target: '_self' };
+    case 'make-call':
+      if (!a.phone) return null;
+      return { href: `tel:${esc(a.phone.replace(/[^+\d]/g, ''))}`, target: '_self' };
+    case 'send-sms':
+      if (!a.phone) return null;
+      return { href: esc(smsHref(a.phone, a.body)), target: '_self' };
+    case 'open-popup':   // not yet functional in static export
+    case 'submit-form':  // handled by the <form> element, not as a link
+    case 'none':
+    default:
+      return null;
+  }
+}
+
 function resolveElementHref(el: CanvasElement): { href: string; target: string; onclick?: string } | null {
-  const type = el.interaction?.type ?? 'link';
-  if (type === 'scroll-to-section') {
-    const tid = el.interaction?.targetSectionId;
-    if (!tid) return null;
-    return { href: `#sec-${tid}`, target: '_self' };
-  }
-  if (type === 'scroll-to-top') {
-    return { href: '#', target: '_self', onclick: "window.scrollTo({top:0,behavior:'smooth'});return false;" };
-  }
-  const url = el.interaction?.linkUrl;
-  if (!url) return null;
-  return { href: esc(url), target: el.interaction?.linkTarget ?? '_self' };
+  return resolveAction(actionOf(el));
 }
 
 function hasSmoothScrollAnywhere(nodes: NodeMap): boolean {
-  return Object.values(nodes).some(n =>
-    n.type !== 'section' && n.type !== 'grid-cell' && !!(n as CanvasElement).interaction?.smoothScroll,
-  );
+  return Object.values(nodes).some(n => {
+    if (n.type === 'section' || n.type === 'grid-cell' || n.type === 'container') return false;
+    const a = actionOf(n as CanvasElement);
+    return !!a && (a.type === 'scroll-to-section' || a.type === 'scroll-to-top') && a.smoothScroll !== false;
+  });
+}
+
+// ── Form rendering ──────────────────────────────────────────────────────
+// True when the exported page contains at least one form — gates the validation
+// + mailto submit script.
+let HAS_FORM = false;
+
+// Base CSS for form fields — emitted once per page when a form exists.
+// Half-width fields sit two-per-row on desktop/tablet and stack to full width at
+// the mobile breakpoint (max-width:767px), matching the canvas mobile preview.
+const FORM_BASE_CSS = `
+.pb-ff{flex:1 1 100%;min-width:0}
+.pb-ff-half{flex:1 1 calc(50% - 8px)}
+@media(max-width:${MOBILE_BREAK}px){.pb-form .pb-ff-half{flex:1 1 100%}}`.trim();
+
+function fieldInputCss(): string {
+  return 'width:100%;padding:9px 10px;font-size:14px;color:#374151;background:#fff;border:1px solid #d1d5db;border-radius:6px;box-sizing:border-box;line-height:1.4;font-family:inherit';
+}
+
+function validationAttrs(f: FormField): string {
+  const v = f.validation ?? {};
+  const attrs: string[] = [];
+  if (f.required) attrs.push('required');
+  if (v.minLength != null) attrs.push(`minlength="${v.minLength}"`);
+  if (v.maxLength != null) attrs.push(`maxlength="${v.maxLength}"`);
+  if (v.min != null) attrs.push(`min="${esc(String(v.min))}"`);
+  if (v.max != null) attrs.push(`max="${esc(String(v.max))}"`);
+  // Pattern: explicit regex wins, else derive from a preset.
+  let pattern = v.pattern;
+  if (!pattern && v.preset === 'url') pattern = 'https?://.+';
+  if (!pattern && v.preset === 'number') pattern = '\\d+';
+  if (pattern) attrs.push(`pattern="${esc(pattern)}"`);
+  if (v.errorMessage) attrs.push(`title="${esc(v.errorMessage)}"`);
+  return attrs.length ? ' ' + attrs.join(' ') : '';
+}
+
+// Map our field type → HTML input type (email preset also forces type=email for native validation).
+function htmlInputType(f: FormField): string {
+  if (f.type === 'email' || f.validation?.preset === 'email') return 'email';
+  if (f.type === 'number') return 'number';
+  if (f.type === 'date') return 'date';
+  return 'text';
+}
+
+function renderFormField(f: FormField): string {
+  const labelHtml = f.label
+    ? `<label style="display:block;margin-bottom:5px;font-size:13px;font-weight:600;color:inherit">${esc(f.label)}${f.required ? '<span style="color:#dc2626;margin-left:3px">*</span>' : ''}</label>`
+    : '';
+  const help = fieldHelpNote(f);
+  const helpHtml = help ? `<div style="margin-top:4px;font-size:11px;color:#9ca3af">${esc(help)}</div>` : '';
+  const name = esc(f.name || f.id);
+  const ph = esc(f.placeholder ?? '');
+  const inp = fieldInputCss();
+  const va = validationAttrs(f);
+
+  let control = '';
+  switch (f.type) {
+    case 'textarea':
+      control = `<textarea name="${name}" rows="${f.rows ?? 4}" placeholder="${ph}" style="${inp};resize:vertical"${va}>${esc(f.defaultValue ?? '')}</textarea>`;
+      break;
+    case 'select': {
+      const opts = (f.options ?? []).map(o => `<option value="${esc(o.value)}">${esc(o.label)}</option>`).join('');
+      const placeholderOpt = ph ? `<option value="" disabled selected>${ph}</option>` : '';
+      control = `<select name="${name}" style="${inp}"${f.required ? ' required' : ''}>${placeholderOpt}${opts}</select>`;
+      break;
+    }
+    case 'checkbox':
+    case 'radio': {
+      const opts = (f.options && f.options.length) ? f.options : [{ label: f.label || 'Option', value: 'option' }];
+      const inputType = f.type;
+      // radio shares one name; checkbox uses name[] so multiple values post.
+      // `name` is already escaped above, so groupName needs no further escaping.
+      const groupName = f.type === 'radio' ? name : `${name}[]`;
+      control = `<div style="display:flex;flex-direction:column;gap:6px">` + opts.map((o, i) =>
+        `<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:inherit;font-weight:400"><input type="${inputType}" name="${groupName}" value="${esc(o.value)}"${(f.required && i === 0 && f.type === 'radio') ? ' required' : ''} style="width:15px;height:15px;flex-shrink:0" />${esc(o.label)}</label>`,
+      ).join('') + `</div>`;
+      break;
+    }
+    default:
+      control = `<input type="${htmlInputType(f)}" name="${name}" placeholder="${ph}" value="${esc(f.defaultValue ?? '')}" style="${inp}"${va} />`;
+  }
+
+  // Width is class-driven so the mobile @media rule (in FORM_BASE_CSS) can stack
+  // half-width fields to full-width — inline styles couldn't be overridden.
+  const widthClass = f.width === 'half' ? 'pb-ff pb-ff-half' : 'pb-ff pb-ff-full';
+  return `<div class="${widthClass}">${labelHtml}${control}${helpHtml}</div>`;
+}
+
+// Render a Form element as a <form> wrapper. `className`/`extraAttrs` let the
+// caller attach the same positioning class an <a>/<div> wrapper would have used.
+function renderForm(el: CanvasElement, wrapperCss: string, className: string, extraAttrs = ''): string {
+  HAS_FORM = true;
+  const fields = el.content.formFields ?? [];
+  const gap = el.content.fieldGap ?? 14;
+  const submitLabel = esc(el.content.submitLabel || 'Submit');
+  const action = actionOf(el);
+  const recipient = action?.type === 'submit-form' ? (action.email ?? '') : '';
+  const subject = action?.type === 'submit-form' ? (action.subject ?? '') : '';
+
+  const fieldsHtml = fields.map(renderFormField).join('');
+  const typo = el.style.typography;
+  const btnBg = el.style.background.color && el.style.background.color !== 'transparent' ? el.style.background.color : '#006e75';
+  const submitBtn = `<button type="submit" style="width:100%;margin-top:2px;padding:11px 18px;font-size:15px;font-weight:600;font-family:inherit;color:#fff;background:${esc(btnBg)};border:none;border-radius:6px;cursor:pointer">${submitLabel}</button>`;
+
+  // data-form-email / data-form-subject drive the client-side mailto submit.
+  const cls = ['pb-form', className].filter(Boolean).join(' ');
+  return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${fieldsHtml}${submitBtn}</form>`;
 }
 
 // Element HTML: position/size come from CSS class .el-{id}, NOT inline style.
@@ -140,6 +316,11 @@ function renderElement(el: CanvasElement): string {
       animClass = ' anim-pending';
       animData = ` data-anim="${el.animation.type}"`;
     }
+  }
+
+  // Form: the positioned wrapper IS the <form> (can't sit inside an <a>).
+  if (el.type === 'form') {
+    return renderForm(el, `${cStyle};padding:${pad}`, `el-${el.id}${animClass}`, animData);
   }
 
   let inner = '';
@@ -243,6 +424,10 @@ function renderFreeElement(el: CanvasElement): string {
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
   const wrapStyle = `position:absolute;left:${el.layout.x}px;top:${el.layout.y}px;width:${el.layout.width}px;height:${el.layout.height}px;z-index:${el.layout.zIndex ?? 0};box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}`;
 
+  if (el.type === 'form') {
+    return renderForm(el, `${cStyle};${wrapStyle};padding:${pad}`, `ge-${el.id}`);
+  }
+
   let inner = '';
   const textBase = `${cStyle};padding:${pad};word-break:break-word`;
   switch (el.type) {
@@ -291,6 +476,13 @@ function renderGridElement(el: CanvasElement): string {
   }
 
   const textBase = `${cStyle};padding:${pad};word-break:break-word`;
+
+  // Form: the flex/positioned wrapper IS the <form>. Sizing comes from the
+  // ge-{id} flex class + min-height in wrapStyle; only background/border here.
+  if (el.type === 'form') {
+    const bgb = elBgBorderCss(el);
+    return renderForm(el, `${bgb ? bgb + ';' : ''}${wrapStyle};padding:${pad}`, `ge-${el.id}${animClass}`, animData);
+  }
 
   let inner = '';
   switch (el.type) {
@@ -923,10 +1115,49 @@ const SCROLL_ANIM_SCRIPT = `<script>
 })();
 </script>`;
 
+// Client-side form handler: native validation runs first (required/pattern/etc).
+// On submit we build a mailto: to the configured recipient with all field values.
+const FORM_SUBMIT_SCRIPT = `<script>
+(function(){
+  function collect(form){
+    var data={}, els=form.querySelectorAll('input,textarea,select');
+    els.forEach(function(el){
+      if(!el.name) return;
+      var key=el.name.replace(/\\[\\]$/,'');
+      if((el.type==='checkbox'||el.type==='radio')&&!el.checked) return;
+      if(data[key]!==undefined){ data[key]=[].concat(data[key],el.value); }
+      else { data[key]=el.value; }
+    });
+    return data;
+  }
+  document.querySelectorAll('form.pb-form').forEach(function(form){
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      if(!form.reportValidity()) return;
+      var email=form.getAttribute('data-form-email')||'';
+      var subject=form.getAttribute('data-form-subject')||'Form submission';
+      var data=collect(form);
+      var lines=Object.keys(data).map(function(k){return k+': '+[].concat(data[k]).join(', ');});
+      var body=lines.join('\\n');
+      if(email){
+        window.location.href='mailto:'+email+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+      }
+      var note=form.querySelector('.pb-form-note');
+      if(!note){ note=document.createElement('div'); note.className='pb-form-note'; note.style.cssText='flex:1 1 100%;margin-top:8px;font-size:13px;color:#059669'; form.appendChild(note); }
+      note.textContent=email?'Opening your email app…':'Thanks! Your message has been recorded.';
+    });
+  });
+})();
+</script>`;
+
 export function exportHtml(state: BuilderState, pageName: string): string {
   const page = state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
   const nodes = state.nodes;
   const sections = page.sections.map(id => nodes[id] as Section).filter(Boolean);
+
+  // Reset module render state (PAGE_SLUGS for internal-page links, HAS_FORM gate).
+  PAGE_SLUGS = Object.fromEntries(state.pages.map((p: Page) => [p.id, p.slug]));
+  HAS_FORM = false;
 
   const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
   const pageMaxWidth = page.maxWidth ?? 1200;
@@ -937,6 +1168,8 @@ export function exportHtml(state: BuilderState, pageName: string): string {
     .join('\n');
 
   const sectionsHtml = sections.map(sec => renderSection(sec, nodes, pageFixed, pageMaxWidth)).join('\n');
+  const formScript = HAS_FORM ? FORM_SUBMIT_SCRIPT : '';
+  const formCss = HAS_FORM ? FORM_BASE_CSS : '';
   const elementCss = generateElementCSS(sections, nodes);
   const smoothScrollCss = hasSmoothScrollAnywhere(nodes) ? 'html{scroll-behavior:smooth}' : '';
 
@@ -965,12 +1198,14 @@ ${fontLinks}
     ${pageFixed ? `.sc{width:100%;max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden}` : `.sc{width:100%;position:relative;overflow:hidden}`}
     ${smoothScrollCss}
     ${ANIM_CSS}
+    ${formCss}
     ${elementCss}
   </style>
 </head>
 <body>
 ${sectionsHtml}
 ${SCROLL_ANIM_SCRIPT}
+${formScript}
 </body>
 </html>`;
 }

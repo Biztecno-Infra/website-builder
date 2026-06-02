@@ -157,6 +157,7 @@ const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
   { type: 'video',   icon: '',  label: 'Video'   },
   { type: 'spacer',  icon: '',  label: 'Spacer'  },
   { type: 'icon',    icon: '',  label: 'Icon'    },
+  { type: 'form',    icon: '',  label: 'Form'    },
 ];
 
 interface Props {
