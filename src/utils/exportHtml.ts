@@ -1021,10 +1021,12 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       if (to?.state?.hidden) {
         tabletRules.push(`.el-${el.id}{display:none}`);
       } else {
+        // Dividers are thin lines, so they bypass the usual 20px scaled-width floor.
+        const minW = el.type === 'divider' ? 1 : 20;
         const tx = to?.layout?.x ?? Math.round(el.layout.x * tScale);
         const ty = to?.layout?.y ?? Math.round(el.layout.y * tScale);
-        const tw = to?.layout?.width ?? Math.max(20, Math.round(el.layout.width * tScale));
-        const th = to?.layout?.height ?? Math.max(4, Math.round(el.layout.height * tScale));
+        const tw = to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale));
+        const th = to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * tScale));
         tabletRules.push(`.el-${el.id}{left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
         const tTypo = to?.style?.typography;
         if (tTypo) {
@@ -1044,10 +1046,11 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         mobileRules.push(`.el-${el.id}{display:none}`);
       } else {
         // Cascade tablet explicit overrides as intermediate fallback before auto-scaling
+        const minMW = el.type === 'divider' ? 1 : 20;
         const mx = mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale);
         const my = mo?.layout?.y ?? to?.layout?.y ?? Math.round(el.layout.y * mScale);
-        const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(20, Math.round(el.layout.width * mScale));
-        const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(4, Math.round(el.layout.height * mScale));
+        const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale));
+        const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * mScale));
         mobileRules.push(`.el-${el.id}{left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
         // Only emit mobile typography rules for properties with an explicit mobile override
         // (tablet typography already cascades via CSS max-width:768px covering mobile)

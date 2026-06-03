@@ -214,12 +214,15 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
   // Layout: property-level cascade (mobile ?? tablet ?? desktop)
   const slo = srcOvr?.layout;
   const flo = fallOvr?.layout;
+  // Dividers are thin lines and may legitimately be a few px on either axis, so
+  // they bypass the usual 20px scaled-width floor applied to other elements.
+  const minScaledW = el.type === 'divider' ? 1 : 20;
   const layout: ElementLayout = {
     ...el.layout,
-    x:      slo?.x      ?? flo?.x      ?? (scale !== 1 ? Math.round(el.layout.x * scale)                   : el.layout.x),
-    y:      slo?.y      ?? flo?.y      ?? (scale !== 1 ? Math.round(el.layout.y * scale)                   : el.layout.y),
-    width:  slo?.width  ?? flo?.width  ?? (scale !== 1 ? Math.max(20, Math.round(el.layout.width * scale)) : el.layout.width),
-    height: slo?.height ?? flo?.height ?? (scale !== 1 ? Math.max(4,  Math.round(el.layout.height * scale)): el.layout.height),
+    x:      slo?.x      ?? flo?.x      ?? (scale !== 1 ? Math.round(el.layout.x * scale)                          : el.layout.x),
+    y:      slo?.y      ?? flo?.y      ?? (scale !== 1 ? Math.round(el.layout.y * scale)                          : el.layout.y),
+    width:  slo?.width  ?? flo?.width  ?? (scale !== 1 ? Math.max(minScaledW, Math.round(el.layout.width * scale)) : el.layout.width),
+    height: slo?.height ?? flo?.height ?? (scale !== 1 ? Math.max(1,           Math.round(el.layout.height * scale)): el.layout.height),
   };
 
   // Typography: deep merge — tablet values as base, mobile overrides on top

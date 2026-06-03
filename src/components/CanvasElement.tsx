@@ -277,10 +277,13 @@ export function CanvasElement({
       const dy = (ev.clientY - startY) / z;
       let x = ox, y = oy, w = ow, h = oh;
 
-      if (dir.includes('e')) w = Math.max(20, ow + dx);
-      if (dir.includes('s')) h = Math.max(20, oh + dy);
-      if (dir.includes('w')) { w = Math.max(20, ow - dx); x = ox + ow - w; }
-      if (dir.includes('n')) { h = Math.max(20, oh - dy); y = oy + oh - h; }
+      // Dividers are meant to be thin lines, so allow them below the usual 20px floor.
+      const minSize = el.type === 'divider' ? 1 : 20;
+
+      if (dir.includes('e')) w = Math.max(minSize, ow + dx);
+      if (dir.includes('s')) h = Math.max(minSize, oh + dy);
+      if (dir.includes('w')) { w = Math.max(minSize, ow - dx); x = ox + ow - w; }
+      if (dir.includes('n')) { h = Math.max(minSize, oh - dy); y = oy + oh - h; }
 
       onUpdate({ layout: { ...el.layout, x: snap(x, snapEnabled), y: snap(y, snapEnabled), width: snap(w, snapEnabled), height: snap(h, snapEnabled) } });
     };
