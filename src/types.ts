@@ -153,6 +153,7 @@ export interface FormField {
 export type ActionType =
   | 'none'
   | 'submit-form'
+  | 'submit-api'
   | 'external-url'
   | 'internal-page'
   | 'send-email'
@@ -184,6 +185,12 @@ export interface ElementAction {
   targetSectionId?: string;
   /** scroll-to-section / scroll-to-top */
   smoothScroll?: boolean;
+  /** submit-api — endpoint the form/button sends its request to */
+  apiUrl?: string;
+  /** submit-api — HTTP method used for the request */
+  apiMethod?: 'POST' | 'PUT' | 'PATCH';
+  /** submit-api on a standalone button — optional static JSON request body */
+  apiBody?: string;
 }
 
 export type InteractionType = 'link' | 'scroll-to-section' | 'scroll-to-top';

@@ -171,6 +171,19 @@ function resolveAction(a: ElementAction | null): { href: string; target: string;
     case 'send-sms':
       if (!a.phone) return null;
       return { href: esc(smsHref(a.phone, a.body)), target: '_self' };
+    case 'submit-api': {
+      // On a <form> this is consumed by renderForm() before we ever get here, so
+      // reaching this case means a standalone button: fire a fire-and-forget fetch
+      // on click. An optional static JSON body is sent as application/json.
+      if (!a.apiUrl) return null;
+      const method = a.apiMethod ?? 'POST';
+      const body = (a.apiBody ?? '').trim();
+      const init = body
+        ? `{method:'${method}',headers:{'Content-Type':'application/json'},body:${JSON.stringify(body)}}`
+        : `{method:'${method}'}`;
+      const onclick = `fetch(${JSON.stringify(a.apiUrl)},${init}).catch(function(e){console.error(e);});return false;`;
+      return { href: '#', target: '_self', onclick: esc(onclick) };
+    }
     case 'open-popup':   // not yet functional in static export
     case 'submit-form':  // handled by the <form> element, not as a link
     case 'none':
@@ -287,15 +300,18 @@ function renderForm(el: CanvasElement, wrapperCss: string, className: string, ex
   const action = actionOf(el);
   const recipient = action?.type === 'submit-form' ? (action.email ?? '') : '';
   const subject = action?.type === 'submit-form' ? (action.subject ?? '') : '';
+  const apiUrl = action?.type === 'submit-api' ? (action.apiUrl ?? '') : '';
+  const apiMethod = action?.type === 'submit-api' ? (action.apiMethod ?? 'POST') : '';
 
   const fieldsHtml = fields.map(renderFormField).join('');
   const typo = el.style.typography;
   const btnBg = el.style.background.color && el.style.background.color !== 'transparent' ? el.style.background.color : '#006e75';
   const submitBtn = `<button type="submit" style="width:100%;margin-top:2px;padding:11px 18px;font-size:15px;font-weight:600;font-family:inherit;color:#fff;background:${esc(btnBg)};border:none;border-radius:6px;cursor:pointer">${submitLabel}</button>`;
 
-  // data-form-email / data-form-subject drive the client-side mailto submit.
+  // data-form-email / data-form-subject drive the client-side mailto submit;
+  // data-form-api-url / data-form-api-method drive the fetch() API submit.
   const cls = ['pb-form', className].filter(Boolean).join(' ');
-  return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${fieldsHtml}${submitBtn}</form>`;
+  return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" data-form-api-url="${esc(apiUrl)}" data-form-api-method="${esc(apiMethod)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${fieldsHtml}${submitBtn}</form>`;
 }
 
 // Element HTML: position/size come from CSS class .el-{id}, NOT inline style.
@@ -1128,7 +1144,8 @@ const SCROLL_ANIM_SCRIPT = `<script>
 </script>`;
 
 // Client-side form handler: native validation runs first (required/pattern/etc).
-// On submit we build a mailto: to the configured recipient with all field values.
+// If an API endpoint is configured we POST the field values as JSON; otherwise we
+// build a mailto: to the configured recipient with all field values.
 const FORM_SUBMIT_SCRIPT = `<script>
 (function(){
   function collect(form){
@@ -1142,21 +1159,40 @@ const FORM_SUBMIT_SCRIPT = `<script>
     });
     return data;
   }
+  function note(form,msg,color){
+    var n=form.querySelector('.pb-form-note');
+    if(!n){ n=document.createElement('div'); n.className='pb-form-note'; n.style.cssText='flex:1 1 100%;margin-top:8px;font-size:13px'; form.appendChild(n); }
+    n.style.color=color; n.textContent=msg;
+  }
   document.querySelectorAll('form.pb-form').forEach(function(form){
     form.addEventListener('submit',function(e){
       e.preventDefault();
       if(!form.reportValidity()) return;
+      var data=collect(form);
+      var apiUrl=form.getAttribute('data-form-api-url')||'';
+      if(apiUrl){
+        var method=form.getAttribute('data-form-api-method')||'POST';
+        var btn=form.querySelector('button[type=submit]');
+        if(btn) btn.disabled=true;
+        note(form,'Sending…','#64748b');
+        fetch(apiUrl,{method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)})
+          .then(function(r){
+            if(!r.ok) throw new Error('HTTP '+r.status);
+            note(form,'Thanks! Your message has been sent.','#059669');
+            form.reset();
+          })
+          .catch(function(){ note(form,'Sorry, something went wrong. Please try again.','#dc2626'); })
+          .then(function(){ if(btn) btn.disabled=false; });
+        return;
+      }
       var email=form.getAttribute('data-form-email')||'';
       var subject=form.getAttribute('data-form-subject')||'Form submission';
-      var data=collect(form);
       var lines=Object.keys(data).map(function(k){return k+': '+[].concat(data[k]).join(', ');});
       var body=lines.join('\\n');
       if(email){
         window.location.href='mailto:'+email+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
       }
-      var note=form.querySelector('.pb-form-note');
-      if(!note){ note=document.createElement('div'); note.className='pb-form-note'; note.style.cssText='flex:1 1 100%;margin-top:8px;font-size:13px;color:#059669'; form.appendChild(note); }
-      note.textContent=email?'Opening your email app…':'Thanks! Your message has been recorded.';
+      note(form,email?'Opening your email app…':'Thanks! Your message has been recorded.','#059669');
     });
   });
 })();
