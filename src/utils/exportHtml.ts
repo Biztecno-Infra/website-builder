@@ -438,27 +438,36 @@ function renderFreeElement(el: CanvasElement): string {
   const s = el.style.shadow;
   const shadowCss = s.enabled ? `;box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : '';
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
-  const wrapStyle = `position:absolute;left:${el.layout.x}px;top:${el.layout.y}px;width:${el.layout.width}px;height:${el.layout.height}px;z-index:${el.layout.zIndex ?? 0};box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}`;
+  const animVars = el.animation.type !== 'none'
+    ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms`
+    : '';
+  let animClass = '';
+  let animData = '';
+  if (el.animation.type !== 'none') {
+    if (el.animation.trigger === 'load') animClass = ` anim-${el.animation.type}`;
+    else { animClass = ' anim-pending'; animData = ` data-anim="${el.animation.type}"`; }
+  }
+  const wrapStyle = `position:absolute;left:${el.layout.x}px;top:${el.layout.y}px;width:${el.layout.width}px;height:${el.layout.height}px;z-index:${el.layout.zIndex ?? 0};box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${animVars}`;
 
   if (el.type === 'form') {
-    return renderForm(el, `${cStyle};${wrapStyle};padding:${pad}`, `ge-${el.id}`);
+    return renderForm(el, `${cStyle};${wrapStyle};padding:${pad}`, `ge-${el.id}${animClass}`, animData);
   }
 
   let inner = '';
   const textBase = `${cStyle};padding:${pad};word-break:break-word`;
   switch (el.type) {
     case 'text':   inner = `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${(el.content.rich || el.content.plain) ?? ''}</div>`; break;
-    case 'button': inner = `<div class="ec-${el.id}" style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer">${el.content.label ?? ''}</div>`; break;
-    case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${el.content.src}" alt="${el.content.alt ?? ''}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
+    case 'button': inner = `<div class="ec-${el.id}" style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer">${esc(el.content.label ?? '')}</div>`; break;
+    case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
     case 'divider': { if (el.content.orientation === 'vertical') { const iw = Math.max(2, el.layout.width - padding.left - padding.right); inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${iw}px;height:100%;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } else { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } break; }
-    case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${typography.color};line-height:1">${el.content.iconName ?? '★'}</span>`}</div>`; break; }
+    case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${esc(typography.color)}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${esc(typography.color)};line-height:1">${esc(el.content.iconName ?? '★')}</span>`}</div>`; break; }
     case 'spacer': inner = `<div style="${cStyle}"></div>`; break;
     default:       inner = `<div style="${cStyle};padding:${pad}"></div>`;
   }
 
   const link = resolveElementHref(el);
-  if (link) return `<a href="${link.href}" target="${link.target}"${link.onclick ? ` onclick="${link.onclick}"` : ''} style="${wrapStyle};display:block;text-decoration:none;color:inherit" class="ge-${el.id}">${inner}</a>`;
-  return `<div class="ge-${el.id}" style="${wrapStyle}">${inner}</div>`;
+  if (link) return `<a href="${link.href}" target="${link.target}"${link.onclick ? ` onclick="${link.onclick}"` : ''} style="${wrapStyle};display:block;text-decoration:none;color:inherit" class="ge-${el.id}${animClass}"${animData}>${inner}</a>`;
+  return `<div class="ge-${el.id}${animClass}" style="${wrapStyle}"${animData}>${inner}</div>`;
 }
 
 // Render a grid element. Flex-sizing lives in class ge-{id} (generated by CSS).
@@ -593,11 +602,12 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;border-radius:inherit"></div>`
     : '';
 
-  // Free-canvas mode — children are absolutely positioned
+  // Free-canvas mode — children are absolutely positioned.
+  // height/overflow are omitted from inline style — they live in the .gc-{id} CSS class
+  // so that @media tablet/mobile overrides can change them without specificity issues.
   if (cell.style.layoutMode === 'free') {
-    const freeH = cell.freeHeight ?? 320;
     const freeCellStyle = [
-      'position:relative', `height:${freeH}px`, 'overflow:hidden',
+      'position:relative', 'overflow:hidden',
       bgCss, borderCss, radiusCss, 'box-sizing:border-box',
     ].filter(Boolean).join(';');
     const freeElements = cell.children
@@ -722,7 +732,11 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   const freePadCss = (freePad.top || freePad.right || freePad.bottom || freePad.left)
     ? `;padding:${freePad.top}px ${freePad.right}px ${freePad.bottom}px ${freePad.left}px`
     : '';
-  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%">
+  const fb = sec.style.border;
+  const freeBorderCss = fb && fb.width > 0 && fb.style !== 'none'
+    ? `;border:${fb.width}px ${fb.style} ${fb.color}${fb.radius ? `;border-radius:${fb.radius}px` : ''}`
+    : (fb?.radius ? `;border-radius:${fb.radius}px` : '');
+  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}">
     ${overlay}
     <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="min-height:${sec.layout.height}px${freePadCss}">
       ${columnBgs}
@@ -775,6 +789,18 @@ function generateCellCSS(
       tParts.push(`padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`);
     }
     if (tParts.length) tabletRules.push(`.gc-${cell.id}{${tParts.join(';')}}`);
+
+    // When the desktop layout is free (children have inline position:absolute) and the
+    // tablet layout switches to flex, the inline positions must be reset with !important
+    // so that elements participate in flex flow instead of being absolutely placed.
+    if (isFreeCell && tCell?.layoutMode !== undefined && tCell.layoutMode !== 'free' && !tCell.hidden) {
+      for (const elId of cell.children) {
+        const ch = nodes[elId];
+        if (!ch || ch.type === 'container' || ch.type === 'grid-cell') continue;
+        if ((ch as CanvasElement).state.hidden) continue;
+        tabletRules.push(`.ge-${elId}{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important}`);
+      }
+    }
   }
 
   // Mobile cell overrides
@@ -805,6 +831,18 @@ function generateCellCSS(
     if (mCell?.alignItems !== undefined) mParts.push(`align-items:${mCell.alignItems}`);
     if (mCell?.justifyContent !== undefined) mParts.push(`justify-content:${mCell.justifyContent}`);
     if (mParts.length) mobileRules.push(`.gc-${cell.id}{${mParts.join(';')}}`);
+
+    // Same position reset for mobile when switching from free to flex
+    const effectiveMobileMode = mCell?.layoutMode ?? effectiveTabletMode;
+    if (isFreeAtMobile && mCell?.layoutMode !== undefined && mCell.layoutMode !== 'free' && !mCell.hidden) {
+      for (const elId of cell.children) {
+        const ch = nodes[elId];
+        if (!ch || ch.type === 'container' || ch.type === 'grid-cell') continue;
+        if ((ch as CanvasElement).state.hidden) continue;
+        mobileRules.push(`.ge-${elId}{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important}`);
+      }
+    }
+    void effectiveMobileMode; // suppress unused-var hint if no other use below
   }
 
   // Per-element sizing + responsive hidden classes

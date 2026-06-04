@@ -308,8 +308,8 @@ export default function App() {
       if (e.key === 'Escape') {
         if (previewMode) { setPreviewMode(false); return; }
         // Bubble up selection one level at a time: element → container → cell → section → deselect
-        if (selectedIds.length > 0) { setSelectedIds([]); return; }
         if (selectedId) { setSelectedId(null); return; }
+        if (selectedIds.length > 0) { setSelectedIds([]); return; }
         if (selectedContainerId) { setSelectedContainerId(null); return; }
         if (selectedGridCellId) { setSelectedGridCellId(null); return; }
         if (selectedSectionId) { setSelectedSectionId(null); return; }
@@ -449,7 +449,7 @@ export default function App() {
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}
-          onSelect={setSelectedId}
+          onSelect={id => { setSelectedId(id); setSelectedGridCellId(null); setSelectedContainerId(null); }}
           onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); }}
           onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); }}
           onScrollToElement={scrollCanvasToElement}
@@ -591,7 +591,7 @@ export default function App() {
               selectedSectionId={selectedSectionId}
               selectedGridCellId={selectedGridCellId}
               onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
-              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); } }}
+              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedSectionId(null); setSelectedContainerId(null); } }}
               onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); }}
               onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
               onUpdate={updateElement}
@@ -611,7 +611,7 @@ export default function App() {
               onMoveSectionDown={i => reorderSection(i, i + 1)}
               snapEnabled={snapEnabled}
               onContextMenu={(id, x, y) => setContextMenu({ id, x, y })}
-              onMultiSelect={(ids, sectionId) => { setSelectedIds(ids); setSelectedSectionId(sectionId); }}
+              onMultiSelect={(ids, sectionId) => { setSelectedIds(ids); setSelectedSectionId(sectionId); setSelectedContainerId(null); setSelectedGridCellId(null); }}
               breakpoint={breakpoint}
               onUpdateResponsive={updateResponsive}
               onDuplicateElement={duplicateElement}

@@ -198,6 +198,7 @@ function FreeSectionView({
     document.addEventListener('mouseup', onUp);
   };
 
+  const secBorder = section.style.border;
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
@@ -206,6 +207,8 @@ function FreeSectionView({
     backgroundPosition: 'center',
     boxSizing: 'border-box',
     ...sectionBgProps(bg),
+    ...(secBorder?.radius ? { borderRadius: secBorder.radius } : {}),
+    ...(secBorder?.width && secBorder.width > 0 ? { border: `${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}` } : {}),
   };
 
   const scrollBehavior = section.scrollBehavior ?? 'normal';

@@ -1,6 +1,6 @@
 import type { AnyNode, CanvasElement, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
-  DEFAULT_ANIMATION, DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
+  DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
   interactionToAction,
 } from './builderDefaults';
@@ -141,7 +141,9 @@ export function sparsifyNode(node: AnyNode): Obj {
   if (el.responsive && Object.keys(el.responsive).length > 0)
     out.responsive = el.responsive;
   if (el.overlayInCell) out.overlayInCell = true;
-  if (el.action && el.action.type !== 'none') out.action = el.action;
+  // Always persist action when it has a real type, or when a legacy interaction exists
+  // (preserves action.type='none' as a deliberate "clear this legacy link" override)
+  if (el.action && (el.action.type !== 'none' || si !== undefined)) out.action = el.action;
   return out;
 }
 

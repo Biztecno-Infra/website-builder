@@ -545,7 +545,7 @@ export function GridCellPanel({
         <div className={'pb-prop-row'}>
           <label>Hide on Mobile</label>
           <input type="checkbox"
-            checked={!!(responsive.mobile?.hidden ?? responsive.tablet?.hidden)}
+            checked={!!(responsive.mobile?.hidden)}
             onChange={e => {
               onPushSnapshot(snapshot);
               onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, hidden: e.target.checked || undefined } } });

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { interactionToAction } from '../utils/builderDefaults';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
   AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, CellLayoutMode,
@@ -363,6 +364,16 @@ function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
     fonts: { body: (oldTheme?.bodyFont as string) ?? ((oldTheme as any)?.fonts?.body as string) ?? 'Inter, sans-serif' },
   };
 
+  // Migrate legacy interaction → action on every element so in-memory state is consistent
+  for (const node of Object.values(nodes)) {
+    if (node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container') {
+      const el = node as CanvasElement;
+      if (!el.action || el.action.type === 'none') {
+        const migrated = interactionToAction(el.interaction);
+        if (migrated) el.action = migrated;
+      }
+    }
+  }
   return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en' }, theme, pages, activePageId, nodes };
 }
 
@@ -455,8 +466,8 @@ export function useBuilderStore() {
 
 
 
-  const selectedId = selectedIds.length === 1 ? selectedIds[0]
-    : selectedIds.length > 1 ? selectedIds[selectedIds.length - 1] : null;
+  // null when multi-select is active so the sidebar doesn't show a single element panel
+  const selectedId = selectedIds.length === 1 ? selectedIds[0] : null;
 
   const setSelectedId = useCallback((id: string | null) => {
     setSelectedIds(id ? [id] : []);
@@ -732,14 +743,9 @@ export function useBuilderStore() {
       } else {
         children.push(newCellId);
       }
-      const n = children.length;
-      const base = Math.floor(12 / n);
-      const extra = 12 % n;
       const nodes = { ...s.nodes, ...newNodes };
-      children.forEach((cid, i) => {
-        const c = nodes[cid] as GridCell;
-        if (c) nodes[cid] = { ...c, columnSpan: i < extra ? base + 1 : base };
-      });
+      // Preserve existing cells' columnSpan — pasted cell keeps its original span.
+      // The section usage badge will show if total exceeds 12; user can use Equal to fix.
       nodes[sectionId] = { ...sec, children } as AnyNode;
       return { ...s, nodes };
     });
@@ -1187,7 +1193,10 @@ export function useBuilderStore() {
         children = [...parent.children, cellId];
       }
       const nodes = { ...s.nodes, [cellId]: cell, [parentId]: { ...parent, children } };
-      if (isSection(parent)) {
+      // Redistribute spans for grid-layout parents (top-level grid sections + grid-mode containers)
+      const shouldRedistribute = isSection(parent) ||
+        (isContainer(parent) && (parent as Container).layoutMode === 'grid');
+      if (shouldRedistribute) {
         const n = children.length;
         const base = Math.floor(12 / n);
         const extra = 12 % n;
@@ -1231,7 +1240,9 @@ export function useBuilderStore() {
       if (parent) {
         const remaining = parent.children.filter(c => c !== id);
         nodes[parentId] = { ...parent, children: remaining } as typeof parent;
-        if (isSection(parent) && remaining.length > 0) {
+        const shouldRedistribute = isSection(parent) ||
+          (isContainer(parent) && (parent as Container).layoutMode === 'grid');
+        if (shouldRedistribute && remaining.length > 0) {
           const n = remaining.length;
           const base = Math.floor(12 / n);
           const extra = 12 % n;
@@ -1422,12 +1433,22 @@ export function useBuilderStore() {
 
   const handleUndo = useCallback(() => {
     const prev = undo(stateRef.current);
-    if (prev) { setState(prev); setSelectedIds([]); setSelectedGridCellId(null); }
+    if (prev) {
+      setState(prev);
+      setSelectedIds(ids => ids.filter(id => id in prev.nodes));
+      setSelectedGridCellId(id => (id && id in prev.nodes) ? id : null);
+      setSelectedSectionId(id => (id && id in prev.nodes) ? id : null);
+    }
   }, [undo]);
 
   const handleRedo = useCallback(() => {
     const next = redo(stateRef.current);
-    if (next) { setState(next); setSelectedIds([]); setSelectedGridCellId(null); }
+    if (next) {
+      setState(next);
+      setSelectedIds(ids => ids.filter(id => id in next.nodes));
+      setSelectedGridCellId(id => (id && id in next.nodes) ? id : null);
+      setSelectedSectionId(id => (id && id in next.nodes) ? id : null);
+    }
   }, [redo]);
 
   const activePage = getActivePage(state);

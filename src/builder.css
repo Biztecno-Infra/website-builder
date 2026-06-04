@@ -1400,6 +1400,18 @@
 .pb-canvas-wrapper.pb-preview-mode .pb-section-surface {
   overflow: hidden;
 }
+/* Suppress all editor chrome in preview mode */
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell:hover,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--selected,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--drop-over {
+  outline: none !important;
+}
+.pb-canvas-wrapper.pb-preview-mode .pb-canvas-el:hover,
+.pb-canvas-wrapper.pb-preview-mode .pb-canvas-el.pb-selected {
+  outline: none !important;
+  cursor: default;
+}
 
 /* ─── Canvas elements ─── */
 .pb-canvas-el {
