@@ -185,7 +185,7 @@ export function SectionPanel({
                   ))}
                   {breakpoint !== 'desktop' && padOverridden && (
                     <div className={'pb-resp-ref-row'}>
-                      <span className={'pb-resp-ref-label'}>🖥 Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
+                      <span className={'pb-resp-ref-label'}>Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
                       <button className={'pb-resp-clear-btn'} onClick={clearPadBp}>↺ Reset</button>
                     </div>
                   )}
@@ -375,7 +375,7 @@ export function SectionPanel({
                   ))}
                   {breakpoint !== 'desktop' && padOverridden && (
                     <div className={'pb-resp-ref-row'}>
-                      <span className={'pb-resp-ref-label'}>🖥 Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
+                      <span className={'pb-resp-ref-label'}>Desktop: {secPad.top}/{secPad.right}/{secPad.bottom}/{secPad.left}</span>
                       <button className={'pb-resp-clear-btn'} onClick={clearPadBp}>↺ Reset</button>
                     </div>
                   )}

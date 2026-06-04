@@ -373,7 +373,7 @@ function renderElement(el: CanvasElement): string {
       break;
     }
     case 'spacer': {
-      inner = `<div style="width:100%;height:100%"></div>`;
+      inner = `<div style="${cStyle}"></div>`;
       break;
     }
     default:
@@ -436,7 +436,7 @@ function renderFreeElement(el: CanvasElement): string {
     case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${el.content.src}" alt="${el.content.alt ?? ''}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
     case 'divider': { if (el.content.orientation === 'vertical') { const iw = Math.max(2, el.layout.width - padding.left - padding.right); inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${iw}px;height:100%;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } else { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } break; }
     case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${typography.color};line-height:1">${el.content.iconName ?? '★'}</span>`}</div>`; break; }
-    case 'spacer': inner = `<div style="width:100%;height:${el.layout.height}px"></div>`; break;
+    case 'spacer': inner = `<div style="${cStyle}"></div>`; break;
     default:       inner = `<div style="${cStyle};padding:${pad}"></div>`;
   }
 
@@ -596,7 +596,8 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
   const cellStyle = [
     'position:relative', bgCss,
     `gap:${gap}px`, `padding:${padStr}`,
-    `box-sizing:border-box`, `min-height:${minHeight ?? 80}px`,
+    'box-sizing:border-box',
+    minHeight ? `min-height:${minHeight}px` : '',
     borderCss, radiusCss,
   ].filter(Boolean).join(';');
 
@@ -952,6 +953,22 @@ function generateCellCSS(
   }
 }
 
+function emitSectionSharedCSS(sec: Section, _base: string[], tablet: string[], mobile: string[]) {
+  if (sec.responsive?.tablet?.hidden) tablet.push(`#sec-${sec.id}{display:none}`);
+  if (sec.responsive?.mobile?.hidden) mobile.push(`#sec-${sec.id}{display:none}`);
+  const dp = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const tPad = sec.responsive?.tablet?.padding;
+  const mPad = sec.responsive?.mobile?.padding;
+  if (tPad) {
+    const p = { ...dp, ...tPad };
+    tablet.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
+  }
+  if (mPad) {
+    const p = { ...dp, ...tPad, ...mPad };
+    mobile.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
+  }
+}
+
 // All element CSS lives here as classes — no inline position styles on elements.
 // Desktop class = base rule. Tablet/mobile in @media blocks.
 // Same-specificity class rules: later in stylesheet wins → media queries win automatically, no !important.
@@ -982,6 +999,7 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const cell = nodes[cellId] as GridCell | undefined;
         if (cell) generateCellCSS(cell, nodes, baseRules, tabletRules, mobileRules);
       }
+      emitSectionSharedCSS(sec, baseRules, tabletRules, mobileRules);
       continue;
     }
 
@@ -1064,28 +1082,13 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       }
     }
 
-    // Section-level visibility per breakpoint
-    if (sec.responsive?.tablet?.hidden) tabletRules.push(`#sec-${sec.id}{display:none}`);
-    if (sec.responsive?.mobile?.hidden) mobileRules.push(`#sec-${sec.id}{display:none}`);
-
     // Free section responsive heights — explicit override, else proportional fallback
     const tSH = sec.responsive?.tablet?.height ?? Math.round(sec.layout.height * tScale);
     const mSH = sec.responsive?.mobile?.height ?? sec.responsive?.tablet?.height ?? Math.round(sec.layout.height * mScale);
     tabletRules.push(`.sc-free-${sec.id}{min-height:${tSH}px}`);
     mobileRules.push(`.sc-free-${sec.id}{min-height:${mSH}px}`);
 
-    // Section-level responsive padding (both free and grid sections share .sc-pad-{id})
-    const dp = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
-    const tPad = sec.responsive?.tablet?.padding;
-    const mPad = sec.responsive?.mobile?.padding;
-    if (tPad) {
-      const p = { ...dp, ...tPad };
-      tabletRules.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
-    }
-    if (mPad) {
-      const p = { ...dp, ...tPad, ...mPad };
-      mobileRules.push(`.sc-pad-${sec.id}{padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px !important}`);
-    }
+    emitSectionSharedCSS(sec, baseRules, tabletRules, mobileRules);
   }
 
   const base = baseRules.join('');

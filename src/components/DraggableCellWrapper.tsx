@@ -13,11 +13,16 @@ interface Props {
   previewMode?: boolean;
   children: React.ReactNode;
   isLast?: boolean;
+  isSelected?: boolean;
   onResizeDragStart?: (e: React.MouseEvent, span: number, el: HTMLDivElement) => void;
   onDeleteCell?: () => void;
+  onMoveLeft?: () => void;
+  onMoveRight?: () => void;
+  onCopyCell?: () => void;
+  onPasteIntoCell?: () => void;
 }
 
-export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, isLast, onResizeDragStart, onDeleteCell }: Props) {
+export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, isLast, isSelected, onResizeDragStart, onDeleteCell, onMoveLeft, onMoveRight, onCopyCell, onPasteIntoCell }: Props) {
   const span = getCellSpan(cell, breakpoint);
   const rowSpan = cell.rowSpan ?? 1;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -45,6 +50,21 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
       }}
     >
       {children}
+      {isSelected && !previewMode && (onMoveLeft || onMoveRight || onCopyCell || onPasteIntoCell) && (
+        <div className={'pb-cell-action-bar'} onMouseDown={e => e.stopPropagation()}>
+          <button className={'pb-cell-action-btn'} title="Move left" disabled={!onMoveLeft}
+            onClick={e => { e.stopPropagation(); onMoveLeft?.(); }}>←</button>
+          <button className={'pb-cell-action-btn'} title="Move right" disabled={!onMoveRight}
+            onClick={e => { e.stopPropagation(); onMoveRight?.(); }}>→</button>
+          <div className={'pb-cell-action-divider'} />
+          <button className={'pb-cell-action-btn'} title="Copy column"
+            onClick={e => { e.stopPropagation(); onCopyCell?.(); }}>⧉</button>
+          {onPasteIntoCell && (
+            <button className={'pb-cell-action-btn'} title="Paste into this column"
+              onClick={e => { e.stopPropagation(); onPasteIntoCell(); }}>⊘</button>
+          )}
+        </div>
+      )}
       {!isLast && !previewMode && (
         <div
           className={'pb-col-resize-handle'}

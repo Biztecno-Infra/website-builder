@@ -43,6 +43,10 @@ interface Props {
   onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
+  onCopyGridCell?: (id: string) => void;
+  onPasteGridCell?: (sectionId: string, afterCellId?: string) => void;
+  onPasteIntoGridCell?: (cellId: string) => void;
+  hasCellClipboard?: boolean;
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
   onMarqueeSelect?: (ids: string[]) => void;
@@ -100,7 +104,7 @@ function FreeSectionView({
   onUpdateElement,
   onCommit, snapshot, snapEnabled, onContextMenu,
   onDrop, onUpdateSection, onMoveElementToSection,
-  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
+  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onCopyGridCell: _onCopyGridCell, onPasteGridCell: _onPasteGridCell, onPasteIntoGridCell: _onPasteIntoGridCell, hasCellClipboard: _hasCellClipboard, onMoveSectionUp, onMoveSectionDown,
   onPromoteSection,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
@@ -354,6 +358,13 @@ function FreeSectionView({
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
+              <div className={'pb-section-action-divider'} />
+              <button className={'pb-section-action-btn'} title="Copy section"
+                onClick={e => { e.stopPropagation(); onCopySection?.(); }}>⊕</button>
+              {onPasteSection && (
+                <button className={'pb-section-action-btn'} title="Paste section after"
+                  onClick={e => { e.stopPropagation(); onPasteSection(); }}>⊘</button>
+              )}
               <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>

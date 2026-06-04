@@ -49,19 +49,6 @@ export function RightSidebar({
           onPushSnapshot={onPushSnapshot}
           breakpoint={breakpoint}
         />
-        {gridCell && onUpdateGridCell && (
-          <GridCellPanel
-            gridCell={gridCell}
-            nodes={nodes}
-            snapshot={snapshot}
-            onUpdateGridCell={onUpdateGridCell}
-            onDeleteGridCell={onDeleteGridCell}
-            onAddGridCell={onAddGridCell}
-            onPushSnapshot={onPushSnapshot}
-            breakpoint={breakpoint}
-            theme={theme}
-          />
-        )}
       </aside>
     );
   }
@@ -73,7 +60,7 @@ export function RightSidebar({
         nodes={nodes}
         snapshot={snapshot}
         onUpdateGridCell={onUpdateGridCell}
-        onAddGridCell={onAddGridCell}
+        onDeleteGridCell={onDeleteGridCell}
         onPushSnapshot={onPushSnapshot}
         breakpoint={breakpoint}
         theme={theme}

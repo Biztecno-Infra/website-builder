@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { makeDemoState } from '../data/demoState';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
   AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, CellLayoutMode,
@@ -107,7 +106,6 @@ function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
   }
 }
 
-// Collect all leaf element IDs from a cell (recursing into columns blocks)
 function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
   return cell.children.flatMap(childId => {
     const child = nodes[childId];
@@ -453,20 +451,6 @@ export function useBuilderStore() {
   }, [state]);
 
 
-  const allOrder = useMemo(() => {
-    const page = getActivePage(state);
-    return page.sections.flatMap(secId => {
-      const sec = state.nodes[secId] as Section | undefined;
-      if (!sec) return [];
-      if (sec.layoutMode === 'grid') {
-        return sec.children.flatMap(cellId => {
-          const cell = state.nodes[cellId] as GridCell | undefined;
-          return cell ? collectElementIds(cell, state.nodes) : [];
-        });
-      }
-      return sec.children;
-    });
-  }, [state]);
 
   const selectedId = selectedIds.length === 1 ? selectedIds[0]
     : selectedIds.length > 1 ? selectedIds[selectedIds.length - 1] : null;
@@ -532,10 +516,6 @@ export function useBuilderStore() {
     setState(s => ({ ...s, pages: s.pages.map(p => p.id === id ? { ...p, name } : p) }));
   }, []);
 
-  const updatePageSlug = useCallback((id: string, slug: string) => {
-    setState(s => ({ ...s, pages: s.pages.map(p => p.id === id ? { ...p, slug } : p) }));
-  }, []);
-
   const updatePageLayout = useCallback((id: string, layoutWidth: 'fixed' | 'fluid', maxWidth?: number) => {
     setState(s => ({ ...s, pages: s.pages.map(p => p.id === id ? { ...p, layoutWidth, ...(maxWidth !== undefined ? { maxWidth } : {}) } : p) }));
   }, []);
@@ -544,11 +524,6 @@ export function useBuilderStore() {
     setState(s => ({ ...s, activePageId: id }));
     setSelectedIds([]); setSelectedSectionId(null);
   }, []);
-
-  const reorderPage = useCallback((fromIndex: number, toIndex: number) => {
-    push(stateRef.current);
-    setState(s => { const pages = [...s.pages]; const [moved] = pages.splice(fromIndex, 1); pages.splice(toIndex, 0, moved); return { ...s, pages }; });
-  }, [push]);
 
   // ── Section ops ────────────────────────────────────────────────────
 
@@ -699,6 +674,108 @@ export function useBuilderStore() {
       nodes[newSecId] = { ...src, id: newSecId, label: `${src.label} Copy`, children: newChildren };
       const sections = [...p.sections]; sections.splice(idx + 1, 0, newSecId);
       return { ...s, nodes, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
+    });
+  }, [push]);
+
+  // ── Grid cell clipboard ─────────────────────────────────────────────
+
+  const cellClipboard = useRef<{ cell: GridCell; nodes: NodeMap } | null>(null);
+  const [hasCellClipboard, setHasCellClipboard] = useState(false);
+
+  const copyGridCell = useCallback((id: string) => {
+    const s = stateRef.current;
+    const src = s.nodes[id] as GridCell | undefined;
+    if (!src || !isGridCell(src)) return;
+    const clipped: NodeMap = {};
+    const collect = (nodeId: string) => {
+      const node = s.nodes[nodeId];
+      if (!node) return;
+      clipped[nodeId] = node;
+      if (isGridCell(node) || isContainer(node)) (node as GridCell | Container).children.forEach(collect);
+    };
+    collect(id);
+    cellClipboard.current = { cell: src, nodes: clipped };
+    setHasCellClipboard(true);
+  }, []);
+
+  const pasteGridCellIntoSection = useCallback((sectionId: string, afterCellId?: string) => {
+    const clip = cellClipboard.current;
+    if (!clip) return;
+    push(stateRef.current);
+    setState(s => {
+      const sec = s.nodes[sectionId] as Section | undefined;
+      if (!sec || !isSection(sec) || sec.layoutMode !== 'grid') return s;
+      const newCellId = newGridCellId();
+      const idMap: Record<string, string> = { [clip.cell.id]: newCellId };
+      const newNodes: NodeMap = {};
+      const remapNode = (oldId: string, newParentId: string): string => {
+        const node = clip.nodes[oldId];
+        if (!node) return '';
+        let mid = idMap[oldId];
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : newId(); idMap[oldId] = mid; }
+        if (isGridCell(node) || isContainer(node)) {
+          const children = (node as GridCell | Container).children.map(cid => remapNode(cid, mid)).filter(Boolean);
+          newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
+        } else {
+          newNodes[mid] = { ...node, id: mid, parent: newParentId } as AnyNode;
+        }
+        return mid;
+      };
+      remapNode(clip.cell.id, sectionId);
+      let children = [...sec.children];
+      if (afterCellId) {
+        const idx = children.indexOf(afterCellId);
+        children.splice(idx + 1, 0, newCellId);
+      } else {
+        children.push(newCellId);
+      }
+      const n = children.length;
+      const base = Math.floor(12 / n);
+      const extra = 12 % n;
+      const nodes = { ...s.nodes, ...newNodes };
+      children.forEach((cid, i) => {
+        const c = nodes[cid] as GridCell;
+        if (c) nodes[cid] = { ...c, columnSpan: i < extra ? base + 1 : base };
+      });
+      nodes[sectionId] = { ...sec, children } as AnyNode;
+      return { ...s, nodes };
+    });
+  }, [push]);
+
+  const pasteIntoGridCell = useCallback((targetCellId: string) => {
+    const clip = cellClipboard.current;
+    if (!clip) return;
+    push(stateRef.current);
+    setState(s => {
+      const target = s.nodes[targetCellId] as GridCell | undefined;
+      if (!target || !isGridCell(target)) return s;
+      const idMap: Record<string, string> = {};
+      const newNodes: NodeMap = {};
+      const remapNode = (oldId: string, newParentId: string): string => {
+        const node = clip.nodes[oldId];
+        if (!node) return '';
+        let mid = idMap[oldId];
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : newId(); idMap[oldId] = mid; }
+        if (isGridCell(node) || isContainer(node)) {
+          const children = (node as GridCell | Container).children.map(cid => remapNode(cid, mid)).filter(Boolean);
+          newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
+        } else {
+          newNodes[mid] = { ...node, id: mid, parent: newParentId } as AnyNode;
+        }
+        return mid;
+      };
+      const newChildren = clip.cell.children.map(cid => remapNode(cid, targetCellId)).filter(Boolean);
+      // Remove old children from nodes
+      const nodes = { ...s.nodes };
+      const collectOld = (nodeId: string) => {
+        delete nodes[nodeId];
+        const node = s.nodes[nodeId];
+        if (node && 'children' in node) (node as { children: string[] }).children.forEach(collectOld);
+      };
+      target.children.forEach(collectOld);
+      Object.assign(nodes, newNodes);
+      nodes[targetCellId] = { ...target, children: newChildren } as AnyNode;
+      return { ...s, nodes };
     });
   }, [push]);
 
@@ -1106,7 +1183,17 @@ export function useBuilderStore() {
       } else {
         children = [...parent.children, cellId];
       }
-      return { ...s, nodes: { ...s.nodes, [cellId]: cell, [parentId]: { ...parent, children } } };
+      const nodes = { ...s.nodes, [cellId]: cell, [parentId]: { ...parent, children } };
+      if (isSection(parent)) {
+        const n = children.length;
+        const base = Math.floor(12 / n);
+        const extra = 12 % n;
+        children.forEach((cid, i) => {
+          const c = nodes[cid] as GridCell;
+          if (c) nodes[cid] = { ...c, columnSpan: i < extra ? base + 1 : base };
+        });
+      }
+      return { ...s, nodes };
     });
     setSelectedGridCellId(cellId);
   }, [push]);
@@ -1138,7 +1225,19 @@ export function useBuilderStore() {
       removeGridCellNodes(nodes, cell);
       delete nodes[id];
       const parent = nodes[parentId] as Section | GridCell | undefined;
-      if (parent) nodes[parentId] = { ...parent, children: parent.children.filter(c => c !== id) } as typeof parent;
+      if (parent) {
+        const remaining = parent.children.filter(c => c !== id);
+        nodes[parentId] = { ...parent, children: remaining } as typeof parent;
+        if (isSection(parent) && remaining.length > 0) {
+          const n = remaining.length;
+          const base = Math.floor(12 / n);
+          const extra = 12 % n;
+          remaining.forEach((cid, i) => {
+            const c = nodes[cid] as GridCell;
+            if (c) nodes[cid] = { ...c, columnSpan: i < extra ? base + 1 : base };
+          });
+        }
+      }
       return { ...s, nodes };
     });
     setSelectedIds([]);
@@ -1336,18 +1435,18 @@ export function useBuilderStore() {
   const sections = allSections.filter(s => s !== header && s !== footer);
 
   return {
-    state, nodes: state.nodes, elements: allElements, order: allOrder,
+    state, nodes: state.nodes, elements: allElements,
     header, sections, footer, allSections,
     pages: state.pages, activePageId: state.activePageId, activePage,
     selectedId, selectedIds, selectedSectionId, selectedGridCellId,
     setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, toggleSelectedId,
-    addPage, deletePage, renamePage, updatePageSlug, updatePageLayout, setActivePage, reorderPage,
+    addPage, deletePage, renamePage, updatePageLayout, setActivePage,
     addSection, addGridSection, addSectionFromTemplate, deleteSection, promoteSection, updateSection, reorderSection, duplicateSection,
     addElement, addElementAt, addElementToCell, duplicateElement, copyElement, pasteElement,
     updateElement, updateElements, updateResponsive, pushSnapshot,
     deleteElement, deleteSelected, reorderElement, moveElementToSection, moveElementToGridCell,
     bringToFront, sendToBack, importState, updateTheme,
-    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, updateContainer, moveGridElement,
+    addGridCell, updateGridCell, deleteGridCell, reorderGridCell, copyGridCell, pasteGridCellIntoSection, pasteIntoGridCell, hasCellClipboard, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, updateContainer, moveGridElement,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

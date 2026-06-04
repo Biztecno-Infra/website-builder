@@ -27,16 +27,3 @@ export function getCellJustifyContent(cell: GridCell, bp: Breakpoint): GridCellS
   return cell.style.justifyContent;
 }
 
-export function getCellMinHeight(cell: GridCell, bp: Breakpoint): number {
-  const base = cell.style.minHeight ?? 80;
-  if (bp === 'mobile') return cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? base;
-  if (bp === 'tablet') return cell.responsive.tablet?.minHeight ?? base;
-  return base;
-}
-
-export function getCellFreeHeight(cell: GridCell, bp: Breakpoint): number {
-  const base = cell.freeHeight ?? 320;
-  if (bp === 'mobile') return cell.responsive.mobile?.freeHeight ?? cell.responsive.tablet?.freeHeight ?? base;
-  if (bp === 'tablet') return cell.responsive.tablet?.freeHeight ?? base;
-  return base;
-}

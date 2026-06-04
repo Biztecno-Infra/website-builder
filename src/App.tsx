@@ -8,14 +8,7 @@ import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
-import { makeDemoState } from './data/demoState';
 import { makeKnightState } from './data/knightState';
-import { makeSaasLandingState } from './data/saasLandingState';
-import { makeAgencyState } from './data/agencyState';
-import { makePortfolioState } from './data/portfolioState';
-import newsletterTemplate from './data/newsletterTemplate.json';
-import linearShowcase from '../showcases/linear.json';
-import lemonSqueezyShowcase from '../showcases/lemon-squeezy.json';
 import { exportHtml } from './utils/exportHtml';
 import { serializeState } from './utils/serializeState';
 import type { Breakpoint, Container, GridCell, CanvasElement } from './types';
@@ -25,7 +18,6 @@ export default function App() {
     state,
     nodes,
     elements,
-    order,
     header, sections, footer, allSections,
     pages, activePageId, activePage,
     selectedId,
@@ -44,6 +36,10 @@ export default function App() {
     promoteSection,
     updateSection,
     duplicateSection,
+    copyGridCell,
+    pasteGridCellIntoSection,
+    pasteIntoGridCell,
+    hasCellClipboard,
     duplicateElement,
     copyElement,
     pasteElement,
@@ -87,12 +83,16 @@ export default function App() {
 
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
 
-  const [snapEnabled, setSnapEnabled] = useState(true);
+  const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
-  const [previewMobile, setPreviewMobile] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
+  const previewScrollRef = useRef<number>(0);
+  const capturePreviewScroll = useCallback(() => {
+    previewScrollRef.current = document.querySelector('.pb-canvas-wrapper')?.scrollTop ?? 0;
+  }, []);
 
   const changeZoom = useCallback((delta: number) =>
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
@@ -299,6 +299,12 @@ export default function App() {
 
       if (typing) return;
 
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        if (!previewMode) capturePreviewScroll();
+        setPreviewMode(p => !p);
+        return;
+      }
       if (e.key === 'Escape') {
         if (previewMode) { setPreviewMode(false); return; }
         // Bubble up selection one level at a time: element → container → cell → section → deselect
@@ -349,40 +355,51 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [handleUndo, handleRedo, deleteSelected, selectedId, selectedIds, copyElement, pasteElement,
       duplicateElement, updateElements, pushSnapshot, setSelectedIds, setSelectedSectionId,
-      stateRef, elements, previewMode, changeZoom, setZoom]);
+      stateRef, elements, previewMode, changeZoom, setZoom,
+      capturePreviewScroll]);
+
+  const handleAddElement = useCallback((type: import('./types').ElementType) => {
+    if (selectedContainerId) {
+      const container = nodes[selectedContainerId] as import('./types').Container | undefined;
+      if (container?.children.length) {
+        addElementToCell(type, container.children[0]);
+        return;
+      }
+    }
+    addElement(type);
+  }, [selectedContainerId, nodes, addElementToCell, addElement]);
 
   if (previewMode) {
+    const previewWidth = previewDevice === 'mobile' ? 375 : previewDevice === 'tablet' ? 768 : undefined;
+    const previewBp: Breakpoint = previewDevice === 'mobile' ? 'mobile' : previewDevice === 'tablet' ? 'tablet' : 'desktop';
     return (
       <DndProvider backend={HTML5Backend}>
         <div className={"pb-app pb-preview-app"}>
           <header className={"pb-toolbar pb-preview-toolbar"}>
             <div className={'pb-toolbar-left'}>
+              <span className={'pb-preview-badge'}>PREVIEW</span>
               <span className={'pb-app-name'}>{activePage.name}</span>
             </div>
             <div className={'pb-toolbar-center'}>
-              <button
-                className={['pb-toolbar-btn', !previewMobile && 'pb-active'].filter(Boolean).join(' ')}
-                onClick={() => setPreviewMobile(false)}
-                title="Desktop preview"
-              >
-                🖥 Desktop
-              </button>
-              <button
-                className={['pb-toolbar-btn', previewMobile && 'pb-active'].filter(Boolean).join(' ')}
-                onClick={() => setPreviewMobile(true)}
-                title="Mobile preview (375px)"
-              >
-                📱 Mobile
-              </button>
+              {(['desktop', 'tablet', 'mobile'] as const).map(d => (
+                <button key={d}
+                  className={['pb-toolbar-btn', previewDevice === d && 'pb-active'].filter(Boolean).join(' ')}
+                  onClick={() => setPreviewDevice(d)}
+                  title={d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet (768px)' : 'Mobile (375px)'}
+                >
+                  {d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet' : 'Mobile'}
+                </button>
+              ))}
             </div>
             <div className={'pb-toolbar-right'}>
+              <span className={'pb-preview-shortcut'}>Ctrl+Shift+P</span>
               <button className={"pb-toolbar-btn pb-primary"} onClick={() => setPreviewMode(false)}>
-                ✕ Exit Preview
+                Exit Preview
               </button>
             </div>
           </header>
 
-          <div className={['pb-preview-canvas-wrapper', previewMobile && 'pb-mobile-frame'].filter(Boolean).join(' ')}>
+          <div className={['pb-preview-canvas-wrapper', previewDevice !== 'desktop' && 'pb-device-frame', previewDevice !== 'desktop' && `pb-device-${previewDevice}`].filter(Boolean).join(' ')}>
             <Canvas
               nodes={nodes}
               sections={allSections}
@@ -406,24 +423,17 @@ export default function App() {
               onContextMenu={() => {}}
               onMultiSelect={() => {}}
               previewMode
-              previewWidth={previewMobile ? 375 : undefined}
+              previewWidth={previewWidth}
+              breakpoint={previewBp}
+              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              maxWidth={activePage.maxWidth ?? 1200}
+              initialScrollTop={previewScrollRef.current}
             />
           </div>
         </div>
       </DndProvider>
     );
   }
-
-  const handleAddElement = useCallback((type: import('./types').ElementType) => {
-    if (selectedContainerId) {
-      const container = nodes[selectedContainerId] as import('./types').Container | undefined;
-      if (container?.children.length) {
-        addElementToCell(type, container.children[0]);
-        return;
-      }
-    }
-    addElement(type);
-  }, [selectedContainerId, nodes, addElementToCell, addElement]);
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -468,88 +478,11 @@ export default function App() {
               <span className={'pb-app-name'}>Page Builder</span>
               {/* <span className={'pb-active-page-name'}>{activePage.name}</span> */}
               <div className={'pb-toolbar-divider'} />
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Replace canvas with the built-in demo page (undoable)"
-                onClick={() => {
-                  if (window.confirm('Load demo page? This replaces the current canvas (you can Ctrl+Z to undo).')) {
-                    importState(makeDemoState());
-                  }
-                }}
-              >
-                 Load Demo
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load the newsletter template (undoable)"
-                onClick={() => {
-                  if (window.confirm('Load newsletter template? This replaces the current canvas (you can Ctrl+Z to undo).')) {
-                    importState(migrateState(newsletterTemplate as any));
-                  }
-                }}
-              >
-                 Newsletter
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load SaaS landing page demo (Flowdesk)"
-                onClick={() => {
-                  if (window.confirm('Load Flowdesk SaaS demo? This replaces the current canvas (Ctrl+Z to undo).')) {
-                    importState(makeSaasLandingState());
-                  }
-                }}
-              >
-                ⚡ SaaS Demo
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load agency page demo (Studio Craft)"
-                onClick={() => {
-                  if (window.confirm('Load Studio Craft agency demo? This replaces the current canvas (Ctrl+Z to undo).')) {
-                    importState(makeAgencyState());
-                  }
-                }}
-              >
-                 Agency Demo
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load portfolio demo (Alex Chen)"
-                onClick={() => {
-                  if (window.confirm('Load Alex Chen portfolio demo? This replaces the current canvas (Ctrl+Z to undo).')) {
-                    importState(makePortfolioState());
-                  }
-                }}
-              >
-                ✦ Portfolio Demo
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load Linear-inspired showcase"
-                onClick={() => {
-                  if (window.confirm('Load Linear showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
-                    importState(migrateState(linearShowcase as any));
-                  }
-                }}
-              >
-                ◈ Linear
-              </button> */}
-              {/* <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load Lemon Squeezy-inspired showcase"
-                onClick={() => {
-                  if (window.confirm('Load Lemon Squeezy showcase? This replaces the current canvas (Ctrl+Z to undo).')) {
-                    importState(migrateState(lemonSqueezyShowcase as any));
-                  }
-                }}
-              >
-                🍋 Lemon Squeezy
-              </button> */}
               <button
                 className={"pb-toolbar-btn pb-toolbar-btn--demo"}
                 title="Load Knight showcase"
                 onClick={() => { importState(makeKnightState()); }}
-              >⚔ Knight</button>
+              >Knight</button>
               <button
                 className={"pb-toolbar-btn pb-toolbar-btn--danger"}
                 title="Clear canvas and start with an empty page (undoable)"
@@ -564,10 +497,10 @@ export default function App() {
             </div>
             <div className={'pb-toolbar-center'}>
               <button className={'pb-toolbar-btn'} onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
-                ↩ Undo
+                Undo
               </button>
               <button className={'pb-toolbar-btn'} onClick={handleRedo} disabled={!canRedo} title="Redo (Ctrl+Y)">
-                ↪ Redo
+                Redo
               </button>
               {/* <div className={'pb-toolbar-divider'} />
               <label className={'pb-toolbar-toggle'} title="Snap to 8px grid">
@@ -580,17 +513,17 @@ export default function App() {
                   className={['pb-bp-btn', breakpoint === 'desktop' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('desktop')}
                   title="Desktop (1200px)"
-                >🖥</button>
+                >D</button>
                 <button
                   className={['pb-bp-btn', breakpoint === 'tablet' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('tablet')}
                   title="Tablet (768px)"
-                >⬛</button>
+                >T</button>
                 <button
                   className={['pb-bp-btn', breakpoint === 'mobile' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('mobile')}
                   title="Mobile (375px)"
-                >📱</button>
+                >M</button>
               </div>
               <div className={'pb-toolbar-divider'} />
               <div className={'pb-layout-switcher'}>
@@ -616,14 +549,18 @@ export default function App() {
             </div>
             <div className={'pb-toolbar-right'}>
               <div className={'pb-toolbar-divider'} />
+              <button className={'pb-toolbar-btn'} title="Preview (Ctrl+Shift+P)" onClick={() => { capturePreviewScroll(); setPreviewMode(true); }}>
+                Preview
+              </button>
+              <div className={'pb-toolbar-divider'} />
               <button className={'pb-toolbar-btn'} onClick={handleExportHTML} title="Export HTML">
-                 HTML
+                HTML
               </button>
               <button className={'pb-toolbar-btn'} onClick={handleExportJSON} title="Export JSON">
-                 JSON
+                JSON
               </button>
               <button className={'pb-toolbar-btn'} onClick={() => importRef.current?.click()} title="Import a JSON file exported from this builder">
-                ↑ Import
+                Import
               </button>
               <input
                 ref={importRef}
@@ -633,7 +570,7 @@ export default function App() {
                 onChange={handleImportJSON}
               />
               <div className={'pb-toolbar-divider'} />
-              <span className={'pb-save-indicator'}>● Auto-saved</span>
+              <span className={'pb-save-indicator'}>Auto-saved</span>
             </div>
           </header>
 
@@ -665,6 +602,10 @@ export default function App() {
               onAddSection={addSection}
               onDeleteSection={deleteSection}
               onDuplicateSection={duplicateSection}
+              onCopyGridCell={copyGridCell}
+              onPasteGridCell={pasteGridCellIntoSection}
+              onPasteIntoGridCell={pasteIntoGridCell}
+              hasCellClipboard={hasCellClipboard}
               onPromoteSection={promoteSection}
               onMoveSectionUp={i => reorderSection(i, i - 1)}
               onMoveSectionDown={i => reorderSection(i, i + 1)}
@@ -699,7 +640,7 @@ export default function App() {
             <RightSidebar
               element={selectedElement}
               section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : selectedSection))}
-              gridCell={selectedContainer ? selectedGridCell : selectedGridCell}
+              gridCell={selectedGridCell}
               container={selectedContainer}
               onUpdateContainer={updateContainer}
               nodes={nodes}

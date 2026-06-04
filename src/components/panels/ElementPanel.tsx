@@ -157,7 +157,7 @@ export function ElementPanel({
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>
-          {breakpoint === 'tablet' ? '⬛ Tablet overrides (768px)' : '📱 Mobile overrides (375px)'}
+          {breakpoint === 'tablet' ? 'Tablet overrides (768px)' : 'Mobile overrides (375px)'}
         </div>
       )}
 
@@ -225,11 +225,13 @@ export function ElementPanel({
             </div>
           </>
         )}
-        <div className={'pb-prop-row'}>
-          <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
-          <input type="number" value={eff.layout.height} min={20} onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeResp({ layout: { height: Math.max(20, Number(e.target.value)) } })} />
-        </div>
+        {!(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
+          <div className={'pb-prop-row'}>
+            <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
+            <input type="number" value={eff.layout.height} min={20} onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeResp({ layout: { height: Math.max(20, Number(e.target.value)) } })} />
+          </div>
+        )}
         <div className={'pb-prop-row'}>
           <label>Opacity</label>
           <input type="number" value={element.style.opacity} min={0} max={1} step={0.05}
@@ -528,7 +530,7 @@ export function ElementPanel({
                   className={eff.style.typography.align === a ? 'active' : ''}
                   onClick={() => commitResp({ style: { typography: { align: a } } })}
                   title={a}>
-                  {a === 'left' ? '⬅' : a === 'center' ? '⬛' : '➡'}
+                  {a === 'left' ? 'L' : a === 'center' ? 'C' : 'R'}
                 </button>
               ))}
             </div>
@@ -954,7 +956,7 @@ export function ElementPanel({
             style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
             title={element.state.locked ? 'Unlock element — allow drag/resize' : 'Lock element — prevent drag/resize'}
             onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { state: { ...element.state, locked: !element.state.locked } }); }}
-          >{element.state.locked ? '🔒 Locked' : '🔓 Unlocked'}</button>
+          >{element.state.locked ? 'Locked' : 'Unlocked'}</button>
         </div>
       </CollapsibleSection>
 

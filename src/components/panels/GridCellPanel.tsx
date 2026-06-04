@@ -22,7 +22,6 @@ interface Props {
   snapshot: BuilderState;
   onUpdateGridCell: (id: string, updates: Partial<GridCell>) => void;
   onDeleteGridCell?: (id: string) => void;
-  onAddGridCell?: (sectionId: string) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
   breakpoint?: Breakpoint;
   theme: SiteTheme;
@@ -30,7 +29,7 @@ interface Props {
 
 export function GridCellPanel({
   gridCell: gc, nodes, snapshot,
-  onUpdateGridCell, onDeleteGridCell, onAddGridCell,
+  onUpdateGridCell, onDeleteGridCell,
   onPushSnapshot, breakpoint = 'desktop', theme,
 }: Props) {
   const focusSnapshot = useRef<BuilderState | null>(null);
@@ -191,7 +190,7 @@ export function GridCellPanel({
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>
-          {breakpoint === 'tablet' ? '⬛ Tablet overrides (768px)' : '📱 Mobile overrides (375px)'}
+          {breakpoint === 'tablet' ? 'Tablet overrides (768px)' : 'Mobile overrides (375px)'}
         </div>
       )}
 
@@ -235,11 +234,11 @@ export function GridCellPanel({
           <button className={'pb-resp-clear-btn'} style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
             title="Full width on tablet (span 12)"
             onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: 12 } } }); }}>
-            ⬛ Tab full</button>
+            Tab full</button>
           <button className={'pb-resp-clear-btn'} style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
             title="Full width on mobile (span 12)"
             onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: 12 } } }); }}>
-            📱 Mob full</button>
+            Mob full</button>
         </div>
       </CollapsibleSection>
 
@@ -266,7 +265,7 @@ export function GridCellPanel({
         </div>
         {!isDesktop && (
           <div className={'pb-resp-ref-row'}>
-            <span className={'pb-resp-ref-label'}>🖥 Desktop:</span>
+            <span className={'pb-resp-ref-label'}>Desktop:</span>
             <span className={'pb-resp-ref-value'}>{style.layoutMode}</span>
             {modeIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
           </div>
@@ -289,7 +288,10 @@ export function GridCellPanel({
           <>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Canvas H</label>
-              <input type="number" min={80} step={8} value={gc.freeHeight ?? 320} style={{ width: 72 }}
+              <input type="number" min={80} step={8}
+                value={gc.freeHeight ?? 320}
+                placeholder={renderedHeight !== null ? String(renderedHeight) : undefined}
+                style={{ width: 72 }}
                 onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { freeHeight: Math.max(80, Number(e.target.value)) }); }} />
               <span style={{ fontSize: 12, color: '#888' }}>px</span>
             </div>
@@ -338,7 +340,7 @@ export function GridCellPanel({
         </div>
         {!isDesktop && (
           <div className={'pb-resp-ref-row'}>
-            <span className={'pb-resp-ref-label'}>🖥 Desktop:</span>
+            <span className={'pb-resp-ref-label'}>Desktop:</span>
             <span className={'pb-resp-ref-value'}>{style.justifyContent}</span>
             {justifyIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
           </div>
@@ -357,7 +359,7 @@ export function GridCellPanel({
         </div>
         {!isDesktop && (
           <div className={'pb-resp-ref-row'}>
-            <span className={'pb-resp-ref-label'}>🖥 Desktop:</span>
+            <span className={'pb-resp-ref-label'}>Desktop:</span>
             <span className={'pb-resp-ref-value'}>{style.alignItems}</span>
             {alignIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
           </div>
@@ -410,7 +412,7 @@ export function GridCellPanel({
               ))}
               {!isDesktop && padIsOverridden && (
                 <div className={'pb-resp-ref-row'}>
-                  <span className={'pb-resp-ref-label'}>🖥 Desktop: {style.padding.top}/{style.padding.right}/{style.padding.bottom}/{style.padding.left}</span>
+                  <span className={'pb-resp-ref-label'}>Desktop: {style.padding.top}/{style.padding.right}/{style.padding.bottom}/{style.padding.left}</span>
                   <button className={'pb-resp-clear-btn'} onClick={clearPadOverride}>↺ Reset</button>
                 </div>
               )}
@@ -419,25 +421,19 @@ export function GridCellPanel({
         })()}
       </CollapsibleSection>
 
-      {/* ── Height ── */}
-      <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
-        {renderedHeight !== null && (
-          <div className={'pb-prop-row'} style={{ marginBottom: 4 }}>
-            <label style={{ color: '#888' }}>Actual</label>
-            <span style={{ fontSize: 12, color: '#0b978e', fontWeight: 600 }}>{renderedHeight}px</span>
+      {/* ── Height — only shown in flex mode; free mode uses Canvas H inside Layout ── */}
+      {effMode !== 'free' && (
+        <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
+          <div className={'pb-prop-row'}>
+            <label>Min H</label>
+            <input type="number" value={style.minHeight ?? ''} min={0}
+              placeholder={renderedHeight !== null ? String(renderedHeight) : 'auto'}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) || undefined } })} />
+            <span style={{ fontSize: 11, color: '#888' }}>px</span>
           </div>
-        )}
-        <div className={'pb-prop-row'}>
-          <label>Min H</label>
-          <input type="number" value={style.minHeight ?? 0} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) || undefined } })} />
-          <span style={{ fontSize: 11, color: '#888' }}>px</span>
-        </div>
-        <p style={{ margin: '4px 0 0', fontSize: 10, color: '#aaa', lineHeight: 1.4 }}>
-          Drag bottom edge to resize. Content grows beyond this floor.
-        </p>
-      </CollapsibleSection>
+        </CollapsibleSection>
+      )}
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>

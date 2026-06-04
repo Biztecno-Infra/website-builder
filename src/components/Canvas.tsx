@@ -33,6 +33,10 @@ interface Props {
   onAddSection: (afterId?: string, atStart?: boolean) => void;
   onDeleteSection: (id: string) => void;
   onDuplicateSection: (id: string) => void;
+  onCopyGridCell?: (id: string) => void;
+  onPasteGridCell?: (sectionId: string, afterCellId?: string) => void;
+  onPasteIntoGridCell?: (cellId: string) => void;
+  hasCellClipboard?: boolean;
   onMoveSectionUp: (index: number) => void;
   onMoveSectionDown: (index: number) => void;
   snapEnabled: boolean;
@@ -54,7 +58,6 @@ interface Props {
   onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
   onDropGridLayout?: (sectionId: string | null, columnSpans: number[], atStart?: boolean) => void;
   onDropTemplate?: (afterId: string | undefined, buildFn: (ids: import('../data/sectionTemplates').TemplateIds, theme: import('../types').SiteTheme) => import('../data/sectionTemplates').TemplateResult, atStart?: boolean) => void;
-  onAddNestedGrid?: (cellId: string, columnSpans: number[]) => void;
   onRemoveColumnsBlock?: (blockId: string) => void;
   onPromoteSection?: (sectionId: string, role: 'header' | 'footer') => void;
   onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
@@ -65,6 +68,7 @@ interface Props {
   zoom?: number;
   layoutWidth?: 'fixed' | 'fluid';
   maxWidth?: number;
+  initialScrollTop?: number;
 }
 
 export function Canvas({
@@ -73,20 +77,28 @@ export function Canvas({
   onSelectSection, onSelectElement, onSelectGridCell, onDeselect,
   onUpdate, onCommit, snapshot,
   onDrop, onUpdateSection, onAddSection, onDeleteSection,
-  onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
+  onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
+  onMoveSectionUp, onMoveSectionDown,
   snapEnabled, onContextMenu, onMultiSelect, previewMode, previewWidth,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
   onMoveElementToSection, onMoveElementToGridCell,
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell,
-  onDropGridLayout, onDropTemplate, onAddNestedGrid, onRemoveColumnsBlock, onPromoteSection,
+  onDropGridLayout, onDropTemplate, onRemoveColumnsBlock, onPromoteSection,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   zoom = 1,
   layoutWidth = 'fixed',
   maxWidth = 1200,
+  initialScrollTop,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (initialScrollTop !== undefined && wrapperRef.current) {
+      wrapperRef.current.scrollTop = initialScrollTop;
+    }
+  }, []);
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
   const [dragOverGridCellId, setDragOverGridCellId] = useState<string | null>(null);
 
@@ -189,7 +201,7 @@ export function Canvas({
     onDuplicateElement, onDeleteElement,
     onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
     onMoveGridElement, onReorderGridCell,
-    onDropGridLayout, onAddNestedGrid, onRemoveColumnsBlock,
+    onDropGridLayout, onRemoveColumnsBlock,
     onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   };
 
@@ -197,7 +209,7 @@ export function Canvas({
   const bpClass = BP_CLASS_MAP[breakpoint];
 
   return (
-    <div className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
+    <div ref={wrapperRef} className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
       <div className={'pb-canvas-column'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
@@ -249,6 +261,10 @@ export function Canvas({
                 onDeleteSection(sec.id);
               }}
               onDuplicateSection={() => onDuplicateSection(sec.id)}
+              onCopyGridCell={onCopyGridCell}
+              onPasteGridCell={onPasteGridCell}
+              onPasteIntoGridCell={onPasteIntoGridCell}
+              hasCellClipboard={hasCellClipboard}
               onMoveSectionUp={i > 0 ? () => onMoveSectionUp(i) : undefined}
               onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
               onMarqueeSelect={ids => onMultiSelect(ids, sec.id)}

@@ -383,7 +383,7 @@ export function CanvasElement({
             />
           ))}
 
-          {el.state.locked && <div className={'pb-lock-indicator'}>🔒</div>}
+          {el.state.locked && <div className={'pb-lock-indicator'}>Locked</div>}
         </>
       )}
     </div>
@@ -567,7 +567,7 @@ export function ElementContent({
       return (
         <div style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center',
           background: '#111', color: '#888', fontSize: 13, gap: 8 }}>
-          ▶ Add video URL
+          Add video URL
         </div>
       );
     }
@@ -584,9 +584,7 @@ export function ElementContent({
   }
 
   if (el.type === 'spacer') {
-    return (
-      <div style={{ ...base, backgroundColor: 'transparent', backgroundImage: 'none' }} />
-    );
+    return <div style={base} />;
   }
 
   if (el.type === 'icon') {

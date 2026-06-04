@@ -12,6 +12,14 @@ import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 import { getCellColumnSpan } from '../utils/cellUtils';
 
+function isCellOrDescendant(nodes: NodeMap, parentId: string, targetId: string | null | undefined): boolean {
+  if (!targetId) return false;
+  if (parentId === targetId) return true;
+  const node = nodes[parentId];
+  if (!node || !('children' in node)) return false;
+  return (node as { children: string[] }).children.some(cid => isCellOrDescendant(nodes, cid, targetId));
+}
+
 
 interface Props {
   section: GridSection;
@@ -38,6 +46,10 @@ interface Props {
   onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
+  onCopyGridCell?: (id: string) => void;
+  onPasteGridCell?: (sectionId: string, afterCellId?: string) => void;
+  onPasteIntoGridCell?: (cellId: string) => void;
+  hasCellClipboard?: boolean;
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
   onPromoteSection?: (role: 'header' | 'footer') => void;
@@ -67,7 +79,7 @@ export function GridSectionView({
   onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onCommit, snapshot, onUpdateSection,
   onAddSectionBefore, onAddSectionAfter, onAddGridSectionBefore, onAddGridSectionAfter,
-  onDeleteSection, onDuplicateSection,
+  onDeleteSection, onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
   onMoveSectionUp, onMoveSectionDown, onPromoteSection,
   previewMode, breakpoint = 'desktop',
   onUpdateResponsive, onDuplicateElement, onDeleteElement,
@@ -311,6 +323,11 @@ export function GridSectionView({
                   breakpoint={breakpoint}
                   previewMode={previewMode}
                   isLast={!nextCell}
+                  isSelected={isCellOrDescendant(nodes, cell.id, selectedGridCellId)}
+                  onMoveLeft={idx > 0 ? () => onReorderGridCell?.(section.id, idx, idx - 1) : undefined}
+                  onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
+                  onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}
+                  onPasteIntoCell={hasCellClipboard && onPasteIntoGridCell ? () => onPasteIntoGridCell(cell.id) : undefined}
                   onResizeDragStart={nextCell ? (e, span, el) => {
                     e.preventDefault();
                     e.stopPropagation();

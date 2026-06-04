@@ -404,9 +404,6 @@ export interface Container {
   responsive?: ContainerResponsive;
 }
 
-/** @deprecated use Container */
-export type ColumnsBlock = Container;
-
 // ── Nodes flat map ─────────────────────────────────────────────────────
 
 export type AnyNode = Section | GridCell | CanvasElement | Container;

@@ -35,8 +35,8 @@ interface Props {
 }
 
 const TYPE_ICON: Record<string, string> = {
-  text: 'T', image: '🖼', button: '⬛', box: '□',
-  divider: '—', video: '▶', spacer: '↕', icon: '★',
+  text: 'T', image: 'Img', button: 'Btn', box: 'Box',
+  divider: 'Div', video: 'Vid', spacer: 'Spc', icon: 'Ico',
 };
 
 function elementLabel(el: CanvasElement): string {
@@ -155,7 +155,7 @@ function SectionGroup({
               className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
               title={locked ? 'Unlock' : 'Lock'}
               onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
-            >{locked ? '🔒' : '🔓'}</button>
+            >{locked ? 'L' : 'L'}</button>
           </span>
         </div>
       );
@@ -228,7 +228,7 @@ function SectionGroup({
             className={'pb-layer-collapse-btn'}
             onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
           >
-            {collapsed ? '▶' : '▼'}
+            {collapsed ? '›' : '⌄'}
           </button>
           <span className={'pb-layer-section-icon'}>⊞</span>
           <span className={'pb-layer-section-name'}>{section.label}</span>
@@ -354,7 +354,7 @@ function SectionGroup({
             className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
             title={locked ? 'Unlock' : 'Lock'}
             onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
-          >{locked ? '🔒' : '🔓'}</button>
+          >{locked ? 'L' : 'L'}</button>
         </span>
       </div>
     );
@@ -381,7 +381,7 @@ function SectionGroup({
           className={'pb-layer-collapse-btn'}
           onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
         >
-          {collapsed ? '▶' : '▼'}
+          {collapsed ? '›' : '⌄'}
         </button>
         <span className={'pb-layer-section-icon'}>
           {role === 'header' ? '⬆' : role === 'footer' ? '⬇' : '▭'}

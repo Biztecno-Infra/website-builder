@@ -593,6 +593,23 @@
   background: #004a50;
   box-shadow: 0 0 0 2px #00c8c8;
 }
+.pb-section-paste-col-btn {
+  margin-left: 6px;
+  padding: 1px 7px;
+  height: 18px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: #0b978e;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  vertical-align: middle;
+}
+.pb-section-paste-col-btn:hover {
+  background: #006e75;
+}
 
 
 /* ─── Section action bar ─── */
@@ -642,6 +659,48 @@
 .pb-section-action-btn.pb-danger:hover {
   background: #fee2e2;
   color: #ef4444;
+}
+
+.pb-cell-action-bar {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 102;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.pb-cell-action-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.pb-cell-action-btn:hover:not(:disabled) { background: #f0f9f9; color: #006e75; }
+.pb-cell-action-btn:disabled { opacity: 0.3; cursor: default; }
+
+.pb-cell-action-divider {
+  width: 1px;
+  height: 16px;
+  background: #e0e0e0;
+  margin: 0 2px;
 }
 
 .pb-section-width-toggle {
@@ -1262,53 +1321,75 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #1a1a2e;
+  background: #f1f5f9;
 }
 
 .pb-preview-toolbar {
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
+  background: #ffffff;
+  border-bottom: 3px solid #0b978e;
   flex-shrink: 0;
 }
 
-.pb-preview-toolbar .pb-app-name { color: #e2e8f0; }
-.pb-preview-toolbar .pb-toolbar-btn { color: #cbd5e1; border-color: #334155; background: transparent; }
-.pb-preview-toolbar .pb-toolbar-btn:hover { background: #1e3a5f; }
-.pb-preview-toolbar .pb-toolbar-btn.pb-active { background: #0b978e33; color: #0b978e; border-color: #0b978e; }
-.pb-preview-toolbar .pb-toolbar-btn.pb-primary { background: #e74c3c; border-color: #e74c3c; color: #fff; }
-.pb-preview-toolbar .pb-toolbar-btn.pb-primary:hover { background: #c0392b; }
+.pb-preview-toolbar .pb-app-name { color: #1e293b; }
+.pb-preview-toolbar .pb-toolbar-btn { color: #475569; border-color: #e2e8f0; background: transparent; }
+.pb-preview-toolbar .pb-toolbar-btn:hover { background: #f0f9f9; color: #0b978e; }
+.pb-preview-toolbar .pb-toolbar-btn.pb-active { background: #e6f7f6; color: #0b978e; border-color: #0b978e; font-weight: 600; }
+.pb-preview-toolbar .pb-toolbar-btn.pb-primary { background: #0b978e; border-color: #0b978e; color: #fff; }
+.pb-preview-toolbar .pb-toolbar-btn.pb-primary:hover { background: #006e75; border-color: #006e75; }
 
 .pb-preview-canvas-wrapper {
   flex: 1;
   overflow: auto;
   display: flex;
   justify-content: center;
-  padding: 24px;
-  background: #1a1a2e;
+  align-items: flex-start;
+  padding: 32px 24px 48px;
+  background: #f1f5f9;
 }
 
 .pb-preview-canvas-wrapper .pb-canvas-wrapper {
-  box-shadow: 0 8px 48px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
   border-radius: 4px;
   overflow: clip;
   height: fit-content;
 }
 
-.pb-preview-canvas-wrapper.pb-mobile-frame {
-  padding-top: 40px;
+/* Tablet frame */
+.pb-preview-canvas-wrapper.pb-device-frame.pb-device-tablet .pb-canvas-wrapper {
+  border-radius: 16px;
+  box-shadow: 0 0 0 10px #334155, 0 0 0 12px #1e293b, 0 12px 40px rgba(0,0,0,0.25);
+  overflow: clip;
 }
 
-.pb-preview-canvas-wrapper.pb-mobile-frame .pb-canvas-wrapper {
-  width: 375px;
-  border-radius: 40px;
-  box-shadow: 0 0 0 12px #2d3748, 0 0 0 14px #1a202c, 0 16px 64px rgba(0,0,0,0.6);
+/* Mobile frame */
+.pb-preview-canvas-wrapper.pb-device-frame.pb-device-mobile .pb-canvas-wrapper {
+  border-radius: 36px;
+  box-shadow: 0 0 0 12px #334155, 0 0 0 14px #1e293b, 0 16px 48px rgba(0,0,0,0.3);
   overflow: clip;
+}
+
+.pb-preview-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: #0b978e;
+  border-radius: 4px;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.pb-preview-shortcut {
+  font-size: 11px;
+  color: #94a3b8;
+  padding: 0 4px;
 }
 
 .pb-canvas-wrapper.pb-preview-mode {
   cursor: default;
   background: #ffffff;
   background-image: none;
+  padding: 0;
 }
 .pb-canvas-wrapper.pb-preview-mode .pb-canvas-column {
   box-shadow: none;
