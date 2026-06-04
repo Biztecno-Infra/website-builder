@@ -144,6 +144,8 @@ export function ElementPanel({
     divider: 'Divider', video: 'Video', spacer: 'Spacer', icon: 'Icon', form: 'Form',
   };
   const elementLabel = ELEMENT_TYPE_LABELS[element.type] ?? element.type;
+  // Dividers are meant to be thin lines, so allow them below the usual 20px floor.
+  const minSize = element.type === 'divider' ? 1 : 20;
 
   return (
     <aside className={'pb-right-sidebar'}>
@@ -185,11 +187,14 @@ export function ElementPanel({
               <input type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
-            <div className={'pb-prop-row'}>
-              <label>W</label>
-              <input type="number" value={eff.layout.width} min={20} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeResp({ layout: { width: Math.max(20, Number(e.target.value)) } })} />
-            </div>
+            {/* Dividers get Width in the Divider section below. */}
+            {element.type !== 'divider' && (
+              <div className={'pb-prop-row'}>
+                <label>W</label>
+                <input type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
+              </div>
+            )}
           </>
         )}
         {isInGridCell && (
@@ -220,16 +225,16 @@ export function ElementPanel({
             </div>
             <div className={'pb-prop-row'}>
               <label>W</label>
-              <input type="number" value={element.layout.width} min={20} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeLayout({ width: Math.max(20, Number(e.target.value)) })} />
+              <input type="number" value={element.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeLayout({ width: Math.max(minSize, Number(e.target.value)) })} />
             </div>
           </>
         )}
-        {!(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
+        {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
           <div className={'pb-prop-row'}>
             <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
-            <input type="number" value={eff.layout.height} min={20} onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeResp({ layout: { height: Math.max(20, Number(e.target.value)) } })} />
+            <input type="number" value={eff.layout.height} min={minSize} onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
           </div>
         )}
         <div className={'pb-prop-row'}>
@@ -240,8 +245,11 @@ export function ElementPanel({
         </div>
       </CollapsibleSection>
 
-      {/* ── Sizing (grid elements only, not overlay) ── */}
-      {isInGridCell && !element.overlayInCell && (() => {
+      {/* ── Sizing (grid elements only, not overlay) ──
+          Dividers skip the flex-preset Sizing section: they get explicit
+          Width/Height/Thickness + a Fill toggle in the Divider section below,
+          so the experience matches the free canvas. */}
+      {isInGridCell && !element.overlayInCell && element.type !== 'divider' && (() => {
         type Preset = { label: string; widthMode: FlexWidthMode; flexGrow: number; alignSelf: typeof element.flexLayout.alignSelf };
         const presets: Preset[] = [
           { label: 'Natural', widthMode: 'auto',    flexGrow: 0, alignSelf: 'auto' },
@@ -721,26 +729,113 @@ export function ElementPanel({
         </CollapsibleSection>
       )}
 
-      {/* ── Divider ── */}
-      {element.type === 'divider' && (
-        <CollapsibleSection sectionKey="divider" label="Divider" isOpen={sec('divider')} onToggle={toggleSection}>
-          <div className={'pb-prop-row'}>
-            <label>Orientation</label>
-            <select value={element.content.orientation ?? 'horizontal'}
-              onChange={e => {
-                const newOrientation = e.target.value as 'horizontal' | 'vertical';
-                const isChanging = newOrientation !== (element.content.orientation ?? 'horizontal');
-                commitChange({
-                  content: { ...element.content, orientation: newOrientation },
-                  ...(isChanging ? { layout: { ...element.layout, width: element.layout.height, height: element.layout.width } } : {}),
-                });
-              }}>
-              <option value="horizontal">Horizontal</option>
-              <option value="vertical">Vertical</option>
-            </select>
-          </div>
-        </CollapsibleSection>
-      )}
+      {/* ── Divider ──
+          The Divider section is the single source of truth for a divider's
+          dimensions in BOTH free and grid modes (the generic Layout/Sizing rows
+          skip dividers). Orientation, Width, Height and Thickness behave the same
+          everywhere; inside a grid a "Fill width" toggle lets the divider stretch
+          to the cell while still respecting the layout constraints. */}
+      {element.type === 'divider' && (() => {
+        const isVertical = (element.content.orientation ?? 'horizontal') === 'vertical';
+        // Thickness is the divider's short dimension: height for a horizontal
+        // divider, width for a vertical one.
+        const thickness = isVertical ? eff.layout.width : eff.layout.height;
+        // Inside a grid cell the main-axis length is driven by flexLayout. We treat
+        // widthMode 'fill' as "stretch to the cell"; anything else is an explicit px
+        // Width that we keep mirrored into both layout.width and flexLayout.widthValue
+        // so the grid renderer and the canvas agree.
+        const inGrid = isInGridCell && !element.overlayInCell;
+        const isFill = inGrid && element.flexLayout.widthMode === 'fill';
+
+        // Set the divider's explicit Width. In a grid we also pin flexLayout to a
+        // fixed px footprint so layout.width is actually honoured by the cell.
+        const setWidth = (v: number) => {
+          const w = Math.max(minSize, v);
+          if (inGrid && !isFill) {
+            change({
+              layout: { ...element.layout, width: w },
+              flexLayout: { ...element.flexLayout, widthMode: 'fixed', widthValue: w },
+            });
+          } else {
+            changeResp({ layout: { width: w } });
+          }
+        };
+
+        return (
+          <CollapsibleSection sectionKey="divider" label="Divider" isOpen={sec('divider')} onToggle={toggleSection}>
+            <div className={'pb-prop-row'}>
+              <label>Orientation</label>
+              <select value={element.content.orientation ?? 'horizontal'}
+                onChange={e => {
+                  const newOrientation = e.target.value as 'horizontal' | 'vertical';
+                  const isChanging = newOrientation !== (element.content.orientation ?? 'horizontal');
+                  onPushSnapshot(snapshot);
+                  // Always set orientation on the base content.
+                  change({ content: { ...element.content, orientation: newOrientation } });
+                  // Swap the *effective* (breakpoint-aware) width/height and write it back
+                  // through changeResp so the swap lands on the active breakpoint, not just desktop.
+                  if (isChanging) {
+                    changeResp({ layout: { width: eff.layout.height, height: eff.layout.width } });
+                  }
+                }}>
+                <option value="horizontal">Horizontal</option>
+                <option value="vertical">Vertical</option>
+              </select>
+            </div>
+
+            {inGrid && (
+              <div className={'pb-prop-row'}>
+                <label>Fill width</label>
+                <input type="checkbox" checked={isFill}
+                  onChange={e => {
+                    onPushSnapshot(snapshot);
+                    if (e.target.checked) {
+                      change({ flexLayout: { ...element.flexLayout, widthMode: 'fill' } });
+                    } else {
+                      // Drop back to an explicit footprint matching the current width.
+                      change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed', widthValue: eff.layout.width } });
+                    }
+                  }} />
+                <span style={{ fontSize: 11, color: '#888' }}>Stretch to cell</span>
+              </div>
+            )}
+
+            {/* Width and Height each cover the divider's two dimensions. The one
+                that equals the short side is just the Thickness, so we hide it to
+                avoid two inputs that edit the same value: a vertical divider's
+                Width == Thickness, a horizontal divider's Height == Thickness. */}
+            {!isVertical && (
+              <div className={'pb-prop-row'}>
+                <label>Width</label>
+                <input type="number" value={eff.layout.width} min={minSize} disabled={isFill}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => setWidth(Number(e.target.value))} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+            )}
+
+            {isVertical && (
+              <div className={'pb-prop-row'}>
+                <label>Height</label>
+                <input type="number" value={eff.layout.height} min={minSize}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
+                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              </div>
+            )}
+
+            <div className={'pb-prop-row'}>
+              <label>Thickness</label>
+              <input type="number" value={thickness} min={1} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => {
+                  const v = Math.max(1, Number(e.target.value));
+                  changeResp({ layout: isVertical ? { width: v } : { height: v } });
+                }} />
+              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+            </div>
+          </CollapsibleSection>
+        );
+      })()}
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label={<>Background {allBpBadge}</>}

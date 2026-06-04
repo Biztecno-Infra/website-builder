@@ -40,8 +40,13 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
   const type = action?.type ?? 'none';
 
   const options: ActionOption[] = allowSubmit
-    ? [{ type: 'submit-form', label: 'Submit Form' }, ...BASE_ACTIONS.filter(o => o.type !== 'none')]
-    : BASE_ACTIONS;
+    ? [
+        { type: 'submit-form', label: 'Submit Form (Email)' },
+        { type: 'submit-api',  label: 'Submit to API' },
+        ...BASE_ACTIONS.filter(o => o.type !== 'none'),
+      ]
+    // Standalone buttons get Submit to API too (fires an HTTP request on click).
+    : [...BASE_ACTIONS, { type: 'submit-api', label: 'Submit to API' }];
 
   const allSections = Object.values(nodes)
     .filter((n): n is Section => n.type === 'section')
@@ -60,6 +65,61 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <div style={{ fontSize: 11, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '5px 8px', margin: '2px 0 6px' }}>
           Saved, but not yet functional in exported HTML.
         </div>
+      )}
+
+      {type === 'submit-form' && (
+        <>
+          <div className={'pb-prop-row pb-full'}>
+            <label>Email</label>
+            <input type="text" value={action.email ?? ''} placeholder="where to send submissions"
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => onChange({ email: e.target.value })} />
+          </div>
+          <div className={'pb-prop-row pb-full'}>
+            <label>Subject</label>
+            <input type="text" value={action.subject ?? ''} placeholder="(optional)"
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => onChange({ subject: e.target.value })} />
+          </div>
+        </>
+      )}
+
+      {type === 'submit-api' && (
+        <>
+          <div className={'pb-prop-row pb-full'}>
+            <label>Endpoint</label>
+            <input type="text" value={action.apiUrl ?? ''} placeholder="https://api.example.com/submit"
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => onChange({ apiUrl: e.target.value })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Method</label>
+            <select value={action.apiMethod ?? 'POST'}
+              onChange={e => onChange({ apiMethod: e.target.value as 'POST' | 'PUT' | 'PATCH' })}>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+            </select>
+          </div>
+          {allowSubmit ? (
+            <div style={{ fontSize: 11, color: '#64748b', padding: '2px 0 4px', lineHeight: 1.5 }}>
+              Form fields are sent as a JSON body (Content-Type: application/json).
+            </div>
+          ) : (
+            <>
+              <div className={'pb-prop-row pb-full'}>
+                <label>JSON Body</label>
+                <textarea value={action.apiBody ?? ''} rows={4} placeholder={'(optional) e.g. {"event":"clicked"}'}
+                  style={{ fontFamily: 'monospace', fontSize: 12, resize: 'vertical' }}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => onChange({ apiBody: e.target.value })} />
+              </div>
+              <div style={{ fontSize: 11, color: '#64748b', padding: '2px 0 4px', lineHeight: 1.5 }}>
+                Sent on click as Content-Type: application/json. Fire-and-forget — errors go to the console.
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {type === 'external-url' && (
