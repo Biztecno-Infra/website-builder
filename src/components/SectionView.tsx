@@ -362,13 +362,6 @@ function FreeSectionView({
               <button className={'pb-section-action-btn'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
               <div className={'pb-section-action-divider'} />
-              <button className={'pb-section-action-btn'} title="Copy section"
-                onClick={e => { e.stopPropagation(); onCopySection?.(); }}>⊕</button>
-              {onPasteSection && (
-                <button className={'pb-section-action-btn'} title="Paste section after"
-                  onClick={e => { e.stopPropagation(); onPasteSection(); }}>⊘</button>
-              )}
-              <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
             </div>
