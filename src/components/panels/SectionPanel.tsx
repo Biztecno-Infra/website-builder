@@ -106,7 +106,7 @@ export function SectionPanel({
         )}
         {section.scrollBehavior === 'fixed' && (
           <div className={'pb-prop-row'} style={{ fontSize: 11, color: '#888', paddingLeft: 4 }}>
-            ⚓ Previewed as sticky in editor
+            Previewed as sticky in editor; exports as position:fixed
           </div>
         )}
         {!isGrid && (
@@ -220,12 +220,12 @@ export function SectionPanel({
             <div className={'pb-prop-row'}>
               <label>Width</label>
               <div className={'pb-layout-mode-toggle'}>
-                {(['constrained', 'full', 'fluid'] as ContentWidthMode[]).map(m => (
+                {(['constrained', 'full'] as ContentWidthMode[]).map(m => (
                   <button key={m}
                     className={['pb-layout-mode-btn', gridCfg.contentWidth === m && 'pb-active'].filter(Boolean).join(' ')}
-                    title={{ constrained: 'Max-width centered content', full: 'Full viewport width', fluid: 'Full width with padding' }[m]}
+                    title={{ constrained: 'Max-width centered content', full: 'Full viewport width' }[m]}
                     onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: m } })}
-                  >{{ constrained: 'Fixed', full: 'Full', fluid: 'Fluid' }[m]}</button>
+                  >{{ constrained: 'Fixed', full: 'Full' }[m]}</button>
                 ))}
               </div>
             </div>

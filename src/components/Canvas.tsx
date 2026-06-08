@@ -44,6 +44,7 @@ interface Props {
   onMultiSelect: (ids: string[], sectionId: string) => void;
   previewMode?: boolean;
   previewWidth?: number;
+  canvasDisplayWidth?: number;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
@@ -79,7 +80,7 @@ export function Canvas({
   onDrop, onUpdateSection, onAddSection, onDeleteSection,
   onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
   onMoveSectionUp, onMoveSectionDown,
-  snapEnabled, onContextMenu, onMultiSelect, previewMode, previewWidth,
+  snapEnabled, onContextMenu, onMultiSelect, previewMode, previewWidth, canvasDisplayWidth,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
   onMoveElementToSection, onMoveElementToGridCell,
@@ -92,7 +93,7 @@ export function Canvas({
   maxWidth = 1200,
   initialScrollTop,
 }: Props) {
-  const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
+  const canvasWidth = previewWidth ?? canvasDisplayWidth ?? BREAKPOINT_WIDTHS[breakpoint];
   const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (initialScrollTop !== undefined && wrapperRef.current) {
@@ -230,9 +231,13 @@ export function Canvas({
           />
         )}
 
-        {breakpoint !== 'desktop' && !previewMode && (
+        {!previewMode && (breakpoint !== 'desktop' || (canvasDisplayWidth && canvasDisplayWidth !== CANVAS_W)) && (
           <div className={'pb-bp-width-indicator'} style={{ width: canvasWidth }}>
-            <span>{breakpoint === 'tablet' ? '768px — Tablet' : '375px — Mobile'}</span>
+            <span>
+              {breakpoint === 'tablet' ? '768px — Tablet'
+               : breakpoint === 'mobile' ? '375px — Mobile'
+               : `${canvasWidth}px`}
+            </span>
           </div>
         )}
 

@@ -50,7 +50,7 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
       }}
     >
       {children}
-      {isSelected && !previewMode && (onMoveLeft || onMoveRight || onCopyCell || onPasteIntoCell) && (
+      {isSelected && !previewMode && (onMoveLeft || onMoveRight || onCopyCell || onPasteIntoCell || onDeleteCell) && (
         <div className={'pb-cell-action-bar'} onMouseDown={e => e.stopPropagation()}>
           <button className={'pb-cell-action-btn'} title="Move left" disabled={!onMoveLeft}
             onClick={e => { e.stopPropagation(); onMoveLeft?.(); }}>←</button>
@@ -62,6 +62,13 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
           {onPasteIntoCell && (
             <button className={'pb-cell-action-btn'} title="Paste into this column"
               onClick={e => { e.stopPropagation(); onPasteIntoCell(); }}>⊘</button>
+          )}
+          {onDeleteCell && (
+            <>
+              <div className={'pb-cell-action-divider'} />
+              <button className={'pb-cell-action-btn pb-danger'} title="Delete column"
+                onClick={e => { e.stopPropagation(); onDeleteCell(); }}>✕</button>
+            </>
           )}
         </div>
       )}

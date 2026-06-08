@@ -1404,13 +1404,27 @@
 .pb-canvas-wrapper.pb-preview-mode .pb-grid-cell,
 .pb-canvas-wrapper.pb-preview-mode .pb-grid-cell:hover,
 .pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--selected,
-.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--drop-over {
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--drop-over,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--nested-container,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--nested-container:hover,
+.pb-canvas-wrapper.pb-preview-mode .pb-grid-cell--nested-container.pb-grid-cell--selected {
   outline: none !important;
+  box-shadow: none !important;
 }
 .pb-canvas-wrapper.pb-preview-mode .pb-canvas-el:hover,
 .pb-canvas-wrapper.pb-preview-mode .pb-canvas-el.pb-selected {
   outline: none !important;
   cursor: default;
+}
+.pb-canvas-wrapper.pb-preview-mode .pb-container,
+.pb-canvas-wrapper.pb-preview-mode .pb-container--selected,
+.pb-canvas-wrapper.pb-preview-mode .pb-container--child-selected {
+  border: none !important;
+  background: none !important;
+}
+.pb-canvas-wrapper.pb-preview-mode .pb-container-actions,
+.pb-canvas-wrapper.pb-preview-mode .pb-container-hover-label {
+  display: none !important;
 }
 
 /* ─── Canvas elements ─── */
@@ -2220,6 +2234,45 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+/* ─── Screen width control ─── */
+.pb-screen-width-control {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pb-screen-select {
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  min-width: 76px;
+}
+.pb-screen-select:focus {
+  background: #e4e4e4;
+}
+.pb-screen-custom-input {
+  width: 58px;
+  height: 26px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #334155;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  outline: none;
+  text-align: center;
+}
+.pb-screen-custom-input:focus {
+  background: #e4e4e4;
 }
 
 /* ─── Zoom control ─── */

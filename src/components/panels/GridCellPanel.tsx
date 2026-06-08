@@ -245,19 +245,15 @@ export function GridCellPanel({
       {/* ── Layout ── */}
       <CollapsibleSection sectionKey="layout" label="Layout" isOpen={sec('layout')} onToggle={toggle}>
         <div className={'pb-prop-row'}>
-          <label>Mode</label>
-          <div className={'pb-layout-mode-toggle'}>
-            <button
-              className={['pb-layout-mode-btn', effMode !== 'free' && 'pb-active'].filter(Boolean).join(' ')}
-              onClick={() => {
-                const fallback: CellLayoutMode = style.layoutMode !== 'free' ? style.layoutMode : 'column';
-                setCurrentMode(fallback);
-              }}
-            >Flex</button>
-            <button
-              className={['pb-layout-mode-btn', effMode === 'free' && 'pb-active'].filter(Boolean).join(' ')}
-              onClick={() => setCurrentMode('free')}
-            >Free Canvas</button>
+          <label>Direction</label>
+          <div className={'pb-btn-group'}>
+            {(['column', 'row', 'wrap'] as CellLayoutMode[]).map(m => (
+              <button key={m}
+                className={effMode === m ? 'active' : ''}
+                onClick={() => setCurrentMode(m)}>
+                {m === 'column' ? '↕' : m === 'row' ? '↔' : '⤵'}
+              </button>
+            ))}
           </div>
           {!isDesktop && modeIsOverridden && (
             <button className={'pb-resp-clear-btn'} title={`Reset to desktop (${style.layoutMode})`} onClick={resetModeOverride}>↺</button>
@@ -270,62 +266,7 @@ export function GridCellPanel({
             {modeIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
           </div>
         )}
-        {effMode !== 'free' && (
-          <div className={'pb-prop-row'}>
-            <label>Direction</label>
-            <div className={'pb-btn-group'}>
-              {(['column', 'row', 'wrap'] as CellLayoutMode[]).map(m => (
-                <button key={m}
-                  className={effMode === m ? 'active' : ''}
-                  onClick={() => setCurrentMode(m)}>
-                  {m === 'column' ? '↕' : m === 'row' ? '↔' : '⤵'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {style.layoutMode === 'free' && (
-          <>
-            <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-              <label>Canvas H</label>
-              <input type="number" min={80} step={8}
-                value={gc.freeHeight ?? 320}
-                placeholder={renderedHeight !== null ? String(renderedHeight) : undefined}
-                style={{ width: 72 }}
-                onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { freeHeight: Math.max(80, Number(e.target.value)) }); }} />
-              <span style={{ fontSize: 12, color: '#888' }}>px</span>
-            </div>
-            <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-              <label>↳ Tab H</label>
-              <input type="number" min={80} step={8} style={{ width: 72 }}
-                value={responsive.tablet?.freeHeight ?? gc.freeHeight ?? 320}
-                onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, freeHeight: Math.max(80, Number(e.target.value)) } } }); }} />
-              <span style={{ fontSize: 12, color: '#888' }}>px</span>
-              {responsive.tablet?.freeHeight !== undefined && (
-                <button className={'pb-resp-clear-btn'} title="Reset" onClick={() => {
-                  onPushSnapshot(snapshot);
-                  const { freeHeight: _fh, ...rest } = responsive.tablet ?? {};
-                  onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
-                }}>↺</button>
-              )}
-            </div>
-            <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-              <label>↳ Mob H</label>
-              <input type="number" min={80} step={8} style={{ width: 72 }}
-                value={responsive.mobile?.freeHeight ?? responsive.tablet?.freeHeight ?? gc.freeHeight ?? 320}
-                onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, freeHeight: Math.max(80, Number(e.target.value)) } } }); }} />
-              <span style={{ fontSize: 12, color: '#888' }}>px</span>
-              {responsive.mobile?.freeHeight !== undefined && (
-                <button className={'pb-resp-clear-btn'} title="Reset" onClick={() => {
-                  onPushSnapshot(snapshot);
-                  const { freeHeight: _fh, ...rest } = responsive.mobile ?? {};
-                  onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
-                }}>↺</button>
-              )}
-            </div>
-          </>
-        )}
-        <div className={'pb-prop-row'} style={effMode === 'free' ? { opacity: 0.35, pointerEvents: 'none' } : undefined}>
+        <div className={'pb-prop-row'}>
           <label>Justify</label>
           <select value={effJustify} onChange={e => setCurrentJustify(e.target.value as JustifyVal)}>
             <option value="flex-start">Start</option>
@@ -421,9 +362,8 @@ export function GridCellPanel({
         })()}
       </CollapsibleSection>
 
-      {/* ── Height — only shown in flex mode; free mode uses Canvas H inside Layout ── */}
-      {effMode !== 'free' && (
-        <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
+      {/* ── Height ── */}
+      <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
           <div className={'pb-prop-row'}>
             <label>Min H</label>
             <input type="number" value={style.minHeight ?? ''} min={0}
@@ -432,8 +372,7 @@ export function GridCellPanel({
               onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) || undefined } })} />
             <span style={{ fontSize: 11, color: '#888' }}>px</span>
           </div>
-        </CollapsibleSection>
-      )}
+      </CollapsibleSection>
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>

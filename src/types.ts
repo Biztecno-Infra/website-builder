@@ -8,7 +8,7 @@ export type AnimationTrigger = 'load' | 'scroll';
 export type Breakpoint = 'desktop' | 'large-desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
 export type SectionLayoutMode = 'free' | 'grid';
-export type CellLayoutMode = 'column' | 'row' | 'wrap' | 'free';
+export type CellLayoutMode = 'column' | 'row' | 'wrap';
 export type FlexWidthMode = 'fill' | 'auto' | 'fixed' | 'percent';
 
 // ── Style primitives ───────────────────────────────────────────────────
@@ -281,7 +281,7 @@ export interface SectionLayout {
   height: number;
 }
 
-export type ContentWidthMode = 'constrained' | 'full' | 'fluid';
+export type ContentWidthMode = 'constrained' | 'full';
 
 export interface GridConfig {
   gap: number;
@@ -364,7 +364,6 @@ export interface GridCellBpOverride {
   hidden?: boolean;
   layoutMode?: CellLayoutMode;
   minHeight?: number;
-  freeHeight?: number;
   alignItems?: GridCellStyle['alignItems'];
   justifyContent?: GridCellStyle['justifyContent'];
   padding?: Partial<Padding>;
@@ -384,7 +383,6 @@ export interface GridCell {
   style: GridCellStyle;
   children: string[];
   responsive: GridCellResponsive;
-  freeHeight?: number;
 }
 
 // ── Container — layout wrapper that lives inside a GridCell ───────────
@@ -431,7 +429,7 @@ export interface Page {
   seo: PageSEO;
   sections: string[];  // All sections in render order — role on each node determines header/footer identity
   layoutWidth?: 'fixed' | 'fluid';  // default 'fixed'
-  maxWidth?: number;                 // default 1200, used when layoutWidth is 'fixed'
+  maxWidth?: number;                 // default 1280, used when layoutWidth is 'fixed'
 }
 
 // ── Site & Theme ───────────────────────────────────────────────────────

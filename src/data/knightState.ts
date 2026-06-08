@@ -141,7 +141,7 @@ function section(
     style: { background: bg, columns: { count: 1, widths: [], styles: {} }, padding: p },
     layoutMode: 'grid',
     children: cells.map(c => c.id),
-    grid: { gap, rowGap, contentWidth: 'constrained', maxWidth: 1200 },
+    grid: { gap, rowGap, contentWidth: 'constrained', maxWidth: 1280 },
     scrollBehavior: sticky ? 'sticky' : 'normal',
   };
   for (const c of cells) c.parent = s.id;

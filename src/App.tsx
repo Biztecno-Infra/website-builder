@@ -83,12 +83,23 @@ export default function App() {
 
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
 
+  // Clear selectedContainerId if the node was removed (e.g. after undo)
+  useEffect(() => {
+    if (selectedContainerId && !nodes[selectedContainerId]) {
+      setSelectedContainerId(null);
+    }
+  }, [nodes, selectedContainerId]);
+
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
+  const [screenWidth, setScreenWidth] = useState(1280);
+  const [customScreenWidth, setCustomScreenWidth] = useState('');
+  const SCREEN_PRESETS = [375, 768, 1280, 1440, 1920];
+  const isCustomScreen = !SCREEN_PRESETS.includes(screenWidth);
   const previewScrollRef = useRef<number>(0);
   const capturePreviewScroll = useCallback(() => {
     previewScrollRef.current = document.querySelector('.pb-canvas-wrapper')?.scrollTop ?? 0;
@@ -426,7 +437,7 @@ export default function App() {
               previewWidth={previewWidth}
               breakpoint={previewBp}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}
-              maxWidth={activePage.maxWidth ?? 1200}
+              maxWidth={activePage.maxWidth ?? 1280}
               initialScrollTop={previewScrollRef.current}
             />
           </div>
@@ -512,7 +523,7 @@ export default function App() {
                 <button
                   className={['pb-bp-btn', breakpoint === 'desktop' && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => setBreakpoint('desktop')}
-                  title="Desktop (1200px)"
+                  title="Desktop (1280px)"
                 >D</button>
                 <button
                   className={['pb-bp-btn', breakpoint === 'tablet' && 'pb-active'].filter(Boolean).join(' ')}
@@ -525,6 +536,47 @@ export default function App() {
                   title="Mobile (375px)"
                 >M</button>
               </div>
+              {/* Screen width dropdown — pending free-section coordinate-space decision
+              <div className={'pb-toolbar-divider'} />
+              <div className={'pb-screen-width-control'}>
+                <select
+                  className={'pb-screen-select'}
+                  value={breakpoint !== 'desktop' ? String(breakpoint === 'tablet' ? 768 : 375) : (isCustomScreen ? 'custom' : String(screenWidth))}
+                  title="Canvas display width"
+                  onChange={e => {
+                    if (breakpoint !== 'desktop') return;
+                    if (e.target.value === 'custom') {
+                      setCustomScreenWidth(String(screenWidth));
+                    } else {
+                      setScreenWidth(Number(e.target.value));
+                      setCustomScreenWidth('');
+                    }
+                  }}
+                >
+                  <option value="375">375px</option>
+                  <option value="768">768px</option>
+                  <option value="1280">1280px</option>
+                  <option value="1440">1440px</option>
+                  <option value="1920">1920px</option>
+                  {(isCustomScreen || customScreenWidth) && <option value="custom">{screenWidth}px</option>}
+                  {!isCustomScreen && <option value="custom">Custom…</option>}
+                </select>
+                {(isCustomScreen || customScreenWidth) && breakpoint === 'desktop' && (
+                  <input
+                    className={'pb-screen-custom-input'}
+                    type="number"
+                    min={320} max={3840} step={10}
+                    value={customScreenWidth || screenWidth}
+                    onChange={e => {
+                      setCustomScreenWidth(e.target.value);
+                      const v = Number(e.target.value);
+                      if (v >= 320 && v <= 3840) setScreenWidth(v);
+                    }}
+                    onBlur={() => setCustomScreenWidth('')}
+                  />
+                )}
+              </div>
+              */}
               <div className={'pb-toolbar-divider'} />
               <div className={'pb-layout-switcher'}>
                 <button
@@ -633,8 +685,9 @@ export default function App() {
               selectedContainerId={selectedContainerId}
               onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); }}
               zoom={zoom}
+              canvasDisplayWidth={breakpoint === 'desktop' ? screenWidth : undefined}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}
-              maxWidth={activePage.maxWidth ?? 1200}
+              maxWidth={activePage.maxWidth ?? 1280}
             />
 
             <RightSidebar

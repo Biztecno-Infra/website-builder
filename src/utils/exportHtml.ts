@@ -425,7 +425,6 @@ function flexItemClassCss(fl: FlexItemLayout, cellMode: CellLayoutMode): string 
 
 // Flex-direction + flex-wrap for a cell layoutMode.
 function cellDirectionCss(mode: CellLayoutMode): string {
-  if (mode === 'free') return 'position:relative;overflow:hidden';
   return `flex-direction:${mode === 'column' ? 'column' : 'row'};flex-wrap:${mode === 'wrap' ? 'wrap' : 'nowrap'}`;
 }
 
@@ -602,23 +601,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;border-radius:inherit"></div>`
     : '';
 
-  // Free-canvas mode — children are absolutely positioned.
-  // height/overflow are omitted from inline style — they live in the .gc-{id} CSS class
-  // so that @media tablet/mobile overrides can change them without specificity issues.
-  if (cell.style.layoutMode === 'free') {
-    const freeCellStyle = [
-      'position:relative', 'overflow:hidden',
-      bgCss, borderCss, radiusCss, 'box-sizing:border-box',
-    ].filter(Boolean).join(';');
-    const freeElements = cell.children
-      .map(id => nodes[id] as CanvasElement | undefined)
-      .filter((el): el is CanvasElement => !!el)
-      .map(el => renderFreeElement(el))
-      .join('\n');
-    return `<div class="gc-${cell.id}" style="${freeCellStyle}">${cellOverlay}${freeElements}</div>`;
-  }
-
-  // Normal flex elements mode — align-items/justify-content live in the CSS class, not inline
+  // Flex elements mode — align-items/justify-content live in the CSS class, not inline
   const cellStyle = [
     'position:relative', bgCss,
     `gap:${gap}px`, `padding:${padStr}`,
@@ -754,15 +737,9 @@ function generateCellCSS(
   mobileRules: string[],
 ): void {
   const desktopMode = cell.style.layoutMode ?? 'column';
-  const isFreeCell = desktopMode === 'free';
   const rowSpanCss = (cell.rowSpan ?? 1) > 1 ? `;grid-row:span ${cell.rowSpan}` : '';
 
-  if (isFreeCell) {
-    const freeH = cell.freeHeight ?? 320;
-    baseRules.push(`.gc-${cell.id}{grid-column:span ${Math.min(cell.columnSpan, 12)}${rowSpanCss};position:relative;height:${freeH}px;overflow:hidden}`);
-  } else {
-    baseRules.push(`.gc-${cell.id}{grid-column:span ${Math.min(cell.columnSpan, 12)}${rowSpanCss};display:flex;${cellDirectionCss(desktopMode)};align-items:${cell.style.alignItems};justify-content:${cell.style.justifyContent}}`);
-  }
+  baseRules.push(`.gc-${cell.id}{grid-column:span ${Math.min(cell.columnSpan, 12)}${rowSpanCss};display:flex;${cellDirectionCss(desktopMode)};align-items:${cell.style.alignItems};justify-content:${cell.style.justifyContent}}`);
 
   // Tablet cell overrides
   const tCell = cell.responsive.tablet;
@@ -771,78 +748,33 @@ function generateCellCSS(
   } else {
     const tParts: string[] = [];
     if (tCell?.columnSpan !== undefined) tParts.push(`grid-column:span ${Math.min(tCell.columnSpan, 12)}`);
-    if (tCell?.layoutMode !== undefined) {
-      if (tCell.layoutMode === 'free') {
-        const freeH = tCell.freeHeight ?? cell.freeHeight ?? 320;
-        tParts.push(`position:relative;height:${freeH}px;overflow:hidden;display:block`);
-      } else {
-        tParts.push(`display:flex;${cellDirectionCss(tCell.layoutMode)}`);
-      }
-    }
-    if (tCell?.minHeight !== undefined && tCell.layoutMode !== 'free') tParts.push(`min-height:${tCell.minHeight}px`);
-    if (isFreeCell && tCell?.layoutMode === undefined && tCell?.freeHeight !== undefined) tParts.push(`height:${tCell.freeHeight}px`);
+    if (tCell?.layoutMode !== undefined) tParts.push(`display:flex;${cellDirectionCss(tCell.layoutMode)}`);
+    if (tCell?.minHeight !== undefined) tParts.push(`min-height:${tCell.minHeight}px`);
     if (tCell?.alignItems !== undefined) tParts.push(`align-items:${tCell.alignItems}`);
     if (tCell?.justifyContent !== undefined) tParts.push(`justify-content:${tCell.justifyContent}`);
     if (tCell?.padding !== undefined) {
-      const dp = cell.style.padding;
-      const p = { ...dp, ...tCell.padding };
+      const p = { ...cell.style.padding, ...tCell.padding };
       tParts.push(`padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`);
     }
     if (tParts.length) tabletRules.push(`.gc-${cell.id}{${tParts.join(';')}}`);
-
-    // When the desktop layout is free (children have inline position:absolute) and the
-    // tablet layout switches to flex, the inline positions must be reset with !important
-    // so that elements participate in flex flow instead of being absolutely placed.
-    if (isFreeCell && tCell?.layoutMode !== undefined && tCell.layoutMode !== 'free' && !tCell.hidden) {
-      for (const elId of cell.children) {
-        const ch = nodes[elId];
-        if (!ch || ch.type === 'container' || ch.type === 'grid-cell') continue;
-        if ((ch as CanvasElement).state.hidden) continue;
-        tabletRules.push(`.ge-${elId}{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important}`);
-      }
-    }
   }
 
   // Mobile cell overrides
   const mCell = cell.responsive.mobile;
-  const effectiveTabletMode = tCell?.layoutMode ?? desktopMode;
-  const isFreeAtMobile = effectiveTabletMode === 'free';
   if (mCell?.hidden) {
     mobileRules.push(`.gc-${cell.id}{display:none}`);
   } else {
     const mParts: string[] = [];
     if (mCell?.columnSpan !== undefined) mParts.push(`grid-column:span ${Math.min(mCell.columnSpan, 12)}`);
-    if (mCell?.layoutMode !== undefined) {
-      if (mCell.layoutMode === 'free') {
-        const freeH = mCell.freeHeight ?? tCell?.freeHeight ?? cell.freeHeight ?? 320;
-        mParts.push(`position:relative;height:${freeH}px;overflow:hidden;display:block`);
-      } else {
-        mParts.push(`display:flex;${cellDirectionCss(mCell.layoutMode)}`);
-      }
-    }
-    if (mCell?.minHeight !== undefined && mCell.layoutMode !== 'free') mParts.push(`min-height:${mCell.minHeight}px`);
-    if (isFreeAtMobile && mCell?.layoutMode === undefined && mCell?.freeHeight !== undefined) mParts.push(`height:${mCell.freeHeight}px`);
+    if (mCell?.layoutMode !== undefined) mParts.push(`display:flex;${cellDirectionCss(mCell.layoutMode)}`);
+    if (mCell?.minHeight !== undefined) mParts.push(`min-height:${mCell.minHeight}px`);
     if (mCell?.padding !== undefined) {
-      const dp = cell.style.padding;
-      const tp = tCell?.padding;
-      const p = { ...dp, ...tp, ...mCell.padding };
+      const p = { ...cell.style.padding, ...tCell?.padding, ...mCell.padding };
       mParts.push(`padding:${p.top}px ${p.right}px ${p.bottom}px ${p.left}px`);
     }
     if (mCell?.alignItems !== undefined) mParts.push(`align-items:${mCell.alignItems}`);
     if (mCell?.justifyContent !== undefined) mParts.push(`justify-content:${mCell.justifyContent}`);
     if (mParts.length) mobileRules.push(`.gc-${cell.id}{${mParts.join(';')}}`);
-
-    // Same position reset for mobile when switching from free to flex
-    const effectiveMobileMode = mCell?.layoutMode ?? effectiveTabletMode;
-    if (isFreeAtMobile && mCell?.layoutMode !== undefined && mCell.layoutMode !== 'free' && !mCell.hidden) {
-      for (const elId of cell.children) {
-        const ch = nodes[elId];
-        if (!ch || ch.type === 'container' || ch.type === 'grid-cell') continue;
-        if ((ch as CanvasElement).state.hidden) continue;
-        mobileRules.push(`.ge-${elId}{position:relative!important;left:auto!important;top:auto!important;width:auto!important;height:auto!important}`);
-      }
-    }
-    void effectiveMobileMode; // suppress unused-var hint if no other use below
   }
 
   // Per-element sizing + responsive hidden classes
@@ -923,13 +855,23 @@ function generateCellCSS(
       const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
       const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
       baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
-      if (!tCell?.hidden) tabletRules.push(`.ge-${el.id}{position:static;width:100%}`);
-      if (!mCell?.hidden && !tCell?.hidden) mobileRules.push(`.ge-${el.id}{position:static;width:100%}`);
+      // Tablet/mobile: stay absolutely positioned but default to top-left if no explicit override
+      const tO = el.responsive.tablet?.layout;
+      const mO = el.responsive.mobile?.layout;
+      if (!tCell?.hidden) {
+        const tx = tO?.x ?? 0; const ty = tO?.y ?? 0;
+        const tw = tO?.width ?? el.layout.width; const th = tO?.height ?? el.layout.height;
+        tabletRules.push(`.ge-${el.id}{position:absolute;left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
+      }
+      if (!mCell?.hidden && !tCell?.hidden) {
+        const mx = mO?.x ?? tO?.x ?? 0; const my = mO?.y ?? tO?.y ?? 0;
+        const mw = mO?.width ?? tO?.width ?? el.layout.width; const mh = mO?.height ?? tO?.height ?? el.layout.height;
+        mobileRules.push(`.ge-${el.id}{position:absolute;left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
+      }
       continue;
     }
 
-    // Free-mode elements have inlined absolute positioning — no class-based flex sizing needed
-    if (!isFreeCell) baseRules.push(`.ge-${el.id}{${flexItemClassCss(el.flexLayout, desktopMode)}}`);
+    baseRules.push(`.ge-${el.id}{${flexItemClassCss(el.flexLayout, desktopMode)}}`);
     const typo = el.style.typography;
     const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
     const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
@@ -1249,7 +1191,7 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   HAS_FORM = false;
 
   const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
-  const pageMaxWidth = page.maxWidth ?? 1200;
+  const pageMaxWidth = page.maxWidth ?? 1280;
 
   const googleFonts = collectGoogleFonts(state, sections);
   const fontLinks = googleFonts

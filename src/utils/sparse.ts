@@ -110,7 +110,6 @@ export function sparsifyNode(node: AnyNode): Obj {
     if (st !== undefined) out.style = st;
     if (cell.responsive && Object.keys(cell.responsive).length > 0)
       out.responsive = cell.responsive;
-    if (cell.freeHeight !== undefined) out.freeHeight = cell.freeHeight;
     return out;
   }
 
@@ -160,12 +159,17 @@ export function hydrateNode(raw: Obj): AnyNode {
   }
 
   if (raw.type === 'grid-cell') {
-    return {
+    const hydrated = {
       ...(hydrateVal(raw, GRID_CELL_DEFAULTS) as Obj),
       id: raw.id, type: raw.type, parent: raw.parent,
       children: (raw.children as string[]) ?? [],
       responsive: raw.responsive ?? {},
-    } as AnyNode;
+    } as import('../types').GridCell;
+    // Migrate old free-canvas cell mode to column (free mode removed from grid system)
+    if ((hydrated.style.layoutMode as string) === 'free') {
+      (hydrated.style as { layoutMode: string }).layoutMode = 'column';
+    }
+    return hydrated as AnyNode;
   }
 
   if (raw.type === 'container' || raw.type === 'columns') {

@@ -90,79 +90,35 @@ export function GridCellView({
   // ── Insertion-line state ─────────────────────────────────────────────────
   const [insertAfterIndex, setInsertAfterIndex] = useState<number | null>(null);
 
-  // ── Drag-guide state (free-canvas mode only) ─────────────────────────────
+  // Drag-guide state (overlay element moves)
   type LiveDragPos = { x: number; y: number; width: number; height: number; cellW: number };
   const [liveDragPos, setLiveDragPos] = useState<LiveDragPos | null>(null);
 
-  // Refs for coordinate calculation in free-mode drops
   const cellDomRef = useRef<HTMLDivElement>(null);
-  const cellModeRef = useRef<CellLayoutMode>(cell.style.layoutMode);
-  cellModeRef.current = getCellLayoutMode(cell, breakpoint ?? 'desktop');
 
   // ── Drop: new elements from sidebar palette ──────────────────────────────
   const [{ isOver: isPaletteOver }, paletteDropRef] = useDrop<{ type: ElementType }, void, { isOver: boolean }>({
     accept: DND_TYPE,
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
-      if (cellModeRef.current === 'free' && cellDomRef.current) {
-        const clientOffset = monitor.getClientOffset();
-        if (clientOffset) {
-          const rect = cellDomRef.current.getBoundingClientRect();
-          const x = Math.max(0, Math.round(clientOffset.x - rect.left));
-          const y = Math.max(0, Math.round(clientOffset.y - rect.top));
-          onAddElement(item.type, x, y);
-          return;
-        }
-      }
       onAddElement(item.type);
     },
     collect: m => ({ isOver: m.isOver() }),
   });
 
-  // ── Drop: existing grid elements (reorder / cross-cell move / free-drop) ─
+  // ── Drop: existing grid elements (reorder / cross-cell move) ─────────────
   const [{ isGridElOver }, gridElDropRef] = useDrop<GridElDragItem, void, { isGridElOver: boolean }>({
     accept: GRID_EL_DND_TYPE,
     hover(item, monitor) {
       if (!monitor.isOver({ shallow: true })) return;
-      if (cellModeRef.current === 'free') {
-        if (item.kind !== 'element') return;
-        const clientOffset = monitor.getClientOffset();
-        const initClient   = monitor.getInitialClientOffset();
-        const initSource   = monitor.getInitialSourceClientOffset();
-        if (clientOffset && cellDomRef.current) {
-          const rect  = cellDomRef.current.getBoundingClientRect();
-          const grabX = (initClient?.x ?? 0) - (initSource?.x ?? 0);
-          const grabY = (initClient?.y ?? 0) - (initSource?.y ?? 0);
-          const x = Math.max(0, clientOffset.x - rect.left - grabX);
-          const y = Math.max(0, clientOffset.y - rect.top  - grabY);
-          const el = nodes[item.elementId] as El | undefined;
-          if (el) setLiveDragPos({ x: Math.round(x), y: Math.round(y), width: el.layout.width, height: el.layout.height, cellW: rect.width });
-        }
-        return;
-      }
       setInsertAfterIndex(flexChildrenWithIndex.length - 1);
     },
     drop(item, monitor) {
       if (monitor.didDrop()) return;
-      setLiveDragPos(null);
       if (item.kind === 'element') {
         const { elementId, sourceCellId, sourceCellMode } = item;
-        if (cellModeRef.current === 'free') {
-          const clientOffset = monitor.getClientOffset();
-          const initClient   = monitor.getInitialClientOffset();
-          const initSource   = monitor.getInitialSourceClientOffset();
-          if (clientOffset && cellDomRef.current) {
-            const rect  = cellDomRef.current.getBoundingClientRect();
-            const grabX = (initClient?.x ?? 0) - (initSource?.x ?? 0);
-            const grabY = (initClient?.y ?? 0) - (initSource?.y ?? 0);
-            const x = clientOffset.x - rect.left - grabX;
-            const y = clientOffset.y - rect.top  - grabY;
-            setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, 0, { x: Math.max(0, Math.round(x)), y: Math.max(0, Math.round(y)) }, sourceCellMode), 0);
-          }
-        } else {
-          const insertAt = flexChildrenWithIndex.length;
-          setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
-        }
+        const insertAt = flexChildrenWithIndex.length;
+        setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
       }
       setInsertAfterIndex(null);
     },
@@ -285,11 +241,6 @@ export function GridCellView({
   const cellIsEmpty = flexChildren.length === 0 && allElements.length === 0;
   const appliedMinH = effectiveMinH ?? (cellIsEmpty ? 40 : undefined);
 
-  const effectiveFreeH =
-    bp === 'mobile' ? (cell.responsive.mobile?.freeHeight ?? cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
-    : bp === 'tablet' ? (cell.responsive.tablet?.freeHeight ?? cell.freeHeight ?? 320)
-    : (cell.freeHeight ?? 320);
-
   let bgColor: string | undefined;
   let bgImage: string | undefined;
   const bg = cell.style.background;
@@ -345,69 +296,7 @@ export function GridCellView({
     (selectedContainerId && cell.children.includes(selectedContainerId))
   );
 
-  // ── Free-canvas branch ────────────────────────────────────────────────────
-  if (cellMode === 'free') {
-    return (
-      <div
-        ref={combinedDropRef}
-        data-grid-cell-id={cell.id}
-        className={[
-          'pb-grid-cell',
-          isSelected && !previewMode && 'pb-grid-cell--selected',
-          hasSelectedChild && 'pb-child-selected',
-          (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
-          (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
-        ].filter(Boolean).join(' ')}
-        style={{
-          ...sharedCellStyle,
-          height: effectiveFreeH,
-          minHeight: effectiveFreeH,
-          overflow: 'hidden',
-          padding: 0,
-        }}
-        onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
-      >
-        {allElements.map(el => (
-          <GridElementView
-            key={el.id}
-            element={el}
-            cellId={cell.id}
-            childIdx={0}
-            cellMode="free"
-            isSelected={selectedElementId === el.id}
-            onSelect={() => onSelectElement(el.id)}
-            onUpdate={updates => onUpdateElement(el.id, updates)}
-            onCommit={onCommit}
-            snapshot={snapshot}
-            previewMode={previewMode}
-            breakpoint={breakpoint}
-            onUpdateResponsive={onUpdateResponsive}
-            onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
-            onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
-            onDragHover={() => {}}
-            onDropAtChildIdx={() => {}}
-          />
-        ))}
-
-        {allElements.length === 0 && !previewMode && (
-          <div className={'pb-grid-cell-empty'}>
-            <span className={'pb-grid-cell-empty-icon'}>+</span>
-            <span className={'pb-grid-cell-empty-text'}>{isPaletteOver ? 'Drop here' : 'Drop element'}</span>
-          </div>
-        )}
-
-        {liveDragPos && !previewMode && (
-          <DragGuides
-            x={liveDragPos.x} y={liveDragPos.y}
-            width={liveDragPos.width} height={liveDragPos.height}
-            sectionWidth={liveDragPos.cellW} sectionHeight={effectiveFreeH}
-          />
-        )}
-      </div>
-    );
-  }
-
-  // ── Normal elements branch ─────────────────────────────────────────────────
+  // ── Elements branch ───────────────────────────────────────────────────────
   const isRow = cellMode === 'row';
 
   const insertionLine = (afterIdx: number) =>
@@ -522,16 +411,23 @@ export function GridCellView({
       {overlayEls.length > 0 && (
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 50 }}>
           {overlayEls.map(rawOverlay => {
-            // Apply breakpoint so tablet/mobile position overrides are respected
             const el = applyBreakpoint(rawOverlay, bp);
+            // If no explicit x/y override exists for this breakpoint, default to top-left
+            // so the overlay is always visible — not clipped off a narrower cell.
+            const tO = rawOverlay.responsive.tablet?.layout;
+            const mO = rawOverlay.responsive.mobile?.layout;
+            const hasExplicitX = bp === 'desktop' || (bp === 'tablet' ? tO?.x !== undefined : (mO?.x ?? tO?.x) !== undefined);
+            const hasExplicitY = bp === 'desktop' || (bp === 'tablet' ? tO?.y !== undefined : (mO?.y ?? tO?.y) !== undefined);
+            const overlayX = hasExplicitX ? el.layout.x : 0;
+            const overlayY = hasExplicitY ? el.layout.y : 0;
             return (
             <div
               key={rawOverlay.id}
               className={['pb-grid-overlay-el', selectedElementId === rawOverlay.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
               style={{
                 position: 'absolute',
-                left: el.layout.x,
-                top: el.layout.y,
+                left: overlayX,
+                top: overlayY,
                 width: el.layout.width,
                 height: el.layout.height,
                 zIndex: el.layout.zIndex ?? 1,

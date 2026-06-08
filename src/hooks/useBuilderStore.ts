@@ -1364,10 +1364,6 @@ export function useBuilderStore() {
     const el  = s.nodes[elementId]   as CanvasElement | undefined;
     if (!src || !tgt || !el) return;
 
-    // Use caller-supplied effective mode (respects responsive overrides) when available
-    const srcFree = sourceCellMode !== undefined ? sourceCellMode === 'free' : src.style.layoutMode === 'free';
-    const tgtFree = tgt.style.layoutMode === 'free';
-
     push(s);
     setState(prev => {
       const nodes = { ...prev.nodes };
@@ -1375,46 +1371,22 @@ export function useBuilderStore() {
       const tgtCell = nodes[targetCellId] as GridCell;
       const cel = nodes[elementId] as CanvasElement;
 
-      // Adapt element layout based on source → target container mode change
-      let updatedEl: CanvasElement = cel;
       if (sourceCellId !== targetCellId) {
-        if (tgtFree && dropPos) {
-          // Any → free: place at drop coordinates, keep existing width/height
-          updatedEl = { ...cel, parent: targetCellId,
-            layout: { ...cel.layout, x: Math.max(0, Math.round(dropPos.x)), y: Math.max(0, Math.round(dropPos.y)) },
-          };
-        } else if (srcFree && !tgtFree) {
-          // Free → flex: reset to auto flex sizing, keep content dimensions
-          updatedEl = { ...cel, parent: targetCellId,
-            flexLayout: { widthMode: 'auto', widthValue: 0, flexGrow: 0, alignSelf: 'auto' },
-          };
-        } else {
-          updatedEl = { ...cel, parent: targetCellId };
-        }
-        nodes[elementId] = updatedEl;
-      } else if (tgtFree && dropPos) {
-        // Within-cell move in free mode: update x/y
-        nodes[elementId] = { ...cel, layout: { ...cel.layout,
-          x: Math.max(0, Math.round(dropPos.x)), y: Math.max(0, Math.round(dropPos.y)) } };
+        nodes[elementId] = { ...cel, parent: targetCellId };
       }
 
       if (sourceCellId === targetCellId) {
-        if (!tgtFree) {
-          // Flex reorder
-          const children = [...srcCell.children];
-          const fromIdx  = children.indexOf(elementId);
-          if (fromIdx === -1) return prev;
-          children.splice(fromIdx, 1);
-          const idx = Math.max(0, Math.min(children.length, insertIndex > fromIdx ? insertIndex - 1 : insertIndex));
-          children.splice(idx, 0, elementId);
-          nodes[sourceCellId] = { ...srcCell, children };
-        }
-        // Free same-cell: only layout.x/y updated above, children order unchanged
+        const children = [...srcCell.children];
+        const fromIdx  = children.indexOf(elementId);
+        if (fromIdx === -1) return prev;
+        children.splice(fromIdx, 1);
+        const idx = Math.max(0, Math.min(children.length, insertIndex > fromIdx ? insertIndex - 1 : insertIndex));
+        children.splice(idx, 0, elementId);
+        nodes[sourceCellId] = { ...srcCell, children };
       } else {
         nodes[sourceCellId] = { ...srcCell, children: srcCell.children.filter(id => id !== elementId) };
         const tgtChildren = [...tgtCell.children];
-        if (!tgtFree) tgtChildren.splice(Math.max(0, Math.min(tgtChildren.length, insertIndex)), 0, elementId);
-        else tgtChildren.push(elementId);
+        tgtChildren.splice(Math.max(0, Math.min(tgtChildren.length, insertIndex)), 0, elementId);
         nodes[targetCellId] = { ...tgtCell, children: tgtChildren };
       }
       return { ...prev, nodes };

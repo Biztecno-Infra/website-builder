@@ -68,7 +68,7 @@ interface Props {
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
-  pageLayoutWidth?: 'fixed' | 'fluid';
+  pageLayoutWidth?: 'fixed' | 'fluid'; // page-level layout; drives section default (fixed→constrained, fluid→full)
 }
 
 export function GridSectionView({
@@ -328,6 +328,7 @@ export function GridSectionView({
                   onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
                   onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}
                   onPasteIntoCell={hasCellClipboard && onPasteIntoGridCell ? () => onPasteIntoGridCell(cell.id) : undefined}
+                  onDeleteCell={cells.length > 1 ? () => onDeleteGridCell(cell.id) : undefined}
                   onResizeDragStart={nextCell ? (e, span, el) => {
                     e.preventDefault();
                     e.stopPropagation();

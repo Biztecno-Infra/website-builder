@@ -121,6 +121,12 @@ function FreeSectionView({
 
   const bg = section.style.background;
   const cols = section.style.columns;
+  const basePad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const bpPadOverride =
+    breakpoint === 'mobile' ? section.responsive?.mobile?.padding
+    : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
+    : undefined;
+  const effPad = { ...basePad, ...bpPadOverride };
   const sectionHeight =
     breakpoint === 'mobile' ? (section.responsive?.mobile?.height ?? section.responsive?.tablet?.height ?? section.layout.height) :
     breakpoint === 'tablet' ? (section.responsive?.tablet?.height ?? section.layout.height) :
@@ -224,6 +230,10 @@ function FreeSectionView({
     boxSizing: 'border-box',
     outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : (isOver || isDragOverTarget) ? '2px dashed #0b978e' : undefined,
     outlineOffset: -2,
+    paddingTop: effPad.top || undefined,
+    paddingRight: effPad.right || undefined,
+    paddingBottom: effPad.bottom || undefined,
+    paddingLeft: effPad.left || undefined,
   };
 
   const overlayStyle: React.CSSProperties | undefined = bg.overlay > 0 ? {
@@ -408,8 +418,8 @@ function FreeSectionView({
             </div>
           )}
 
-          {/* Column guides */}
-          {cols.count > 1 && cols.widths.length > 0 && (
+          {/* Column guides — editor only */}
+          {!previewMode && cols.count > 1 && cols.widths.length > 0 && (
             <div className={'pb-column-guides'}>
               {cols.widths.slice(0, -1).map((_, i) => {
                 const left = cols.widths.slice(0, i + 1).reduce((a, b) => a + b, 0);
@@ -425,7 +435,7 @@ function FreeSectionView({
             </div>
           )}
 
-          {guides.map((g, i) =>
+          {!previewMode && guides.map((g, i) =>
             g.type === 'v'
               ? <div key={i} className={'pb-guide-v'} style={{ left: g.pos }} />
               : <div key={i} className={'pb-guide-h'} style={{ top: g.pos }} />

@@ -13,15 +13,17 @@ interface ActionOption {
 const BASE_ACTIONS: ActionOption[] = [
   { type: 'none',              label: 'None' },
   { type: 'external-url',      label: 'Open External URL' },
+  { type: 'download-file',     label: 'Download File' },
   { type: 'internal-page',     label: 'Open Internal Page' },
   { type: 'send-email',        label: 'Send Email' },
   { type: 'make-call',         label: 'Make a Call' },
   { type: 'send-sms',          label: 'Send SMS' },
+  { type: 'open-popup',        label: 'Open Popup' },
   { type: 'scroll-to-section', label: 'Scroll to Section' },
   { type: 'scroll-to-top',     label: 'Scroll to Top' },
 ];
 
-const INERT_ACTIONS = new Set<ActionType>(['internal-page']);
+const INERT_ACTIONS = new Set<ActionType>(['internal-page', 'open-popup']);
 
 interface Props {
   action: ElementAction;
@@ -120,6 +122,15 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
             </>
           )}
         </>
+      )}
+
+      {type === 'download-file' && (
+        <div className={'pb-prop-row pb-full'}>
+          <label>File URL</label>
+          <input type="text" value={action.url ?? ''} placeholder="https://…"
+            onFocus={onFocus} onBlur={onBlur}
+            onChange={e => onChange({ url: e.target.value })} />
+        </div>
       )}
 
       {type === 'external-url' && (
