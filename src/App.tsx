@@ -144,8 +144,8 @@ export default function App() {
     ? (nodes[selectedCarouselId] as import('./types').Carousel | undefined ?? null)
     : null;
 
-  const handleAddCarousel = useCallback((sectionId?: string, afterId?: string) => {
-    const id = addCarousel(sectionId, afterId);
+  const handleAddCarousel = useCallback((sectionId?: string, dropX?: number, dropY?: number) => {
+    const id = addCarousel(sectionId, dropX, dropY);
     if (id) {
       setSelectedCarouselId(id);
       setSelectedId(null);
@@ -716,6 +716,7 @@ export default function App() {
               onSetActiveSlide={setActiveSlide}
               onAddSlide={addSlide}
               onAddCarousel={handleAddCarousel}
+              onUpdateCarousel={updateCarousel}
               zoom={zoom}
               canvasDisplayWidth={breakpoint === 'desktop' ? screenWidth : undefined}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}

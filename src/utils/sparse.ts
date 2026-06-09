@@ -2,9 +2,15 @@ import type { AnyNode, CanvasElement, Carousel, Container, ElementAction, GridCe
 import {
   DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
-  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT,
+  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH,
   interactionToAction,
 } from './builderDefaults';
+
+// Default carousel box layout — used for both sparsify (omit unchanged fields)
+// and hydrate (fill in missing fields for legacy band-style carousels that had
+// no x/y/width). Legacy carousels were full-width bands at the top, so a left
+// origin + standard box is a reasonable, non-overlapping fallback.
+const DEFAULT_CAROUSEL_LAYOUT = { x: 0, y: 0, width: DEFAULT_CAROUSEL_WIDTH, height: DEFAULT_CAROUSEL_HEIGHT };
 
 // ── Primitive helpers ──────────────────────────────────────────────────────
 
@@ -128,7 +134,7 @@ export function sparsifyNode(node: AnyNode): Obj {
     };
     const sp = sparsifyVal(c.props, DEFAULT_CAROUSEL_PROPS);
     if (sp !== undefined) out.props = sp;
-    const sl = sparsifyVal(c.layout, { height: DEFAULT_CAROUSEL_HEIGHT });
+    const sl = sparsifyVal(c.layout, DEFAULT_CAROUSEL_LAYOUT);
     if (sl !== undefined) out.layout = sl;
     if (c.responsive && (c.responsive.tablet || c.responsive.mobile)) out.responsive = c.responsive;
     // activeSlide is editor-only — never persisted (export/reload starts at 0)
@@ -192,7 +198,7 @@ export function hydrateNode(raw: Obj): AnyNode {
       id: raw.id as string, type: 'carousel', parent: raw.parent as string,
       children: (raw.children as string[]) ?? [],
       props: { ...DEFAULT_CAROUSEL_PROPS, ...(raw.props as object ?? {}) },
-      layout: { height: DEFAULT_CAROUSEL_HEIGHT, ...(raw.layout as object ?? {}) },
+      layout: { ...DEFAULT_CAROUSEL_LAYOUT, ...(raw.layout as object ?? {}) },
       activeSlide: 0,
     };
     if (raw.responsive) c.responsive = raw.responsive as Carousel['responsive'];

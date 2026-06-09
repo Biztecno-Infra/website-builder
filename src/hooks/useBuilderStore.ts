@@ -12,7 +12,7 @@ import { hydrateNodes, sparsifyNodes } from '../utils/sparse';
 import {
   DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
   DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
-  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_SLIDE_COUNT,
+  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH, DEFAULT_CAROUSEL_SLIDE_COUNT,
   defaultFormFields,
 } from '../utils/builderDefaults';
 
@@ -42,6 +42,21 @@ function isContainer(node: AnyNode): node is Container {
 
 function isCarousel(node: AnyNode): node is Carousel {
   return node.type === 'carousel';
+}
+
+// True if the node lives inside a Carousel (its parent chain reaches a carousel
+// before reaching a Section). Used to keep carousel slide content from being
+// dragged out of the carousel and detached.
+function isInsideCarousel(nodes: NodeMap, node: AnyNode | undefined): boolean {
+  let cur = node;
+  while (cur && 'parent' in cur) {
+    const parent = nodes[(cur as { parent: string }).parent];
+    if (!parent) return false;
+    if (isCarousel(parent)) return true;
+    if (isSection(parent)) return false;
+    cur = parent;
+  }
+  return false;
 }
 
 function isSection(node: AnyNode): node is Section {
@@ -132,12 +147,14 @@ function makeSlidePlaceholderImage(slideId: string, n: number, theme?: SiteTheme
   };
 }
 
-function makeCarousel(id: string, sectionId: string, props?: Partial<CarouselProps>): Carousel {
+function makeCarousel(id: string, sectionId: string, dropX?: number, dropY?: number, props?: Partial<CarouselProps>): Carousel {
+  const x = dropX ?? Math.round(CANVAS_W / 2 - DEFAULT_CAROUSEL_WIDTH / 2);
+  const y = dropY ?? 120;
   return {
     id, type: 'carousel', parent: sectionId,
     children: [],
     props: { ...DEFAULT_CAROUSEL_PROPS, ...props },
-    layout: { height: DEFAULT_CAROUSEL_HEIGHT },
+    layout: { x, y, width: DEFAULT_CAROUSEL_WIDTH, height: DEFAULT_CAROUSEL_HEIGHT, zIndex: 0 },
     responsive: {},
     activeSlide: 0,
   };
@@ -1085,6 +1102,9 @@ export function useBuilderStore() {
     if (!el || isSection(el) || isGridCell(el)) return;
     const cel = el as CanvasElement;
     if (cel.parent === toSectionId) return;
+    // Carousel slide content must move with the carousel as one unit — never let
+    // an element be dragged out of a carousel slide into the section.
+    if (isInsideCarousel(s.nodes, cel)) return;
     // Only allow moving into free sections — grid sections require a cell target
     const toNode = s.nodes[toSectionId];
     if (!toNode || !isFreeSection(toNode)) return;
@@ -1473,7 +1493,7 @@ export function useBuilderStore() {
   };
 
   // Insert a carousel (with N placeholder slides) into a section.
-  const addCarousel = useCallback((sectionId?: string, afterId?: string) => {
+  const addCarousel = useCallback((sectionId?: string, dropX?: number, dropY?: number) => {
     const s = stateRef.current;
     const page = getActivePage(s);
     const targetSectionId = sectionId ?? selectedSectionId ?? page.sections[0];
@@ -1494,7 +1514,7 @@ export function useBuilderStore() {
       newNodes[img.id] = img;
       slideIds.push(slideId);
     }
-    const carousel = makeCarousel(carouselId, targetSectionId);
+    const carousel = makeCarousel(carouselId, targetSectionId, dropX, dropY);
     carousel.children = slideIds;
     newNodes[carouselId] = carousel;
 
@@ -1502,13 +1522,7 @@ export function useBuilderStore() {
     setState(prev => {
       const section = prev.nodes[targetSectionId];
       if (!section || !isFreeSection(section)) return prev;
-      let children: string[];
-      if (afterId && section.children.includes(afterId)) {
-        children = [...section.children];
-        children.splice(children.indexOf(afterId) + 1, 0, carouselId);
-      } else {
-        children = [...section.children, carouselId];
-      }
+      const children = [...section.children, carouselId];
       return { ...prev, nodes: { ...prev.nodes, ...newNodes, [targetSectionId]: { ...section, children } } };
     });
     setSelectedSectionId(targetSectionId);

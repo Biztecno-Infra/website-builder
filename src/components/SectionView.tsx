@@ -75,7 +75,8 @@ interface Props {
   onSelectCarousel?: (id: string) => void;
   onSetActiveSlide?: (carouselId: string, index: number) => void;
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
-  onAddCarousel?: (sectionId: string, afterId?: string) => void;
+  onAddCarousel?: (sectionId: string, dropX?: number, dropY?: number) => void;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -125,7 +126,7 @@ function FreeSectionView({
   onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
   selectedContainerId, onSelectContainer,
   // carousel
-  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel,
+  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel,
   dragOverGridCellId,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -158,16 +159,24 @@ function FreeSectionView({
     accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE],
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
-      if (item?.kind === 'carousel') {
-        onAddCarousel?.(section.id);
-        return;
-      }
       const offset = monitor.getClientOffset();
       if (!offset || !surfaceRef.current) return;
       const rect = surfaceRef.current.getBoundingClientRect();
       const z = canvasDragShared.zoom;
 
+      if (item?.kind === 'carousel') {
+        onAddCarousel?.(section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
+        return;
+      }
+
       if ('elementId' in item) {
+        // Keep carousel slide content inside its carousel — don't let it be
+        // dropped out into the section as a detached free element.
+        const sourceCellId = (item as { sourceCellId?: string }).sourceCellId;
+        const sourceCell = sourceCellId ? nodes[sourceCellId] : undefined;
+        if (sourceCell && sourceCell.type === 'grid-cell' && nodes[(sourceCell as GridCell).parent]?.type === 'carousel') {
+          return;
+        }
         onMoveElementToSection?.(item.elementId, section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
         return;
       }
@@ -530,47 +539,44 @@ function FreeSectionView({
             );
           })}
 
-          {/* Carousel band layer — full-width blocks stacked at the top of the surface */}
-          {sectionCarousels.length > 0 && (
-            <div className={'pb-carousel-band-layer'} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
-              {sectionCarousels.map(car => (
-                <CarouselView
-                  key={car.id}
-                  carousel={car}
-                  nodes={nodes}
-                  isSelected={selectedCarouselId === car.id}
-                  selectedId={selectedId}
-                  selectedGridCellId={selectedGridCellId}
-                  selectedContainerId={selectedContainerId}
-                  previewMode={previewMode}
-                  breakpoint={breakpoint}
-                  canvasWidth={canvasWidth}
-                  onSelectCarousel={() => onSelectCarousel?.(car.id)}
-                  onSelectGridCell={onSelectGridCell}
-                  onSelectElement={onSelectElement}
-                  onSelectContainer={onSelectContainer}
-                  onSetActiveSlide={onSetActiveSlide ?? (() => {})}
-                  onAddSlide={onAddSlide ?? (() => {})}
-                  onUpdateElement={onUpdateElement}
-                  onUpdateGridCell={onUpdateGridCell}
-                  onDeleteGridCell={onDeleteGridCell}
-                  onAddElementToCell={onAddElementToCell}
-                  onMoveGridElement={onMoveGridElement}
-                  onReorderGridCell={onReorderGridCell}
-                  onRemoveColumnsBlock={onRemoveColumnsBlock}
-                  onAddContainer={onAddContainer}
-                  onUpdateContainer={onUpdateContainer}
-                  onAddSubCell={onAddSubCell}
-                  onCommit={onCommit}
-                  snapshot={snapshot}
-                  onUpdateResponsive={onUpdateResponsive}
-                  onDuplicateElement={onDuplicateElement}
-                  onDeleteElement={onDeleteElement}
-                  dragOverGridCellId={dragOverGridCellId}
-                />
-              ))}
-            </div>
-          )}
+          {/* Carousels — freely positioned boxes (like elements), each self-positions via its layout */}
+          {sectionCarousels.map(car => (
+            <CarouselView
+              key={car.id}
+              carousel={car}
+              nodes={nodes}
+              isSelected={selectedCarouselId === car.id}
+              selectedId={selectedId}
+              selectedGridCellId={selectedGridCellId}
+              selectedContainerId={selectedContainerId}
+              previewMode={previewMode}
+              breakpoint={breakpoint}
+              canvasWidth={canvasWidth}
+              onSelectCarousel={() => onSelectCarousel?.(car.id)}
+              onUpdateCarousel={onUpdateCarousel}
+              onSelectGridCell={onSelectGridCell}
+              onSelectElement={onSelectElement}
+              onSelectContainer={onSelectContainer}
+              onSetActiveSlide={onSetActiveSlide ?? (() => {})}
+              onAddSlide={onAddSlide ?? (() => {})}
+              onUpdateElement={onUpdateElement}
+              onUpdateGridCell={onUpdateGridCell}
+              onDeleteGridCell={onDeleteGridCell}
+              onAddElementToCell={onAddElementToCell}
+              onMoveGridElement={onMoveGridElement}
+              onReorderGridCell={onReorderGridCell}
+              onRemoveColumnsBlock={onRemoveColumnsBlock}
+              onAddContainer={onAddContainer}
+              onUpdateContainer={onUpdateContainer}
+              onAddSubCell={onAddSubCell}
+              onCommit={onCommit}
+              snapshot={snapshot}
+              onUpdateResponsive={onUpdateResponsive}
+              onDuplicateElement={onDuplicateElement}
+              onDeleteElement={onDeleteElement}
+              dragOverGridCellId={dragOverGridCellId}
+            />
+          ))}
 
           {section.children.length === 0 && !previewMode && (
             <div className={'pb-section-empty'}>

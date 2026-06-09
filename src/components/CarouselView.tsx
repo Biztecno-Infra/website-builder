@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { GridCellView } from './GridCellView';
+import { canvasDragShared } from './CanvasElement';
+import { CANVAS_W } from '../hooks/useBuilderStore';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  Carousel, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+  Carousel, CarouselLayout, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
 } from '../types';
+
+const RESIZE_DIRS = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
+type ResizeDir = (typeof RESIZE_DIRS)[number];
+const RESIZE_CURSOR: Record<ResizeDir, string> = {
+  nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+  se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize',
+};
+function resizeHandlePos(dir: ResizeDir): React.CSSProperties {
+  const top = dir.includes('n') ? 0 : dir.includes('s') ? '100%' : '50%';
+  const left = dir.includes('w') ? 0 : dir.includes('e') ? '100%' : '50%';
+  return { top, left };
+}
 
 interface Props {
   carousel: Carousel;
@@ -16,6 +30,7 @@ interface Props {
   breakpoint?: Breakpoint;
   canvasWidth: number;
   onSelectCarousel: () => void;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
   onSelectGridCell?: (id: string | null) => void;
   onSelectElement: (id: string, shift: boolean) => void;
   onSelectContainer?: (id: string) => void;
@@ -58,7 +73,7 @@ export function CarouselView({
   carousel, nodes, isSelected,
   selectedId, selectedGridCellId, selectedContainerId,
   previewMode, breakpoint = 'desktop', canvasWidth,
-  onSelectCarousel, onSelectGridCell, onSelectElement, onSelectContainer,
+  onSelectCarousel, onUpdateCarousel, onSelectGridCell, onSelectElement, onSelectContainer,
   onSetActiveSlide, onAddSlide,
   onUpdateElement, onUpdateGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock,
@@ -67,6 +82,7 @@ export function CarouselView({
   dragOverGridCellId,
 }: Props) {
   const [hovered, setHovered] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   const slides = carousel.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -74,11 +90,88 @@ export function CarouselView({
 
   const props = carousel.props;
   const height = carouselHeight(carousel, breakpoint);
+  const lay = carousel.layout;
+
+  // ── Drag the whole carousel box to reposition (desktop only) ──
+  const startDrag = (e: React.MouseEvent) => {
+    if (previewMode || breakpoint !== 'desktop' || !onUpdateCarousel) return;
+    if (e.button !== 0) return;
+    e.stopPropagation();
+    onSelectCarousel();
+    const startX = e.clientX, startY = e.clientY;
+    const { x: ox, y: oy } = lay;
+    const prev = snapshot;
+    let moved = false;
+    const onMove = (ev: MouseEvent) => {
+      const z = canvasDragShared.zoom;
+      const dx = (ev.clientX - startX) / z;
+      const dy = (ev.clientY - startY) / z;
+      if (!moved && Math.abs(ev.clientX - startX) < 3 && Math.abs(ev.clientY - startY) < 3) return;
+      moved = true;
+      onUpdateCarousel(carousel.id, { layout: { ...lay, x: Math.round(ox + dx), y: Math.round(oy + dy) } });
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      if (moved) onCommit(prev);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
+
+  const startResize = (dir: ResizeDir) => (e: React.MouseEvent) => {
+    if (previewMode || breakpoint !== 'desktop' || !onUpdateCarousel) return;
+    e.stopPropagation();
+    e.preventDefault();
+    const startX = e.clientX, startY = e.clientY;
+    const { x: ox, y: oy, width: ow, height: oh } = lay;
+    const prev = snapshot;
+    const onMove = (ev: MouseEvent) => {
+      const z = canvasDragShared.zoom;
+      const dx = (ev.clientX - startX) / z;
+      const dy = (ev.clientY - startY) / z;
+      let x = ox, y = oy, w = ow, h = oh;
+      const min = 80;
+      if (dir.includes('e')) w = Math.max(min, ow + dx);
+      if (dir.includes('s')) h = Math.max(min, oh + dy);
+      if (dir.includes('w')) { w = Math.max(min, ow - dx); x = ox + ow - w; }
+      if (dir.includes('n')) { h = Math.max(min, oh - dy); y = oy + oh - h; }
+      const next: CarouselLayout = { ...lay, x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) };
+      onUpdateCarousel(carousel.id, { layout: next });
+    };
+    const onUp = () => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      onCommit(prev);
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  };
 
   if (carouselHidden(carousel, breakpoint)) return null;
+
+  // Position the carousel box like a free CanvasElement. x/width scale with the
+  // active breakpoint's canvas width so the box stays inside the smaller canvas.
+  const scale = canvasWidth / CANVAS_W;
+  const wrapperStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: Math.round(lay.x * scale),
+    top: Math.round(lay.y * scale),
+    width: Math.round(lay.width * scale),
+    height: Math.round(height * scale),
+    zIndex: isSelected ? (lay.zIndex ?? 0) + 1000 : (lay.zIndex ?? 0),
+    boxSizing: 'border-box',
+  };
+
   if (slides.length === 0) {
     return previewMode ? null : (
-      <div className={'pb-carousel pb-carousel--empty'} style={{ minHeight: 120 }} onClick={e => { e.stopPropagation(); onSelectCarousel(); }}>
+      <div
+        ref={wrapperRef}
+        className={'pb-carousel pb-carousel--empty'}
+        style={{ ...wrapperStyle, minHeight: 120 }}
+        onMouseDown={startDrag}
+        onClick={e => { e.stopPropagation(); onSelectCarousel(); }}
+      >
         <button className={'pb-carousel-empty-add'} onClick={e => { e.stopPropagation(); onAddSlide(carousel.id); }}>+ Add slide</button>
       </div>
     );
@@ -111,22 +204,26 @@ export function CarouselView({
 
   const showChrome = !previewMode && (hovered || isSelected || hasActiveChild);
 
+  const canEdit = !previewMode && breakpoint === 'desktop' && !!onUpdateCarousel;
+
   return (
     <div
+      ref={wrapperRef}
       className={['pb-carousel', isSelected && !hasActiveChild && 'pb-carousel--selected', hasActiveChild && 'pb-carousel--child-selected'].filter(Boolean).join(' ')}
-      style={{ position: 'relative', width: '100%' }}
+      style={{ ...wrapperStyle, cursor: canEdit ? 'move' : undefined }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      onMouseDown={startDrag}
       onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCarousel(); }}
     >
       {showChrome && (
-        <div className={'pb-carousel-badge'} onClick={e => { e.stopPropagation(); onSelectCarousel(); }}>
+        <div className={'pb-carousel-badge'} onMouseDown={startDrag} onClick={e => { e.stopPropagation(); onSelectCarousel(); }}>
           Carousel · {active + 1}/{total}
         </div>
       )}
 
-      {/* Viewport — one slide visible */}
-      <div className={'pb-carousel-viewport'} style={{ position: 'relative', width: '100%', height, overflow: 'hidden' }}>
+      {/* Viewport — one slide visible; fills the positioned wrapper box */}
+      <div className={'pb-carousel-viewport'} style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
         <div className={'pb-carousel-slide'} style={{ width: '100%', height: '100%' }}>
           <GridCellView
             cell={activeSlide}
@@ -196,6 +293,7 @@ export function CarouselView({
               <button
                 key={s.id}
                 className={['pb-carousel-dot', i === active && 'pb-carousel-dot--active'].filter(Boolean).join(' ')}
+                style={{ background: props.dotColor ?? '#ffffff', opacity: i === active ? 1 : 0.55 }}
                 onClick={e => { e.stopPropagation(); onSetActiveSlide(carousel.id, i); }}
                 title={`Go to slide ${i + 1}`}
                 aria-label={`Go to slide ${i + 1}`}
@@ -215,6 +313,16 @@ export function CarouselView({
           <button className={'pb-carousel-editbar-btn'} title="Add slide after current" onClick={() => onAddSlide(carousel.id, activeSlide.id)}>+ Slide</button>
         </div>
       )}
+
+      {/* Resize handles — only when the carousel itself is selected (not a child) */}
+      {canEdit && isSelected && !hasActiveChild && RESIZE_DIRS.map(dir => (
+        <div
+          key={dir}
+          className={'pb-resize-handle'}
+          style={{ ...resizeHandlePos(dir), cursor: RESIZE_CURSOR[dir] }}
+          onMouseDown={startResize(dir)}
+        />
+      ))}
     </div>
   );
 }

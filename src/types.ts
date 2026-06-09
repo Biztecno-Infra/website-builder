@@ -433,6 +433,8 @@ export interface CarouselProps {
   slidesPerView?: number;
   /** pause autoplay while the pointer is over the carousel */
   pauseOnHover?: boolean;
+  /** color of the slide-indicator dots (active = full, inactive = faded). Defaults to white. */
+  dotColor?: string;
 }
 
 export interface CarouselResponsive {
@@ -441,8 +443,14 @@ export interface CarouselResponsive {
 }
 
 export interface CarouselLayout {
-  /** fixed content height in px; width always follows the parent container */
+  /** free position within the parent free-section, like a CanvasElement */
+  x: number;
+  y: number;
+  /** box width in px (was previously always full section width) */
+  width: number;
+  /** fixed content height in px */
   height: number;
+  zIndex?: number;
   minHeight?: number;
 }
 

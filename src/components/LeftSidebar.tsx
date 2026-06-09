@@ -14,10 +14,6 @@ export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
 export const CAROUSEL_DND_TYPE = 'CAROUSEL_ITEM';
 
-// Feature flag: temporarily hide the Carousel element from the left palette.
-// Flip to `true` to show it again.
-export const SHOW_CAROUSEL = false;
-
 export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 
 interface LayoutDragItem { columnSpans: number[] }
@@ -299,7 +295,7 @@ export function LeftSidebar({
             {PALETTE.map(item => (
               <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
             ))}
-            {SHOW_CAROUSEL && <CarouselPaletteItem onAdd={onAddCarousel} />}
+            <CarouselPaletteItem onAdd={onAddCarousel} />
           </div>
 
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Grid Layouts</div>

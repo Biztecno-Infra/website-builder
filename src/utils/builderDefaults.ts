@@ -85,10 +85,14 @@ export const DEFAULT_CAROUSEL_PROPS: CarouselProps = {
   transitionDuration: 400,
   slidesPerView: 1,
   pauseOnHover: true,
+  dotColor: '#ffffff',
 };
 
-/** Default visible height (px) of a carousel band. */
+/** Default visible height (px) of a freshly-dropped carousel. */
 export const DEFAULT_CAROUSEL_HEIGHT = 420;
+
+/** Default box width (px) of a freshly-dropped carousel. */
+export const DEFAULT_CAROUSEL_WIDTH = 600;
 
 /** Number of slides created when a carousel is first dropped. */
 export const DEFAULT_CAROUSEL_SLIDE_COUNT = 3;

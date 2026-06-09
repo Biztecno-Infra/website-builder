@@ -238,8 +238,8 @@ const CAROUSEL_CSS = `
 .crs-prev{left:12px}
 .crs-next{right:12px}
 .crs-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:8px}
-.crs-dot{width:10px;height:10px;border-radius:50%;border:none;background:rgba(255,255,255,0.55);cursor:pointer;padding:0;transition:background .2s,transform .2s}
-.crs-dot-active{background:#fff;transform:scale(1.2)}
+.crs-dot{width:10px;height:10px;border-radius:50%;border:none;background:var(--crs-dot,#fff);opacity:0.55;cursor:pointer;padding:0;transition:opacity .2s,transform .2s}
+.crs-dot-active{opacity:1;transform:scale(1.2)}
 @media (max-width:${TABLET_W}px){.crs{height:var(--crs-h-tablet,var(--crs-h,420px))}}
 @media (max-width:${MOBILE_BREAK}px){.crs{height:var(--crs-h-mobile,var(--crs-h-tablet,var(--crs-h,420px)))}}
 `;
@@ -804,6 +804,7 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
     minH ? `--crs-min-h:${minH}px` : '',
     tabletH ? `--crs-h-tablet:${tabletH}px` : '',
     mobileH ? `--crs-h-mobile:${mobileH}px` : '',
+    p.dotColor ? `--crs-dot:${p.dotColor}` : '',
   ].filter(Boolean).join(';');
 
   const dataAttrs = [
@@ -824,6 +825,14 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
   </div>`;
 }
 
+// Wrap a carousel in an absolutely-positioned box matching its free layout
+// (x/y/width/height), the same positioning model as free elements.
+function renderFreeCarousel(carousel: Carousel, nodes: NodeMap): string {
+  const { x, y, width, zIndex } = carousel.layout;
+  const wrapStyle = `position:absolute;left:${x}px;top:${y}px;width:${width}px;z-index:${zIndex ?? 0}`;
+  return `<div style="${wrapStyle}">${renderCarousel(carousel, nodes)}</div>`;
+}
+
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
 
@@ -838,7 +847,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     .map(id => nodes[id])
     .filter(Boolean)
     .map(node => node!.type === 'carousel'
-      ? renderCarousel(node as Carousel, nodes)
+      ? renderFreeCarousel(node as Carousel, nodes)
       : renderElement(node as CanvasElement))
     .join('\n      ');
 

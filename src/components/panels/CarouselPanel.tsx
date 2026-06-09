@@ -50,6 +50,30 @@ function NumberField({ label, value, min, max, step = 1, suffix, onCommitStart, 
   );
 }
 
+function ColorField({ label, value, onCommitStart, onChange }: {
+  label: string; value: string; onCommitStart: () => void; onChange: (v: string) => void;
+}) {
+  return (
+    <div style={ROW}>
+      <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <input
+          type="color" value={value}
+          style={{ width: 28, height: 24, padding: 0, border: '1px solid #d6dee8', borderRadius: 4, cursor: 'pointer', background: 'none' }}
+          onFocus={onCommitStart}
+          onChange={e => onChange(e.target.value)}
+        />
+        <input
+          type="text" value={value}
+          style={{ width: 72, padding: '4px 6px', border: '1px solid #d6dee8', borderRadius: 4, fontSize: 12 }}
+          onFocus={onCommitStart}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function CarouselPanel({
   carousel, nodes, snapshot, breakpoint = 'desktop', selectedSlideId,
   onUpdateCarousel, onUpdateCarouselResponsive,
@@ -102,6 +126,14 @@ export function CarouselPanel({
         <Toggle label="Loop" checked={p.loop} onChange={v => setProps({ loop: v })} />
         <Toggle label="Show arrows" checked={p.showArrows} onChange={v => setProps({ showArrows: v })} />
         <Toggle label="Show dots / indicators" checked={p.showDots} onChange={v => setProps({ showDots: v })} />
+        {p.showDots && (
+          <ColorField
+            label="Dot color"
+            value={p.dotColor ?? '#ffffff'}
+            onCommitStart={onFocus}
+            onChange={v => setProps({ dotColor: v }, false)}
+          />
+        )}
       </div>
 
       {/* ── Layout ── */}
