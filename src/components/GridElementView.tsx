@@ -191,8 +191,8 @@ export function GridElementView({
     onSelect();
   };
 
-  // ── Free-canvas mode: absolutely positioned, dragged via DnD ─────────────
-  if (cellMode === 'free') {
+  // ── Legacy free-canvas mode (no longer used — CellLayoutMode dropped 'free') ─
+  if ((cellMode as string) === 'free') {
     return (
       <div
         ref={mergedRef}

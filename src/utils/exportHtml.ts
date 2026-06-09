@@ -1,4 +1,5 @@
-import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import { DEFAULT_FLEX_CONFIG } from './builderDefaults';
 import { sectionBgCssStr } from './sectionStyle';
 import { interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
@@ -55,7 +56,7 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
   };
 
   for (const sec of sections) {
-    if (sec.layoutMode === 'grid') {
+    if (sec.layoutMode === 'grid' || sec.layoutMode === 'flex') {
       for (const cellId of sec.children) {
         const cell = nodes[cellId] as GridCell | undefined;
         if (cell) collectFromCell(cell);
@@ -77,7 +78,9 @@ function elContentStyle(el: CanvasElement): string {
   const bg = el.style.background;
   const border = el.style.border;
 
-  if (bg.type === 'linear-gradient') {
+  if (bg.type === 'transparent') {
+    parts.push('background:transparent');
+  } else if (bg.type === 'linear-gradient') {
     parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
   } else if (bg.type === 'radial-gradient') {
     parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
@@ -695,8 +698,46 @@ function renderColumnBgs(sec: Section): string {
   return colDivs ? `<div style="position:absolute;inset:0;pointer-events:none">${colDivs}</div>` : '';
 }
 
+function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
+  const bg = sec.style.background;
+  const overlay = bg.overlay > 0
+    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
+    : '';
+  const cells = sec.children
+    .map(id => nodes[id] as GridCell | undefined)
+    .filter((c): c is GridCell => !!c)
+    .map(cell => renderGridCell(cell, nodes))
+    .join('\n      ');
+
+  const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
+
+  const hasExplicitMode = sec.grid.contentWidth != null;
+  const contentMode = hasExplicitMode ? sec.grid.contentWidth! : (pageFixed ? 'constrained' : 'full');
+  const maxW = sec.grid.maxWidth ?? pageMaxWidth;
+  const widthCss = contentMode === 'constrained'
+    ? `width:100%;max-width:${maxW}px;margin:0 auto`
+    : `width:100%`;
+
+  const flexCfg = sec.flex ?? DEFAULT_FLEX_CONFIG;
+  const flexCss = `display:flex;flex-direction:${flexCfg.direction};justify-content:${flexCfg.justify};align-items:${flexCfg.align};flex-wrap:${flexCfg.wrap ? 'wrap' : 'nowrap'};gap:${sec.grid.rowGap}px ${sec.grid.gap}px`;
+
+  const secBorder = sec.style.border;
+  const borderCss = secBorder && secBorder.width > 0
+    ? `;border:${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}${secBorder.radius ? `;border-radius:${secBorder.radius}px` : ''}`
+    : secBorder?.radius ? `;border-radius:${secBorder.radius}px` : '';
+
+  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}">
+    ${overlay}
+    <div class="sc-flex-${sec.id} sc-pad-${sec.id}" style="${flexCss};${widthCss};padding:${padCss};box-sizing:border-box">
+      ${cells}
+    </div>
+  </div>`;
+}
+
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
+  if (sec.layoutMode === 'flex') return renderFlexSection(sec as FlexSection, nodes, pageFixed, pageMaxWidth);
 
   const bg = sec.style.background;
   const overlay = bg.overlay > 0

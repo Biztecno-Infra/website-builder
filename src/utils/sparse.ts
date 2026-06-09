@@ -1,6 +1,6 @@
-import type { AnyNode, CanvasElement, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { AnyNode, CanvasElement, Container, ElementAction, FlexSection, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
-  DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
+  DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_FLEX_CONFIG, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
   interactionToAction,
 } from './builderDefaults';
@@ -90,6 +90,11 @@ export function sparsifyNode(node: AnyNode): Obj {
       const sg = sparsifyVal((sec as GridSection).grid, SECTION_DEFAULTS.grid);
       if (sg !== undefined) out.grid = sg;
     }
+    if (sec.layoutMode === 'flex') {
+      const fc = sparsifyVal((sec as FlexSection).flex, DEFAULT_FLEX_CONFIG);
+      if (fc !== undefined) out.flex = fc;
+      else out.flex = DEFAULT_FLEX_CONFIG;
+    }
     if (sec.scrollBehavior && sec.scrollBehavior !== 'normal') out.scrollBehavior = sec.scrollBehavior;
     if (sec.stickyOffset !== undefined && sec.stickyOffset !== 0) out.stickyOffset = sec.stickyOffset;
     if (sec.responsive && (sec.responsive.tablet || sec.responsive.mobile)) out.responsive = sec.responsive;
@@ -148,7 +153,7 @@ export function sparsifyNode(node: AnyNode): Obj {
 
 export function hydrateNode(raw: Obj): AnyNode {
   if (raw.type === 'section') {
-    return {
+    const hydrated = {
       ...(hydrateVal(raw, SECTION_DEFAULTS) as Obj),
       id: raw.id, type: raw.type, role: raw.role,
       label: raw.label ?? '',
@@ -156,6 +161,10 @@ export function hydrateNode(raw: Obj): AnyNode {
       children: (raw.children as string[]) ?? [],
       ...(raw.responsive ? { responsive: raw.responsive } : {}),
     } as AnyNode;
+    if (raw.layoutMode === 'flex') {
+      (hydrated as FlexSection).flex = (raw.flex as import('../types').FlexConfig) ?? DEFAULT_FLEX_CONFIG;
+    }
+    return hydrated;
   }
 
   if (raw.type === 'grid-cell') {

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type {
-  Breakpoint, BorderStyle, BuilderState, GridCell, NodeMap,
+  Breakpoint, BuilderState, GridCell, NodeMap,
   CellLayoutMode, SiteTheme,
 } from '../../types';
 import { ThemeSwatches } from './ThemeSwatches';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
+import { ColorField, BorderEditor, VisibilityEditor } from './PanelFields';
 
 const CELL_PANEL_DEFAULTS: Record<string, boolean> = {
   columnSpan: true,
@@ -376,15 +377,19 @@ export function GridCellPanel({
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
-        <div className={'pb-prop-row'}>
-          <label>Color</label>
-          <input type="color" value={bgColor}
-            onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.value, type: 'solid' } } }); }} />
-          <label className={'pb-transparent-label'}>
-            <input type="checkbox" checked={style.background.color === 'transparent' || !style.background.color}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.checked ? 'transparent' : '#ffffff' } } }); }} />
-            {' '}None
-          </label>
+        {style.background.color !== 'transparent' && (
+          <div className={'pb-prop-row'}>
+            <label>Color</label>
+            <ColorField
+              value={bgColor}
+              onChange={v => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: v, type: 'solid' } } }); }}
+              onFocus={gcFocus} onBlur={gcBlur} />
+          </div>
+        )}
+        <div className={'pb-prop-row pb-vis-row'}>
+          <label>Transparent</label>
+          <input type="checkbox" checked={style.background.color === 'transparent' || !style.background.color}
+            onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.checked ? 'transparent' : '#ffffff' } } }); }} />
         </div>
         <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: c, type: 'solid' } } }); }} />
 
@@ -423,40 +428,11 @@ export function GridCellPanel({
 
       {/* ── Border ── */}
       <CollapsibleSection sectionKey="border" label="Border" isOpen={sec('border')} onToggle={toggle}>
-        <div className={'pb-prop-row'}>
-          <label>Radius</label>
-          <input type="number" value={style.border?.radius ?? 0} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }), radius: Number(e.target.value) } } })} />
-          <span style={{ fontSize: 11, color: '#888' }}>px</span>
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Width</label>
-          <input type="number" value={style.border?.width ?? 0} min={0}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), width: Number(e.target.value) } } })} />
-          <span style={{ fontSize: 11, color: '#888' }}>px</span>
-        </div>
-        {(style.border?.width ?? 0) > 0 && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color"
-                value={(style.border?.color ?? '#cccccc').startsWith('#') ? (style.border?.color ?? '#cccccc') : '#cccccc'}
-                onFocus={gcFocus} onBlur={gcBlur}
-                onChange={e => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), color: e.target.value } } })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Style</label>
-              <select value={style.border?.style ?? 'solid'}
-                onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'solid' }), style: e.target.value as BorderStyle } } }); }}>
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-            </div>
-          </>
-        )}
+        <BorderEditor
+          border={style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }}
+          onChange={updates => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }), ...updates } } })}
+          onFocus={gcFocus} onBlur={gcBlur}
+        />
       </CollapsibleSection>
 
       {/* ── Row Span ── */}
@@ -472,24 +448,12 @@ export function GridCellPanel({
 
       {/* ── Visibility ── */}
       <CollapsibleSection sectionKey="visibility" label="Visibility" isOpen={sec('visibility')} onToggle={toggle}>
-        <div className={'pb-prop-row'}>
-          <label>Hide on Tablet</label>
-          <input type="checkbox"
-            checked={!!(responsive.tablet?.hidden)}
-            onChange={e => {
-              onPushSnapshot(snapshot);
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, hidden: e.target.checked || undefined } } });
-            }} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Hide on Mobile</label>
-          <input type="checkbox"
-            checked={!!(responsive.mobile?.hidden)}
-            onChange={e => {
-              onPushSnapshot(snapshot);
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, hidden: e.target.checked || undefined } } });
-            }} />
-        </div>
+        <VisibilityEditor
+          hideOnTablet={!!responsive.tablet?.hidden}
+          hideOnMobile={!!responsive.mobile?.hidden}
+          onTabletChange={checked => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, hidden: checked || undefined } } }); }}
+          onMobileChange={checked => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, hidden: checked || undefined } } }); }}
+        />
       </CollapsibleSection>
 
     </aside>

@@ -14,10 +14,10 @@ export function CollapsibleSection({ sectionKey, label, isOpen, onToggle, childr
   return (
     <div className={'pb-prop-section'}>
       <div className={"pb-section-header pb-section-header--collapsible"} onClick={() => onToggle(sectionKey)}>
-        <span className={'pb-section-collapse-chevron'}>{isOpen ? '▾' : '▸'}</span>
         {label}
+        <span className={'pb-section-collapse-chevron'}>{isOpen ? '∧' : '∨'}</span>
       </div>
-      {isOpen && children}
+      {isOpen && <div className="pb-section-content">{children}</div>}
     </div>
   );
 }

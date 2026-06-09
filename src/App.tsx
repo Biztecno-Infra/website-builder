@@ -6,6 +6,7 @@ import { Canvas } from './components/Canvas';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
+import { Toolbar } from './components/Toolbar';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
 import { makeKnightState } from './data/knightState';
@@ -449,6 +450,41 @@ export default function App() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={'pb-app'}>
+        <Toolbar
+          siteName="Website Builder"
+          pages={pages}
+          activePage={activePage}
+          onSetActivePage={setActivePage}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          breakpoint={breakpoint}
+          onSetBreakpoint={setBreakpoint}
+          layoutWidth={activePage.layoutWidth ?? 'fixed'}
+          onSetLayoutWidth={w => updatePageLayout(activePage.id, w)}
+          zoom={zoom}
+          onZoomChange={changeZoom}
+          onZoomReset={() => setZoom(1)}
+          onPreview={() => { capturePreviewScroll(); setPreviewMode(true); }}
+          onExportHTML={handleExportHTML}
+          onExportJSON={handleExportJSON}
+          onImport={() => importRef.current?.click()}
+          onLoadDemo={() => importState(makeKnightState())}
+          onClear={() => {
+            if (window.confirm('Clear the canvas and start with an empty page? (Ctrl+Z to undo)')) {
+              importState(makeEmpty());
+            }
+          }}
+        />
+        <input
+          ref={importRef}
+          type="file"
+          accept=".json"
+          style={{ display: 'none' }}
+          onChange={handleImportJSON}
+        />
+        <div className={'pb-app-body'}>
         <LeftSidebar
           nodes={nodes}
           onAdd={handleAddElement}
@@ -468,6 +504,7 @@ export default function App() {
           onReorderElement={reorderElement}
           onMoveElementToSection={moveElementToSection}
           onUpdate={updateElement}
+          onDeleteElement={deleteElement}
           header={header}
           sections={sections}
           footer={footer}
@@ -484,148 +521,6 @@ export default function App() {
         />
 
         <div className={'pb-middle-container'}>
-          <header className={'pb-toolbar'}>
-            <div className={'pb-toolbar-left'}>
-              <span className={'pb-app-name'}>Page Builder</span>
-              {/* <span className={'pb-active-page-name'}>{activePage.name}</span> */}
-              <div className={'pb-toolbar-divider'} />
-              <button
-                className={"pb-toolbar-btn pb-toolbar-btn--demo"}
-                title="Load Knight showcase"
-                onClick={() => { importState(makeKnightState()); }}
-              >Knight</button>
-              <button
-                className={"pb-toolbar-btn pb-toolbar-btn--danger"}
-                title="Clear canvas and start with an empty page (undoable)"
-                onClick={() => {
-                  if (window.confirm('Clear the canvas and start with an empty page? (Ctrl+Z to undo)')) {
-                    importState(makeEmpty());
-                  }
-                }}
-              >
-              Clear 
-              </button>
-            </div>
-            <div className={'pb-toolbar-center'}>
-              <button className={'pb-toolbar-btn'} onClick={handleUndo} disabled={!canUndo} title="Undo (Ctrl+Z)">
-                Undo
-              </button>
-              <button className={'pb-toolbar-btn'} onClick={handleRedo} disabled={!canRedo} title="Redo (Ctrl+Y)">
-                Redo
-              </button>
-              {/* <div className={'pb-toolbar-divider'} />
-              <label className={'pb-toolbar-toggle'} title="Snap to 8px grid">
-                <input type="checkbox" checked={snapEnabled} onChange={e => setSnapEnabled(e.target.checked)} />
-                Snap
-              </label> */}
-              <div className={'pb-toolbar-divider'} />
-              <div className={'pb-breakpoint-switcher'}>
-                <button
-                  className={['pb-bp-btn', breakpoint === 'desktop' && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => setBreakpoint('desktop')}
-                  title="Desktop (1280px)"
-                >D</button>
-                <button
-                  className={['pb-bp-btn', breakpoint === 'tablet' && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => setBreakpoint('tablet')}
-                  title="Tablet (768px)"
-                >T</button>
-                <button
-                  className={['pb-bp-btn', breakpoint === 'mobile' && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => setBreakpoint('mobile')}
-                  title="Mobile (375px)"
-                >M</button>
-              </div>
-              {/* Screen width dropdown — pending free-section coordinate-space decision
-              <div className={'pb-toolbar-divider'} />
-              <div className={'pb-screen-width-control'}>
-                <select
-                  className={'pb-screen-select'}
-                  value={breakpoint !== 'desktop' ? String(breakpoint === 'tablet' ? 768 : 375) : (isCustomScreen ? 'custom' : String(screenWidth))}
-                  title="Canvas display width"
-                  onChange={e => {
-                    if (breakpoint !== 'desktop') return;
-                    if (e.target.value === 'custom') {
-                      setCustomScreenWidth(String(screenWidth));
-                    } else {
-                      setScreenWidth(Number(e.target.value));
-                      setCustomScreenWidth('');
-                    }
-                  }}
-                >
-                  <option value="375">375px</option>
-                  <option value="768">768px</option>
-                  <option value="1280">1280px</option>
-                  <option value="1440">1440px</option>
-                  <option value="1920">1920px</option>
-                  {(isCustomScreen || customScreenWidth) && <option value="custom">{screenWidth}px</option>}
-                  {!isCustomScreen && <option value="custom">Custom…</option>}
-                </select>
-                {(isCustomScreen || customScreenWidth) && breakpoint === 'desktop' && (
-                  <input
-                    className={'pb-screen-custom-input'}
-                    type="number"
-                    min={320} max={3840} step={10}
-                    value={customScreenWidth || screenWidth}
-                    onChange={e => {
-                      setCustomScreenWidth(e.target.value);
-                      const v = Number(e.target.value);
-                      if (v >= 320 && v <= 3840) setScreenWidth(v);
-                    }}
-                    onBlur={() => setCustomScreenWidth('')}
-                  />
-                )}
-              </div>
-              */}
-              <div className={'pb-toolbar-divider'} />
-              <div className={'pb-layout-switcher'}>
-                <button
-                  className={['pb-bp-btn', (activePage.layoutWidth ?? 'fixed') === 'fixed' && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => updatePageLayout(activePage.id, 'fixed')}
-                  title="Fixed width — content centered at max-width"
-                >Fixed</button>
-                <button
-                  className={['pb-bp-btn', activePage.layoutWidth === 'fluid' && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => updatePageLayout(activePage.id, 'fluid')}
-                  title="Fluid width — content stretches full width"
-                >Fluid</button>
-              </div>
-              <div className={'pb-toolbar-divider'} />
-              <div className={'pb-zoom-control'}>
-                <button className={'pb-zoom-btn'} onClick={() => changeZoom(-10)} title="Zoom out (Ctrl+-)">−</button>
-                <button className={'pb-zoom-value'} onClick={() => setZoom(1)} title="Reset zoom (Ctrl+0)">
-                  {Math.round(zoom * 100)}%
-                </button>
-                <button className={'pb-zoom-btn'} onClick={() => changeZoom(10)} title="Zoom in (Ctrl+=)">+</button>
-              </div>
-            </div>
-            <div className={'pb-toolbar-right'}>
-              <div className={'pb-toolbar-divider'} />
-              <button className={'pb-toolbar-btn'} title="Preview (Ctrl+Shift+P)" onClick={() => { capturePreviewScroll(); setPreviewMode(true); }}>
-                Preview
-              </button>
-              <div className={'pb-toolbar-divider'} />
-              <button className={'pb-toolbar-btn'} onClick={handleExportHTML} title="Export HTML">
-                HTML
-              </button>
-              <button className={'pb-toolbar-btn'} onClick={handleExportJSON} title="Export JSON">
-                JSON
-              </button>
-              <button className={'pb-toolbar-btn'} onClick={() => importRef.current?.click()} title="Import a JSON file exported from this builder">
-                Import
-              </button>
-              <input
-                ref={importRef}
-                type="file"
-                accept=".json"
-                style={{ display: 'none' }}
-                onChange={handleImportJSON}
-              />
-              <div className={'pb-toolbar-divider'} />
-              <span className={'pb-save-indicator'}>Auto-saved</span>
-            </div>
-          </header>
-
           <div className={'pb-content-wrapper'} style={{ position: 'relative' }}>
             {selectedIds.length >= 2 && (
               <AlignmentToolbar
@@ -736,6 +631,7 @@ export default function App() {
               </button>
             </div>
           )}
+        </div>
         </div>
       </div>
     </DndProvider>

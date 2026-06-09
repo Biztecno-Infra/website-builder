@@ -123,7 +123,7 @@ function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
 }
 
 function removeNodesForSection(nodes: NodeMap, sec: Section): void {
-  if (sec.layoutMode === 'grid') {
+  if (sec.layoutMode === 'grid' || sec.layoutMode === 'flex') {
     for (const cellId of sec.children) {
       const cell = nodes[cellId] as GridCell | undefined;
       if (cell) { removeGridCellNodes(nodes, cell); delete nodes[cellId]; }
@@ -188,6 +188,7 @@ function createDefaultElement(type: ElementType, count: number, parentId: string
       content: { ...base.content, formFields: defaultFormFields(), fieldGap: 14, submitLabel: 'Submit' },
       action: { type: 'submit-form', email: '', subject: 'New form submission' },
     };
+    default: return base;
   }
 }
 
@@ -649,7 +650,7 @@ export function useBuilderStore() {
       const newSecId = newSectionId();
       const nodes = { ...s.nodes };
       let newChildren: string[];
-      if (src.layoutMode === 'grid') {
+      if (src.layoutMode === 'grid' || src.layoutMode === 'flex') {
         const deepCopyCell = (cell: GridCell, newParentId: string): string => {
           const newCellId = newGridCellId();
           const newCellChildren = cell.children.map(childId => {

@@ -7,7 +7,7 @@ import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
 import { DND_TYPE, LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
-import type { Breakpoint, BreakpointOverride, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { Breakpoint, BreakpointOverride, GridCell, GridSection, FlexSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 
@@ -71,11 +71,11 @@ interface Props {
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
 export function SectionView(props: Props) {
-  if (props.section.layoutMode === 'grid') {
+  if (props.section.layoutMode === 'grid' || props.section.layoutMode === 'flex') {
     const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, onDropGridLayout, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer, onAddGridSectionBefore, onAddGridSectionAfter, ...rest } = props;
     return (
       <GridSectionView
-        section={section as GridSection}
+        section={section as GridSection | FlexSection}
         onSelectGridCell={onSelectGridCell ?? (() => {})}
         onUpdateGridCell={onUpdateGridCell ?? (() => {})}
         onAddGridCell={onAddGridCell ?? (() => {})}
@@ -296,9 +296,16 @@ function FreeSectionView({
 
   // Fixed renders as sticky in the editor canvas — true position:fixed would escape the canvas DOM.
   // The export emits genuine position:fixed.
+  const secMargin = section.style.margin;
+  const marginStyle: React.CSSProperties = secMargin
+    ? { marginTop: secMargin.top, marginRight: secMargin.right, marginBottom: secMargin.bottom, marginLeft: secMargin.left }
+    : {};
+  const cssPos = section.cssPosition;
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
-    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
-    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
+    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50, ...marginStyle }
+    : cssPos && cssPos !== 'relative'
+      ? { flexShrink: 0, position: cssPos as React.CSSProperties['position'], zIndex: 50, ...marginStyle }
+      : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined, ...marginStyle };
 
   return (
     <div

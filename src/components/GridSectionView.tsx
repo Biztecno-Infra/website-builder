@@ -6,8 +6,9 @@ import { GridCellView } from './GridCellView';
 import { canvasDragShared } from './CanvasElement';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  ContentWidthMode, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
+  ContentWidthMode, FlexSection, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
 } from '../types';
+import { DEFAULT_FLEX_CONFIG } from '../utils/builderDefaults';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 import { getCellColumnSpan } from '../utils/cellUtils';
@@ -22,7 +23,7 @@ function isCellOrDescendant(nodes: NodeMap, parentId: string, targetId: string |
 
 
 interface Props {
-  section: GridSection;
+  section: GridSection | FlexSection;
   nodes: NodeMap;
   role: 'header' | 'section' | 'footer';
   isSelected: boolean;
@@ -154,6 +155,8 @@ export function GridSectionView({
     ? { ...desktopPad, ...section.responsive?.tablet?.padding }
     : desktopPad;
 
+  const isFlex = section.layoutMode === 'flex';
+  const flexCfg = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
   const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
   const maxW = gridCfg.maxWidth ?? 1280;
 
@@ -306,7 +309,15 @@ export function GridSectionView({
           <div className={'pb-grid-area-wrapper'}>
             <div
               className={'pb-grid-cells-row'}
-              style={{
+              style={isFlex ? {
+                display: 'flex',
+                flexDirection: flexCfg.direction,
+                justifyContent: flexCfg.justify,
+                alignItems: flexCfg.align,
+                flexWrap: flexCfg.wrap ? 'wrap' : 'nowrap',
+                gap: `${rowGap}px ${gap}px`,
+                minHeight: gridCfg.minHeight || undefined,
+              } : {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(12, 1fr)',
                 gap: `${rowGap}px ${gap}px`,

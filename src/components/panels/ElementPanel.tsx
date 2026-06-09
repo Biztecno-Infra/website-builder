@@ -1,6 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react';
 import type {
-  Breakpoint, BorderStyle, BgType, AnimationType, AnimationTrigger,
+  Breakpoint, BgType, AnimationType, AnimationTrigger,
   CanvasElement, BuilderState, TextAlign, ObjectFit,
   BreakpointOverride, ElementBackground, ElementLayout, ElementContent,
   ElementAnimation, Border, Padding, Shadow, Typography,
@@ -14,6 +14,7 @@ import { createCleanPasteHandler } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
 import { ThemeSwatches } from './ThemeSwatches';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
+import { ColorField, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor } from './PanelFields';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
 
@@ -566,6 +567,16 @@ export function ElementPanel({
               <option value="capitalize">Capitalize</option>
             </select>
           </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <select value={element.cssPosition ?? 'relative'}
+              onChange={e => commitChange({ cssPosition: e.target.value as 'relative' | 'absolute' | 'fixed' | 'sticky' })}>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+              <option value="sticky">Sticky</option>
+            </select>
+          </div>
         </CollapsibleSection>
       )}
 
@@ -619,24 +630,51 @@ export function ElementPanel({
       {element.type === 'image' && (
         <CollapsibleSection sectionKey="image" label="Image" isOpen={sec('image')} onToggle={toggleSection}>
           <div className={"pb-prop-row pb-full"}>
-            <label>URL</label>
+            <label>Image path</label>
             <input type="text" value={element.content.src} placeholder="https://..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ src: e.target.value })} />
           </div>
+          <div className={"pb-prop-row pb-full"}>
+            <label>Link</label>
+            <input type="text" value={element.content.linkUrl ?? ''} placeholder="https://..."
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ linkUrl: e.target.value })} />
+          </div>
           <div className={'pb-prop-row'}>
-            <label>Alt</label>
+            <label>Alt text</label>
             <input type="text" value={element.content.alt}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ alt: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Fit</label>
+            <label>Image Position</label>
+            <select value={element.content.objectPosition ?? 'center'}
+              onChange={e => commitChange({ content: { ...element.content, objectPosition: e.target.value } })}>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+              <option value="center">Center</option>
+            </select>
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Image Fit</label>
             <select value={element.content.objectFit}
               onChange={e => commitChange({ content: { ...element.content, objectFit: e.target.value as ObjectFit } })}>
               <option value="cover">Cover</option>
               <option value="contain">Contain</option>
               <option value="fill">Fill</option>
+            </select>
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <select value={element.cssPosition ?? 'relative'}
+              onChange={e => commitChange({ cssPosition: e.target.value as 'relative' | 'absolute' | 'fixed' | 'sticky' })}>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+              <option value="sticky">Sticky</option>
             </select>
           </div>
         </CollapsibleSection>
@@ -646,10 +684,26 @@ export function ElementPanel({
       {element.type === 'video' && (
         <CollapsibleSection sectionKey="video" label="Video" isOpen={sec('video')} onToggle={toggleSection}>
           <div className={"pb-prop-row pb-full"}>
-            <label>YouTube / Video URL</label>
+            <label>Video path</label>
             <input type="text" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ videoUrl: e.target.value })} />
+          </div>
+          <div className={"pb-prop-row pb-full"}>
+            <label>Thumbnail path</label>
+            <input type="text" value={element.content.thumbnailUrl ?? ''} placeholder="https://..."
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ thumbnailUrl: e.target.value })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <select value={element.cssPosition ?? 'relative'}
+              onChange={e => commitChange({ cssPosition: e.target.value as 'relative' | 'absolute' | 'fixed' | 'sticky' })}>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+              <option value="sticky">Sticky</option>
+            </select>
           </div>
         </CollapsibleSection>
       )}
@@ -723,6 +777,16 @@ export function ElementPanel({
             </div>
           )}
 
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <select value={element.cssPosition ?? 'relative'}
+              onChange={e => commitChange({ cssPosition: e.target.value as 'relative' | 'absolute' | 'fixed' | 'sticky' })}>
+              <option value="relative">Relative</option>
+              <option value="absolute">Absolute</option>
+              <option value="fixed">Fixed</option>
+              <option value="sticky">Sticky</option>
+            </select>
+          </div>
           <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5, paddingTop: 6 }}>
             Get SVGs free from heroicons.com, tabler.io/icons, or icons.getbootstrap.com
           </div>
@@ -851,31 +915,32 @@ export function ElementPanel({
         </div>
         {elBg.type === 'solid' && (
           <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color" value={bgColor} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ color: e.target.value })} />
-              <label className={'pb-transparent-label'}>
-                <input type="checkbox" checked={elBg.color === 'transparent'}
-                  onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
-                {' '}None
-              </label>
+            {elBg.color !== 'transparent' && (
+              <div className={'pb-prop-row'}>
+                <label>Color</label>
+                <ColorField value={bgColor} onChange={v => changeBg({ color: v })} onFocus={onFocus} onBlur={onBlur} />
+              </div>
+            )}
+            <div className={'pb-prop-row pb-vis-row'}>
+              <label>Transparent</label>
+              <input type="checkbox" checked={elBg.color === 'transparent'}
+                onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ color: c }); }} />
+            {elBg.color !== 'transparent' && (
+              <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ color: c }); }} />
+            )}
           </>
         )}
         {(elBg.type === 'linear-gradient' || elBg.type === 'radial-gradient') && (
           <>
             <div className={'pb-prop-row'}>
               <label>From</label>
-              <input type="color" value={elBg.from || '#006e75'} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ from: e.target.value })} />
+              <ColorField value={elBg.from || '#006e75'} onChange={v => changeBg({ from: v })} onFocus={onFocus} onBlur={onBlur} />
             </div>
             <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ from: c }); }} />
             <div className={'pb-prop-row'}>
               <label>To</label>
-              <input type="color" value={elBg.to || '#0b978e'} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ to: e.target.value })} />
+              <ColorField value={elBg.to || '#0b978e'} onChange={v => changeBg({ to: v })} onFocus={onFocus} onBlur={onBlur} />
             </div>
             <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ to: c }); }} />
             {elBg.type === 'linear-gradient' && (
@@ -915,121 +980,23 @@ export function ElementPanel({
       {/* ── Border ── */}
       <CollapsibleSection sectionKey="border" label={<>Border {allBpBadge}</>}
         isOpen={sec('border')} onToggle={toggleSection}>
-        <div className={'pb-prop-row'}>
-          <label>Radius</label>
-          <input type="number" value={element.style.border.radius} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeBorder({ radius: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Width</label>
-          <input type="number" value={element.style.border.width} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeBorder({ width: Number(e.target.value) })} />
-        </div>
-        {element.style.border.width > 0 && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color"
-                value={element.style.border.color.startsWith('#') ? element.style.border.color : '#cccccc'}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBorder({ color: e.target.value })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Style</label>
-              <select value={element.style.border.style}
-                onChange={e => commitChange({ style: { ...element.style, border: { ...element.style.border, style: e.target.value as BorderStyle } } })}>
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-            </div>
-          </>
-        )}
+        <BorderEditor border={element.style.border} onChange={changeBorder} onFocus={onFocus} onBlur={onBlur} />
       </CollapsibleSection>
 
       {/* ── Spacing ── */}
       <CollapsibleSection sectionKey="spacing" label={<>Spacing {allBpBadge}</>}
         isOpen={sec('spacing')} onToggle={toggleSection}>
-        <div className={'pb-prop-row'}>
-          <label>Top</label>
-          <input type="number" value={element.style.padding.top} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ top: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Right</label>
-          <input type="number" value={element.style.padding.right} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ right: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Bottom</label>
-          <input type="number" value={element.style.padding.bottom} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ bottom: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Left</label>
-          <input type="number" value={element.style.padding.left} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ left: Number(e.target.value) })} />
-        </div>
+        <SpacingEditor
+          padding={element.style.padding}
+          onPaddingChange={(k, v) => changePad({ [k]: v })}
+          onFocus={onFocus} onBlur={onBlur}
+        />
       </CollapsibleSection>
 
       {/* ── Shadow ── */}
-      <CollapsibleSection
-        sectionKey="shadow"
-        label={<>
-          Shadow {allBpBadge}
-          <label className={'pb-transparent-label'} style={{ marginLeft: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <input type="checkbox" checked={element.style.shadow.enabled}
-              onChange={e => commitChange({ style: { ...element.style, shadow: { ...element.style.shadow, enabled: e.target.checked } } })} />
-            {' '}On
-          </label>
-        </>}
-        isOpen={sec('shadow')} onToggle={toggleSection}
-      >
-        {element.style.shadow.enabled && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>X</label>
-              <input type="number" value={element.style.shadow.x}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ x: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Y</label>
-              <input type="number" value={element.style.shadow.y}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ y: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Blur</label>
-              <input type="number" value={element.style.shadow.blur} min={0}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ blur: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Spread</label>
-              <input type="number" value={element.style.shadow.spread}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ spread: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color"
-                value={element.style.shadow.color.startsWith('#') ? element.style.shadow.color : '#000000'}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ color: e.target.value })} />
-            </div>
-          </>
-        )}
-        {!element.style.shadow.enabled && (
-          <div style={{ fontSize: 11, color: '#aaa', padding: '2px 0 4px' }}>Enable via the On toggle above</div>
-        )}
+      <CollapsibleSection sectionKey="shadow" label={<>Shadow {allBpBadge}</>}
+        isOpen={sec('shadow')} onToggle={toggleSection}>
+        <ShadowEditor shadow={element.style.shadow} onChange={changeShadow} onFocus={onFocus} onBlur={onBlur} />
       </CollapsibleSection>
 
       {/* Animation panel hidden during stabilization — data + export still intact */}
@@ -1055,21 +1022,15 @@ export function ElementPanel({
         </div>
       </CollapsibleSection>
 
-      {/* ── Responsive ── */}
+      {/* ── Visibility ── */}
       {onUpdateResponsive && (
-        <CollapsibleSection sectionKey="responsive" label="Responsive" isOpen={sec('responsive')} onToggle={toggleSection}>
-          <div className={'pb-prop-row'}>
-            <label>Hide Tablet</label>
-            <input type="checkbox"
-              checked={!!(element.responsive.tablet?.state?.hidden)}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'tablet', { state: { hidden: e.target.checked } }); }} />
-          </div>
-          <div className={'pb-prop-row'}>
-            <label>Hide Mobile</label>
-            <input type="checkbox"
-              checked={!!(element.responsive.mobile?.state?.hidden)}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'mobile', { state: { hidden: e.target.checked } }); }} />
-          </div>
+        <CollapsibleSection sectionKey="responsive" label="Visibility" isOpen={sec('responsive')} onToggle={toggleSection}>
+          <VisibilityEditor
+            hideOnTablet={!!element.responsive.tablet?.state?.hidden}
+            hideOnMobile={!!element.responsive.mobile?.state?.hidden}
+            onTabletChange={v => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'tablet', { state: { hidden: v } }); }}
+            onMobileChange={v => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'mobile', { state: { hidden: v } }); }}
+          />
         </CollapsibleSection>
       )}
     </aside>
