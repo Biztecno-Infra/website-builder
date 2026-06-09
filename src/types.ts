@@ -437,9 +437,21 @@ export interface CarouselProps {
   dotColor?: string;
 }
 
+// Per-breakpoint overrides. x/y/width let a free-positioned carousel be moved /
+// resized independently on tablet & mobile (mirrors CanvasElement responsive layout);
+// they're unscaled values in the breakpoint's own canvas space.
+export interface CarouselBpOverride {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  minHeight?: number;
+  hidden?: boolean;
+}
+
 export interface CarouselResponsive {
-  tablet?: { height?: number; minHeight?: number; hidden?: boolean };
-  mobile?: { height?: number; minHeight?: number; hidden?: boolean };
+  tablet?: CarouselBpOverride;
+  mobile?: CarouselBpOverride;
 }
 
 export interface CarouselLayout {

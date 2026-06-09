@@ -48,6 +48,15 @@ interface Props {
   onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
+  // Carousel-in-cell support (forwarded to sub-cell GridCellViews)
+  selectedCarouselId?: string | null;
+  onSelectCarousel?: (id: string) => void;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<import('../types').Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: import('../types').CarouselBpOverride) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onAddCarouselToCell?: (cellId: string) => void;
+  canvasWidth?: number;
 }
 
 export function ColumnsBlockView({
@@ -65,6 +74,7 @@ export function ColumnsBlockView({
   onReorderGridCell,
   onRemoveColumnsBlock,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId,
+  selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell, canvasWidth,
 }: Props) {
   const subCells = block.children
     .map(id => nodes[id])
@@ -267,6 +277,14 @@ export function ColumnsBlockView({
                 onAddSubCell={onAddSubCell}
                 selectedContainerId={selectedContainerId}
                 onSelectContainer={onSelectContainer}
+                selectedCarouselId={selectedCarouselId}
+                onSelectCarousel={onSelectCarousel}
+                onUpdateCarousel={onUpdateCarousel}
+                onUpdateCarouselResponsive={onUpdateCarouselResponsive}
+                onSetActiveSlide={onSetActiveSlide}
+                onAddSlide={onAddSlide}
+                onAddCarouselToCell={onAddCarouselToCell}
+                canvasWidth={canvasWidth}
               />
             </DraggableCellWrapper>
             );

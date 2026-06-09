@@ -72,6 +72,7 @@ interface Props {
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
   onAddCarousel?: (sectionId: string, dropX?: number, dropY?: number) => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<import('../types').Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: import('../types').Breakpoint, updates: import('../types').CarouselBpOverride) => void;
   zoom?: number;
   layoutWidth?: 'fixed' | 'fluid';
   maxWidth?: number;
@@ -94,7 +95,7 @@ export function Canvas({
   onMoveGridElement, onReorderGridCell,
   onDropGridLayout, onDropTemplate, onRemoveColumnsBlock, onPromoteSection,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
-  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel,
+  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
   zoom = 1,
   layoutWidth = 'fixed',
   maxWidth = 1200,
@@ -211,7 +212,7 @@ export function Canvas({
     onMoveGridElement, onReorderGridCell,
     onDropGridLayout, onRemoveColumnsBlock,
     onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
-    selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel,
+    selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
   };
 
   const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };

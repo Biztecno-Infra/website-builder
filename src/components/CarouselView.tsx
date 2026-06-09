@@ -4,7 +4,7 @@ import { canvasDragShared } from './CanvasElement';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  Carousel, CarouselLayout, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+  Carousel, CarouselBpOverride, CarouselLayout, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
 } from '../types';
 
 const RESIZE_DIRS = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
@@ -31,6 +31,8 @@ interface Props {
   canvasWidth: number;
   onSelectCarousel: () => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  /** Writes a per-breakpoint override (x/y/width/height). Used for drag/resize on tablet & mobile. */
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: CarouselBpOverride) => void;
   onSelectGridCell?: (id: string | null) => void;
   onSelectElement: (id: string, shift: boolean) => void;
   onSelectContainer?: (id: string) => void;
@@ -53,6 +55,8 @@ interface Props {
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
   dragOverGridCellId?: string | null;
+  /** When true the carousel flows inside a grid cell (relative, full-width) instead of being absolutely positioned on the free canvas. */
+  inCell?: boolean;
 }
 
 function carouselHeight(carousel: Carousel, bp: Breakpoint): number {
@@ -69,17 +73,28 @@ function carouselHidden(carousel: Carousel, bp: Breakpoint): boolean {
   return false;
 }
 
+// Effective free-canvas geometry for a breakpoint. x/y/width cascade
+// mobile ?? tablet ?? desktop (property-level), matching CanvasElement.
+function carouselGeometry(carousel: Carousel, bp: Breakpoint): { x: number; y: number; width: number } {
+  const { x, y, width } = carousel.layout;
+  if (bp === 'desktop' || bp === 'large-desktop') return { x, y, width };
+  const t = carousel.responsive?.tablet;
+  const m = carousel.responsive?.mobile;
+  if (bp === 'tablet') return { x: t?.x ?? x, y: t?.y ?? y, width: t?.width ?? width };
+  return { x: m?.x ?? t?.x ?? x, y: m?.y ?? t?.y ?? y, width: m?.width ?? t?.width ?? width };
+}
+
 export function CarouselView({
   carousel, nodes, isSelected,
   selectedId, selectedGridCellId, selectedContainerId,
   previewMode, breakpoint = 'desktop', canvasWidth,
-  onSelectCarousel, onUpdateCarousel, onSelectGridCell, onSelectElement, onSelectContainer,
+  onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSelectGridCell, onSelectElement, onSelectContainer,
   onSetActiveSlide, onAddSlide,
   onUpdateElement, onUpdateGridCell, onDeleteGridCell, onAddElementToCell,
   onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock,
   onAddContainer, onUpdateContainer, onAddSubCell,
   onCommit, snapshot, onUpdateResponsive, onDuplicateElement, onDeleteElement,
-  dragOverGridCellId,
+  dragOverGridCellId, inCell = false,
 }: Props) {
   const [hovered, setHovered] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -91,24 +106,45 @@ export function CarouselView({
   const props = carousel.props;
   const height = carouselHeight(carousel, breakpoint);
   const lay = carousel.layout;
+  // Effective geometry for the active breakpoint (cascades tablet/mobile overrides).
+  const geom = carouselGeometry(carousel, breakpoint);
+  const isDesktopBp = breakpoint === 'desktop' || breakpoint === 'large-desktop';
 
-  // ── Drag the whole carousel box to reposition (desktop only) ──
+  // Persist a move/resize either to the desktop layout (desktop bp) or as a
+  // per-breakpoint responsive override (tablet/mobile), mirroring CanvasElement.
+  const writeGeometry = (next: { x?: number; y?: number; width?: number; height?: number }) => {
+    if (isDesktopBp) {
+      onUpdateCarousel?.(carousel.id, { layout: { ...lay, ...next } });
+    } else {
+      onUpdateCarouselResponsive?.(carousel.id, breakpoint, next);
+    }
+  };
+  // Either updater path enables editing.
+  const canPersist = isDesktopBp ? !!onUpdateCarousel : !!onUpdateCarouselResponsive;
+
+  // Pointer deltas are in screen px. Convert to CANVAS_W space (the space x/y/width
+  // are stored in for every breakpoint): divide by both the editor zoom and the
+  // breakpoint's canvas scale, so a move tracks the cursor 1:1 on tablet/mobile too.
+  const dragScale = (canvasWidth / CANVAS_W) || 1;
+
+  // ── Drag the whole carousel box to reposition (free-canvas only) ──
   const startDrag = (e: React.MouseEvent) => {
-    if (previewMode || breakpoint !== 'desktop' || !onUpdateCarousel) return;
+    if (inCell) return;  // flowed inside a cell — position is managed by the cell's layout, not free drag
+    if (previewMode || !canPersist) return;
     if (e.button !== 0) return;
     e.stopPropagation();
     onSelectCarousel();
     const startX = e.clientX, startY = e.clientY;
-    const { x: ox, y: oy } = lay;
+    const { x: ox, y: oy } = geom;
     const prev = snapshot;
     let moved = false;
     const onMove = (ev: MouseEvent) => {
       const z = canvasDragShared.zoom;
-      const dx = (ev.clientX - startX) / z;
-      const dy = (ev.clientY - startY) / z;
+      const dx = (ev.clientX - startX) / (z * dragScale);
+      const dy = (ev.clientY - startY) / (z * dragScale);
       if (!moved && Math.abs(ev.clientX - startX) < 3 && Math.abs(ev.clientY - startY) < 3) return;
       moved = true;
-      onUpdateCarousel(carousel.id, { layout: { ...lay, x: Math.round(ox + dx), y: Math.round(oy + dy) } });
+      writeGeometry({ x: Math.round(ox + dx), y: Math.round(oy + dy) });
     };
     const onUp = () => {
       document.removeEventListener('mousemove', onMove);
@@ -120,24 +156,25 @@ export function CarouselView({
   };
 
   const startResize = (dir: ResizeDir) => (e: React.MouseEvent) => {
-    if (previewMode || breakpoint !== 'desktop' || !onUpdateCarousel) return;
+    if (previewMode || !canPersist) return;
+    if (inCell && dir !== 's') return;  // in-cell width is the cell's; only height (south handle) is adjustable
     e.stopPropagation();
     e.preventDefault();
     const startX = e.clientX, startY = e.clientY;
-    const { x: ox, y: oy, width: ow, height: oh } = lay;
+    const { x: ox, y: oy, width: ow } = geom;
+    const oh = height;
     const prev = snapshot;
     const onMove = (ev: MouseEvent) => {
       const z = canvasDragShared.zoom;
-      const dx = (ev.clientX - startX) / z;
-      const dy = (ev.clientY - startY) / z;
+      const dx = (ev.clientX - startX) / (z * dragScale);
+      const dy = (ev.clientY - startY) / (z * dragScale);
       let x = ox, y = oy, w = ow, h = oh;
       const min = 80;
       if (dir.includes('e')) w = Math.max(min, ow + dx);
       if (dir.includes('s')) h = Math.max(min, oh + dy);
       if (dir.includes('w')) { w = Math.max(min, ow - dx); x = ox + ow - w; }
       if (dir.includes('n')) { h = Math.max(min, oh - dy); y = oy + oh - h; }
-      const next: CarouselLayout = { ...lay, x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) };
-      onUpdateCarousel(carousel.id, { layout: next });
+      writeGeometry({ x: Math.round(x), y: Math.round(y), width: Math.round(w), height: Math.round(h) });
     };
     const onUp = () => {
       document.removeEventListener('mousemove', onMove);
@@ -153,15 +190,25 @@ export function CarouselView({
   // Position the carousel box like a free CanvasElement. x/width scale with the
   // active breakpoint's canvas width so the box stays inside the smaller canvas.
   const scale = canvasWidth / CANVAS_W;
-  const wrapperStyle: React.CSSProperties = {
-    position: 'absolute',
-    left: Math.round(lay.x * scale),
-    top: Math.round(lay.y * scale),
-    width: Math.round(lay.width * scale),
-    height: Math.round(height * scale),
-    zIndex: isSelected ? (lay.zIndex ?? 0) + 1000 : (lay.zIndex ?? 0),
-    boxSizing: 'border-box',
-  };
+  const wrapperStyle: React.CSSProperties = inCell
+    ? {
+        // Flowed inside a grid cell: take the cell's full width, fixed height,
+        // and let the cell's flex layout place it. No absolute x/y.
+        position: 'relative',
+        width: '100%',
+        height,
+        zIndex: isSelected ? (lay.zIndex ?? 0) + 1000 : (lay.zIndex ?? 0),
+        boxSizing: 'border-box',
+      }
+    : {
+        position: 'absolute',
+        left: Math.round(geom.x * scale),
+        top: Math.round(geom.y * scale),
+        width: Math.round(geom.width * scale),
+        height: Math.round(height * scale),
+        zIndex: isSelected ? (lay.zIndex ?? 0) + 1000 : (lay.zIndex ?? 0),
+        boxSizing: 'border-box',
+      };
 
   if (slides.length === 0) {
     return previewMode ? null : (
@@ -204,13 +251,17 @@ export function CarouselView({
 
   const showChrome = !previewMode && (hovered || isSelected || hasActiveChild);
 
-  const canEdit = !previewMode && breakpoint === 'desktop' && !!onUpdateCarousel;
+  // Editing (drag/resize) is available on every breakpoint now: desktop writes the
+  // base layout, tablet/mobile write per-breakpoint overrides via canPersist.
+  const canEdit = !previewMode && canPersist;
+  // Free-canvas carousels can be moved by dragging; in-cell ones cannot.
+  const canMove = canEdit && !inCell;
 
   return (
     <div
       ref={wrapperRef}
       className={['pb-carousel', isSelected && !hasActiveChild && 'pb-carousel--selected', hasActiveChild && 'pb-carousel--child-selected'].filter(Boolean).join(' ')}
-      style={{ ...wrapperStyle, cursor: canEdit ? 'move' : undefined }}
+      style={{ ...wrapperStyle, cursor: canMove ? 'move' : undefined }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseDown={startDrag}
@@ -314,8 +365,9 @@ export function CarouselView({
         </div>
       )}
 
-      {/* Resize handles — only when the carousel itself is selected (not a child) */}
-      {canEdit && isSelected && !hasActiveChild && RESIZE_DIRS.map(dir => (
+      {/* Resize handles — only when the carousel itself is selected (not a child).
+          In-cell carousels expose only the south handle (height); width follows the cell. */}
+      {canEdit && isSelected && !hasActiveChild && (inCell ? (['s'] as const) : RESIZE_DIRS).map(dir => (
         <div
           key={dir}
           className={'pb-resize-handle'}

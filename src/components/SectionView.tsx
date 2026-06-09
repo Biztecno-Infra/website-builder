@@ -77,6 +77,7 @@ interface Props {
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
   onAddCarousel?: (sectionId: string, dropX?: number, dropY?: number) => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: import('../types').CarouselBpOverride) => void;
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -100,6 +101,7 @@ export function SectionView(props: Props) {
         onSelectContainer={onSelectContainer}
         onAddGridSectionBefore={onAddGridSectionBefore}
         onAddGridSectionAfter={onAddGridSectionAfter}
+        onAddCarouselToCell={cellId => rest.onAddCarousel?.(cellId)}
         {...rest}
       />
     );
@@ -126,7 +128,7 @@ function FreeSectionView({
   onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
   selectedContainerId, onSelectContainer,
   // carousel
-  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel,
+  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
   dragOverGridCellId,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -554,6 +556,7 @@ function FreeSectionView({
               canvasWidth={canvasWidth}
               onSelectCarousel={() => onSelectCarousel?.(car.id)}
               onUpdateCarousel={onUpdateCarousel}
+              onUpdateCarouselResponsive={onUpdateCarouselResponsive}
               onSelectGridCell={onSelectGridCell}
               onSelectElement={onSelectElement}
               onSelectContainer={onSelectContainer}

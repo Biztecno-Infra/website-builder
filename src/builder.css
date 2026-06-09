@@ -530,10 +530,13 @@
 }
 
 /* ─── Section surface (centered content container — elements live here) ─── */
+/* overflow:hidden matches the published output (.sc in exportHtml) and preview
+   mode, so a free element/carousel that extends past its section is clipped at
+   the section boundary in the editor too — keeping Canvas and Preview identical. */
 .pb-section-surface {
   position: relative;
   box-sizing: border-box;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .pb-canvas-wrapper:not(.pb-preview-mode) .pb-section-surface::before,

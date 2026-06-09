@@ -690,6 +690,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     const child = nodes[id];
     if (!child) return '';
     if (child.type === 'container') return renderColumnsBlock(child as Container, nodes);
+    if (child.type === 'carousel') return renderCarousel(child as Carousel, nodes);
     if (child.type !== 'section' && child.type !== 'grid-cell') return renderGridElement(child as CanvasElement);
     return '';
   }).join('\n');
@@ -825,12 +826,11 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
   </div>`;
 }
 
-// Wrap a carousel in an absolutely-positioned box matching its free layout
-// (x/y/width/height), the same positioning model as free elements.
+// Wrap a carousel in an absolutely-positioned box matching its free layout.
+// Position/size live in a per-carousel CSS class (crs-wrap-${id}) so tablet/mobile
+// media queries can override x/y/width — the same model as free elements.
 function renderFreeCarousel(carousel: Carousel, nodes: NodeMap): string {
-  const { x, y, width, zIndex } = carousel.layout;
-  const wrapStyle = `position:absolute;left:${x}px;top:${y}px;width:${width}px;z-index:${zIndex ?? 0}`;
-  return `<div style="${wrapStyle}">${renderCarousel(carousel, nodes)}</div>`;
+  return `<div class="crs-wrap-${carousel.id}">${renderCarousel(carousel, nodes)}</div>`;
 }
 
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
@@ -965,6 +965,15 @@ function generateCellCSS(
             mobileRules.push(`.gc-${sub.id}{flex:0 0 ${Math.round((Math.min(mSpan, 12) / 12) * 100)}%}`);
           }
         }
+      }
+      continue;
+    }
+
+    // Carousel child — generate CSS for each slide cell (slides are GridCells), same as free-section carousels.
+    if (child.type === 'carousel') {
+      for (const slideId of (child as Carousel).children) {
+        const slide = nodes[slideId] as GridCell | undefined;
+        if (slide) generateCellCSS(slide, nodes, baseRules, tabletRules, mobileRules);
       }
       continue;
     }
@@ -1142,9 +1151,34 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
     for (const elId of sec.children) {
       const node = nodes[elId];
       if (!node) continue;
-      // Carousels: generate CSS for each slide cell (slides are GridCells).
+      // Carousels: emit the wrapper position box (with responsive overrides) +
+      // generate CSS for each slide cell (slides are GridCells).
       if (node.type === 'carousel') {
-        for (const slideId of (node as Carousel).children) {
+        const car = node as Carousel;
+        const cl = car.layout;
+        const ct = car.responsive?.tablet;
+        const cm = car.responsive?.mobile;
+        // Desktop base box. x/y/width are stored in CANVAS_W space (like elements' base layout).
+        baseRules.push(`.crs-wrap-${car.id}{position:absolute;left:${cl.x}px;top:${cl.y}px;width:${cl.width}px;z-index:${cl.zIndex ?? 0};box-sizing:border-box}`);
+        // Tablet: explicit override (CANVAS_W space) ?? auto-scaled desktop.
+        if (ct?.hidden) {
+          tabletRules.push(`.crs-wrap-${car.id}{display:none}`);
+        } else {
+          const tx = Math.round((ct?.x ?? cl.x) * tScale);
+          const ty = Math.round((ct?.y ?? cl.y) * tScale);
+          const tw = Math.round((ct?.width ?? cl.width) * tScale);
+          tabletRules.push(`.crs-wrap-${car.id}{left:${tx}px;top:${ty}px;width:${tw}px}`);
+        }
+        // Mobile: cascade mobile ?? tablet ?? desktop, then auto-scale.
+        if (cm?.hidden ?? ct?.hidden) {
+          mobileRules.push(`.crs-wrap-${car.id}{display:none}`);
+        } else {
+          const mx = Math.round((cm?.x ?? ct?.x ?? cl.x) * mScale);
+          const my = Math.round((cm?.y ?? ct?.y ?? cl.y) * mScale);
+          const mw = Math.round((cm?.width ?? ct?.width ?? cl.width) * mScale);
+          mobileRules.push(`.crs-wrap-${car.id}{left:${mx}px;top:${my}px;width:${mw}px}`);
+        }
+        for (const slideId of car.children) {
           const slide = nodes[slideId] as GridCell | undefined;
           if (slide) generateCellCSS(slide, nodes, baseRules, tabletRules, mobileRules);
         }

@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container } from '../types';
-import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE } from './LeftSidebar';
+import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container, Carousel } from '../types';
+import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE } from './LeftSidebar';
+import { CarouselView } from './CarouselView';
 import { canvasDragShared } from './CanvasElement';
 import { DragGuides } from './DragGuides';
 import type { CellLayoutDragItem } from './LeftSidebar';
@@ -44,6 +45,15 @@ interface Props {
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
+  // Carousel support — a carousel can flow inside a cell (parallel to elements/containers)
+  selectedCarouselId?: string | null;
+  onSelectCarousel?: (id: string) => void;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: import('../types').CarouselBpOverride) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onAddCarouselToCell?: (cellId: string) => void;
+  canvasWidth?: number;
 }
 
 function getRowSpan(cell: GridCell): number {
@@ -62,6 +72,8 @@ export function GridCellView({
   onAddElementToCell, onSelectGridCell, onReorderGridCell,
   onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
   selectedContainerId, onSelectContainer,
+  selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide,
+  onAddCarouselToCell, canvasWidth = 1200,
 }: Props) {
 
   const bp = breakpoint;
@@ -70,19 +82,20 @@ export function GridCellView({
   // Canvas elements only (no containers) — used for free branch, overlay els, drop logic
   const allElements = cell.children
     .map(id => nodes[id])
-    .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container');
+    .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container' && node.type !== 'carousel');
 
   const elements = allElements.filter(el => !el.overlayInCell);
   const overlayEls = allElements.filter(el => !!el.overlayInCell);
 
-  // Ordered mix of canvas elements + containers for the flex branch, with per-item indices
+  // Ordered mix of canvas elements + containers + carousels for the flex branch, with per-item indices
   let _elIdx = 0;
   const flexChildrenWithIndex = cell.children
     .map((id, rawIdx) => {
       const node = nodes[id];
       if (!node || node.type === 'section' || node.type === 'grid-cell') return null;
-      const item = node as El | Container;
-      return { item, elIdx: item.type === 'container' ? -1 : _elIdx++, childIdx: rawIdx };
+      const item = node as El | Container | Carousel;
+      const isElement = item.type !== 'container' && item.type !== 'carousel';
+      return { item, elIdx: isElement ? _elIdx++ : -1, childIdx: rawIdx };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
   const flexChildren = flexChildrenWithIndex.map(x => x.item);
@@ -149,6 +162,16 @@ export function GridCellView({
     collect: m => ({ isCellLayoutOver: m.isOver({ shallow: true }) }),
   });
 
+  // ── Drop: carousel palette item → flow a carousel inside this cell ───────
+  const [{ isCarouselOver }, carouselDropRef] = useDrop<{ kind: 'carousel' }, void, { isCarouselOver: boolean }>({
+    accept: CAROUSEL_DND_TYPE,
+    drop: (_item, monitor) => {
+      if (monitor.didDrop()) return;
+      onAddCarouselToCell?.(cell.id);
+    },
+    collect: m => ({ isCarouselOver: m.isOver({ shallow: true }) }),
+  });
+
   const combinedDropRef = useCallback(
     (node: HTMLDivElement | null) => {
       cellDomRef.current = node;
@@ -156,8 +179,9 @@ export function GridCellView({
       (gridElDropRef      as (el: HTMLDivElement | null) => void)(node);
       (layoutDropRef      as (el: HTMLDivElement | null) => void)(node);
       (cellLayoutDropRef  as (el: HTMLDivElement | null) => void)(node);
+      (carouselDropRef    as (el: HTMLDivElement | null) => void)(node);
     },
-    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef],
+    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef, carouselDropRef],
   );
 
   const handleDragHover = useCallback((afterIdx: number) => setInsertAfterIndex(afterIdx), []);
@@ -316,6 +340,7 @@ export function GridCellView({
         isGridElOver && 'pb-grid-cell--el-over',
         isRow && 'pb-grid-cell--flex-row',
         (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
+        isCarouselOver && 'pb-grid-cell--drop-over',
       ].filter(Boolean).join(' ')}
       style={{
         ...sharedCellStyle,
@@ -325,15 +350,58 @@ export function GridCellView({
         gap,
         alignItems: getCellAlignItems(cell, bp),
         justifyContent: getCellJustifyContent(cell, bp),
-        overflow: flexChildren.some(c => c.type === 'container') ? 'visible' : 'hidden',
+        overflow: flexChildren.some(c => c.type === 'container' || c.type === 'carousel') ? 'visible' : 'hidden',
       }}
       onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
     >
       {insertionLine(-1)}
 
       {flexChildrenWithIndex
-        .filter(({ item }) => item.type === 'container' || !(item as El).overlayInCell)
+        .filter(({ item }) => item.type === 'container' || item.type === 'carousel' || !(item as El).overlayInCell)
         .map(({ item, childIdx }) => {
+          if (item.type === 'carousel') {
+            const car = item as Carousel;
+            return (
+              <React.Fragment key={car.id}>
+                <CarouselView
+                  carousel={car}
+                  nodes={nodes}
+                  isSelected={selectedCarouselId === car.id}
+                  selectedId={selectedElementId}
+                  selectedGridCellId={selectedGridCellId}
+                  selectedContainerId={selectedContainerId}
+                  previewMode={previewMode}
+                  breakpoint={breakpoint}
+                  canvasWidth={canvasWidth}
+                  inCell
+                  onSelectCarousel={() => onSelectCarousel?.(car.id)}
+                  onUpdateCarousel={onUpdateCarousel}
+                  onUpdateCarouselResponsive={onUpdateCarouselResponsive}
+                  onSelectGridCell={onSelectGridCell}
+                  onSelectElement={id => onSelectElement(id)}
+                  onSelectContainer={onSelectContainer}
+                  onSetActiveSlide={onSetActiveSlide ?? (() => {})}
+                  onAddSlide={onAddSlide ?? (() => {})}
+                  onUpdateElement={onUpdateElement}
+                  onUpdateGridCell={onUpdateGridCell}
+                  onDeleteGridCell={onDeleteGridCell}
+                  onAddElementToCell={onAddElementToCell}
+                  onMoveGridElement={onMoveGridElement}
+                  onReorderGridCell={onReorderGridCell}
+                  onRemoveColumnsBlock={onRemoveColumnsBlock}
+                  onAddContainer={onAddContainer}
+                  onUpdateContainer={onUpdateContainer}
+                  onAddSubCell={onAddSubCell}
+                  onCommit={onCommit}
+                  snapshot={snapshot}
+                  onUpdateResponsive={onUpdateResponsive}
+                  onDuplicateElement={onDuplicateElement}
+                  onDeleteElement={onDeleteElement}
+                />
+                {insertionLine(childIdx)}
+              </React.Fragment>
+            );
+          }
           if (item.type === 'container') {
             const block = item as Container;
             return (
@@ -367,6 +435,14 @@ export function GridCellView({
                   onUpdateContainer={onUpdateContainer}
                   onAddSubCell={onAddSubCell}
                   selectedContainerId={selectedContainerId}
+                  selectedCarouselId={selectedCarouselId}
+                  onSelectCarousel={onSelectCarousel}
+                  onUpdateCarousel={onUpdateCarousel}
+                  onUpdateCarouselResponsive={onUpdateCarouselResponsive}
+                  onSetActiveSlide={onSetActiveSlide}
+                  onAddSlide={onAddSlide}
+                  onAddCarouselToCell={onAddCarouselToCell}
+                  canvasWidth={canvasWidth}
                   onDragHover={handleDragHover}
                   onDropAtChildIdx={handleDropAtChildIdx}
                 />

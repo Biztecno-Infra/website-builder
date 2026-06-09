@@ -69,6 +69,14 @@ interface Props {
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
   pageLayoutWidth?: 'fixed' | 'fluid'; // page-level layout; drives section default (fixed→constrained, fluid→full)
+  // Carousel-in-cell support
+  selectedCarouselId?: string | null;
+  onSelectCarousel?: (id: string) => void;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<import('../types').Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: import('../types').CarouselBpOverride) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onAddCarouselToCell?: (cellId: string) => void;
 }
 
 export function GridSectionView({
@@ -92,6 +100,7 @@ export function GridSectionView({
   selectedContainerId,
   onSelectContainer,
   pageLayoutWidth = 'fixed',
+  selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -394,6 +403,14 @@ export function GridSectionView({
                     onAddSubCell={onAddSubCell}
                     selectedContainerId={selectedContainerId}
                     onSelectContainer={onSelectContainer}
+                    selectedCarouselId={selectedCarouselId}
+                    onSelectCarousel={onSelectCarousel}
+                    onUpdateCarousel={onUpdateCarousel}
+                    onUpdateCarouselResponsive={onUpdateCarouselResponsive}
+                    onSetActiveSlide={onSetActiveSlide}
+                    onAddSlide={onAddSlide}
+                    onAddCarouselToCell={onAddCarouselToCell}
+                    canvasWidth={canvasWidth}
                   />
                 </DraggableCellWrapper>
               );

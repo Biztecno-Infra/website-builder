@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { interactionToAction } from '../utils/builderDefaults';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
-  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, Carousel, CarouselProps, CellLayoutMode,
+  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
   ColumnStyle, Container, ContainerLayoutMode, ElementLayout, ElementType, FreeSection, GridCell,
   GridSection, NodeMap, Page, Section, SectionRole,
   SectionUpdate, SiteTheme, TextAlign, TextTransform,
@@ -745,6 +745,16 @@ export function useBuilderStore() {
                 nodes[newBlockId] = { ...block, id: newBlockId, parent: newCellId, children: newSubIds } as Container;
                 return newBlockId;
               }
+              if (child.type === 'carousel') {
+                const car = child as Carousel;
+                const newCarId = newCarouselId();
+                const newSlideIds = car.children.map(slideId => {
+                  const slide = nodes[slideId] as GridCell | undefined;
+                  return slide ? deepCopyCell(slide, newCarId) : '';
+                }).filter(Boolean);
+                nodes[newCarId] = { ...car, id: newCarId, parent: newCellId, children: newSlideIds } as Carousel;
+                return newCarId;
+              }
               const el = child as CanvasElement;
               const newElId = newId();
               nodes[newElId] = { ...el, id: newElId, parent: newCellId };
@@ -816,7 +826,7 @@ export function useBuilderStore() {
       const node = s.nodes[nodeId];
       if (!node) return;
       clipped[nodeId] = node;
-      if (isGridCell(node) || isContainer(node)) (node as GridCell | Container).children.forEach(collect);
+      if (isGridCell(node) || isContainer(node) || isCarousel(node)) (node as GridCell | Container | Carousel).children.forEach(collect);
     };
     collect(id);
     cellClipboard.current = { cell: src, nodes: clipped };
@@ -837,9 +847,9 @@ export function useBuilderStore() {
         const node = clip.nodes[oldId];
         if (!node) return '';
         let mid = idMap[oldId];
-        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : newId(); idMap[oldId] = mid; }
-        if (isGridCell(node) || isContainer(node)) {
-          const children = (node as GridCell | Container).children.map(cid => remapNode(cid, mid)).filter(Boolean);
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : newId(); idMap[oldId] = mid; }
+        if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
+          const children = (node as GridCell | Container | Carousel).children.map(cid => remapNode(cid, mid)).filter(Boolean);
           newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
         } else {
           newNodes[mid] = { ...node, id: mid, parent: newParentId } as AnyNode;
@@ -875,9 +885,9 @@ export function useBuilderStore() {
         const node = clip.nodes[oldId];
         if (!node) return '';
         let mid = idMap[oldId];
-        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : newId(); idMap[oldId] = mid; }
-        if (isGridCell(node) || isContainer(node)) {
-          const children = (node as GridCell | Container).children.map(cid => remapNode(cid, mid)).filter(Boolean);
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : newId(); idMap[oldId] = mid; }
+        if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
+          const children = (node as GridCell | Container | Carousel).children.map(cid => remapNode(cid, mid)).filter(Boolean);
           newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
         } else {
           newNodes[mid] = { ...node, id: mid, parent: newParentId } as AnyNode;
@@ -1483,6 +1493,13 @@ export function useBuilderStore() {
         nodes[newBlockId] = { ...block, id: newBlockId, parent: newCellId, children: newSubIds } as Container;
         return newBlockId;
       }
+      if (child.type === 'carousel') {
+        const car = child as Carousel;
+        const newCarId = newCarouselId();
+        const newSlideIds = car.children.map(slideId => deepCloneSlide(nodes, slideId, newCarId)).filter(Boolean);
+        nodes[newCarId] = { ...car, id: newCarId, parent: newCellId, children: newSlideIds } as Carousel;
+        return newCarId;
+      }
       const el = child as CanvasElement;
       const newElId = newId();
       nodes[newElId] = { ...el, id: newElId, parent: newCellId };
@@ -1492,15 +1509,25 @@ export function useBuilderStore() {
     return newCellId;
   };
 
-  // Insert a carousel (with N placeholder slides) into a section.
-  const addCarousel = useCallback((sectionId?: string, dropX?: number, dropY?: number) => {
+  // Insert a carousel (with N placeholder slides). `targetId` may name a free
+  // Section (the carousel becomes a free-positioned section child) OR a GridCell
+  // (the carousel flows inside the cell, just like a form element). When omitted,
+  // a selected grid cell wins over the selected section — mirroring addElement.
+  const addCarousel = useCallback((targetId?: string, dropX?: number, dropY?: number) => {
     const s = stateRef.current;
     const page = getActivePage(s);
-    const targetSectionId = sectionId ?? selectedSectionId ?? page.sections[0];
-    if (!targetSectionId) return;
-    const sec = s.nodes[targetSectionId];
-    // Carousels only live in free sections (grid sections hold cells, not free children)
-    if (!sec || !isFreeSection(sec)) return;
+
+    // Resolve the parent: explicit cell/section, else selected cell, else selected section.
+    const gcId = selectedGridCellIdRef.current;
+    let parentId = targetId;
+    if (!parentId) parentId = (gcId && isGridCell(s.nodes[gcId])) ? gcId : (selectedSectionId ?? page.sections[0]);
+    if (!parentId) return;
+
+    const parent = s.nodes[parentId];
+    if (!parent) return;
+    const intoCell = isGridCell(parent);
+    // Section target must be a free section; grid sections hold cells, not free children.
+    if (!intoCell && !isFreeSection(parent)) return;
 
     const carouselId = newCarouselId();
     const slideIds: string[] = [];
@@ -1514,20 +1541,29 @@ export function useBuilderStore() {
       newNodes[img.id] = img;
       slideIds.push(slideId);
     }
-    const carousel = makeCarousel(carouselId, targetSectionId, dropX, dropY);
+    const carousel = makeCarousel(carouselId, parentId, dropX, dropY);
     carousel.children = slideIds;
     newNodes[carouselId] = carousel;
 
     push(s);
     setState(prev => {
-      const section = prev.nodes[targetSectionId];
-      if (!section || !isFreeSection(section)) return prev;
-      const children = [...section.children, carouselId];
-      return { ...prev, nodes: { ...prev.nodes, ...newNodes, [targetSectionId]: { ...section, children } } };
+      const p = prev.nodes[parentId!];
+      if (!p) return prev;
+      if (intoCell) {
+        if (!isGridCell(p)) return prev;
+        return { ...prev, nodes: { ...prev.nodes, ...newNodes, [parentId!]: { ...p, children: [...p.children, carouselId] } } };
+      }
+      if (!isFreeSection(p)) return prev;
+      return { ...prev, nodes: { ...prev.nodes, ...newNodes, [parentId!]: { ...p, children: [...p.children, carouselId] } } };
     });
-    setSelectedSectionId(targetSectionId);
+    if (intoCell) {
+      // Keep the cell selected so the carousel lands visibly inside it.
+      setSelectedGridCellId(parentId);
+    } else {
+      setSelectedSectionId(parentId);
+      setSelectedGridCellId(null);
+    }
     setSelectedIds([]);
-    setSelectedGridCellId(null);
     return carouselId;
   }, [push, selectedSectionId]);
 
@@ -1544,12 +1580,15 @@ export function useBuilderStore() {
   }, []);
 
   // Set per-breakpoint height/minHeight on a carousel (desktop writes layout directly).
-  const updateCarouselResponsive = useCallback((id: string, bp: Breakpoint, updates: { height?: number; minHeight?: number; hidden?: boolean }) => {
+  const updateCarouselResponsive = useCallback((id: string, bp: Breakpoint, updates: CarouselBpOverride) => {
     setState(s => {
       const node = s.nodes[id];
       if (!node || !isCarousel(node)) return s;
       if (bp === 'desktop' || bp === 'large-desktop') {
         const layout = { ...node.layout };
+        if (updates.x !== undefined) layout.x = updates.x;
+        if (updates.y !== undefined) layout.y = updates.y;
+        if (updates.width !== undefined) layout.width = updates.width;
         if (updates.height !== undefined) layout.height = updates.height;
         if (updates.minHeight !== undefined) layout.minHeight = updates.minHeight;
         return { ...s, nodes: { ...s.nodes, [id]: { ...node, layout } } };

@@ -717,6 +717,7 @@ export default function App() {
               onAddSlide={addSlide}
               onAddCarousel={handleAddCarousel}
               onUpdateCarousel={updateCarousel}
+              onUpdateCarouselResponsive={updateCarouselResponsive}
               zoom={zoom}
               canvasDisplayWidth={breakpoint === 'desktop' ? screenWidth : undefined}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}

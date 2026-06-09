@@ -130,6 +130,13 @@ function SectionGroup({
             return cs + (sub ? countCellElements(sub) : 0);
           }, 0);
         }
+        if (child.type === 'carousel') {
+          const car = child as Carousel;
+          return sum + car.children.reduce((cs, slideId) => {
+            const slide = nodes[slideId] as GridCell | undefined;
+            return cs + (slide ? countCellElements(slide) : 0);
+          }, 0);
+        }
         return sum + 1;
       }, 0);
     }
@@ -205,6 +212,25 @@ function SectionGroup({
                     <span className={'pb-layer-section-count'}>{containerElCount}</span>
                   </div>
                   {subCells.map((sub: GridCell, si: number) => renderCellLayer(sub, si, depth + 1))}
+                </div>
+              );
+            }
+            if (child.type === 'carousel') {
+              const carousel = child as Carousel;
+              const isCarSelected = selectedCarouselId === carousel.id;
+              const slides = carousel.children.map(id => nodes[id] as GridCell | undefined).filter((c): c is GridCell => !!c);
+              return (
+                <div key={carousel.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
+                  <div
+                    className={['pb-layer-grid-cell-header', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    style={{ paddingLeft: 8 }}
+                    onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
+                  >
+                    <span className={'pb-layer-column-icon'}>▦</span>
+                    <span className={'pb-layer-column-label'}>Carousel</span>
+                    <span className={'pb-layer-section-count'}>{slides.length}</span>
+                  </div>
+                  {slides.map((slide, si) => renderCellLayer(slide, si, depth + 1))}
                 </div>
               );
             }
