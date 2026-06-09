@@ -4,7 +4,7 @@ import { canvasDragShared } from './CanvasElement';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  Carousel, CarouselBpOverride, CarouselLayout, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+  Carousel, CarouselBpOverride, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
 } from '../types';
 
 const RESIZE_DIRS = ['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'] as const;
