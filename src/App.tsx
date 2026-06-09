@@ -79,9 +79,18 @@ export default function App() {
     moveGridElement,
     moveElementToGridCell,
     updatePageLayout,
+    addCarousel,
+    updateCarousel,
+    updateCarouselResponsive,
+    addSlide,
+    deleteSlide,
+    duplicateSlide,
+    reorderSlide,
+    setActiveSlide,
   } = useBuilderStore();
 
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
+  const [selectedCarouselId, setSelectedCarouselId] = useState<string | null>(null);
 
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -120,6 +129,20 @@ export default function App() {
   const selectedContainer = selectedContainerId
     ? (nodes[selectedContainerId] as Container | undefined ?? null)
     : null;
+  const selectedCarousel = selectedCarouselId
+    ? (nodes[selectedCarouselId] as import('./types').Carousel | undefined ?? null)
+    : null;
+
+  const handleAddCarousel = useCallback((sectionId?: string, afterId?: string) => {
+    const id = addCarousel(sectionId, afterId);
+    if (id) {
+      setSelectedCarouselId(id);
+      setSelectedId(null);
+      setSelectedIds([]);
+      setSelectedGridCellId(null);
+      setSelectedContainerId(null);
+    }
+  }, [addCarousel, setSelectedId, setSelectedIds, setSelectedGridCellId]);
   const isInGridCell = selectedElement
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
     : false;
@@ -140,7 +163,7 @@ export default function App() {
 
     const updates = Object.values(nodes)
       .filter((n): n is CanvasElement =>
-        n.type !== 'section' && n.type !== 'grid-cell' && n.type !== 'container')
+        n.type !== 'section' && n.type !== 'grid-cell' && n.type !== 'container' && n.type !== 'carousel')
       .flatMap(el => {
         const elText = el.style.typography.color;
         const elBg   = el.style.background.color ?? '';
@@ -312,6 +335,7 @@ export default function App() {
         if (selectedId) { setSelectedId(null); return; }
         if (selectedContainerId) { setSelectedContainerId(null); return; }
         if (selectedGridCellId) { setSelectedGridCellId(null); return; }
+        if (selectedCarouselId) { setSelectedCarouselId(null); return; }
         if (selectedSectionId) { setSelectedSectionId(null); return; }
         return;
       }
@@ -441,6 +465,7 @@ export default function App() {
         <LeftSidebar
           nodes={nodes}
           onAdd={handleAddElement}
+          onAddCarousel={() => handleAddCarousel()}
           onAddFreeSection={addSection}
           onAddGridSection={columnSpans => addGridSection(undefined, columnSpans)}
           onAddSectionFromTemplate={addSectionFromTemplate}
@@ -449,9 +474,11 @@ export default function App() {
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}
-          onSelect={setSelectedId}
-          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); }}
-          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); }}
+          selectedCarouselId={selectedCarouselId}
+          onSelect={id => { setSelectedId(id); setSelectedCarouselId(null); setSelectedContainerId(null); }}
+          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); setSelectedCarouselId(null); }}
+          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); setSelectedCarouselId(null); }}
+          onSelectCarousel={id => { const c = nodes[id]; setSelectedCarouselId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
           onScrollToElement={scrollCanvasToElement}
           onReorderSection={reorderSection}
           onReorderElement={reorderElement}
@@ -460,7 +487,7 @@ export default function App() {
           header={header}
           sections={sections}
           footer={footer}
-          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
           pages={pages}
           activePageId={activePageId}
           onSetActivePage={setActivePage}
@@ -590,10 +617,10 @@ export default function App() {
               selectedIds={selectedIds}
               selectedSectionId={selectedSectionId}
               selectedGridCellId={selectedGridCellId}
-              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
-              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); } }}
-              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); }}
-              onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
+              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); setSelectedCarouselId(null); } }}
+              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); setSelectedCarouselId(null); }}
+              onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
               onUpdate={updateElement}
               onCommit={pushSnapshot}
               snapshot={state}
@@ -631,7 +658,12 @@ export default function App() {
               onUpdateContainer={updateContainer}
               onAddSubCell={addContainerColumn}
               selectedContainerId={selectedContainerId}
-              onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); }}
+              onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); setSelectedCarouselId(null); }}
+              selectedCarouselId={selectedCarouselId}
+              onSelectCarousel={id => { setSelectedCarouselId(id); setSelectedSectionId(nodes[id] && 'parent' in nodes[id] ? (nodes[id] as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+              onSetActiveSlide={setActiveSlide}
+              onAddSlide={addSlide}
+              onAddCarousel={handleAddCarousel}
               zoom={zoom}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}
               maxWidth={activePage.maxWidth ?? 1200}
@@ -639,10 +671,20 @@ export default function App() {
 
             <RightSidebar
               element={selectedElement}
-              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : selectedSection))}
+              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : (selectedCarousel ? null : selectedSection)))}
               gridCell={selectedGridCell}
               container={selectedContainer}
               onUpdateContainer={updateContainer}
+              carousel={selectedElement || selectedGridCell || selectedContainer ? null : selectedCarousel}
+              onUpdateCarousel={updateCarousel}
+              onUpdateCarouselResponsive={updateCarouselResponsive}
+              onAddSlide={addSlide}
+              onDeleteSlide={deleteSlide}
+              onDuplicateSlide={duplicateSlide}
+              onReorderSlide={reorderSlide}
+              onSetActiveSlide={setActiveSlide}
+              onSelectSlide={id => { setSelectedGridCellId(id); setSelectedCarouselId(null); setSelectedId(null); setSelectedIds([]); }}
+              selectedSlideId={selectedGridCellId}
               nodes={nodes}
               isInGridCell={isInGridCell}
               snapshot={state}

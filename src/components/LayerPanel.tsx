@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
-import type { CanvasElement, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
+import type { CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
 
@@ -23,10 +23,12 @@ interface Props {
   selectedSectionId: string | null;
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
+  selectedCarouselId?: string | null;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
+  onSelectCarousel?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -69,12 +71,14 @@ interface SectionGroupProps {
   selectedIds: string[];
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
+  selectedCarouselId?: string | null;
   isDragOver: boolean;
   isDragging: boolean;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
+  onSelectCarousel?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -86,8 +90,8 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, isDragOver, isDragging,
-  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
+  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, selectedCarouselId, isDragOver, isDragging,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -250,12 +254,68 @@ function SectionGroup({
   // ── Free layout rendering ─────────────────────────────────────────────────
   const elementItems = section.children.slice().reverse()
     .map((id, panelIdx) => {
-      const el = nodes[id] as CanvasElement | undefined;
-      return el ? { el, panelIdx } : null;
+      const node = nodes[id];
+      if (!node || node.type === 'carousel') return null;  // carousels rendered separately below
+      return { el: node as CanvasElement, panelIdx };
     })
     .filter((item): item is { el: CanvasElement; panelIdx: number } => !!item);
   const elements = elementItems.map(item => item.el);
+  const carousels = section.children
+    .map(id => nodes[id])
+    .filter((node): node is Carousel => !!node && node.type === 'carousel');
   const n = section.children.length;
+
+  const renderCarouselLayer = (carousel: Carousel): React.ReactNode => {
+    const slides = carousel.children.map(id => nodes[id] as GridCell | undefined).filter((c): c is GridCell => !!c);
+    const isCarSelected = selectedCarouselId === carousel.id;
+    return (
+      <div key={carousel.id} className={'pb-layer-grid-cell-group'}>
+        <div
+          className={['pb-layer-grid-cell-header', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 }}
+          onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
+        >
+          <span className={'pb-layer-column-icon'}>▦</span>
+          <span className={'pb-layer-column-label'}>Carousel</span>
+          <span className={'pb-layer-section-count'}>{slides.length}</span>
+        </div>
+        {slides.map((slide, si) => {
+          const isSlideSelected = selectedGridCellId === slide.id;
+          const slideEls = slide.children.map(id => nodes[id]).filter(Boolean);
+          return (
+            <div key={slide.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 12 }}>
+              <div
+                className={['pb-layer-grid-cell-header', isSlideSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                style={{ paddingLeft: 8 }}
+                onClick={() => { onSelectSection(section.id); onSelectGridCell(slide.id); }}
+              >
+                <span className={'pb-layer-column-icon'}>▭</span>
+                <span className={'pb-layer-column-label'}>Slide {si + 1}</span>
+                <span className={'pb-layer-section-count'}>{slideEls.length}</span>
+              </div>
+              {slideEls.map(child => {
+                if (!child) return null;
+                const el = child as CanvasElement;
+                const isSelected = selectedIds.includes(el.id);
+                const hidden = el.state?.hidden;
+                return (
+                  <div
+                    key={el.id}
+                    className={['pb-layer-row', 'pb-layer-row--grid-el', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+                    style={{ paddingLeft: 24 }}
+                    onClick={() => { onSelectGridCell(slide.id); onSelectElement(el.id); onScrollToElement?.(el.id); }}
+                  >
+                    <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
+                    <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const cols = section.style.columns;
   const hasColumns = cols.count > 1 && cols.widths.length > 0;
@@ -406,7 +466,7 @@ function SectionGroup({
             if (sectionId !== section.id) onMoveElementToSection(elId, section.id, n);
           }}
         >
-          {elements.length === 0 && (
+          {elements.length === 0 && carousels.length === 0 && (
             <div className={'pb-layer-empty-section'}>Drop element here</div>
           )}
 
@@ -427,6 +487,8 @@ function SectionGroup({
           ) : (
             elementItems.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))
           )}
+
+          {carousels.map(renderCarouselLayer)}
         </div>
       )}
     </div>
@@ -435,8 +497,8 @@ function SectionGroup({
 
 export function LayerPanel({
   header, sections, footer, nodes,
-  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
-  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onScrollToElement,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement,
   onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement,
 }: Props) {
@@ -506,10 +568,12 @@ export function LayerPanel({
     selectedIds,
     selectedGridCellId,
     selectedContainerId,
+    selectedCarouselId,
     onSelectElement,
     onSelectSection,
     onSelectGridCell,
     onSelectContainer,
+    onSelectCarousel,
     onScrollToElement,
     onUpdateElement,
     onReorderElement,

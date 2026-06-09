@@ -1,4 +1,4 @@
-import type { BuilderState, CanvasElement, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import type { BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
 import { sectionBgCssStr } from './sectionStyle';
 import { interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
@@ -48,6 +48,11 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
           const sub = nodes[subCellId] as GridCell | undefined;
           if (sub) collectFromCell(sub);
         }
+      } else if (child.type === 'carousel') {
+        for (const slideId of (child as Carousel).children) {
+          const slide = nodes[slideId] as GridCell | undefined;
+          if (slide) collectFromCell(slide);
+        }
       } else if (child.type !== 'section' && child.type !== 'grid-cell') {
         add((child as CanvasElement).style.typography.family);
       }
@@ -62,8 +67,16 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
       }
     } else {
       for (const elId of sec.children) {
-        const el = nodes[elId] as CanvasElement | undefined;
-        if (el) add(el.style.typography.family);
+        const node = nodes[elId];
+        if (!node) continue;
+        if (node.type === 'carousel') {
+          for (const slideId of (node as Carousel).children) {
+            const slide = nodes[slideId] as GridCell | undefined;
+            if (slide) collectFromCell(slide);
+          }
+        } else {
+          add((node as CanvasElement).style.typography.family);
+        }
       }
     }
   }
@@ -198,7 +211,7 @@ function resolveElementHref(el: CanvasElement): { href: string; target: string; 
 
 function hasSmoothScrollAnywhere(nodes: NodeMap): boolean {
   return Object.values(nodes).some(n => {
-    if (n.type === 'section' || n.type === 'grid-cell' || n.type === 'container') return false;
+    if (n.type === 'section' || n.type === 'grid-cell' || n.type === 'container' || n.type === 'carousel') return false;
     const a = actionOf(n as CanvasElement);
     return !!a && (a.type === 'scroll-to-section' || a.type === 'scroll-to-top') && a.smoothScroll !== false;
   });
@@ -208,6 +221,69 @@ function hasSmoothScrollAnywhere(nodes: NodeMap): boolean {
 // True when the exported page contains at least one form — gates the validation
 // + mailto submit script.
 let HAS_FORM = false;
+
+// True when the exported page contains at least one carousel — gates the slider
+// CSS + the vanilla-JS controller that drives arrows/dots/autoplay/loop.
+let HAS_CAROUSEL = false;
+
+// Base CSS for carousels — emitted once per page when a carousel exists.
+const CAROUSEL_CSS = `
+.crs{position:relative;width:100%;height:var(--crs-h,420px);min-height:var(--crs-min-h,0)}
+.crs-viewport{position:relative;width:100%;height:100%;overflow:hidden}
+.crs-track{display:flex;width:100%;height:100%;transition-property:transform;transition-timing-function:ease}
+.crs-slide{overflow:hidden}
+.crs-slide>*{width:100%;height:100%}
+.crs-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:40px;height:40px;border:none;border-radius:50%;background:rgba(0,0,0,0.45);color:#fff;font-size:24px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s}
+.crs-arrow:hover{background:rgba(0,0,0,0.7)}
+.crs-prev{left:12px}
+.crs-next{right:12px}
+.crs-dots{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);z-index:5;display:flex;gap:8px}
+.crs-dot{width:10px;height:10px;border-radius:50%;border:none;background:rgba(255,255,255,0.55);cursor:pointer;padding:0;transition:background .2s,transform .2s}
+.crs-dot-active{background:#fff;transform:scale(1.2)}
+@media (max-width:${TABLET_W}px){.crs{height:var(--crs-h-tablet,var(--crs-h,420px))}}
+@media (max-width:${MOBILE_BREAK}px){.crs{height:var(--crs-h-mobile,var(--crs-h-tablet,var(--crs-h,420px)))}}
+`;
+
+// Vanilla-JS controller — drives every [data-carousel] on the page. Self-contained,
+// no dependencies; safe to run once on DOMContentLoaded.
+const CAROUSEL_SCRIPT = `<script>
+(function(){
+  function initCarousel(root){
+    var track = root.querySelector('[data-crs-track]');
+    if(!track) return;
+    var slides = track.children;
+    var count = slides.length;
+    if(count === 0) return;
+    var dots = root.querySelectorAll('[data-crs-dot]');
+    var loop = root.getAttribute('data-crs-loop') === '1';
+    var autoplay = root.getAttribute('data-crs-autoplay') === '1';
+    var interval = parseInt(root.getAttribute('data-crs-interval'),10) || 5000;
+    var pauseHover = root.getAttribute('data-crs-pause-hover') === '1';
+    var index = 0, timer = null;
+    function render(){
+      track.style.transform = 'translateX(' + (-index * 100) + '%)';
+      for(var i=0;i<dots.length;i++){ dots[i].classList.toggle('crs-dot-active', i === index); }
+    }
+    function go(i){
+      if(i < 0) i = loop ? count - 1 : 0;
+      if(i >= count) i = loop ? 0 : count - 1;
+      index = i; render();
+    }
+    var prev = root.querySelector('[data-crs-prev]');
+    var next = root.querySelector('[data-crs-next]');
+    if(prev) prev.addEventListener('click', function(){ go(index - 1); restart(); });
+    if(next) next.addEventListener('click', function(){ go(index + 1); restart(); });
+    for(var d=0; d<dots.length; d++){ (function(di){ dots[di].addEventListener('click', function(){ go(di); restart(); }); })(d); }
+    function start(){ if(autoplay && count > 1){ timer = setInterval(function(){ go(index + 1); }, interval); } }
+    function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+    function restart(){ stop(); start(); }
+    if(pauseHover){ root.addEventListener('mouseenter', stop); root.addEventListener('mouseleave', start); }
+    render(); start();
+  }
+  function initAll(){ var list = document.querySelectorAll('[data-carousel]'); for(var i=0;i<list.length;i++){ initCarousel(list[i]); } }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', initAll); } else { initAll(); }
+})();
+</script>`;
 
 // Base CSS for form fields — emitted once per page when a form exists.
 // Half-width fields sit two-per-row on desktop/tablet and stack to full width at
@@ -702,6 +778,59 @@ function renderColumnBgs(sec: Section): string {
   return colDivs ? `<div style="position:absolute;inset:0;pointer-events:none">${colDivs}</div>` : '';
 }
 
+// Render a carousel as a track of slides (each slide is a GridCell). One slide is
+// visible at a time; the controller below handles arrows/dots/autoplay/loop.
+function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
+  HAS_CAROUSEL = true;
+  const p = carousel.props;
+  const slides = carousel.children
+    .map(id => nodes[id] as GridCell | undefined)
+    .filter((c): c is GridCell => !!c);
+
+  const h = carousel.layout.height;
+  const minH = carousel.layout.minHeight;
+  const tabletH = carousel.responsive?.tablet?.height;
+  const mobileH = carousel.responsive?.mobile?.height;
+
+  const slideItems = slides.map(slide =>
+    `<div class="crs-slide" style="flex:0 0 100%;width:100%;height:100%">${renderGridCell(slide, nodes)}</div>`
+  ).join('');
+
+  const arrows = (p.showArrows && slides.length > 1)
+    ? `<button class="crs-arrow crs-prev" aria-label="Previous slide" data-crs-prev>‹</button>
+       <button class="crs-arrow crs-next" aria-label="Next slide" data-crs-next>›</button>`
+    : '';
+
+  const dots = (p.showDots && slides.length > 1)
+    ? `<div class="crs-dots">${slides.map((_, i) => `<button class="crs-dot${i === 0 ? ' crs-dot-active' : ''}" data-crs-dot="${i}" aria-label="Go to slide ${i + 1}"></button>`).join('')}</div>`
+    : '';
+
+  // Responsive height via inline custom properties consumed by the media-query CSS.
+  const heightVars = [
+    `--crs-h:${h}px`,
+    minH ? `--crs-min-h:${minH}px` : '',
+    tabletH ? `--crs-h-tablet:${tabletH}px` : '',
+    mobileH ? `--crs-h-mobile:${mobileH}px` : '',
+  ].filter(Boolean).join(';');
+
+  const dataAttrs = [
+    `data-carousel`,
+    `data-crs-autoplay="${p.autoplay ? 1 : 0}"`,
+    `data-crs-interval="${Math.max(1, p.autoplayInterval) * 1000}"`,
+    `data-crs-loop="${p.loop ? 1 : 0}"`,
+    `data-crs-pause-hover="${p.pauseOnHover ? 1 : 0}"`,
+    `data-crs-duration="${p.transitionDuration ?? 400}"`,
+  ].join(' ');
+
+  return `<div class="crs crs-${carousel.id}" ${dataAttrs} style="${heightVars}">
+    <div class="crs-viewport">
+      <div class="crs-track" data-crs-track style="transition-duration:${p.transitionDuration ?? 400}ms">${slideItems}</div>
+      ${arrows}
+      ${dots}
+    </div>
+  </div>`;
+}
+
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
 
@@ -713,9 +842,11 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   const columnBgs = renderColumnBgs(sec);
 
   const elements = sec.children
-    .map(id => nodes[id] as CanvasElement | undefined)
-    .filter((el): el is CanvasElement => !!el)
-    .map(renderElement)
+    .map(id => nodes[id])
+    .filter(Boolean)
+    .map(node => node!.type === 'carousel'
+      ? renderCarousel(node as Carousel, nodes)
+      : renderElement(node as CanvasElement))
     .join('\n      ');
 
   const freePad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
@@ -1020,8 +1151,18 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
     }
 
     for (const elId of sec.children) {
-      const el = nodes[elId] as CanvasElement | undefined;
-      if (!el || el.state.hidden) continue;
+      const node = nodes[elId];
+      if (!node) continue;
+      // Carousels: generate CSS for each slide cell (slides are GridCells).
+      if (node.type === 'carousel') {
+        for (const slideId of (node as Carousel).children) {
+          const slide = nodes[slideId] as GridCell | undefined;
+          if (slide) generateCellCSS(slide, nodes, baseRules, tabletRules, mobileRules);
+        }
+        continue;
+      }
+      const el = node as CanvasElement;
+      if (el.state.hidden) continue;
 
       // Desktop base class — position, size, z-index, opacity, transform, shadow, anim vars
       const base: string[] = [
@@ -1209,6 +1350,7 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   // Reset module render state (PAGE_SLUGS for internal-page links, HAS_FORM gate).
   PAGE_SLUGS = Object.fromEntries(state.pages.map((p: Page) => [p.id, p.slug]));
   HAS_FORM = false;
+  HAS_CAROUSEL = false;
 
   const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
   const pageMaxWidth = page.maxWidth ?? 1200;
@@ -1221,6 +1363,8 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   const sectionsHtml = sections.map(sec => renderSection(sec, nodes, pageFixed, pageMaxWidth)).join('\n');
   const formScript = HAS_FORM ? FORM_SUBMIT_SCRIPT : '';
   const formCss = HAS_FORM ? FORM_BASE_CSS : '';
+  const carouselScript = HAS_CAROUSEL ? CAROUSEL_SCRIPT : '';
+  const carouselCss = HAS_CAROUSEL ? CAROUSEL_CSS : '';
   const elementCss = generateElementCSS(sections, nodes);
   const smoothScrollCss = hasSmoothScrollAnywhere(nodes) ? 'html{scroll-behavior:smooth}' : '';
 
@@ -1250,6 +1394,7 @@ ${fontLinks}
     ${smoothScrollCss}
     ${ANIM_CSS}
     ${formCss}
+    ${carouselCss}
     ${elementCss}
   </style>
 </head>
@@ -1257,6 +1402,7 @@ ${fontLinks}
 ${sectionsHtml}
 ${SCROLL_ANIM_SCRIPT}
 ${formScript}
+${carouselScript}
 </body>
 </html>`;
 }

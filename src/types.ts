@@ -411,9 +411,58 @@ export interface Container {
   responsive?: ContainerResponsive;
 }
 
+// ── Carousel — slide container that lives in a Section ───────────────────
+// A Carousel sits in a Section's children (parallel to a free element).
+// Its children are GridCell nodes acting as slides — reusing ALL grid-cell
+// behaviour (drop, style, responsive, copy/paste, clone, delete, layers).
+// Only one slide is shown at a time; the rest are Phase-2 surface area.
+
+export type CarouselTransition = 'slide' | 'fade';  // Phase 1 uses 'slide'; 'fade' reserved for Phase 2
+
+export interface CarouselProps {
+  autoplay: boolean;
+  /** seconds between auto-advances when autoplay is on */
+  autoplayInterval: number;
+  loop: boolean;
+  showArrows: boolean;
+  showDots: boolean;
+  // ── Phase 2 surface (optional, defaulted on read so old data stays valid) ──
+  /** transition style — Phase 1 only renders 'slide' */
+  transition?: CarouselTransition;
+  /** transition duration in ms */
+  transitionDuration?: number;
+  /** slides visible at once — Phase 1 is always 1 */
+  slidesPerView?: number;
+  /** pause autoplay while the pointer is over the carousel */
+  pauseOnHover?: boolean;
+}
+
+export interface CarouselResponsive {
+  tablet?: { height?: number; minHeight?: number; hidden?: boolean };
+  mobile?: { height?: number; minHeight?: number; hidden?: boolean };
+}
+
+export interface CarouselLayout {
+  /** fixed content height in px; width always follows the parent container */
+  height: number;
+  minHeight?: number;
+}
+
+export interface Carousel {
+  id: string;
+  type: 'carousel';
+  parent: string;      // parent Section ID
+  children: string[];  // GridCell IDs — each one is a slide
+  props: CarouselProps;
+  layout: CarouselLayout;
+  responsive?: CarouselResponsive;
+  /** editor-only: index of the slide currently shown on the canvas (not exported) */
+  activeSlide?: number;
+}
+
 // ── Nodes flat map ─────────────────────────────────────────────────────
 
-export type AnyNode = Section | GridCell | CanvasElement | Container;
+export type AnyNode = Section | GridCell | CanvasElement | Container | Carousel;
 export type NodeMap = Record<string, AnyNode>;
 
 // ── Page ───────────────────────────────────────────────────────────────

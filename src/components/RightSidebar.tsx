@@ -1,11 +1,12 @@
 import type {
-  Breakpoint, CanvasElement, BuilderState, Container, Section, SectionUpdate, GridCell,
+  Breakpoint, CanvasElement, BuilderState, Carousel, Container, Section, SectionUpdate, GridCell,
   BreakpointOverride, NodeMap, Page, SiteTheme,
 } from '../types';
 import { GridCellPanel } from './panels/GridCellPanel';
 import { SectionPanel } from './panels/SectionPanel';
 import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
+import { CarouselPanel } from './panels/CarouselPanel';
 
 interface Props {
   element: CanvasElement | null;
@@ -23,6 +24,16 @@ interface Props {
   onDelete: (id: string) => void;
   container?: Container | null;
   onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
+  carousel?: Carousel | null;
+  onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
+  onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: { height?: number; minHeight?: number; hidden?: boolean }) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onDeleteSlide?: (slideId: string) => void;
+  onDuplicateSlide?: (slideId: string) => void;
+  onReorderSlide?: (carouselId: string, fromIndex: number, toIndex: number) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onSelectSlide?: (slideId: string) => void;
+  selectedSlideId?: string | null;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   theme: SiteTheme;
@@ -36,9 +47,33 @@ export function RightSidebar({
   onAddGridCell,
   onPushSnapshot, onDelete,
   container, onUpdateContainer,
+  carousel, onUpdateCarousel, onUpdateCarouselResponsive,
+  onAddSlide, onDeleteSlide, onDuplicateSlide, onReorderSlide, onSetActiveSlide, onSelectSlide, selectedSlideId,
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
 }: Props) {
+  if (!element && carousel && onUpdateCarousel && onUpdateCarouselResponsive
+      && onAddSlide && onDeleteSlide && onDuplicateSlide && onReorderSlide && onSetActiveSlide && onSelectSlide) {
+    return (
+      <CarouselPanel
+        carousel={carousel}
+        nodes={nodes}
+        snapshot={snapshot}
+        breakpoint={breakpoint}
+        selectedSlideId={selectedSlideId}
+        onUpdateCarousel={onUpdateCarousel}
+        onUpdateCarouselResponsive={onUpdateCarouselResponsive}
+        onAddSlide={onAddSlide}
+        onDeleteSlide={onDeleteSlide}
+        onDuplicateSlide={onDuplicateSlide}
+        onReorderSlide={onReorderSlide}
+        onSetActiveSlide={onSetActiveSlide}
+        onSelectSlide={onSelectSlide}
+        onPushSnapshot={onPushSnapshot}
+      />
+    );
+  }
+
   if (!element && container && onUpdateContainer) {
     return (
       <aside className={'pb-right-sidebar'}>

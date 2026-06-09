@@ -1,7 +1,8 @@
-import type { AnyNode, CanvasElement, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { AnyNode, CanvasElement, Carousel, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
   DEFAULT_ANIMATION, DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
+  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT,
   interactionToAction,
 } from './builderDefaults';
 
@@ -121,6 +122,20 @@ export function sparsifyNode(node: AnyNode): Obj {
     return result;
   }
 
+  if (node.type === 'carousel') {
+    const c = node as Carousel;
+    const out: Obj = {
+      id: c.id, type: 'carousel', parent: c.parent, children: c.children,
+    };
+    const sp = sparsifyVal(c.props, DEFAULT_CAROUSEL_PROPS);
+    if (sp !== undefined) out.props = sp;
+    const sl = sparsifyVal(c.layout, { height: DEFAULT_CAROUSEL_HEIGHT });
+    if (sl !== undefined) out.layout = sl;
+    if (c.responsive && (c.responsive.tablet || c.responsive.mobile)) out.responsive = c.responsive;
+    // activeSlide is editor-only — never persisted (export/reload starts at 0)
+    return out;
+  }
+
   // CanvasElement
   const el = node as CanvasElement;
   const out: Obj = { id: el.id, type: el.type, parent: el.parent };
@@ -164,6 +179,18 @@ export function hydrateNode(raw: Obj): AnyNode {
       children: (raw.children as string[]) ?? [],
       responsive: raw.responsive ?? {},
     } as AnyNode;
+  }
+
+  if (raw.type === 'carousel') {
+    const c: Carousel = {
+      id: raw.id as string, type: 'carousel', parent: raw.parent as string,
+      children: (raw.children as string[]) ?? [],
+      props: { ...DEFAULT_CAROUSEL_PROPS, ...(raw.props as object ?? {}) },
+      layout: { height: DEFAULT_CAROUSEL_HEIGHT, ...(raw.layout as object ?? {}) },
+      activeSlide: 0,
+    };
+    if (raw.responsive) c.responsive = raw.responsive as Carousel['responsive'];
+    return c;
   }
 
   if (raw.type === 'container' || raw.type === 'columns') {

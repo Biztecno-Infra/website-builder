@@ -12,6 +12,11 @@ export const DND_TYPE = 'PALETTE_ITEM';
 export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
 export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
+export const CAROUSEL_DND_TYPE = 'CAROUSEL_ITEM';
+
+// Feature flag: temporarily hide the Carousel element from the left palette.
+// Flip to `true` to show it again.
+export const SHOW_CAROUSEL = false;
 
 export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 
@@ -121,6 +126,29 @@ function PaletteItem({ type, icon, label, onAdd }: PaletteItemProps) {
   );
 }
 
+// Carousel is a section-level band (not a CanvasElement), so it gets its own
+// palette item + drag type rather than being squeezed into ElementType.
+function CarouselPaletteItem({ onAdd }: { onAdd: () => void }) {
+  const [{ isDragging }, dragRef] = useDrag<{ kind: 'carousel' }, void, { isDragging: boolean }>({
+    type: CAROUSEL_DND_TYPE,
+    item: { kind: 'carousel' },
+    collect: monitor => ({ isDragging: monitor.isDragging() }),
+  });
+  return (
+    <button
+      ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
+      className={'pb-palette-item'}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+      onClick={onAdd}
+      title="Add Carousel — drag onto a section or click to add"
+    >
+      <span className={'pb-palette-icon'}>▦</span>
+      <span className={'pb-palette-label'}>Carousel</span>
+      <span className={'pb-palette-drag-icon'}>⠿</span>
+    </button>
+  );
+}
+
 function TemplateCard({ tpl, onAdd }: {
   tpl: SectionTemplate;
   onAdd: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
@@ -162,6 +190,7 @@ const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
 
 interface Props {
   onAdd: (type: ElementType) => void;
+  onAddCarousel: () => void;
   onAddFreeSection: () => void;
   onAddGridSection: (columnSpans: number[]) => void;
   onAddSectionFromTemplate: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
@@ -170,9 +199,11 @@ interface Props {
   selectedSectionId: string | null;
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
+  selectedCarouselId?: string | null;
   onSelect: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
+  onSelectCarousel?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -202,9 +233,9 @@ const MAX_WIDTH = 520;
 const DEFAULT_WIDTH = 268; // 16.8rem
 
 export function LeftSidebar({
-  onAdd, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
-  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
-  onSelect, onSelectGridCell, onSelectContainer, onScrollToElement,
+  onAdd, onAddCarousel, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId,
+  onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement,
   onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
@@ -268,6 +299,7 @@ export function LeftSidebar({
             {PALETTE.map(item => (
               <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
             ))}
+            {SHOW_CAROUSEL && <CarouselPaletteItem onAdd={onAddCarousel} />}
           </div>
 
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Grid Layouts</div>
@@ -339,10 +371,12 @@ export function LeftSidebar({
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}
+          selectedCarouselId={selectedCarouselId}
           onSelectElement={onSelect}
           onSelectSection={onSelectSection}
           onSelectGridCell={onSelectGridCell}
           onSelectContainer={onSelectContainer}
+          onSelectCarousel={onSelectCarousel}
           onScrollToElement={onScrollToElement}
           onReorderSection={onReorderSection}
           onReorderElement={onReorderElement}
