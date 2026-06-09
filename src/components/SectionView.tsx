@@ -5,9 +5,10 @@ import { CanvasElement, canvasDragShared } from './CanvasElement';
 import type { GuideLine, DragInfo } from './CanvasElement';
 import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
-import { DND_TYPE, LAYOUT_DND_TYPE } from './LeftSidebar';
+import { CarouselView } from './CarouselView';
+import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
-import type { Breakpoint, BreakpointOverride, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 
@@ -43,6 +44,8 @@ interface Props {
   onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
+  onCopySection?: () => void;
+  onPasteSection?: () => void;
   onCopyGridCell?: (id: string) => void;
   onPasteGridCell?: (sectionId: string, afterCellId?: string) => void;
   onPasteIntoGridCell?: (cellId: string) => void;
@@ -67,6 +70,12 @@ interface Props {
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
   pageLayoutWidth?: 'fixed' | 'fluid';
+  // Carousel
+  selectedCarouselId?: string | null;
+  onSelectCarousel?: (id: string) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onAddCarousel?: (sectionId: string, afterId?: string) => void;
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -104,13 +113,20 @@ function FreeSectionView({
   onUpdateElement,
   onCommit, snapshot, snapEnabled, onContextMenu,
   onDrop, onUpdateSection, onMoveElementToSection,
-  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onCopyGridCell: _onCopyGridCell, onPasteGridCell: _onPasteGridCell, onPasteIntoGridCell: _onPasteIntoGridCell, hasCellClipboard: _hasCellClipboard, onMoveSectionUp, onMoveSectionDown,
+  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onCopySection, onPasteSection, onCopyGridCell: _onCopyGridCell, onPasteGridCell: _onPasteGridCell, onPasteIntoGridCell: _onPasteIntoGridCell, hasCellClipboard: _hasCellClipboard, onMoveSectionUp, onMoveSectionDown,
   onPromoteSection,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
   isDragOverTarget = false,
   onDropGridLayout,
+  // grid-cell pipeline (used by carousel slides)
+  selectedGridCellId, onSelectGridCell, onUpdateGridCell, onDeleteGridCell, onAddElementToCell,
+  onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
+  selectedContainerId, onSelectContainer,
+  // carousel
+  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel,
+  dragOverGridCellId,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -131,11 +147,21 @@ function FreeSectionView({
     breakpoint === 'mobile' ? (section.responsive?.mobile?.height ?? section.responsive?.tablet?.height ?? section.layout.height) :
     breakpoint === 'tablet' ? (section.responsive?.tablet?.height ?? section.layout.height) :
     section.layout.height;
-  const sectionElements = section.children.map(id => nodes[id] as El | undefined).filter((el): el is El => !!el);
+  const sectionElements = section.children
+    .map(id => nodes[id])
+    .filter((n): n is El => !!n && n.type !== 'carousel') as El[];
+  const sectionCarousels = section.children
+    .map(id => nodes[id])
+    .filter((n): n is Carousel => !!n && n.type === 'carousel');
 
   const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
-    accept: [DND_TYPE, GRID_EL_DND_TYPE],
+    accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE],
     drop: (item, monitor) => {
+      if (monitor.didDrop()) return;
+      if (item?.kind === 'carousel') {
+        onAddCarousel?.(section.id);
+        return;
+      }
       const offset = monitor.getClientOffset();
       if (!offset || !surfaceRef.current) return;
       const rect = surfaceRef.current.getBoundingClientRect();
@@ -272,8 +298,10 @@ function FreeSectionView({
         const mx = Math.min(startX, ex), my = Math.min(startY, ey);
         const mw = Math.abs(ex - startX), mh = Math.abs(ey - startY);
         const ids = section.children.filter(id => {
-          const el = nodes[id] as El | undefined;
-          return el && !el.state.hidden
+          const node = nodes[id];
+          if (!node || node.type === 'carousel') return false;  // carousels aren't marquee-selectable
+          const el = node as El;
+          return !el.state.hidden
             && el.layout.x < mx + mw && el.layout.x + el.layout.width > mx
             && el.layout.y < my + mh && el.layout.y + el.layout.height > my;
         });
@@ -456,8 +484,9 @@ function FreeSectionView({
           )}
 
           {section.children.map(id => {
-            const rawEl = nodes[id] as El | undefined;
-            if (!rawEl) return null;
+            const node = nodes[id];
+            if (!node || node.type === 'carousel') return null;  // carousels render in the band layer below
+            const rawEl = node as El;
             const scale = canvasWidth / CANVAS_W;
             const el = applyBreakpoint(rawEl, breakpoint, scale);
             if (el.state.hidden) return null;
@@ -500,6 +529,48 @@ function FreeSectionView({
               />
             );
           })}
+
+          {/* Carousel band layer — full-width blocks stacked at the top of the surface */}
+          {sectionCarousels.length > 0 && (
+            <div className={'pb-carousel-band-layer'} style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
+              {sectionCarousels.map(car => (
+                <CarouselView
+                  key={car.id}
+                  carousel={car}
+                  nodes={nodes}
+                  isSelected={selectedCarouselId === car.id}
+                  selectedId={selectedId}
+                  selectedGridCellId={selectedGridCellId}
+                  selectedContainerId={selectedContainerId}
+                  previewMode={previewMode}
+                  breakpoint={breakpoint}
+                  canvasWidth={canvasWidth}
+                  onSelectCarousel={() => onSelectCarousel?.(car.id)}
+                  onSelectGridCell={onSelectGridCell}
+                  onSelectElement={onSelectElement}
+                  onSelectContainer={onSelectContainer}
+                  onSetActiveSlide={onSetActiveSlide ?? (() => {})}
+                  onAddSlide={onAddSlide ?? (() => {})}
+                  onUpdateElement={onUpdateElement}
+                  onUpdateGridCell={onUpdateGridCell}
+                  onDeleteGridCell={onDeleteGridCell}
+                  onAddElementToCell={onAddElementToCell}
+                  onMoveGridElement={onMoveGridElement}
+                  onReorderGridCell={onReorderGridCell}
+                  onRemoveColumnsBlock={onRemoveColumnsBlock}
+                  onAddContainer={onAddContainer}
+                  onUpdateContainer={onUpdateContainer}
+                  onAddSubCell={onAddSubCell}
+                  onCommit={onCommit}
+                  snapshot={snapshot}
+                  onUpdateResponsive={onUpdateResponsive}
+                  onDuplicateElement={onDuplicateElement}
+                  onDeleteElement={onDeleteElement}
+                  dragOverGridCellId={dragOverGridCellId}
+                />
+              ))}
+            </div>
+          )}
 
           {section.children.length === 0 && !previewMode && (
             <div className={'pb-section-empty'}>

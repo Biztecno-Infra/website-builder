@@ -1,5 +1,5 @@
 import type {
-  ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
+  CarouselProps, ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
   ElementStyle, FlexItemLayout, FormField, GridCellStyle, Padding, SectionBackground,
   SiteTheme, TextTransform,
 } from '../types';
@@ -72,6 +72,26 @@ export const DEFAULT_FLEX_LAYOUT: FlexItemLayout = {
   flexGrow: 0,
   alignSelf: 'auto',
 };
+
+// Default behaviour for a freshly-dropped Carousel. Phase-2 fields are
+// included so old/new data shares one shape and never needs migration.
+export const DEFAULT_CAROUSEL_PROPS: CarouselProps = {
+  autoplay: false,
+  autoplayInterval: 5,
+  loop: true,
+  showArrows: true,
+  showDots: true,
+  transition: 'slide',
+  transitionDuration: 400,
+  slidesPerView: 1,
+  pauseOnHover: true,
+};
+
+/** Default visible height (px) of a carousel band. */
+export const DEFAULT_CAROUSEL_HEIGHT = 420;
+
+/** Number of slides created when a carousel is first dropped. */
+export const DEFAULT_CAROUSEL_SLIDE_COUNT = 3;
 
 export const DEFAULT_GRID_CELL_STYLE: GridCellStyle = {
   layoutMode: 'column',

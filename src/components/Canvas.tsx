@@ -66,6 +66,11 @@ interface Props {
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
   onSelectContainer?: (id: string) => void;
+  selectedCarouselId?: string | null;
+  onSelectCarousel?: (id: string) => void;
+  onSetActiveSlide?: (carouselId: string, index: number) => void;
+  onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
+  onAddCarousel?: (sectionId: string, afterId?: string) => void;
   zoom?: number;
   layoutWidth?: 'fixed' | 'fluid';
   maxWidth?: number;
@@ -88,6 +93,7 @@ export function Canvas({
   onMoveGridElement, onReorderGridCell,
   onDropGridLayout, onDropTemplate, onRemoveColumnsBlock, onPromoteSection,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
+  selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel,
   zoom = 1,
   layoutWidth = 'fixed',
   maxWidth = 1200,
@@ -204,6 +210,7 @@ export function Canvas({
     onMoveGridElement, onReorderGridCell,
     onDropGridLayout, onRemoveColumnsBlock,
     onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
+    selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel,
   };
 
   const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };
