@@ -1,5 +1,5 @@
 import type {
-  Breakpoint, CanvasElement, BuilderState, Carousel, Container, Section, SectionUpdate, GridCell,
+  Accordion, AccordionBpOverride, Breakpoint, CanvasElement, BuilderState, Carousel, Container, Section, SectionUpdate, GridCell,
   BreakpointOverride, NodeMap, Page, SiteTheme,
 } from '../types';
 import { GridCellPanel } from './panels/GridCellPanel';
@@ -7,6 +7,7 @@ import { SectionPanel } from './panels/SectionPanel';
 import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
 import { CarouselPanel } from './panels/CarouselPanel';
+import { AccordionPanel } from './panels/AccordionPanel';
 
 interface Props {
   element: CanvasElement | null;
@@ -34,6 +35,16 @@ interface Props {
   onSetActiveSlide?: (carouselId: string, index: number) => void;
   onSelectSlide?: (slideId: string) => void;
   selectedSlideId?: string | null;
+  // Accordion
+  accordion?: Accordion | null;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: AccordionBpOverride) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
+  onDeleteAccordionItem?: (accordionId: string, itemId: string) => void;
+  onDuplicateAccordionItem?: (accordionId: string, itemId: string) => void;
+  onReorderAccordionItem?: (accordionId: string, fromIndex: number, toIndex: number) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onSelectAccordionItemCell?: (cellId: string) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   theme: SiteTheme;
@@ -49,9 +60,32 @@ export function RightSidebar({
   container, onUpdateContainer,
   carousel, onUpdateCarousel, onUpdateCarouselResponsive,
   onAddSlide, onDeleteSlide, onDuplicateSlide, onReorderSlide, onSetActiveSlide, onSelectSlide, selectedSlideId,
+  accordion, onUpdateAccordion, onUpdateAccordionResponsive,
+  onAddAccordionItem, onDeleteAccordionItem, onDuplicateAccordionItem, onReorderAccordionItem, onToggleAccordionItem, onSelectAccordionItemCell,
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
 }: Props) {
+  if (!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
+      && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell) {
+    return (
+      <AccordionPanel
+        accordion={accordion}
+        nodes={nodes}
+        snapshot={snapshot}
+        breakpoint={breakpoint}
+        selectedItemCellId={selectedSlideId}
+        onUpdateAccordion={onUpdateAccordion}
+        onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+        onAddItem={onAddAccordionItem}
+        onDeleteItem={onDeleteAccordionItem}
+        onDuplicateItem={onDuplicateAccordionItem}
+        onReorderItem={onReorderAccordionItem}
+        onToggleItem={onToggleAccordionItem}
+        onSelectItemCell={onSelectAccordionItemCell}
+        onPushSnapshot={onPushSnapshot}
+      />
+    );
+  }
   if (!element && carousel && onUpdateCarousel && onUpdateCarouselResponsive
       && onAddSlide && onDeleteSlide && onDuplicateSlide && onReorderSlide && onSetActiveSlide && onSelectSlide) {
     return (

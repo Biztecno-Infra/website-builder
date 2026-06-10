@@ -77,6 +77,14 @@ interface Props {
   onSetActiveSlide?: (carouselId: string, index: number) => void;
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
   onAddCarouselToCell?: (cellId: string) => void;
+  // Accordion-in-cell support
+  selectedAccordionId?: string | null;
+  onSelectAccordion?: (id: string) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: import('../types').AccordionBpOverride) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
+  onAddAccordionToCell?: (cellId: string) => void;
 }
 
 export function GridSectionView({
@@ -101,6 +109,7 @@ export function GridSectionView({
   onSelectContainer,
   pageLayoutWidth = 'fixed',
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell,
+  selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem, onAddAccordionToCell,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -411,6 +420,13 @@ export function GridSectionView({
                     onAddSlide={onAddSlide}
                     onAddCarouselToCell={onAddCarouselToCell}
                     canvasWidth={canvasWidth}
+                    selectedAccordionId={selectedAccordionId}
+                    onSelectAccordion={onSelectAccordion}
+                    onUpdateAccordion={onUpdateAccordion}
+                    onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+                    onToggleAccordionItem={onToggleAccordionItem}
+                    onAddAccordionItem={onAddAccordionItem}
+                    onAddAccordionToCell={onAddAccordionToCell}
                   />
                 </DraggableCellWrapper>
               );

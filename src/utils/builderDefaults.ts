@@ -1,5 +1,5 @@
 import type {
-  CarouselProps, ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
+  AccordionProps, CarouselProps, ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
   ElementStyle, FlexItemLayout, FormField, GridCellStyle, Padding, SectionBackground,
   SiteTheme, TextTransform,
 } from '../types';
@@ -96,6 +96,27 @@ export const DEFAULT_CAROUSEL_WIDTH = 600;
 
 /** Number of slides created when a carousel is first dropped. */
 export const DEFAULT_CAROUSEL_SLIDE_COUNT = 3;
+
+// ── Accordion defaults ────────────────────────────────────────────────────
+
+/** Default chevron icon (collapsed state). currentColor so it picks up the icon element's color. */
+export const DEFAULT_ACCORDION_ICON_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+export const DEFAULT_ACCORDION_PROPS: AccordionProps = {
+  allowMultiple: false,
+  defaultOpen: 'first',
+  iconPosition: 'right',
+  expandedIconRotation: 180,
+  contentGap: 0,
+  itemGap: 8,
+};
+
+/** Default box width (px) of a freshly-dropped accordion. */
+export const DEFAULT_ACCORDION_WIDTH = 520;
+
+/** Number of items created when an accordion is first dropped. */
+export const DEFAULT_ACCORDION_ITEM_COUNT = 1;
 
 export const DEFAULT_GRID_CELL_STYLE: GridCellStyle = {
   layoutMode: 'column',

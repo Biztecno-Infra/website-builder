@@ -6,9 +6,10 @@ import type { GuideLine, DragInfo } from './CanvasElement';
 import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
 import { CarouselView } from './CarouselView';
-import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE } from './LeftSidebar';
+import { AccordionView } from './AccordionView';
+import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
-import type { Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { Accordion, Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 
@@ -78,6 +79,14 @@ interface Props {
   onAddCarousel?: (sectionId: string, dropX?: number, dropY?: number) => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
   onUpdateCarouselResponsive?: (id: string, bp: Breakpoint, updates: import('../types').CarouselBpOverride) => void;
+  // Accordion
+  selectedAccordionId?: string | null;
+  onSelectAccordion?: (id: string) => void;
+  onAddAccordion?: (sectionId: string, dropX?: number, dropY?: number) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: import('../types').AccordionBpOverride) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
@@ -102,6 +111,7 @@ export function SectionView(props: Props) {
         onAddGridSectionBefore={onAddGridSectionBefore}
         onAddGridSectionAfter={onAddGridSectionAfter}
         onAddCarouselToCell={cellId => rest.onAddCarousel?.(cellId)}
+        onAddAccordionToCell={cellId => rest.onAddAccordion?.(cellId)}
         {...rest}
       />
     );
@@ -129,6 +139,8 @@ function FreeSectionView({
   selectedContainerId, onSelectContainer,
   // carousel
   selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
+  // accordion
+  selectedAccordionId, onSelectAccordion, onAddAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   dragOverGridCellId,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -152,13 +164,16 @@ function FreeSectionView({
     section.layout.height;
   const sectionElements = section.children
     .map(id => nodes[id])
-    .filter((n): n is El => !!n && n.type !== 'carousel') as El[];
+    .filter((n): n is El => !!n && n.type !== 'carousel' && n.type !== 'accordion') as El[];
   const sectionCarousels = section.children
     .map(id => nodes[id])
     .filter((n): n is Carousel => !!n && n.type === 'carousel');
+  const sectionAccordions = section.children
+    .map(id => nodes[id])
+    .filter((n): n is Accordion => !!n && n.type === 'accordion');
 
   const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
-    accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE],
+    accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE],
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
       const offset = monitor.getClientOffset();
@@ -168,6 +183,11 @@ function FreeSectionView({
 
       if (item?.kind === 'carousel') {
         onAddCarousel?.(section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
+        return;
+      }
+
+      if (item?.kind === 'accordion') {
+        onAddAccordion?.(section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
         return;
       }
 
@@ -310,7 +330,7 @@ function FreeSectionView({
         const mw = Math.abs(ex - startX), mh = Math.abs(ey - startY);
         const ids = section.children.filter(id => {
           const node = nodes[id];
-          if (!node || node.type === 'carousel') return false;  // carousels aren't marquee-selectable
+          if (!node || node.type === 'carousel' || node.type === 'accordion') return false;  // carousels/accordions aren't marquee-selectable
           const el = node as El;
           return !el.state.hidden
             && el.layout.x < mx + mw && el.layout.x + el.layout.width > mx
@@ -496,7 +516,7 @@ function FreeSectionView({
 
           {section.children.map(id => {
             const node = nodes[id];
-            if (!node || node.type === 'carousel') return null;  // carousels render in the band layer below
+            if (!node || node.type === 'carousel' || node.type === 'accordion') return null;  // carousels/accordions render in their own layer below
             const rawEl = node as El;
             const scale = canvasWidth / CANVAS_W;
             const el = applyBreakpoint(rawEl, breakpoint, scale);
@@ -562,6 +582,46 @@ function FreeSectionView({
               onSelectContainer={onSelectContainer}
               onSetActiveSlide={onSetActiveSlide ?? (() => {})}
               onAddSlide={onAddSlide ?? (() => {})}
+              onUpdateElement={onUpdateElement}
+              onUpdateGridCell={onUpdateGridCell}
+              onDeleteGridCell={onDeleteGridCell}
+              onAddElementToCell={onAddElementToCell}
+              onMoveGridElement={onMoveGridElement}
+              onReorderGridCell={onReorderGridCell}
+              onRemoveColumnsBlock={onRemoveColumnsBlock}
+              onAddContainer={onAddContainer}
+              onUpdateContainer={onUpdateContainer}
+              onAddSubCell={onAddSubCell}
+              onCommit={onCommit}
+              snapshot={snapshot}
+              onUpdateResponsive={onUpdateResponsive}
+              onDuplicateElement={onDuplicateElement}
+              onDeleteElement={onDeleteElement}
+              dragOverGridCellId={dragOverGridCellId}
+            />
+          ))}
+
+          {/* Accordions — freely positioned stacked-collapsible boxes (like elements) */}
+          {sectionAccordions.map(acc => (
+            <AccordionView
+              key={acc.id}
+              accordion={acc}
+              nodes={nodes}
+              isSelected={selectedAccordionId === acc.id}
+              selectedId={selectedId}
+              selectedGridCellId={selectedGridCellId}
+              selectedContainerId={selectedContainerId}
+              previewMode={previewMode}
+              breakpoint={breakpoint}
+              canvasWidth={canvasWidth}
+              onSelectAccordion={() => onSelectAccordion?.(acc.id)}
+              onUpdateAccordion={onUpdateAccordion}
+              onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+              onToggleAccordionItem={onToggleAccordionItem}
+              onAddAccordionItem={onAddAccordionItem}
+              onSelectGridCell={onSelectGridCell}
+              onSelectElement={onSelectElement}
+              onSelectContainer={onSelectContainer}
               onUpdateElement={onUpdateElement}
               onUpdateGridCell={onUpdateGridCell}
               onDeleteGridCell={onDeleteGridCell}

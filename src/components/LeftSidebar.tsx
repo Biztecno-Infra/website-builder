@@ -13,6 +13,7 @@ export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
 export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
 export const CAROUSEL_DND_TYPE = 'CAROUSEL_ITEM';
+export const ACCORDION_DND_TYPE = 'ACCORDION_ITEM';
 
 export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 
@@ -145,6 +146,29 @@ function CarouselPaletteItem({ onAdd }: { onAdd: () => void }) {
   );
 }
 
+// Accordion is also a section-level container node (not a CanvasElement), so it
+// gets its own palette item + drag type, mirroring the carousel.
+function AccordionPaletteItem({ onAdd }: { onAdd: () => void }) {
+  const [{ isDragging }, dragRef] = useDrag<{ kind: 'accordion' }, void, { isDragging: boolean }>({
+    type: ACCORDION_DND_TYPE,
+    item: { kind: 'accordion' },
+    collect: monitor => ({ isDragging: monitor.isDragging() }),
+  });
+  return (
+    <button
+      ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
+      className={'pb-palette-item'}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+      onClick={onAdd}
+      title="Add Accordion — drag onto a section or click to add"
+    >
+      <span className={'pb-palette-icon'}>☰</span>
+      <span className={'pb-palette-label'}>Accordion</span>
+      <span className={'pb-palette-drag-icon'}>⠿</span>
+    </button>
+  );
+}
+
 function TemplateCard({ tpl, onAdd }: {
   tpl: SectionTemplate;
   onAdd: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
@@ -187,6 +211,7 @@ const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
 interface Props {
   onAdd: (type: ElementType) => void;
   onAddCarousel: () => void;
+  onAddAccordion: () => void;
   onAddFreeSection: () => void;
   onAddGridSection: (columnSpans: number[]) => void;
   onAddSectionFromTemplate: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
@@ -196,10 +221,12 @@ interface Props {
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
   selectedCarouselId?: string | null;
+  selectedAccordionId?: string | null;
   onSelect: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
   onSelectCarousel?: (id: string) => void;
+  onSelectAccordion?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -229,9 +256,9 @@ const MAX_WIDTH = 520;
 const DEFAULT_WIDTH = 268; // 16.8rem
 
 export function LeftSidebar({
-  onAdd, onAddCarousel, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
-  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId,
-  onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement,
+  onAdd, onAddCarousel, onAddAccordion, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
+  onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
@@ -296,6 +323,7 @@ export function LeftSidebar({
               <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
             ))}
             <CarouselPaletteItem onAdd={onAddCarousel} />
+            <AccordionPaletteItem onAdd={onAddAccordion} />
           </div>
 
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Grid Layouts</div>
@@ -368,11 +396,13 @@ export function LeftSidebar({
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}
           selectedCarouselId={selectedCarouselId}
+          selectedAccordionId={selectedAccordionId}
           onSelectElement={onSelect}
           onSelectSection={onSelectSection}
           onSelectGridCell={onSelectGridCell}
           onSelectContainer={onSelectContainer}
           onSelectCarousel={onSelectCarousel}
+          onSelectAccordion={onSelectAccordion}
           onScrollToElement={onScrollToElement}
           onReorderSection={onReorderSection}
           onReorderElement={onReorderElement}

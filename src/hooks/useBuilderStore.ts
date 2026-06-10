@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { interactionToAction } from '../utils/builderDefaults';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
+  Accordion, AccordionBpOverride, AccordionItem, AccordionProps,
   AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
   ColumnStyle, Container, ContainerLayoutMode, ElementLayout, ElementType, FreeSection, GridCell,
   GridSection, NodeMap, Page, Section, SectionRole,
@@ -13,6 +14,7 @@ import {
   DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
   DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH, DEFAULT_CAROUSEL_SLIDE_COUNT,
+  DEFAULT_ACCORDION_PROPS, DEFAULT_ACCORDION_WIDTH, DEFAULT_ACCORDION_ITEM_COUNT, DEFAULT_ACCORDION_ICON_SVG,
   defaultFormFields,
 } from '../utils/builderDefaults';
 
@@ -33,6 +35,8 @@ const newPageId = () => `page_${Date.now()}_${_idCounter++}`;
 const newGridCellId = () => `gc_${Date.now()}_${_idCounter++}`;
 const newColumnsId  = () => `cb_${Date.now()}_${_idCounter++}`;
 const newCarouselId = () => `crs_${Date.now()}_${_idCounter++}`;
+const newAccordionId = () => `acc_${Date.now()}_${_idCounter++}`;
+const newAccordionItemId = () => `acci_${Date.now()}_${_idCounter++}`;
 
 // ── Type guards ────────────────────────────────────────────────────────
 
@@ -42,6 +46,10 @@ function isContainer(node: AnyNode): node is Container {
 
 function isCarousel(node: AnyNode): node is Carousel {
   return node.type === 'carousel';
+}
+
+function isAccordion(node: AnyNode): node is Accordion {
+  return node.type === 'accordion';
 }
 
 // True if the node lives inside a Carousel (its parent chain reaches a carousel
@@ -172,6 +180,8 @@ function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
       }
     } else if (child?.type === 'carousel') {
       removeCarouselNodes(nodes, child as Carousel);
+    } else if (child?.type === 'accordion') {
+      removeAccordionNodes(nodes, child as Accordion);
     }
     delete nodes[childId];
   }
@@ -183,6 +193,120 @@ function removeCarouselNodes(nodes: NodeMap, carousel: Carousel): void {
     const slide = nodes[slideId] as GridCell | undefined;
     if (slide) { removeGridCellNodes(nodes, slide); delete nodes[slideId]; }
   }
+}
+
+// ── Accordion factories ────────────────────────────────────────────────
+// Each item is built from real nodes so it reuses all existing behaviour:
+//   • title  → a 'text' CanvasElement (full typography editing + inline edit)
+//   • icon   → an 'icon' CanvasElement (icon picker, size/color)
+//   • content→ a GridCell (the entire droppable container pipeline)
+// All three are parented to the Accordion id and live in the flat NodeMap.
+
+// The content panel for an item: a GridCell in column layout, full width,
+// behaving exactly like a Section/Container droppable area.
+function makeAccordionContentCell(id: string, accordionId: string): GridCell {
+  return {
+    id, type: 'grid-cell', parent: accordionId,
+    columnSpan: 12,
+    rowSpan: 1,
+    style: {
+      ...DEFAULT_GRID_CELL_STYLE,
+      layoutMode: 'column',
+      alignItems: 'stretch',
+      justifyContent: 'flex-start',
+      padding: { top: 16, right: 16, bottom: 16, left: 16 },
+      background: { ...DEFAULT_BG, overlay: 0 },
+      border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
+      minHeight: 60,
+    },
+    children: [],
+    responsive: {},
+  };
+}
+
+// Build one accordion item plus its three backing nodes, mutating `nodes`.
+// `n` is the 1-based item number used for the default heading text.
+function makeAccordionItem(accordionId: string, n: number, nodes: NodeMap, theme?: SiteTheme): AccordionItem {
+  const titleId = newId();
+  const iconId = newId();
+  const cellId = newGridCellId();
+
+  const tc = theme?.colors ?? DEFAULT_THEME.colors;
+
+  // Title — a text element flowing to fill the header's free space.
+  const titleBase = createDefaultElement('text', 0, accordionId, undefined, undefined, theme);
+  nodes[titleId] = {
+    ...titleBase, id: titleId, parent: accordionId,
+    flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' },
+    style: { ...titleBase.style, typography: { ...titleBase.style.typography, size: 16, weight: '600', color: tc.text } },
+    content: { ...titleBase.content, plain: 'Heading' },
+  };
+
+  // Icon — the chevron, fixed-size, theme-colored, with the default chevron SVG.
+  const iconBase = createDefaultElement('icon', 0, accordionId, undefined, undefined, theme);
+  nodes[iconId] = {
+    ...iconBase, id: iconId, parent: accordionId,
+    layout: { ...iconBase.layout, width: 20, height: 20 },
+    flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 20 },
+    style: { ...iconBase.style, typography: { ...iconBase.style.typography, color: tc.text } },
+    content: { ...iconBase.content, iconSvg: DEFAULT_ACCORDION_ICON_SVG, iconSize: 20 },
+  };
+
+  // Content panel.
+  nodes[cellId] = makeAccordionContentCell(cellId, accordionId);
+
+  void n;
+  return { id: newAccordionItemId(), titleElId: titleId, iconElId: iconId, contentCellId: cellId };
+}
+
+function makeAccordion(id: string, parentId: string, dropX?: number, dropY?: number, props?: Partial<AccordionProps>): Accordion {
+  const x = dropX ?? Math.round(CANVAS_W / 2 - DEFAULT_ACCORDION_WIDTH / 2);
+  const y = dropY ?? 120;
+  return {
+    id, type: 'accordion', parent: parentId,
+    children: [],
+    items: [],
+    props: { ...DEFAULT_ACCORDION_PROPS, ...props },
+    layout: { x, y, width: DEFAULT_ACCORDION_WIDTH, zIndex: 0 },
+    responsive: {},
+    activeItems: [],
+  };
+}
+
+// Recursively delete an accordion: every item's title/icon elements and its
+// content cell (with all nested descendants).
+function removeAccordionNodes(nodes: NodeMap, accordion: Accordion): void {
+  for (const item of accordion.items) {
+    delete nodes[item.titleElId];
+    delete nodes[item.iconElId];
+    const cell = nodes[item.contentCellId] as GridCell | undefined;
+    if (cell) { removeGridCellNodes(nodes, cell); delete nodes[item.contentCellId]; }
+  }
+}
+
+// Deep-clone an accordion (header elements + content cells) into `nodes`,
+// returning the new accordion id. `cloneCell` clones a content GridCell and all
+// its descendants under a new parent (each call site supplies its own cloner so
+// the id-prefix scheme stays consistent). `cloneEl` clones a plain element.
+function cloneAccordionInto(
+  nodes: NodeMap,
+  accordion: Accordion,
+  newParentId: string,
+  cloneCell: (cellId: string, newParentId: string) => string,
+): string {
+  const newAccId = newAccordionId();
+  const newItems: AccordionItem[] = accordion.items.map(item => {
+    const newTitleId = newId();
+    const newIconId = newId();
+    const title = nodes[item.titleElId] as CanvasElement | undefined;
+    const icon = nodes[item.iconElId] as CanvasElement | undefined;
+    if (title) nodes[newTitleId] = { ...title, id: newTitleId, parent: newAccId };
+    if (icon) nodes[newIconId] = { ...icon, id: newIconId, parent: newAccId };
+    const newCellId = cloneCell(item.contentCellId, newAccId);
+    return { id: newAccordionItemId(), titleElId: newTitleId, iconElId: newIconId, contentCellId: newCellId };
+  });
+  nodes[newAccId] = { ...accordion, id: newAccId, parent: newParentId, items: newItems, children: [] };
+  return newAccId;
 }
 
 function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
@@ -210,6 +334,7 @@ function removeNodesForSection(nodes: NodeMap, sec: Section): void {
     for (const childId of sec.children) {
       const child = nodes[childId];
       if (child?.type === 'carousel') removeCarouselNodes(nodes, child as Carousel);
+      else if (child?.type === 'accordion') removeAccordionNodes(nodes, child as Accordion);
       delete nodes[childId];
     }
   }
@@ -560,11 +685,11 @@ export function useBuilderStore() {
         const parent = stateRef.current.nodes[cel.parent];
         if (parent && isGridCell(parent)) {
           setSelectedGridCellId(parent.id);
-          // Walk up through GridCells, Containers AND Carousels until we reach a Section
+          // Walk up through GridCells, Containers, Carousels AND Accordions until we reach a Section
           let ancestorId = parent.parent;
           let ancestor = stateRef.current.nodes[ancestorId];
-          while (ancestor && (isGridCell(ancestor) || isContainer(ancestor) || isCarousel(ancestor))) {
-            ancestorId = (ancestor as GridCell | Container | Carousel).parent;
+          while (ancestor && (isGridCell(ancestor) || isContainer(ancestor) || isCarousel(ancestor) || isAccordion(ancestor))) {
+            ancestorId = (ancestor as GridCell | Container | Carousel | Accordion).parent;
             ancestor = stateRef.current.nodes[ancestorId];
           }
           setSelectedSectionId(ancestorId);
@@ -755,6 +880,10 @@ export function useBuilderStore() {
                 nodes[newCarId] = { ...car, id: newCarId, parent: newCellId, children: newSlideIds } as Carousel;
                 return newCarId;
               }
+              if (child.type === 'accordion') {
+                return cloneAccordionInto(nodes, child as Accordion, newCellId,
+                  (cid, np) => { const c = nodes[cid] as GridCell | undefined; return c ? deepCopyCell(c, np) : ''; });
+              }
               const el = child as CanvasElement;
               const newElId = newId();
               nodes[newElId] = { ...el, id: newElId, parent: newCellId };
@@ -800,6 +929,9 @@ export function useBuilderStore() {
             nodes[newCarId] = { ...car, id: newCarId, parent: newSecId, children: slideIds };
             return newCarId;
           }
+          if (node && node.type === 'accordion') {
+            return cloneAccordionInto(nodes, node as Accordion, newSecId, cloneCell);
+          }
           const newElId = newId();
           const el = node as CanvasElement | undefined;
           if (el) nodes[newElId] = { ...el, id: newElId, parent: newSecId };
@@ -826,6 +958,10 @@ export function useBuilderStore() {
       const node = s.nodes[nodeId];
       if (!node) return;
       clipped[nodeId] = node;
+      if (isAccordion(node)) {
+        for (const item of (node as Accordion).items) { collect(item.titleElId); collect(item.iconElId); collect(item.contentCellId); }
+        return;
+      }
       if (isGridCell(node) || isContainer(node) || isCarousel(node)) (node as GridCell | Container | Carousel).children.forEach(collect);
     };
     collect(id);
@@ -847,8 +983,16 @@ export function useBuilderStore() {
         const node = clip.nodes[oldId];
         if (!node) return '';
         let mid = idMap[oldId];
-        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : newId(); idMap[oldId] = mid; }
-        if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : isAccordion(node) ? newAccordionId() : newId(); idMap[oldId] = mid; }
+        if (isAccordion(node)) {
+          const items = (node as Accordion).items.map(it => ({
+            id: newAccordionItemId(),
+            titleElId: remapNode(it.titleElId, mid),
+            iconElId: remapNode(it.iconElId, mid),
+            contentCellId: remapNode(it.contentCellId, mid),
+          }));
+          newNodes[mid] = { ...node, id: mid, parent: newParentId, items, children: [] } as AnyNode;
+        } else if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
           const children = (node as GridCell | Container | Carousel).children.map(cid => remapNode(cid, mid)).filter(Boolean);
           newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
         } else {
@@ -885,8 +1029,16 @@ export function useBuilderStore() {
         const node = clip.nodes[oldId];
         if (!node) return '';
         let mid = idMap[oldId];
-        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : newId(); idMap[oldId] = mid; }
-        if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
+        if (!mid) { mid = isGridCell(node) ? newGridCellId() : isContainer(node) ? newColumnsId() : isCarousel(node) ? newCarouselId() : isAccordion(node) ? newAccordionId() : newId(); idMap[oldId] = mid; }
+        if (isAccordion(node)) {
+          const items = (node as Accordion).items.map(it => ({
+            id: newAccordionItemId(),
+            titleElId: remapNode(it.titleElId, mid),
+            iconElId: remapNode(it.iconElId, mid),
+            contentCellId: remapNode(it.contentCellId, mid),
+          }));
+          newNodes[mid] = { ...node, id: mid, parent: newParentId, items, children: [] } as AnyNode;
+        } else if (isGridCell(node) || isContainer(node) || isCarousel(node)) {
           const children = (node as GridCell | Container | Carousel).children.map(cid => remapNode(cid, mid)).filter(Boolean);
           newNodes[mid] = { ...node, id: mid, parent: newParentId, children } as AnyNode;
         } else {
@@ -1500,6 +1652,9 @@ export function useBuilderStore() {
         nodes[newCarId] = { ...car, id: newCarId, parent: newCellId, children: newSlideIds } as Carousel;
         return newCarId;
       }
+      if (child.type === 'accordion') {
+        return cloneAccordionInto(nodes, child as Accordion, newCellId, (cid, np) => deepCloneSlide(nodes, cid, np));
+      }
       const el = child as CanvasElement;
       const newElId = newId();
       nodes[newElId] = { ...el, id: newElId, parent: newCellId };
@@ -1682,6 +1837,183 @@ export function useBuilderStore() {
     });
   }, []);
 
+  // ── Accordion ops ──────────────────────────────────────────────────────
+  // An accordion lives in a section's OR grid-cell's children. Each item's
+  // title/icon are CanvasElements and its content panel is a GridCell, so all
+  // header + content editing reuses the existing element + grid-cell pipelines.
+
+  // Insert an accordion (with N default items). `targetId` may name a free
+  // Section or a GridCell; mirrors addCarousel's parent resolution.
+  const addAccordion = useCallback((targetId?: string, dropX?: number, dropY?: number) => {
+    const s = stateRef.current;
+    const page = getActivePage(s);
+
+    const gcId = selectedGridCellIdRef.current;
+    let parentId = targetId;
+    if (!parentId) parentId = (gcId && isGridCell(s.nodes[gcId])) ? gcId : (selectedSectionId ?? page.sections[0]);
+    if (!parentId) return;
+
+    const parent = s.nodes[parentId];
+    if (!parent) return;
+    const intoCell = isGridCell(parent);
+    if (!intoCell && !isFreeSection(parent)) return;
+
+    const accordionId = newAccordionId();
+    const newNodes: NodeMap = {};
+    const items: AccordionItem[] = [];
+    for (let i = 0; i < DEFAULT_ACCORDION_ITEM_COUNT; i++) {
+      items.push(makeAccordionItem(accordionId, i + 1, newNodes, s.theme));
+    }
+    const accordion = makeAccordion(accordionId, parentId, dropX, dropY);
+    accordion.items = items;
+    accordion.activeItems = items.length ? [items[0].id] : [];  // first open by default in editor
+    newNodes[accordionId] = accordion;
+
+    push(s);
+    setState(prev => {
+      const p = prev.nodes[parentId!];
+      if (!p) return prev;
+      if (intoCell) {
+        if (!isGridCell(p)) return prev;
+        return { ...prev, nodes: { ...prev.nodes, ...newNodes, [parentId!]: { ...p, children: [...p.children, accordionId] } } };
+      }
+      if (!isFreeSection(p)) return prev;
+      return { ...prev, nodes: { ...prev.nodes, ...newNodes, [parentId!]: { ...p, children: [...p.children, accordionId] } } };
+    });
+    if (intoCell) setSelectedGridCellId(parentId);
+    else { setSelectedSectionId(parentId); setSelectedGridCellId(null); }
+    setSelectedIds([]);
+    return accordionId;
+  }, [push, selectedSectionId]);
+
+  const updateAccordion = useCallback((id: string, updates: Partial<Omit<Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => {
+    setState(s => {
+      const node = s.nodes[id];
+      if (!node || !isAccordion(node)) return s;
+      const merged: Accordion = { ...node, ...updates };
+      if (updates.props) merged.props = { ...node.props, ...updates.props };
+      if (updates.layout) merged.layout = { ...node.layout, ...updates.layout };
+      if (updates.responsive) merged.responsive = { ...node.responsive, ...updates.responsive };
+      return { ...s, nodes: { ...s.nodes, [id]: merged } };
+    });
+  }, []);
+
+  // Per-breakpoint x/y/width (desktop writes layout directly), mirroring carousel.
+  const updateAccordionResponsive = useCallback((id: string, bp: Breakpoint, updates: AccordionBpOverride) => {
+    setState(s => {
+      const node = s.nodes[id];
+      if (!node || !isAccordion(node)) return s;
+      if (bp === 'desktop' || bp === 'large-desktop') {
+        const layout = { ...node.layout };
+        if (updates.x !== undefined) layout.x = updates.x;
+        if (updates.y !== undefined) layout.y = updates.y;
+        if (updates.width !== undefined) layout.width = updates.width;
+        return { ...s, nodes: { ...s.nodes, [id]: { ...node, layout } } };
+      }
+      const key = bp === 'tablet' ? 'tablet' : 'mobile';
+      const responsive = { ...node.responsive, [key]: { ...node.responsive?.[key], ...updates } };
+      return { ...s, nodes: { ...s.nodes, [id]: { ...node, responsive } } };
+    });
+  }, []);
+
+  const addAccordionItem = useCallback((accordionId: string, afterItemId?: string) => {
+    const s = stateRef.current;
+    const accordion = s.nodes[accordionId] as Accordion | undefined;
+    if (!accordion || !isAccordion(accordion)) return;
+    const newNodes: NodeMap = {};
+    const item = makeAccordionItem(accordionId, accordion.items.length + 1, newNodes, s.theme);
+    push(s);
+    setState(prev => {
+      const a = prev.nodes[accordionId] as Accordion | undefined;
+      if (!a || !isAccordion(a)) return prev;
+      const items = [...a.items];
+      const insertAt = afterItemId ? items.findIndex(it => it.id === afterItemId) + 1 : items.length;
+      items.splice(insertAt > 0 ? insertAt : items.length, 0, item);
+      const activeItems = [...(a.activeItems ?? []), item.id];  // newly added item starts expanded
+      return { ...prev, nodes: { ...prev.nodes, ...newNodes, [accordionId]: { ...a, items, activeItems } } };
+    });
+  }, [push]);
+
+  const deleteAccordionItem = useCallback((accordionId: string, itemId: string) => {
+    const s = stateRef.current;
+    const accordion = s.nodes[accordionId] as Accordion | undefined;
+    if (!accordion || !isAccordion(accordion)) return;
+    if (accordion.items.length <= 1) return;  // keep at least one item
+    push(s);
+    setState(prev => {
+      const a = prev.nodes[accordionId] as Accordion | undefined;
+      if (!a || !isAccordion(a)) return prev;
+      const item = a.items.find(it => it.id === itemId);
+      if (!item) return prev;
+      const nodes = { ...prev.nodes };
+      delete nodes[item.titleElId];
+      delete nodes[item.iconElId];
+      const cell = nodes[item.contentCellId] as GridCell | undefined;
+      if (cell) { removeGridCellNodes(nodes, cell); delete nodes[item.contentCellId]; }
+      const items = a.items.filter(it => it.id !== itemId);
+      const activeItems = (a.activeItems ?? []).filter(id => id !== itemId);
+      nodes[accordionId] = { ...a, items, activeItems };
+      return { ...prev, nodes };
+    });
+  }, [push]);
+
+  const duplicateAccordionItem = useCallback((accordionId: string, itemId: string) => {
+    const s = stateRef.current;
+    const accordion = s.nodes[accordionId] as Accordion | undefined;
+    if (!accordion || !isAccordion(accordion)) return;
+    push(s);
+    setState(prev => {
+      const a = prev.nodes[accordionId] as Accordion | undefined;
+      if (!a || !isAccordion(a)) return prev;
+      const item = a.items.find(it => it.id === itemId);
+      if (!item) return prev;
+      const nodes = { ...prev.nodes };
+      // Clone the three backing nodes.
+      const title = nodes[item.titleElId] as CanvasElement | undefined;
+      const icon = nodes[item.iconElId] as CanvasElement | undefined;
+      const newTitleId = newId(), newIconId = newId();
+      if (title) nodes[newTitleId] = { ...title, id: newTitleId, parent: accordionId };
+      if (icon) nodes[newIconId] = { ...icon, id: newIconId, parent: accordionId };
+      const newCellId = deepCloneSlide(nodes, item.contentCellId, accordionId);
+      const newItem: AccordionItem = { id: newAccordionItemId(), titleElId: newTitleId, iconElId: newIconId, contentCellId: newCellId };
+      const items = [...a.items];
+      items.splice(items.findIndex(it => it.id === itemId) + 1, 0, newItem);
+      const activeItems = [...(a.activeItems ?? []), newItem.id];
+      nodes[accordionId] = { ...a, items, activeItems };
+      return { ...prev, nodes };
+    });
+  }, [push]);
+
+  const reorderAccordionItem = useCallback((accordionId: string, fromIndex: number, toIndex: number) => {
+    push(stateRef.current);
+    setState(prev => {
+      const a = prev.nodes[accordionId] as Accordion | undefined;
+      if (!a || !isAccordion(a)) return prev;
+      if (fromIndex < 0 || fromIndex >= a.items.length || toIndex < 0 || toIndex >= a.items.length) return prev;
+      const items = [...a.items];
+      const [moved] = items.splice(fromIndex, 1);
+      items.splice(toIndex, 0, moved);
+      return { ...prev, nodes: { ...prev.nodes, [accordionId]: { ...a, items } } };
+    });
+  }, [push]);
+
+  // Expand/collapse an item on the canvas — editor-only, no undo entry.
+  const toggleAccordionItem = useCallback((accordionId: string, itemId: string) => {
+    setState(s => {
+      const a = s.nodes[accordionId] as Accordion | undefined;
+      if (!a || !isAccordion(a)) return s;
+      const open = a.activeItems ?? [];
+      const isOpen = open.includes(itemId);
+      let activeItems: string[];
+      if (a.props.allowMultiple) {
+        activeItems = isOpen ? open.filter(id => id !== itemId) : [...open, itemId];
+      } else {
+        activeItems = isOpen ? [] : [itemId];
+      }
+      return { ...s, nodes: { ...s.nodes, [accordionId]: { ...a, activeItems } } };
+    });
+  }, []);
+
 
   const moveGridElement = useCallback((
     elementId: string,
@@ -1777,6 +2109,7 @@ export function useBuilderStore() {
     bringToFront, sendToBack, importState, updateTheme,
     addGridCell, updateGridCell, deleteGridCell, reorderGridCell, copyGridCell, pasteGridCellIntoSection, pasteIntoGridCell, hasCellClipboard, removeColumnsBlock: removeContainer, addContainer, addContainerColumn, updateContainer, moveGridElement,
     addCarousel, updateCarousel, updateCarouselResponsive, addSlide, deleteSlide, duplicateSlide, reorderSlide, setActiveSlide,
+    addAccordion, updateAccordion, updateAccordionResponsive, addAccordionItem, deleteAccordionItem, duplicateAccordionItem, reorderAccordionItem, toggleAccordionItem,
     handleUndo, handleRedo, canUndo, canRedo, stateRef,
   };
 }

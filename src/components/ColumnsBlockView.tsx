@@ -57,6 +57,14 @@ interface Props {
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
   onAddCarouselToCell?: (cellId: string) => void;
   canvasWidth?: number;
+  // Accordion-in-cell support (forwarded to sub-cell GridCellViews)
+  selectedAccordionId?: string | null;
+  onSelectAccordion?: (id: string) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: import('../types').AccordionBpOverride) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
+  onAddAccordionToCell?: (cellId: string) => void;
 }
 
 export function ColumnsBlockView({
@@ -75,6 +83,7 @@ export function ColumnsBlockView({
   onRemoveColumnsBlock,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId,
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell, canvasWidth,
+  selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem, onAddAccordionToCell,
 }: Props) {
   const subCells = block.children
     .map(id => nodes[id])
@@ -285,6 +294,13 @@ export function ColumnsBlockView({
                 onAddSlide={onAddSlide}
                 onAddCarouselToCell={onAddCarouselToCell}
                 canvasWidth={canvasWidth}
+                selectedAccordionId={selectedAccordionId}
+                onSelectAccordion={onSelectAccordion}
+                onUpdateAccordion={onUpdateAccordion}
+                onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+                onToggleAccordionItem={onToggleAccordionItem}
+                onAddAccordionItem={onAddAccordionItem}
+                onAddAccordionToCell={onAddAccordionToCell}
               />
             </DraggableCellWrapper>
             );

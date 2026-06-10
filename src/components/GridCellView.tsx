@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import type { Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container, Carousel } from '../types';
-import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE } from './LeftSidebar';
+import type { Accordion, Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container, Carousel } from '../types';
+import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
 import { CarouselView } from './CarouselView';
+import { AccordionView } from './AccordionView';
 import { canvasDragShared } from './CanvasElement';
 import { DragGuides } from './DragGuides';
 import type { CellLayoutDragItem } from './LeftSidebar';
@@ -54,6 +55,14 @@ interface Props {
   onAddSlide?: (carouselId: string, afterSlideId?: string) => void;
   onAddCarouselToCell?: (cellId: string) => void;
   canvasWidth?: number;
+  // Accordion support — an accordion can flow inside a cell too
+  selectedAccordionId?: string | null;
+  onSelectAccordion?: (id: string) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: import('../types').AccordionBpOverride) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
+  onAddAccordionToCell?: (cellId: string) => void;
 }
 
 function getRowSpan(cell: GridCell): number {
@@ -74,6 +83,8 @@ export function GridCellView({
   selectedContainerId, onSelectContainer,
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide,
   onAddCarouselToCell, canvasWidth = 1200,
+  selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
+  onAddAccordionToCell,
 }: Props) {
 
   const bp = breakpoint;
@@ -82,19 +93,19 @@ export function GridCellView({
   // Canvas elements only (no containers) — used for free branch, overlay els, drop logic
   const allElements = cell.children
     .map(id => nodes[id])
-    .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container' && node.type !== 'carousel');
+    .filter((node): node is El => !!node && node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container' && node.type !== 'carousel' && node.type !== 'accordion');
 
   const elements = allElements.filter(el => !el.overlayInCell);
   const overlayEls = allElements.filter(el => !!el.overlayInCell);
 
-  // Ordered mix of canvas elements + containers + carousels for the flex branch, with per-item indices
+  // Ordered mix of canvas elements + containers + carousels + accordions for the flex branch, with per-item indices
   let _elIdx = 0;
   const flexChildrenWithIndex = cell.children
     .map((id, rawIdx) => {
       const node = nodes[id];
       if (!node || node.type === 'section' || node.type === 'grid-cell') return null;
-      const item = node as El | Container | Carousel;
-      const isElement = item.type !== 'container' && item.type !== 'carousel';
+      const item = node as El | Container | Carousel | Accordion;
+      const isElement = item.type !== 'container' && item.type !== 'carousel' && item.type !== 'accordion';
       return { item, elIdx: isElement ? _elIdx++ : -1, childIdx: rawIdx };
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
@@ -172,6 +183,16 @@ export function GridCellView({
     collect: m => ({ isCarouselOver: m.isOver({ shallow: true }) }),
   });
 
+  // ── Drop: accordion palette item → flow an accordion inside this cell ────
+  const [{ isAccordionOver }, accordionDropRef] = useDrop<{ kind: 'accordion' }, void, { isAccordionOver: boolean }>({
+    accept: ACCORDION_DND_TYPE,
+    drop: (_item, monitor) => {
+      if (monitor.didDrop()) return;
+      onAddAccordionToCell?.(cell.id);
+    },
+    collect: m => ({ isAccordionOver: m.isOver({ shallow: true }) }),
+  });
+
   const combinedDropRef = useCallback(
     (node: HTMLDivElement | null) => {
       cellDomRef.current = node;
@@ -180,8 +201,9 @@ export function GridCellView({
       (layoutDropRef      as (el: HTMLDivElement | null) => void)(node);
       (cellLayoutDropRef  as (el: HTMLDivElement | null) => void)(node);
       (carouselDropRef    as (el: HTMLDivElement | null) => void)(node);
+      (accordionDropRef   as (el: HTMLDivElement | null) => void)(node);
     },
-    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef, carouselDropRef],
+    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef, carouselDropRef, accordionDropRef],
   );
 
   const handleDragHover = useCallback((afterIdx: number) => setInsertAfterIndex(afterIdx), []);
@@ -340,7 +362,7 @@ export function GridCellView({
         isGridElOver && 'pb-grid-cell--el-over',
         isRow && 'pb-grid-cell--flex-row',
         (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
-        isCarouselOver && 'pb-grid-cell--drop-over',
+        (isCarouselOver || isAccordionOver) && 'pb-grid-cell--drop-over',
       ].filter(Boolean).join(' ')}
       style={{
         ...sharedCellStyle,
@@ -350,15 +372,58 @@ export function GridCellView({
         gap,
         alignItems: getCellAlignItems(cell, bp),
         justifyContent: getCellJustifyContent(cell, bp),
-        overflow: flexChildren.some(c => c.type === 'container' || c.type === 'carousel') ? 'visible' : 'hidden',
+        overflow: flexChildren.some(c => c.type === 'container' || c.type === 'carousel' || c.type === 'accordion') ? 'visible' : 'hidden',
       }}
       onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
     >
       {insertionLine(-1)}
 
       {flexChildrenWithIndex
-        .filter(({ item }) => item.type === 'container' || item.type === 'carousel' || !(item as El).overlayInCell)
+        .filter(({ item }) => item.type === 'container' || item.type === 'carousel' || item.type === 'accordion' || !(item as El).overlayInCell)
         .map(({ item, childIdx }) => {
+          if (item.type === 'accordion') {
+            const acc = item as Accordion;
+            return (
+              <React.Fragment key={acc.id}>
+                <AccordionView
+                  accordion={acc}
+                  nodes={nodes}
+                  isSelected={selectedAccordionId === acc.id}
+                  selectedId={selectedElementId}
+                  selectedGridCellId={selectedGridCellId}
+                  selectedContainerId={selectedContainerId}
+                  previewMode={previewMode}
+                  breakpoint={breakpoint}
+                  canvasWidth={canvasWidth}
+                  inCell
+                  onSelectAccordion={() => onSelectAccordion?.(acc.id)}
+                  onUpdateAccordion={onUpdateAccordion}
+                  onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+                  onToggleAccordionItem={onToggleAccordionItem}
+                  onAddAccordionItem={onAddAccordionItem}
+                  onSelectGridCell={onSelectGridCell}
+                  onSelectElement={id => onSelectElement(id)}
+                  onSelectContainer={onSelectContainer}
+                  onUpdateElement={onUpdateElement}
+                  onUpdateGridCell={onUpdateGridCell}
+                  onDeleteGridCell={onDeleteGridCell}
+                  onAddElementToCell={onAddElementToCell}
+                  onMoveGridElement={onMoveGridElement}
+                  onReorderGridCell={onReorderGridCell}
+                  onRemoveColumnsBlock={onRemoveColumnsBlock}
+                  onAddContainer={onAddContainer}
+                  onUpdateContainer={onUpdateContainer}
+                  onAddSubCell={onAddSubCell}
+                  onCommit={onCommit}
+                  snapshot={snapshot}
+                  onUpdateResponsive={onUpdateResponsive}
+                  onDuplicateElement={onDuplicateElement}
+                  onDeleteElement={onDeleteElement}
+                />
+                {insertionLine(childIdx)}
+              </React.Fragment>
+            );
+          }
           if (item.type === 'carousel') {
             const car = item as Carousel;
             return (
@@ -443,6 +508,13 @@ export function GridCellView({
                   onAddSlide={onAddSlide}
                   onAddCarouselToCell={onAddCarouselToCell}
                   canvasWidth={canvasWidth}
+                  selectedAccordionId={selectedAccordionId}
+                  onSelectAccordion={onSelectAccordion}
+                  onUpdateAccordion={onUpdateAccordion}
+                  onUpdateAccordionResponsive={onUpdateAccordionResponsive}
+                  onToggleAccordionItem={onToggleAccordionItem}
+                  onAddAccordionItem={onAddAccordionItem}
+                  onAddAccordionToCell={onAddAccordionToCell}
                   onDragHover={handleDragHover}
                   onDropAtChildIdx={handleDropAtChildIdx}
                 />

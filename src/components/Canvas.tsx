@@ -73,6 +73,13 @@ interface Props {
   onAddCarousel?: (sectionId: string, dropX?: number, dropY?: number) => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<import('../types').Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
   onUpdateCarouselResponsive?: (id: string, bp: import('../types').Breakpoint, updates: import('../types').CarouselBpOverride) => void;
+  selectedAccordionId?: string | null;
+  onSelectAccordion?: (id: string) => void;
+  onAddAccordion?: (sectionId: string, dropX?: number, dropY?: number) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordionResponsive?: (id: string, bp: import('../types').Breakpoint, updates: import('../types').AccordionBpOverride) => void;
+  onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
+  onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
   zoom?: number;
   layoutWidth?: 'fixed' | 'fluid';
   maxWidth?: number;
@@ -96,6 +103,7 @@ export function Canvas({
   onDropGridLayout, onDropTemplate, onRemoveColumnsBlock, onPromoteSection,
   onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
   selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
+  selectedAccordionId, onSelectAccordion, onAddAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   zoom = 1,
   layoutWidth = 'fixed',
   maxWidth = 1200,
@@ -213,6 +221,7 @@ export function Canvas({
     onDropGridLayout, onRemoveColumnsBlock,
     onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
     selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
+  selectedAccordionId, onSelectAccordion, onAddAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   };
 
   const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };

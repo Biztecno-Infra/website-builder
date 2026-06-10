@@ -1,8 +1,9 @@
-import type { AnyNode, CanvasElement, Carousel, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
+import type { Accordion, AnyNode, CanvasElement, Carousel, Container, ElementAction, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
   DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
   DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH,
+  DEFAULT_ACCORDION_PROPS, DEFAULT_ACCORDION_WIDTH,
   interactionToAction,
 } from './builderDefaults';
 
@@ -11,6 +12,9 @@ import {
 // no x/y/width). Legacy carousels were full-width bands at the top, so a left
 // origin + standard box is a reasonable, non-overlapping fallback.
 const DEFAULT_CAROUSEL_LAYOUT = { x: 0, y: 0, width: DEFAULT_CAROUSEL_WIDTH, height: DEFAULT_CAROUSEL_HEIGHT };
+
+// Default accordion box layout — used both ways like the carousel layout above.
+const DEFAULT_ACCORDION_LAYOUT = { x: 0, y: 0, width: DEFAULT_ACCORDION_WIDTH };
 
 // ── Primitive helpers ──────────────────────────────────────────────────────
 
@@ -141,6 +145,22 @@ export function sparsifyNode(node: AnyNode): Obj {
     return out;
   }
 
+  if (node.type === 'accordion') {
+    const a = node as Accordion;
+    const out: Obj = {
+      id: a.id, type: 'accordion', parent: a.parent,
+      // items hold the real node references — always persisted verbatim.
+      items: a.items,
+    };
+    const sp = sparsifyVal(a.props, DEFAULT_ACCORDION_PROPS);
+    if (sp !== undefined) out.props = sp;
+    const sl = sparsifyVal(a.layout, DEFAULT_ACCORDION_LAYOUT);
+    if (sl !== undefined) out.layout = sl;
+    if (a.responsive && (a.responsive.tablet || a.responsive.mobile)) out.responsive = a.responsive;
+    // activeItems is editor-only — never persisted.
+    return out;
+  }
+
   // CanvasElement
   const el = node as CanvasElement;
   const out: Obj = { id: el.id, type: el.type, parent: el.parent };
@@ -203,6 +223,26 @@ export function hydrateNode(raw: Obj): AnyNode {
     };
     if (raw.responsive) c.responsive = raw.responsive as Carousel['responsive'];
     return c;
+  }
+
+  if (raw.type === 'accordion') {
+    const props = { ...DEFAULT_ACCORDION_PROPS, ...(raw.props as object ?? {}) };
+    const items = (raw.items as Accordion['items']) ?? [];
+    // Derive editor open-state from defaultOpen, since activeItems isn't persisted.
+    const activeItems =
+      props.defaultOpen === 'all' ? items.map(it => it.id)
+      : props.defaultOpen === 'first' ? (items.length ? [items[0].id] : [])
+      : [];
+    const a: Accordion = {
+      id: raw.id as string, type: 'accordion', parent: raw.parent as string,
+      children: [],
+      items,
+      props,
+      layout: { ...DEFAULT_ACCORDION_LAYOUT, ...(raw.layout as object ?? {}) },
+      activeItems,
+    };
+    if (raw.responsive) a.responsive = raw.responsive as Accordion['responsive'];
+    return a;
   }
 
   if (raw.type === 'container' || raw.type === 'columns') {

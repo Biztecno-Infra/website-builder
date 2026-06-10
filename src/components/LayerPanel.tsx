@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
-import type { CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
+import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
 
@@ -24,11 +24,13 @@ interface Props {
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
   selectedCarouselId?: string | null;
+  selectedAccordionId?: string | null;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
   onSelectCarousel?: (id: string) => void;
+  onSelectAccordion?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -72,6 +74,7 @@ interface SectionGroupProps {
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
   selectedCarouselId?: string | null;
+  selectedAccordionId?: string | null;
   isDragOver: boolean;
   isDragging: boolean;
   onSelectElement: (id: string) => void;
@@ -79,6 +82,7 @@ interface SectionGroupProps {
   onSelectGridCell: (id: string) => void;
   onSelectContainer?: (id: string) => void;
   onSelectCarousel?: (id: string) => void;
+  onSelectAccordion?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
   onReorderElement: (id: string, newIndex: number) => void;
@@ -90,8 +94,8 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, selectedCarouselId, isDragOver, isDragging,
-  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
+  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId, isDragOver, isDragging,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -135,6 +139,13 @@ function SectionGroup({
           return sum + car.children.reduce((cs, slideId) => {
             const slide = nodes[slideId] as GridCell | undefined;
             return cs + (slide ? countCellElements(slide) : 0);
+          }, 0);
+        }
+        if (child.type === 'accordion') {
+          const acc = child as Accordion;
+          return sum + acc.items.reduce((cs, it) => {
+            const cell = nodes[it.contentCellId] as GridCell | undefined;
+            return cs + (cell ? countCellElements(cell) : 0);
           }, 0);
         }
         return sum + 1;
@@ -234,6 +245,27 @@ function SectionGroup({
                 </div>
               );
             }
+            if (child.type === 'accordion') {
+              const acc = child as Accordion;
+              const isAccSelected = selectedAccordionId === acc.id;
+              return (
+                <div key={acc.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
+                  <div
+                    className={['pb-layer-grid-cell-header', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    style={{ paddingLeft: 8 }}
+                    onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
+                  >
+                    <span className={'pb-layer-column-icon'}>☰</span>
+                    <span className={'pb-layer-column-label'}>Accordion</span>
+                    <span className={'pb-layer-section-count'}>{acc.items.length}</span>
+                  </div>
+                  {acc.items.map((it, ii) => {
+                    const cell = nodes[it.contentCellId] as GridCell | undefined;
+                    return cell ? renderCellLayer(cell, ii, depth + 1) : null;
+                  })}
+                </div>
+              );
+            }
             return renderGridElementRow(child as CanvasElement);
           })}
         </div>
@@ -281,7 +313,7 @@ function SectionGroup({
   const elementItems = section.children.slice().reverse()
     .map((id, panelIdx) => {
       const node = nodes[id];
-      if (!node || node.type === 'carousel') return null;  // carousels rendered separately below
+      if (!node || node.type === 'carousel' || node.type === 'accordion') return null;  // carousels/accordions rendered separately below
       return { el: node as CanvasElement, panelIdx };
     })
     .filter((item): item is { el: CanvasElement; panelIdx: number } => !!item);
@@ -289,7 +321,44 @@ function SectionGroup({
   const carousels = section.children
     .map(id => nodes[id])
     .filter((node): node is Carousel => !!node && node.type === 'carousel');
+  const accordions = section.children
+    .map(id => nodes[id])
+    .filter((node): node is Accordion => !!node && node.type === 'accordion');
   const n = section.children.length;
+
+  const renderAccordionLayer = (acc: Accordion): React.ReactNode => {
+    const isAccSelected = selectedAccordionId === acc.id;
+    return (
+      <div key={acc.id} className={'pb-layer-grid-cell-group'}>
+        <div
+          className={['pb-layer-grid-cell-header', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 }}
+          onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
+        >
+          <span className={'pb-layer-column-icon'}>☰</span>
+          <span className={'pb-layer-column-label'}>Accordion</span>
+          <span className={'pb-layer-section-count'}>{acc.items.length}</span>
+        </div>
+        {acc.items.map((it, ii) => {
+          const cell = nodes[it.contentCellId] as GridCell | undefined;
+          const isCellSel = selectedGridCellId === it.contentCellId;
+          return (
+            <div key={it.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 12 }}>
+              <div
+                className={['pb-layer-grid-cell-header', isCellSel && 'pb-selected'].filter(Boolean).join(' ')}
+                style={{ paddingLeft: 8 }}
+                onClick={() => { onSelectSection(section.id); if (cell) onSelectGridCell(cell.id); }}
+              >
+                <span className={'pb-layer-column-icon'}>▭</span>
+                <span className={'pb-layer-column-label'}>Item {ii + 1}</span>
+                <span className={'pb-layer-section-count'}>{cell ? cell.children.length : 0}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const renderCarouselLayer = (carousel: Carousel): React.ReactNode => {
     const slides = carousel.children.map(id => nodes[id] as GridCell | undefined).filter((c): c is GridCell => !!c);
@@ -492,7 +561,7 @@ function SectionGroup({
             if (sectionId !== section.id) onMoveElementToSection(elId, section.id, n);
           }}
         >
-          {elements.length === 0 && carousels.length === 0 && (
+          {elements.length === 0 && carousels.length === 0 && accordions.length === 0 && (
             <div className={'pb-layer-empty-section'}>Drop element here</div>
           )}
 
@@ -515,6 +584,7 @@ function SectionGroup({
           )}
 
           {carousels.map(renderCarouselLayer)}
+          {accordions.map(renderAccordionLayer)}
         </div>
       )}
     </div>
@@ -523,8 +593,8 @@ function SectionGroup({
 
 export function LayerPanel({
   header, sections, footer, nodes,
-  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId,
-  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onScrollToElement,
+  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement,
 }: Props) {
@@ -595,11 +665,13 @@ export function LayerPanel({
     selectedGridCellId,
     selectedContainerId,
     selectedCarouselId,
+    selectedAccordionId,
     onSelectElement,
     onSelectSection,
     onSelectGridCell,
     onSelectContainer,
     onSelectCarousel,
+    onSelectAccordion,
     onScrollToElement,
     onUpdateElement,
     onReorderElement,

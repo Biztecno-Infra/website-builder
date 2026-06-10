@@ -1,4 +1,4 @@
-import type { BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
 import { sectionBgCssStr } from './sectionStyle';
 import { interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
@@ -53,6 +53,13 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
           const slide = nodes[slideId] as GridCell | undefined;
           if (slide) collectFromCell(slide);
         }
+      } else if (child.type === 'accordion') {
+        for (const item of (child as Accordion).items) {
+          const title = nodes[item.titleElId] as CanvasElement | undefined;
+          if (title) add(title.style.typography.family);
+          const cl = nodes[item.contentCellId] as GridCell | undefined;
+          if (cl) collectFromCell(cl);
+        }
       } else if (child.type !== 'section' && child.type !== 'grid-cell') {
         add((child as CanvasElement).style.typography.family);
       }
@@ -73,6 +80,13 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
           for (const slideId of (node as Carousel).children) {
             const slide = nodes[slideId] as GridCell | undefined;
             if (slide) collectFromCell(slide);
+          }
+        } else if (node.type === 'accordion') {
+          for (const item of (node as Accordion).items) {
+            const title = nodes[item.titleElId] as CanvasElement | undefined;
+            if (title) add(title.style.typography.family);
+            const cl = nodes[item.contentCellId] as GridCell | undefined;
+            if (cl) collectFromCell(cl);
           }
         } else {
           add((node as CanvasElement).style.typography.family);
@@ -281,6 +295,51 @@ const CAROUSEL_SCRIPT = `<script>
     render(); start();
   }
   function initAll(){ var list = document.querySelectorAll('[data-carousel]'); for(var i=0;i<list.length;i++){ initCarousel(list[i]); } }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', initAll); } else { initAll(); }
+})();
+</script>`;
+
+let HAS_ACCORDION = false;
+
+// Base CSS for accordions — emitted once per page when an accordion exists.
+const ACCORDION_CSS = `
+.acc{display:flex;flex-direction:column;box-sizing:border-box}
+.acc-item{display:flex;flex-direction:column}
+.acc-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;width:100%;background:none;border:none;text-align:inherit;font:inherit;color:inherit;padding:0}
+.acc-header.acc-icon-left{flex-direction:row-reverse}
+.acc-title{flex:1 1 auto;min-width:0}
+.acc-icon{flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:transform .2s ease}
+.acc-item.acc-open>.acc-header .acc-icon{transform:rotate(var(--acc-icon-rot,180deg))}
+.acc-panel{overflow:hidden}
+.acc-panel[hidden]{display:none}
+`;
+
+// Vanilla-JS controller — drives every [data-accordion] on the page.
+const ACCORDION_SCRIPT = `<script>
+(function(){
+  function initAccordion(root){
+    var multiple = root.getAttribute('data-acc-multiple') === '1';
+    var items = root.querySelectorAll('[data-acc-item]');
+    function setOpen(item, open){
+      item.classList.toggle('acc-open', open);
+      var panel = item.querySelector('[data-acc-panel]');
+      var header = item.querySelector('[data-acc-header]');
+      if(panel){ if(open){ panel.removeAttribute('hidden'); } else { panel.setAttribute('hidden',''); } }
+      if(header){ header.setAttribute('aria-expanded', open ? 'true' : 'false'); }
+    }
+    for(var i=0;i<items.length;i++){
+      (function(item){
+        var header = item.querySelector('[data-acc-header]');
+        if(!header) return;
+        header.addEventListener('click', function(){
+          var open = !item.classList.contains('acc-open');
+          if(open && !multiple){ for(var j=0;j<items.length;j++){ if(items[j] !== item) setOpen(items[j], false); } }
+          setOpen(item, open);
+        });
+      })(items[i]);
+    }
+  }
+  function initAll(){ var list = document.querySelectorAll('[data-accordion]'); for(var i=0;i<list.length;i++){ initAccordion(list[i]); } }
   if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', initAll); } else { initAll(); }
 })();
 </script>`;
@@ -691,6 +750,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     if (!child) return '';
     if (child.type === 'container') return renderColumnsBlock(child as Container, nodes);
     if (child.type === 'carousel') return renderCarousel(child as Carousel, nodes);
+    if (child.type === 'accordion') return renderAccordion(child as Accordion, nodes);
     if (child.type !== 'section' && child.type !== 'grid-cell') return renderGridElement(child as CanvasElement);
     return '';
   }).join('\n');
@@ -833,6 +893,63 @@ function renderFreeCarousel(carousel: Carousel, nodes: NodeMap): string {
   return `<div class="crs-wrap-${carousel.id}">${renderCarousel(carousel, nodes)}</div>`;
 }
 
+// ── Accordion ─────────────────────────────────────────────────────────────
+
+// Render a single header element (title text or icon) inline — no class
+// dependency, since the header is a fixed flex row, not a droppable cell.
+function renderAccordionTitle(el: CanvasElement | undefined): string {
+  if (!el) return '';
+  const t = el.style.typography;
+  const content = el.content.rich || esc(el.content.plain ?? '');
+  const style = `font-family:${t.family};font-size:${t.size}px;font-weight:${t.weight};color:${t.color};text-align:${t.align};line-height:${t.lineHeight}${t.letterSpacing ? `;letter-spacing:${t.letterSpacing}px` : ''}${t.textTransform && t.textTransform !== 'none' ? `;text-transform:${t.textTransform}` : ''}`;
+  return `<span style="${style}">${content}</span>`;
+}
+
+function renderAccordionIcon(el: CanvasElement | undefined): string {
+  if (!el) return '';
+  const sz = el.content.iconSize ?? 20;
+  const color = el.style.typography.color;
+  return el.content.iconSvg
+    ? `<span style="display:inline-flex;width:${sz}px;height:${sz}px;color:${color}">${el.content.iconSvg}</span>`
+    : `<span style="font-size:${sz}px;color:${color};line-height:1">${esc(el.content.iconName ?? '▾')}</span>`;
+}
+
+function renderAccordion(accordion: Accordion, nodes: NodeMap): string {
+  HAS_ACCORDION = true;
+  const p = accordion.props;
+  // Which items start open in the published page (derived from defaultOpen).
+  const openSet = new Set<string>(
+    p.defaultOpen === 'all' ? accordion.items.map(it => it.id)
+    : p.defaultOpen === 'first' ? (accordion.items.length ? [accordion.items[0].id] : [])
+    : []
+  );
+  const iconRot = p.expandedIconRotation ?? 180;
+  const headerClass = `acc-header${p.iconPosition === 'left' ? ' acc-icon-left' : ''}`;
+
+  const itemsHtml = accordion.items.map(item => {
+    const open = openSet.has(item.id);
+    const title = nodes[item.titleElId] as CanvasElement | undefined;
+    const icon = nodes[item.iconElId] as CanvasElement | undefined;
+    const cell = nodes[item.contentCellId] as GridCell | undefined;
+    const panel = cell ? renderGridCell(cell, nodes) : '';
+    return `<div class="acc-item${open ? ' acc-open' : ''}" data-acc-item>
+      <button type="button" class="${headerClass}" data-acc-header aria-expanded="${open ? 'true' : 'false'}">
+        <span class="acc-title">${renderAccordionTitle(title)}</span>
+        <span class="acc-icon">${renderAccordionIcon(icon)}</span>
+      </button>
+      <div class="acc-panel" data-acc-panel${open ? '' : ' hidden'}>${panel}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="acc acc-${accordion.id}" data-accordion data-acc-multiple="${p.allowMultiple ? 1 : 0}" style="--acc-icon-rot:${iconRot}deg;gap:${p.itemGap}px">${itemsHtml}</div>`;
+}
+
+// Wrap a free-positioned accordion in a box class (acc-wrap-${id}) so tablet/mobile
+// media queries can override x/y/width — the same model as free elements/carousels.
+function renderFreeAccordion(accordion: Accordion, nodes: NodeMap): string {
+  return `<div class="acc-wrap-${accordion.id}">${renderAccordion(accordion, nodes)}</div>`;
+}
+
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
 
@@ -848,6 +965,8 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     .filter(Boolean)
     .map(node => node!.type === 'carousel'
       ? renderFreeCarousel(node as Carousel, nodes)
+      : node!.type === 'accordion'
+      ? renderFreeAccordion(node as Accordion, nodes)
       : renderElement(node as CanvasElement))
     .join('\n      ');
 
@@ -974,6 +1093,15 @@ function generateCellCSS(
       for (const slideId of (child as Carousel).children) {
         const slide = nodes[slideId] as GridCell | undefined;
         if (slide) generateCellCSS(slide, nodes, baseRules, tabletRules, mobileRules);
+      }
+      continue;
+    }
+
+    // Accordion child — generate CSS for each item's content cell (GridCells).
+    if (child.type === 'accordion') {
+      for (const item of (child as Accordion).items) {
+        const cl = nodes[item.contentCellId] as GridCell | undefined;
+        if (cl) generateCellCSS(cl, nodes, baseRules, tabletRules, mobileRules);
       }
       continue;
     }
@@ -1184,6 +1312,37 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         }
         continue;
       }
+
+      // Accordions: emit the wrapper position box (with responsive overrides) +
+      // generate CSS for each item's content cell.
+      if (node.type === 'accordion') {
+        const acc = node as Accordion;
+        const al = acc.layout;
+        const at = acc.responsive?.tablet;
+        const am = acc.responsive?.mobile;
+        baseRules.push(`.acc-wrap-${acc.id}{position:absolute;left:${al.x}px;top:${al.y}px;width:${al.width}px;z-index:${al.zIndex ?? 0};box-sizing:border-box}`);
+        if (at?.hidden) {
+          tabletRules.push(`.acc-wrap-${acc.id}{display:none}`);
+        } else {
+          const tx = Math.round((at?.x ?? al.x) * tScale);
+          const ty = Math.round((at?.y ?? al.y) * tScale);
+          const tw = Math.round((at?.width ?? al.width) * tScale);
+          tabletRules.push(`.acc-wrap-${acc.id}{left:${tx}px;top:${ty}px;width:${tw}px}`);
+        }
+        if (am?.hidden ?? at?.hidden) {
+          mobileRules.push(`.acc-wrap-${acc.id}{display:none}`);
+        } else {
+          const mx = Math.round((am?.x ?? at?.x ?? al.x) * mScale);
+          const my = Math.round((am?.y ?? at?.y ?? al.y) * mScale);
+          const mw = Math.round((am?.width ?? at?.width ?? al.width) * mScale);
+          mobileRules.push(`.acc-wrap-${acc.id}{left:${mx}px;top:${my}px;width:${mw}px}`);
+        }
+        for (const item of acc.items) {
+          const cl = nodes[item.contentCellId] as GridCell | undefined;
+          if (cl) generateCellCSS(cl, nodes, baseRules, tabletRules, mobileRules);
+        }
+        continue;
+      }
       const el = node as CanvasElement;
       if (el.state.hidden) continue;
 
@@ -1374,6 +1533,7 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   PAGE_SLUGS = Object.fromEntries(state.pages.map((p: Page) => [p.id, p.slug]));
   HAS_FORM = false;
   HAS_CAROUSEL = false;
+  HAS_ACCORDION = false;
 
   const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
   const pageMaxWidth = page.maxWidth ?? 1280;
@@ -1388,6 +1548,8 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   const formCss = HAS_FORM ? FORM_BASE_CSS : '';
   const carouselScript = HAS_CAROUSEL ? CAROUSEL_SCRIPT : '';
   const carouselCss = HAS_CAROUSEL ? CAROUSEL_CSS : '';
+  const accordionScript = HAS_ACCORDION ? ACCORDION_SCRIPT : '';
+  const accordionCss = HAS_ACCORDION ? ACCORDION_CSS : '';
   const elementCss = generateElementCSS(sections, nodes);
   const smoothScrollCss = hasSmoothScrollAnywhere(nodes) ? 'html{scroll-behavior:smooth}' : '';
 
@@ -1418,6 +1580,7 @@ ${fontLinks}
     ${ANIM_CSS}
     ${formCss}
     ${carouselCss}
+    ${accordionCss}
     ${elementCss}
   </style>
 </head>
@@ -1426,6 +1589,7 @@ ${sectionsHtml}
 ${SCROLL_ANIM_SCRIPT}
 ${formScript}
 ${carouselScript}
+${accordionScript}
 </body>
 </html>`;
 }

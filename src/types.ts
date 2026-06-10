@@ -478,9 +478,78 @@ export interface Carousel {
   activeSlide?: number;
 }
 
+// ── Accordion — stacked collapsible container that lives in a Section ─────
+// An Accordion sits in a Section's children OR a GridCell's children (parallel
+// to a free element / carousel). Each item has a header (a Text element + an
+// Icon element, laid out space-between) and a content GridCell — reusing ALL
+// element + grid-cell behaviour (drop, style, responsive, copy/paste, clone,
+// delete, layers) so there is no duplicate container implementation.
+
+// One collapsible row. titleElId / iconElId are CanvasElement ids (text + icon);
+// contentCellId is a GridCell id acting as the droppable panel.
+export interface AccordionItem {
+  id: string;
+  titleElId: string;   // 'text' CanvasElement — the editable heading
+  iconElId: string;    // 'icon' CanvasElement — the chevron / custom icon
+  contentCellId: string; // GridCell — the expandable droppable content area
+}
+
+export interface AccordionProps {
+  /** allow multiple items open at once; when false, opening one closes the others */
+  allowMultiple: boolean;
+  /** which items are open by default in the published page: 'first' | 'all' | 'none' */
+  defaultOpen: 'first' | 'all' | 'none';
+  /** icon side within the header row */
+  iconPosition: 'right' | 'left';
+  /** when set, the icon shown while an item is expanded (SVG markup). Falls back to rotating the collapsed icon 180°. */
+  expandedIconSvg?: string;
+  /** rotate the collapsed icon by this many degrees when expanded (used when no expandedIconSvg). Default 180. */
+  expandedIconRotation?: number;
+  /** gap (px) between the header row and the content panel */
+  contentGap?: number;
+  /** gap (px) between stacked accordion items */
+  itemGap: number;
+}
+
+// Per-breakpoint overrides — mirror CarouselBpOverride (unscaled canvas-space
+// geometry so a free-positioned accordion can be moved/resized per breakpoint).
+export interface AccordionBpOverride {
+  x?: number;
+  y?: number;
+  width?: number;
+  hidden?: boolean;
+}
+
+export interface AccordionResponsive {
+  tablet?: AccordionBpOverride;
+  mobile?: AccordionBpOverride;
+}
+
+export interface AccordionLayout {
+  /** free position within the parent free-section, like a CanvasElement */
+  x: number;
+  y: number;
+  /** box width in px */
+  width: number;
+  zIndex?: number;
+}
+
+export interface Accordion {
+  id: string;
+  type: 'accordion';
+  parent: string;          // parent Section OR GridCell id
+  children: string[];      // unused at the node level — items hold the real children
+  items: AccordionItem[];  // ordered collapsible rows
+  props: AccordionProps;
+  layout: AccordionLayout;
+  responsive?: AccordionResponsive;
+  /** editor-only: ids of items currently expanded on the canvas (not exported) */
+  activeItems?: string[];
+}
+
 // ── Nodes flat map ─────────────────────────────────────────────────────
 
-export type AnyNode = Section | GridCell | CanvasElement | Container | Carousel;
+export type AnyNode = Section | GridCell | CanvasElement | Container | Carousel | Accordion;
 export type NodeMap = Record<string, AnyNode>;
 
 // ── Page ───────────────────────────────────────────────────────────────

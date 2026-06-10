@@ -87,10 +87,19 @@ export default function App() {
     duplicateSlide,
     reorderSlide,
     setActiveSlide,
+    addAccordion,
+    updateAccordion,
+    updateAccordionResponsive,
+    addAccordionItem,
+    deleteAccordionItem,
+    duplicateAccordionItem,
+    reorderAccordionItem,
+    toggleAccordionItem,
   } = useBuilderStore();
 
   const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const [selectedCarouselId, setSelectedCarouselId] = useState<string | null>(null);
+  const [selectedAccordionId, setSelectedAccordionId] = useState<string | null>(null);
 
   // Clear selectedContainerId if the node was removed (e.g. after undo)
   useEffect(() => {
@@ -98,6 +107,13 @@ export default function App() {
       setSelectedContainerId(null);
     }
   }, [nodes, selectedContainerId]);
+
+  // Clear selectedAccordionId if the node was removed (e.g. after undo)
+  useEffect(() => {
+    if (selectedAccordionId && !nodes[selectedAccordionId]) {
+      setSelectedAccordionId(null);
+    }
+  }, [nodes, selectedAccordionId]);
 
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -154,6 +170,22 @@ export default function App() {
       setSelectedContainerId(null);
     }
   }, [addCarousel, setSelectedId, setSelectedIds, setSelectedGridCellId]);
+
+  const selectedAccordion = selectedAccordionId
+    ? (nodes[selectedAccordionId] as import('./types').Accordion | undefined ?? null)
+    : null;
+
+  const handleAddAccordion = useCallback((sectionId?: string, dropX?: number, dropY?: number) => {
+    const id = addAccordion(sectionId, dropX, dropY);
+    if (id) {
+      setSelectedAccordionId(id);
+      setSelectedId(null);
+      setSelectedIds([]);
+      setSelectedGridCellId(null);
+      setSelectedContainerId(null);
+      setSelectedCarouselId(null);
+    }
+  }, [addAccordion, setSelectedId, setSelectedIds, setSelectedGridCellId]);
   const isInGridCell = selectedElement
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
     : false;
@@ -347,6 +379,7 @@ export default function App() {
         if (selectedContainerId) { setSelectedContainerId(null); return; }
         if (selectedGridCellId) { setSelectedGridCellId(null); return; }
         if (selectedCarouselId) { setSelectedCarouselId(null); return; }
+        if (selectedAccordionId) { setSelectedAccordionId(null); return; }
         if (selectedSectionId) { setSelectedSectionId(null); return; }
         return;
       }
@@ -486,10 +519,13 @@ export default function App() {
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}
           selectedCarouselId={selectedCarouselId}
-          onSelect={id => { setSelectedId(id); setSelectedCarouselId(null); setSelectedContainerId(null); }}
-          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); setSelectedCarouselId(null); }}
-          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); setSelectedCarouselId(null); }}
-          onSelectCarousel={id => { const c = nodes[id]; setSelectedCarouselId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+          onSelect={id => { setSelectedId(id); setSelectedCarouselId(null); setSelectedAccordionId(null); setSelectedContainerId(null); }}
+          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectCarousel={id => { const c = nodes[id]; setSelectedCarouselId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedAccordionId(null); }}
+          onAddAccordion={() => handleAddAccordion()}
+          selectedAccordionId={selectedAccordionId}
+          onSelectAccordion={id => { const c = nodes[id]; setSelectedAccordionId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
           onScrollToElement={scrollCanvasToElement}
           onReorderSection={reorderSection}
           onReorderElement={reorderElement}
@@ -669,10 +705,10 @@ export default function App() {
               selectedIds={selectedIds}
               selectedSectionId={selectedSectionId}
               selectedGridCellId={selectedGridCellId}
-              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
-              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); setSelectedCarouselId(null); } }}
-              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); setSelectedCarouselId(null); }}
-              onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
+              onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+              onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); } }}
+              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+              onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
               onUpdate={updateElement}
               onCommit={pushSnapshot}
               snapshot={state}
@@ -710,14 +746,21 @@ export default function App() {
               onUpdateContainer={updateContainer}
               onAddSubCell={addContainerColumn}
               selectedContainerId={selectedContainerId}
-              onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); setSelectedCarouselId(null); }}
+              onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
               selectedCarouselId={selectedCarouselId}
-              onSelectCarousel={id => { setSelectedCarouselId(id); setSelectedSectionId(nodes[id] && 'parent' in nodes[id] ? (nodes[id] as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); }}
+              onSelectCarousel={id => { setSelectedCarouselId(id); setSelectedSectionId(nodes[id] && 'parent' in nodes[id] ? (nodes[id] as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedAccordionId(null); }}
               onSetActiveSlide={setActiveSlide}
               onAddSlide={addSlide}
               onAddCarousel={handleAddCarousel}
               onUpdateCarousel={updateCarousel}
               onUpdateCarouselResponsive={updateCarouselResponsive}
+              selectedAccordionId={selectedAccordionId}
+              onSelectAccordion={id => { setSelectedAccordionId(id); setSelectedSectionId(nodes[id] && 'parent' in nodes[id] ? (nodes[id] as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
+              onAddAccordion={handleAddAccordion}
+              onUpdateAccordion={updateAccordion}
+              onUpdateAccordionResponsive={updateAccordionResponsive}
+              onToggleAccordionItem={toggleAccordionItem}
+              onAddAccordionItem={addAccordionItem}
               zoom={zoom}
               canvasDisplayWidth={breakpoint === 'desktop' ? screenWidth : undefined}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}
@@ -726,7 +769,7 @@ export default function App() {
 
             <RightSidebar
               element={selectedElement}
-              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : (selectedCarousel ? null : selectedSection)))}
+              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : (selectedCarousel ? null : (selectedAccordion ? null : selectedSection))))}
               gridCell={selectedGridCell}
               container={selectedContainer}
               onUpdateContainer={updateContainer}
@@ -740,6 +783,15 @@ export default function App() {
               onSetActiveSlide={setActiveSlide}
               onSelectSlide={id => { setSelectedGridCellId(id); setSelectedCarouselId(null); setSelectedId(null); setSelectedIds([]); }}
               selectedSlideId={selectedGridCellId}
+              accordion={selectedElement || selectedGridCell || selectedContainer || selectedCarousel ? null : selectedAccordion}
+              onUpdateAccordion={updateAccordion}
+              onUpdateAccordionResponsive={updateAccordionResponsive}
+              onAddAccordionItem={addAccordionItem}
+              onDeleteAccordionItem={deleteAccordionItem}
+              onDuplicateAccordionItem={duplicateAccordionItem}
+              onReorderAccordionItem={reorderAccordionItem}
+              onToggleAccordionItem={toggleAccordionItem}
+              onSelectAccordionItemCell={id => { setSelectedGridCellId(id); setSelectedAccordionId(null); setSelectedId(null); setSelectedIds([]); }}
               nodes={nodes}
               isInGridCell={isInGridCell}
               snapshot={state}
