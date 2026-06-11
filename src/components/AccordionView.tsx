@@ -225,11 +225,20 @@ export function AccordionView({
 
   const iconRotation = props.expandedIconRotation ?? 180;
 
+  const containerBorder = props.containerBorder ?? true;
+  const itemDivider = props.itemDivider ?? true;
+  const borderCss = `${props.separatorWidth ?? 1}px ${props.separatorStyle ?? 'solid'} ${props.separatorColor ?? '#e2e8f0'}`;
+  // With the outer box on, items sit flush so the box frames them cleanly; dividers do the separating.
+  const effItemGap = containerBorder ? 0 : props.itemGap;
+  const containerStyle: React.CSSProperties = containerBorder
+    ? { border: borderCss, borderRadius: props.borderRadius ?? 4, overflow: 'hidden' }
+    : {};
+
   return (
     <div
       ref={wrapperRef}
       className={['pb-accordion', isSelected && !hasActiveChild && 'pb-accordion--selected', hasActiveChild && 'pb-accordion--child-selected'].filter(Boolean).join(' ')}
-      style={{ ...wrapperStyle, cursor: canMove ? 'move' : undefined, display: 'flex', flexDirection: 'column', gap: props.itemGap }}
+      style={{ ...wrapperStyle, cursor: canMove ? 'move' : undefined, display: 'flex', flexDirection: 'column', gap: effItemGap, ...containerStyle }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onMouseDown={startDrag}
@@ -241,9 +250,14 @@ export function AccordionView({
         </div>
       )}
 
-      {accordion.items.map(item => {
+      {accordion.items.map((item, idx) => {
         const open = openIds.includes(item.id);
         const cell = nodes[item.contentCellId] as GridCell | undefined;
+        const isLast = idx === accordion.items.length - 1;
+        const separatorStyle: React.CSSProperties =
+          itemDivider && !isLast
+            ? { borderBottom: borderCss, paddingBottom: containerBorder ? 0 : props.itemGap }
+            : {};
         const iconStyle: React.CSSProperties = {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'transform 0.2s ease',
@@ -271,7 +285,7 @@ export function AccordionView({
         );
 
         return (
-          <div key={item.id} className={['pb-accordion-item', open && 'pb-accordion-item--open'].filter(Boolean).join(' ')} style={{ display: 'flex', flexDirection: 'column', gap: props.contentGap ?? 0 }}>
+          <div key={item.id} className={['pb-accordion-item', open && 'pb-accordion-item--open'].filter(Boolean).join(' ')} style={{ display: 'flex', flexDirection: 'column', gap: props.contentGap ?? 0, ...separatorStyle }}>
             {header}
             {open && cell && (
               <div className={'pb-accordion-panel'}>

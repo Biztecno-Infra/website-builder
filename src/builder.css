@@ -3546,19 +3546,11 @@
   white-space: nowrap;
 }
 .pb-accordion-item {
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
   overflow: visible;
-}
-.pb-accordion-item--open {
-  border-color: #cbd5e1;
 }
 .pb-accordion-header {
   padding: 12px 16px;
   user-select: none;
-}
-.pb-accordion-panel {
-  border-top: 1px solid #e2e8f0;
 }
 .pb-accordion-add {
   align-self: flex-start;

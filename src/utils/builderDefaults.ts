@@ -110,6 +110,12 @@ export const DEFAULT_ACCORDION_PROPS: AccordionProps = {
   expandedIconRotation: 180,
   contentGap: 0,
   itemGap: 8,
+  containerBorder: true,
+  itemDivider: true,
+  separatorColor: '#e2e8f0',
+  separatorWidth: 1,
+  separatorStyle: 'solid',
+  borderRadius: 4,
 };
 
 /** Default box width (px) of a freshly-dropped accordion. */

@@ -67,6 +67,30 @@ function SelectField<T extends string>({ label, value, options, onChange }: {
   );
 }
 
+function ColorField({ label, value, onCommitStart, onChange }: {
+  label: string; value: string; onCommitStart: () => void; onChange: (v: string) => void;
+}) {
+  return (
+    <div style={ROW}>
+      <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <input
+          type="color" value={value}
+          style={{ width: 28, height: 24, padding: 0, border: '1px solid #d6dee8', borderRadius: 4, cursor: 'pointer', background: 'none' }}
+          onFocus={onCommitStart}
+          onChange={e => onChange(e.target.value)}
+        />
+        <input
+          type="text" value={value}
+          style={{ width: 72, padding: '4px 6px', border: '1px solid #d6dee8', borderRadius: 4, fontSize: 12 }}
+          onFocus={onCommitStart}
+          onChange={e => onChange(e.target.value)}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function AccordionPanel({
   accordion, snapshot, breakpoint = 'desktop', selectedItemCellId,
   onUpdateAccordion, onUpdateAccordionResponsive,
@@ -152,6 +176,40 @@ export function AccordionPanel({
           onCommitStart={onFocus}
           onChange={v => setProps({ contentGap: Math.max(0, v) }, false)}
         />
+      </div>
+
+      {/* ── Border ── */}
+      <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
+        <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>Border</div>
+        <Toggle label="Outer box" checked={p.containerBorder ?? true} onChange={v => setProps({ containerBorder: v })} />
+        <Toggle label="Dividers between items" checked={p.itemDivider ?? true} onChange={v => setProps({ itemDivider: v })} />
+        {((p.containerBorder ?? true) || (p.itemDivider ?? true)) && (
+          <>
+            <ColorField
+              label="Color" value={p.separatorColor ?? '#e2e8f0'}
+              onCommitStart={onFocus}
+              onChange={v => setProps({ separatorColor: v }, false)}
+            />
+            <NumberField
+              label="Thickness" value={p.separatorWidth ?? 1} min={1} max={20} suffix="px"
+              onCommitStart={onFocus}
+              onChange={v => setProps({ separatorWidth: Math.max(1, v) }, false)}
+            />
+            <SelectField
+              label="Style"
+              value={p.separatorStyle ?? 'solid'}
+              options={[{ value: 'solid', label: 'Solid' }, { value: 'dashed', label: 'Dashed' }, { value: 'dotted', label: 'Dotted' }]}
+              onChange={v => setProps({ separatorStyle: v })}
+            />
+            {(p.containerBorder ?? true) && (
+              <NumberField
+                label="Corner radius" value={p.borderRadius ?? 4} min={0} max={40} suffix="px"
+                onCommitStart={onFocus}
+                onChange={v => setProps({ borderRadius: Math.max(0, v) }, false)}
+              />
+            )}
+          </>
+        )}
       </div>
 
       {/* ── Items ── */}

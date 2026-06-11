@@ -509,6 +509,18 @@ export interface AccordionProps {
   contentGap?: number;
   /** gap (px) between stacked accordion items */
   itemGap: number;
+  /** draw a border around the whole accordion (outer box). Default true. */
+  containerBorder?: boolean;
+  /** draw divider lines between items. Default true. */
+  itemDivider?: boolean;
+  /** border/divider color (shared by container border and item dividers) */
+  separatorColor?: string;
+  /** border/divider thickness in px (shared) */
+  separatorWidth?: number;
+  /** border/divider line style (shared) */
+  separatorStyle?: 'solid' | 'dashed' | 'dotted';
+  /** corner radius (px) for the container border box */
+  borderRadius?: number;
 }
 
 // Per-breakpoint overrides — mirror CarouselBpOverride (unscaled canvas-space

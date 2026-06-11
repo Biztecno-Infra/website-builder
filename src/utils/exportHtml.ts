@@ -305,12 +305,12 @@ let HAS_ACCORDION = false;
 const ACCORDION_CSS = `
 .acc{display:flex;flex-direction:column;width:100%;box-sizing:border-box}
 .acc-item{display:flex;flex-direction:column;width:100%}
-.acc-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;width:100%;background:none;border:none;text-align:inherit;font:inherit;color:inherit;padding:0}
+.acc-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;width:100%;background:none;border:none;text-align:inherit;font:inherit;color:inherit;padding:12px 16px}
 .acc-header.acc-icon-left{flex-direction:row-reverse}
 .acc-title{flex:1 1 auto;min-width:0}
 .acc-icon{flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:transform .2s ease}
 .acc-item.acc-open>.acc-header .acc-icon{transform:rotate(var(--acc-icon-rot,180deg))}
-.acc-panel{overflow:hidden;width:100%}
+.acc-panel{overflow:hidden;width:100%;padding:0 16px 12px}
 .acc-panel[hidden]{display:none}
 `;
 
@@ -926,13 +926,23 @@ function renderAccordion(accordion: Accordion, nodes: NodeMap): string {
   const iconRot = p.expandedIconRotation ?? 180;
   const headerClass = `acc-header${p.iconPosition === 'left' ? ' acc-icon-left' : ''}`;
 
-  const itemsHtml = accordion.items.map(item => {
+  const containerBorder = p.containerBorder ?? true;
+  const itemDivider = p.itemDivider ?? true;
+  const borderCss = `${p.separatorWidth ?? 1}px ${p.separatorStyle ?? 'solid'} ${p.separatorColor ?? '#e2e8f0'}`;
+  // With the outer box on, items sit flush so the box frames them cleanly; dividers do the separating.
+  const effItemGap = containerBorder ? 0 : p.itemGap;
+  const itemsHtml = accordion.items.map((item, idx) => {
     const open = openSet.has(item.id);
     const title = nodes[item.titleElId] as CanvasElement | undefined;
     const icon = nodes[item.iconElId] as CanvasElement | undefined;
     const cell = nodes[item.contentCellId] as GridCell | undefined;
     const panel = cell ? renderGridCell(cell, nodes) : '';
-    return `<div class="acc-item${open ? ' acc-open' : ''}" data-acc-item>
+    const isLast = idx === accordion.items.length - 1;
+    const itemStyle =
+      itemDivider && !isLast
+        ? ` style="border-bottom:${borderCss};padding-bottom:${containerBorder ? 0 : p.itemGap}px"`
+        : '';
+    return `<div class="acc-item${open ? ' acc-open' : ''}" data-acc-item${itemStyle}>
       <button type="button" class="${headerClass}" data-acc-header aria-expanded="${open ? 'true' : 'false'}">
         <span class="acc-title">${renderAccordionTitle(title)}</span>
         <span class="acc-icon">${renderAccordionIcon(icon)}</span>
@@ -941,7 +951,10 @@ function renderAccordion(accordion: Accordion, nodes: NodeMap): string {
     </div>`;
   }).join('');
 
-  return `<div class="acc acc-${accordion.id}" data-accordion data-acc-multiple="${p.allowMultiple ? 1 : 0}" style="--acc-icon-rot:${iconRot}deg;gap:${p.itemGap}px">${itemsHtml}</div>`;
+  const containerStyle = containerBorder
+    ? `;border:${borderCss};border-radius:${p.borderRadius ?? 4}px;overflow:hidden`
+    : '';
+  return `<div class="acc acc-${accordion.id}" data-accordion data-acc-multiple="${p.allowMultiple ? 1 : 0}" style="--acc-icon-rot:${iconRot}deg;gap:${effItemGap}px${containerStyle}">${itemsHtml}</div>`;
 }
 
 // Wrap a free-positioned accordion in a box class (acc-wrap-${id}) so tablet/mobile
