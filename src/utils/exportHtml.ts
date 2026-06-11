@@ -303,14 +303,14 @@ let HAS_ACCORDION = false;
 
 // Base CSS for accordions — emitted once per page when an accordion exists.
 const ACCORDION_CSS = `
-.acc{display:flex;flex-direction:column;box-sizing:border-box}
-.acc-item{display:flex;flex-direction:column}
+.acc{display:flex;flex-direction:column;width:100%;box-sizing:border-box}
+.acc-item{display:flex;flex-direction:column;width:100%}
 .acc-header{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;width:100%;background:none;border:none;text-align:inherit;font:inherit;color:inherit;padding:0}
 .acc-header.acc-icon-left{flex-direction:row-reverse}
 .acc-title{flex:1 1 auto;min-width:0}
 .acc-icon{flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:transform .2s ease}
 .acc-item.acc-open>.acc-header .acc-icon{transform:rotate(var(--acc-icon-rot,180deg))}
-.acc-panel{overflow:hidden}
+.acc-panel{overflow:hidden;width:100%}
 .acc-panel[hidden]{display:none}
 `;
 

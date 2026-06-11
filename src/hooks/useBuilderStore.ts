@@ -1155,11 +1155,16 @@ export function useBuilderStore() {
   const deleteElement = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
     if (!node || isSection(node) || isGridCell(node) || isContainer(node)) return;
-    const cel = node as CanvasElement;
+    const parentId = (node as { parent: string }).parent;
     push(stateRef.current);
     setState(s => {
-      const { [id]: _r, ...nodes } = s.nodes;
-      removeFromParent(nodes, cel.parent, id);
+      const nodes = { ...s.nodes };
+      // Carousel/accordion own a child subtree — recurse before removing the node
+      // itself, otherwise their slide/item nodes leak as orphans in the NodeMap.
+      if (isCarousel(node)) removeCarouselNodes(nodes, nodes[id] as Carousel);
+      else if (isAccordion(node)) removeAccordionNodes(nodes, nodes[id] as Accordion);
+      delete nodes[id];
+      removeFromParent(nodes, parentId, id);
       return { ...s, nodes };
     });
     setSelectedIds(prev => prev.filter(s => s !== id));
@@ -1174,8 +1179,9 @@ export function useBuilderStore() {
       for (const id of ids) {
         const el = nodes[id];
         if (!el || isSection(el) || isGridCell(el) || isContainer(el)) continue;
-        const cel = el as CanvasElement;
-        removeFromParent(nodes, cel.parent, id);
+        if (isCarousel(el)) removeCarouselNodes(nodes, el as Carousel);
+        else if (isAccordion(el)) removeAccordionNodes(nodes, el as Accordion);
+        removeFromParent(nodes, (el as { parent: string }).parent, id);
         delete nodes[id];
       }
       return { ...s, nodes };
@@ -1186,6 +1192,36 @@ export function useBuilderStore() {
   const duplicateElement = useCallback((id: string) => {
     const node = stateRef.current.nodes[id];
     if (!node || isSection(node) || isGridCell(node) || isContainer(node)) return;
+
+    // Carousel/accordion own a child subtree — deep-clone it (slides / item
+    // header elements + content cells) instead of shallow-copying by reference.
+    if (isCarousel(node)) {
+      const car = node as Carousel;
+      push(stateRef.current);
+      setState(s => {
+        const nodes = { ...s.nodes };
+        const newCarId = newCarouselId();
+        const slideIds = car.children.map(slideId => deepCloneSlide(nodes, slideId, newCarId)).filter(Boolean);
+        nodes[newCarId] = { ...car, id: newCarId, children: slideIds, layout: { ...car.layout, x: car.layout.x + 20, y: car.layout.y + 20, zIndex: (car.layout.zIndex ?? 0) + 1 } };
+        appendToParent(nodes, car.parent, newCarId);
+        return { ...s, nodes };
+      });
+      return;
+    }
+    if (isAccordion(node)) {
+      const acc = node as Accordion;
+      push(stateRef.current);
+      setState(s => {
+        const nodes = { ...s.nodes };
+        const newAccId = cloneAccordionInto(nodes, acc, acc.parent, (cid, np) => deepCloneSlide(nodes, cid, np));
+        const copy = nodes[newAccId] as Accordion;
+        copy.layout = { ...copy.layout, x: copy.layout.x + 20, y: copy.layout.y + 20, zIndex: (copy.layout.zIndex ?? 0) + 1 };
+        appendToParent(nodes, acc.parent, newAccId);
+        return { ...s, nodes };
+      });
+      return;
+    }
+
     const cel = node as CanvasElement;
     const copy: CanvasElement = { ...cel, id: newId(), layout: { ...cel.layout, x: cel.layout.x + 20, y: cel.layout.y + 20, zIndex: cel.layout.zIndex + 1 } };
     push(stateRef.current);
@@ -2013,7 +2049,6 @@ export function useBuilderStore() {
       return { ...s, nodes: { ...s.nodes, [accordionId]: { ...a, activeItems } } };
     });
   }, []);
-
 
   const moveGridElement = useCallback((
     elementId: string,

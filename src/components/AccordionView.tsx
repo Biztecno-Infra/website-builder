@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { GridCellView } from './GridCellView';
 import { GridElementView } from './GridElementView';
 import { canvasDragShared } from './CanvasElement';
+import { ElementQuickBar } from './ElementQuickBar';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import type {
   Accordion, AccordionBpOverride, AccordionItem, Breakpoint, BreakpointOverride, BuilderState,
@@ -337,6 +338,16 @@ export function AccordionView({
           onMouseDown={startResize(dir)}
         />
       ))}
+
+      {/* Duplicate / delete quick bar — reuses the common element handlers
+          (the store routes accordion ids to deep clone / recursive delete). */}
+      {!previewMode && isSelected && !hasActiveChild && (onDuplicateElement || onDeleteElement) && (
+        <ElementQuickBar
+          anchorRef={wrapperRef}
+          onDuplicate={onDuplicateElement ? () => onDuplicateElement(accordion.id) : undefined}
+          onDelete={onDeleteElement ? () => onDeleteElement(accordion.id) : undefined}
+        />
+      )}
     </div>
   );
 }
