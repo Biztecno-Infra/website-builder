@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+/* ─── Scoped reset (does NOT leak to host app) ─── */
+.pb-app,
+.pb-preview-app {
+  box-sizing: border-box;
+  font-family: var(--pb-font);
+  font-size: 14px;
+  color: var(--pb-text);
+}
+
+.pb-app *,
+.pb-app *::before,
+.pb-app *::after,
+.pb-preview-app *,
+.pb-preview-app *::before,
+.pb-preview-app *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.pb-app button,
+.pb-app input,
+.pb-app select,
+.pb-app textarea,
+.pb-preview-app button,
+.pb-preview-app input,
+.pb-preview-app select,
+.pb-preview-app textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: normal;
+}
+
+/* Form inputs need explicit inherit; buttons get it via natural cascade */
+.pb-app input,
+.pb-app select,
+.pb-app textarea,
+.pb-preview-app input,
+.pb-preview-app select,
+.pb-preview-app textarea {
+  color: inherit;
+}
+
+.pb-app button,
+.pb-preview-app button {
+  cursor: pointer;
+}
+
+/* ─── App layout ─── */
+.pb-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.pb-app-body {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}

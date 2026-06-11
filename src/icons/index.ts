@@ -25,5 +25,14 @@ export { default as elForm }      from './el-form';
 export { default as elAccordion } from './el-accordion';
 
 // UI icons
-export { default as search }    from './search';
-export { default as trash }     from './delete';
+export { default as search }      from './search';
+export { default as trash }       from './delete';
+export { default as colorPicker } from './color-picker';
+
+// Alignment / direction icons
+export { default as alignLeft }   from './align-left';
+export { default as alignCenter } from './align-center';
+export { default as alignRight }  from './align-right';
+export { default as flexRow }     from './flex-row';
+export { default as flexColumn }  from './flex-column';
+export { default as flexWrap }    from './flex-wrap';

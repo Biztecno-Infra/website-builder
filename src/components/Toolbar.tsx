@@ -52,11 +52,11 @@ export function Toolbar({
   const closeDrop = (setter: (v: boolean) => void) => () => setter(false);
 
   return (
-    <header className="pb-toolbar">
+    <header className="pb-toolbar pb-flex-row">
 
       {/* ── Left: logo + site name + page dropdown ── */}
-      <div className="pb-toolbar-left">
-        <span className="pb-toolbar-logo">
+      <div className="pb-toolbar-left pb-flex-row">
+        <span className="pb-toolbar-logo pb-flex-center">
           <Icon id="logo" size={20} />
         </span>
 
@@ -90,12 +90,12 @@ export function Toolbar({
       </div>
 
       {/* ── Center: undo/redo + breakpoints + zoom ── */}
-      <div className="pb-toolbar-center">
+      <div className="pb-toolbar-center pb-flex-row">
 
         {/* Undo / Redo */}
-        <div className="pb-toolbar-icon-group">
+        <div className="pb-toolbar-icon-group pb-flex-row">
           <button
-            className="pb-toolbar-icon-btn"
+            className="pb-toolbar-icon-btn pb-flex-center"
             onClick={onUndo}
             disabled={!canUndo}
             title="Undo (Ctrl+Z)"
@@ -103,7 +103,7 @@ export function Toolbar({
             <Icon id="undo" size={16} />
           </button>
           <button
-            className="pb-toolbar-icon-btn"
+            className="pb-toolbar-icon-btn pb-flex-center"
             onClick={onRedo}
             disabled={!canRedo}
             title="Redo (Ctrl+Y)"
@@ -115,7 +115,7 @@ export function Toolbar({
         <div className="pb-toolbar-vdivider" />
 
         {/* Breakpoints */}
-        <div className="pb-toolbar-icon-group">
+        <div className="pb-toolbar-icon-group pb-flex-row">
           {([
             { bp: 'desktop' as Breakpoint, icon: 'desktop' as const, title: 'Desktop (1280px)' },
             { bp: 'tablet'  as Breakpoint, icon: 'tablet'  as const, title: 'Tablet (768px)'  },
@@ -123,7 +123,7 @@ export function Toolbar({
           ]).map(({ bp, icon, title }) => (
             <button
               key={bp}
-              className={['pb-toolbar-icon-btn', breakpoint === bp && 'pb-active'].filter(Boolean).join(' ')}
+              className={['pb-toolbar-icon-btn pb-flex-center', breakpoint === bp && 'pb-active'].filter(Boolean).join(' ')}
               onClick={() => onSetBreakpoint(bp)}
               title={title}
             >
@@ -165,7 +165,7 @@ export function Toolbar({
       </div>
 
       {/* ── Right: preview + publish ── */}
-      <div className="pb-toolbar-right">
+      <div className="pb-toolbar-right pb-flex-row">
         <button className="pb-toolbar-preview-btn" onClick={onPreview} title="Preview (Ctrl+Shift+P)">
           <Icon id="preview" size={16} />
           <span>Preview</span>
@@ -175,7 +175,7 @@ export function Toolbar({
         <div className="pb-toolbar-dropdown-wrap" ref={publishDropRef}>
           <div className="pb-toolbar-publish-group">
             <button className="pb-toolbar-publish-btn" onClick={onExportHTML} title="Publish / Export HTML">
-              <Icon id="publish" size={16} />
+              <Icon id="publish" size={16} color="#ffffff" />
               <span>Publish</span>
             </button>
             <button
@@ -183,7 +183,7 @@ export function Toolbar({
               onClick={() => { setPublishDropOpen(o => !o); setPageDropOpen(false); setZoomDropOpen(false); }}
               title="More options"
             >
-              <Icon id="chevronDown" size={12} />
+              <Icon id="chevronDown" size={12} color="#ffffff" />
             </button>
           </div>
           {publishDropOpen && (

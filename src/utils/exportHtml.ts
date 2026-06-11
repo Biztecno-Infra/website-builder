@@ -3,11 +3,11 @@ import { DEFAULT_FLEX_CONFIG } from './builderDefaults';
 import { sectionBgCssStr } from './sectionStyle';
 import { interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
+import { CANVAS_W } from '../hooks/useBuilderStore';
 
-const CANVAS_W = 1280;
 const TABLET_W = 768;
 const MOBILE_W = 375;
-const MOBILE_BREAK = TABLET_W - 1; // 767 — matches the mobile @media boundary used elsewhere
+const MOBILE_BREAK = TABLET_W - 1;
 
 function toYouTubeEmbedUrl(url: string): string {
   if (!url) return url;
@@ -69,6 +69,7 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
     }
   }
   add(state.theme.fonts.body);
+  if (state.theme.fonts.heading) add(state.theme.fonts.heading);
   return Array.from(fonts);
 }
 
@@ -133,7 +134,7 @@ function actionOf(el: CanvasElement): ElementAction | null {
 
 function smsHref(phone: string, body?: string): string {
   const num = phone.replace(/[^+\d]/g, '');
-  const q = body ? `?&body=${encodeURIComponent(body)}` : '';
+  const q = body ? `?body=${encodeURIComponent(body)}` : '';
   return `sms:${num}${q}`;
 }
 
@@ -185,7 +186,7 @@ function resolveAction(a: ElementAction | null): { href: string; target: string;
         ? `{method:'${method}',headers:{'Content-Type':'application/json'},body:${JSON.stringify(body)}}`
         : `{method:'${method}'}`;
       const onclick = `fetch(${JSON.stringify(a.apiUrl)},${init}).catch(function(e){console.error(e);});return false;`;
-      return { href: '#', target: '_self', onclick: esc(onclick) };
+      return { href: '#', target: '_self', onclick };
     }
     case 'open-popup':   // not yet functional in static export
     case 'submit-form':  // handled by the <form> element, not as a link

@@ -1,0 +1,86 @@
+﻿/* ─── Page Panel ─── */
+.pb-page-list {
+  gap: 4px;
+  padding: 8px;
+}
+
+.pb-page-row {
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: var(--pb-radius-md);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: var(--pb-transition);
+  position: relative;
+}
+
+.pb-page-row:hover { background: var(--pb-bg-hover); }
+.pb-page-row.pb-active {
+  background: var(--pb-bg-subtle);
+  border-color: var(--pb-primary-hover)44;
+}
+
+.pb-page-index {
+  font-size: 11px;
+  color: var(--pb-text-subtle);
+  min-width: 16px;
+  text-align: center;
+}
+
+.pb-page-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pb-text-dark);
+}
+
+.pb-page-name-input {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--pb-primary-hover);
+  border-radius: var(--pb-radius-sm);
+  padding: 1px 6px;
+  outline: none;
+  background: var(--pb-white);
+}
+
+.pb-page-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+.pb-page-row:hover .pb-page-actions,
+.pb-page-row.pb-active .pb-page-actions { opacity: 1; }
+
+.pb-page-action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--pb-text-muted);
+  padding: 2px 5px;
+  border-radius: var(--pb-radius-sm);
+  line-height: 1;
+}
+.pb-page-action-btn:hover { background: var(--pb-bg-subtle); color: var(--pb-primary); }
+.pb-page-action-btn.pb-danger:hover { background: var(--pb-danger-bg); color: var(--pb-danger-dark); }
+.pb-page-action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.pb-page-action-btn:disabled:hover { background: none; color: var(--pb-text-muted); }
+
+.pb-add-page-btn {
+  margin: 8px;
+  padding: 8px;
+  width: calc(100% - 16px);
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px dashed var(--pb-primary);
+  border-radius: var(--pb-radius-lg);
+  background: transparent;
+  color: var(--pb-primary);
+  cursor: pointer;
+  transition: var(--pb-transition-all);
+  letter-spacing: 0.02em;
+}
+.pb-add-page-btn:hover { background: var(--pb-bg-subtle); }

@@ -68,6 +68,8 @@ export default function App() {
     updateResponsive,
     selectedGridCellId,
     setSelectedGridCellId,
+    selectedContainerId,
+    setSelectedContainerId,
     addGridCell,
     updateGridCell,
     deleteGridCell,
@@ -81,15 +83,6 @@ export default function App() {
     moveElementToGridCell,
     updatePageLayout,
   } = useBuilderStore();
-
-  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
-
-  // Clear selectedContainerId if the node was removed (e.g. after undo)
-  useEffect(() => {
-    if (selectedContainerId && !nodes[selectedContainerId]) {
-      setSelectedContainerId(null);
-    }
-  }, [nodes, selectedContainerId]);
 
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
@@ -273,7 +266,6 @@ export default function App() {
 
       } catch (err) {
         alert('Something went wrong importing the file. Please try again.');
-        console.error('Import error:', err);
       }
     };
     reader.onerror = () => alert('Could not read the file. Please try again.');
@@ -288,87 +280,6 @@ export default function App() {
     return () => window.removeEventListener('click', close);
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      const typing = target.closest('input, textarea, select, [contenteditable]');
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault(); handleUndo(); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
-        e.preventDefault(); handleRedo(); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
-        e.preventDefault(); changeZoom(10); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-        e.preventDefault(); changeZoom(-10); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === '0') {
-        e.preventDefault(); setZoom(1); return;
-      }
-
-      if (typing) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
-        e.preventDefault();
-        if (!previewMode) capturePreviewScroll();
-        setPreviewMode(p => !p);
-        return;
-      }
-      if (e.key === 'Escape') {
-        if (previewMode) { setPreviewMode(false); return; }
-        // Bubble up selection one level at a time: element → container → cell → section → deselect
-        if (selectedId) { setSelectedId(null); return; }
-        if (selectedIds.length > 0) { setSelectedIds([]); return; }
-        if (selectedContainerId) { setSelectedContainerId(null); return; }
-        if (selectedGridCellId) { setSelectedGridCellId(null); return; }
-        if (selectedSectionId) { setSelectedSectionId(null); return; }
-        return;
-      }
-
-      if (previewMode) return;
-
-      if (e.key === 'Delete' || e.key === 'Backspace') {
-        e.preventDefault();
-        if (selectedIds.length > 0) { deleteSelected(); return; }
-        if (selectedId) { deleteElement(selectedId); setSelectedId(null); return; }
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedId) {
-        e.preventDefault(); copyElement(selectedId); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
-        e.preventDefault(); pasteElement(); return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedId) {
-        e.preventDefault(); duplicateElement(selectedId); return;
-      }
-      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        const ids = selectedIds.filter(id => {
-          const el = elements[id];
-          return el && !el.state.locked;
-        });
-        if (!ids.length) return;
-        e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
-        const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
-        const dy = e.key === 'ArrowUp' ? -step : e.key === 'ArrowDown' ? step : 0;
-        pushSnapshot(stateRef.current);
-        updateElements(ids.map(id => {
-          const el = elements[id];
-          return { id, changes: { layout: { ...el.layout, x: el.layout.x + dx, y: el.layout.y + dy } } };
-        }));
-      }
-    };
-
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [handleUndo, handleRedo, deleteSelected, selectedId, selectedIds, copyElement, pasteElement,
-      duplicateElement, updateElements, pushSnapshot, setSelectedIds, setSelectedSectionId,
-      stateRef, elements, previewMode, changeZoom, setZoom,
-      capturePreviewScroll]);
 
   const handleAddElement = useCallback((type: import('./types').ElementType) => {
     if (selectedContainerId) {
@@ -505,6 +416,7 @@ export default function App() {
           onMoveElementToSection={moveElementToSection}
           onUpdate={updateElement}
           onDeleteElement={deleteElement}
+          onDeleteSection={deleteSection}
           header={header}
           sections={sections}
           footer={footer}

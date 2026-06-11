@@ -1,11 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import type {
   Breakpoint, BuilderState, GridCell, NodeMap,
   CellLayoutMode, SiteTheme,
 } from '../../types';
-import { ThemeSwatches } from './ThemeSwatches';
+
+import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { ColorField, BorderEditor, VisibilityEditor } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { PanelHeader } from './PanelHeader';
+import { PbSelect } from '../PbSelect';
+import { PbInput } from '../PbInput';
+import {
+  FLEX_JUSTIFY_OPTIONS,
+  FLEX_ALIGN_OPTIONS,
+} from '../../utils/selectOptions';
 
 const CELL_PANEL_DEFAULTS: Record<string, boolean> = {
   columnSpan: true,
@@ -33,7 +42,7 @@ export function GridCellPanel({
   onUpdateGridCell, onDeleteGridCell,
   onPushSnapshot, breakpoint = 'desktop', theme,
 }: Props) {
-  const focusSnapshot = useRef<BuilderState | null>(null);
+  const swatches = themeToSwatches(theme);
   const [renderedHeight, setRenderedHeight] = useState<number | null>(null);
 
   useEffect(() => {
@@ -46,8 +55,7 @@ export function GridCellPanel({
     ro.observe(el);
     return () => ro.disconnect();
   }, [gc.id]);
-  const gcFocus = () => { if (!focusSnapshot.current) focusSnapshot.current = snapshot; };
-  const gcBlur = () => { if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; } };
+  const { onFocus: gcFocus, onBlur: gcBlur } = useFocusSnapshot(snapshot, onPushSnapshot);
   const { sec, toggle } = usePanelSections(CELL_PANEL_DEFAULTS, 'builder-sidebar-cell');
 
   const { style, responsive } = gc;
@@ -170,24 +178,21 @@ export function GridCellPanel({
 
   return (
     <aside className={'pb-right-sidebar'}>
-      <div className={'pb-panel-header'}>
-        <span className={'pb-panel-header-title'}>Grid Column</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+      <PanelHeader title="Grid Column">
+        <button
+          className={['pb-toolbar-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
+          style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
+          title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
+          onClick={toggleCard}
+        >{isCard ? '▪ Card' : '□ Card'}</button>
+        {onDeleteGridCell && (
           <button
-            className={['pb-toolbar-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
-            style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
-            title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
-            onClick={toggleCard}
-          >{isCard ? '▪ Card' : '□ Card'}</button>
-          {onDeleteGridCell && (
-            <button
-              className={'pb-panel-delete-btn'}
-              title="Delete this column (Ctrl+Z to undo)"
-              onClick={() => { onDeleteGridCell(gc.id); }}
-            >✕ Delete</button>
-          )}
-        </div>
-      </div>
+            className={'pb-panel-delete-btn'}
+            title="Delete this column (Ctrl+Z to undo)"
+            onClick={() => { onDeleteGridCell(gc.id); }}
+          >✕ Delete</button>
+        )}
+      </PanelHeader>
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>
@@ -199,16 +204,21 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="columnSpan" label="Column Span" isOpen={sec('columnSpan')} onToggle={toggle}>
         <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Desktop</label>
-          <input type="number" value={gc.columnSpan} min={1} max={12}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) })} />
-          <span style={{ fontSize: 11, color: '#888' }}>/12</span>
+          <div className="pb-px-field">
+            <PbInput type="number" value={gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) })} />
+            <span className="pb-px-unit">/12</span>
+          </div>
         </div>
         <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Tablet</label>
-          <input type="number" value={responsive.tablet?.columnSpan ?? gc.columnSpan} min={1} max={12}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+          <div className="pb-px-field">
+            <PbInput type="number" value={responsive.tablet?.columnSpan ?? gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+            <span className="pb-px-unit">/12</span>
+          </div>
           {responsive.tablet?.columnSpan !== undefined && (
             <button className={'pb-resp-clear-btn'} title="Reset to desktop" onClick={() => {
               onPushSnapshot(snapshot);
@@ -219,9 +229,12 @@ export function GridCellPanel({
         </div>
         <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
           <label>Mobile</label>
-          <input type="number" value={responsive.mobile?.columnSpan ?? gc.columnSpan} min={1} max={12}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+          <div className="pb-px-field">
+            <PbInput type="number" value={responsive.mobile?.columnSpan ?? gc.columnSpan} min={1} max={12}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: Math.max(1, Math.min(12, Number(e.target.value))) } } })} />
+            <span className="pb-px-unit">/12</span>
+          </div>
           {responsive.mobile?.columnSpan !== undefined && (
             <button className={'pb-resp-clear-btn'} title="Reset to desktop" onClick={() => {
               onPushSnapshot(snapshot);
@@ -247,15 +260,15 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="layout" label="Layout" isOpen={sec('layout')} onToggle={toggle}>
         <div className={'pb-prop-row'}>
           <label>Direction</label>
-          <div className={'pb-btn-group'}>
-            {(['column', 'row', 'wrap'] as CellLayoutMode[]).map(m => (
-              <button key={m}
-                className={effMode === m ? 'active' : ''}
-                onClick={() => setCurrentMode(m)}>
-                {m === 'column' ? '↕' : m === 'row' ? '↔' : '⤵'}
-              </button>
-            ))}
-          </div>
+          <ToggleGroup
+            options={[
+              { value: 'column', label: <Icon id="flexColumn" size={14} />, title: 'Column' },
+              { value: 'row',    label: <Icon id="flexRow"    size={14} />, title: 'Row'    },
+              { value: 'wrap',   label: <Icon id="flexWrap"   size={14} />, title: 'Wrap'   },
+            ]}
+            value={effMode}
+            onChange={m => setCurrentMode(m as CellLayoutMode)}
+          />
           {!isDesktop && modeIsOverridden && (
             <button className={'pb-resp-clear-btn'} title={`Reset to desktop (${style.layoutMode})`} onClick={resetModeOverride}>↺</button>
           )}
@@ -269,13 +282,9 @@ export function GridCellPanel({
         )}
         <div className={'pb-prop-row'}>
           <label>Justify</label>
-          <select value={effJustify} onChange={e => setCurrentJustify(e.target.value as JustifyVal)}>
-            <option value="flex-start">Start</option>
-            <option value="center">Center</option>
-            <option value="flex-end">End</option>
-            <option value="space-between">Space Between</option>
-            <option value="space-around">Space Around</option>
-          </select>
+          <PbSelect value={effJustify}
+            options={FLEX_JUSTIFY_OPTIONS}
+            onChange={v => setCurrentJustify(v as JustifyVal)} />
           {!isDesktop && justifyIsOverridden && (
             <button className={'pb-resp-clear-btn'} title={`Reset to desktop (${style.justifyContent})`} onClick={resetJustifyOverride}>↺</button>
           )}
@@ -289,12 +298,9 @@ export function GridCellPanel({
         )}
         <div className={'pb-prop-row'}>
           <label>Align</label>
-          <select value={effAlign} onChange={e => setCurrentAlign(e.target.value as AlignVal)}>
-            <option value="flex-start">Start</option>
-            <option value="center">Center</option>
-            <option value="flex-end">End</option>
-            <option value="stretch">Stretch</option>
-          </select>
+          <PbSelect value={effAlign}
+            options={FLEX_ALIGN_OPTIONS}
+            onChange={v => setCurrentAlign(v as AlignVal)} />
           {!isDesktop && alignIsOverridden && (
             <button className={'pb-resp-clear-btn'} title={`Reset to desktop (${style.alignItems})`} onClick={resetAlignOverride}>↺</button>
           )}
@@ -308,10 +314,9 @@ export function GridCellPanel({
         )}
         <div className={'pb-prop-row'}>
           <label>Elem. Gap</label>
-          <input type="number" value={style.gap} min={0}
+          <PxInput value={style.gap}
             onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, gap: Number(e.target.value) } })} />
-          <span style={{ fontSize: 11, color: '#888' }}>px</span>
+            onChange={v => onUpdateGridCell(gc.id, { style: { ...style, gap: v } })} />
         </div>
         {/* Padding — responsive-aware. On tablet/mobile, writes to responsive override. */}
         {(() => {
@@ -347,7 +352,7 @@ export function GridCellPanel({
               {(['top','right','bottom','left'] as const).map(side => (
                 <div key={side} className={['pb-prop-row', padIsOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
                   <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
-                  <input type="number" value={effPad[side]} min={0}
+                  <PbInput type="number" value={effPad[side]} min={0}
                     onFocus={gcFocus} onBlur={gcBlur}
                     onChange={e => updatePad(side, Number(e.target.value))} />
                 </div>
@@ -367,11 +372,10 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
           <div className={'pb-prop-row'}>
             <label>Min H</label>
-            <input type="number" value={style.minHeight ?? ''} min={0}
+            <PxInput value={style.minHeight ?? ''}
               placeholder={renderedHeight !== null ? String(renderedHeight) : 'auto'}
               onFocus={gcFocus} onBlur={gcBlur}
-              onChange={e => onUpdateGridCell(gc.id, { style: { ...style, minHeight: Number(e.target.value) || undefined } })} />
-            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              onChange={v => onUpdateGridCell(gc.id, { style: { ...style, minHeight: v || undefined } })} />
           </div>
       </CollapsibleSection>
 
@@ -383,7 +387,8 @@ export function GridCellPanel({
             <ColorField
               value={bgColor}
               onChange={v => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: v, type: 'solid' } } }); }}
-              onFocus={gcFocus} onBlur={gcBlur} />
+              onFocus={gcFocus} onBlur={gcBlur}
+              swatches={swatches} />
           </div>
         )}
         <div className={'pb-prop-row pb-vis-row'}>
@@ -391,12 +396,11 @@ export function GridCellPanel({
           <input type="checkbox" checked={style.background.color === 'transparent' || !style.background.color}
             onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.checked ? 'transparent' : '#ffffff' } } }); }} />
         </div>
-        <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: c, type: 'solid' } } }); }} />
 
         {/* Cell background image */}
         <div className={'pb-prop-row'}>
           <label>Image URL</label>
-          <input
+          <PbInput
             type="text"
             placeholder="https://... or leave empty"
             value={style.background.image ?? ''}
@@ -432,6 +436,7 @@ export function GridCellPanel({
           border={style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }}
           onChange={updates => onUpdateGridCell(gc.id, { style: { ...style, border: { ...(style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' }), ...updates } } })}
           onFocus={gcFocus} onBlur={gcBlur}
+          swatches={swatches}
         />
       </CollapsibleSection>
 
@@ -439,10 +444,12 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="rowSpan" label="Row Span" isOpen={sec('rowSpan')} onToggle={toggle}>
         <div className={'pb-prop-row'}>
           <label>Rows</label>
-          <input type="number" value={gc.rowSpan ?? 1} min={1} max={6}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { rowSpan: Math.max(1, Math.min(6, Number(e.target.value))) })} />
-          <span style={{ fontSize: 11, color: '#888' }}>/6</span>
+          <div className="pb-px-field">
+            <PbInput type="number" value={gc.rowSpan ?? 1} min={1} max={6}
+              onFocus={gcFocus} onBlur={gcBlur}
+              onChange={e => onUpdateGridCell(gc.id, { rowSpan: Math.max(1, Math.min(6, Number(e.target.value))) })} />
+            <span className="pb-px-unit">/6</span>
+          </div>
         </div>
       </CollapsibleSection>
 

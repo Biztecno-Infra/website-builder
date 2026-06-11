@@ -1,4 +1,11 @@
 import type { ActionType, ElementAction, NodeMap, Page, Section } from '../../types';
+import { PbSelect } from '../PbSelect';
+import { PbInput } from '../PbInput';
+import { PbTextarea } from '../PbTextarea';
+import {
+  API_METHOD_OPTIONS,
+  LINK_TARGET_OPTIONS,
+} from '../../utils/selectOptions';
 
 // Shared action configuration UI used by Button elements and the Form submit
 // button. Driven entirely by the ElementAction model. Some action types
@@ -58,9 +65,9 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
     <>
       <div className={'pb-prop-row'}>
         <label>Action</label>
-        <select value={type} onChange={e => onChange({ type: e.target.value as ActionType })}>
-          {options.map(o => <option key={o.type} value={o.type}>{o.label}</option>)}
-        </select>
+        <PbSelect value={type}
+          options={options.map(o => ({ value: o.type, label: o.label }))}
+          onChange={v => onChange({ type: v as ActionType })} />
       </div>
 
       {INERT_ACTIONS.has(type) && (
@@ -73,13 +80,13 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <>
           <div className={'pb-prop-row pb-full'}>
             <label>Email</label>
-            <input type="text" value={action.email ?? ''} placeholder="where to send submissions"
+            <PbInput type="text" variant="plain" value={action.email ?? ''} placeholder="where to send submissions"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ email: e.target.value })} />
           </div>
           <div className={'pb-prop-row pb-full'}>
             <label>Subject</label>
-            <input type="text" value={action.subject ?? ''} placeholder="(optional)"
+            <PbInput type="text" variant="plain" value={action.subject ?? ''} placeholder="(optional)"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ subject: e.target.value })} />
           </div>
@@ -90,18 +97,15 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <>
           <div className={'pb-prop-row pb-full'}>
             <label>Endpoint</label>
-            <input type="text" value={action.apiUrl ?? ''} placeholder="https://api.example.com/submit"
+            <PbInput type="text" variant="plain" value={action.apiUrl ?? ''} placeholder="https://api.example.com/submit"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ apiUrl: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Method</label>
-            <select value={action.apiMethod ?? 'POST'}
-              onChange={e => onChange({ apiMethod: e.target.value as 'POST' | 'PUT' | 'PATCH' })}>
-              <option value="POST">POST</option>
-              <option value="PUT">PUT</option>
-              <option value="PATCH">PATCH</option>
-            </select>
+            <PbSelect value={action.apiMethod ?? 'POST'}
+              options={API_METHOD_OPTIONS}
+              onChange={v => onChange({ apiMethod: v as 'POST' | 'PUT' | 'PATCH' })} />
           </div>
           {allowSubmit ? (
             <div style={{ fontSize: 11, color: '#64748b', padding: '2px 0 4px', lineHeight: 1.5 }}>
@@ -111,8 +115,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
             <>
               <div className={'pb-prop-row pb-full'}>
                 <label>JSON Body</label>
-                <textarea value={action.apiBody ?? ''} rows={4} placeholder={'(optional) e.g. {"event":"clicked"}'}
-                  style={{ fontFamily: 'monospace', fontSize: 12, resize: 'vertical' }}
+                <PbTextarea value={action.apiBody ?? ''} rows={4} mono placeholder={'(optional) e.g. {"event":"clicked"}'}
                   onFocus={onFocus} onBlur={onBlur}
                   onChange={e => onChange({ apiBody: e.target.value })} />
               </div>
@@ -127,7 +130,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
       {type === 'download-file' && (
         <div className={'pb-prop-row pb-full'}>
           <label>File URL</label>
-          <input type="text" value={action.url ?? ''} placeholder="https://…"
+          <PbInput type="text" variant="plain" value={action.url ?? ''} placeholder="https://…"
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => onChange({ url: e.target.value })} />
         </div>
@@ -137,17 +140,15 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <>
           <div className={'pb-prop-row pb-full'}>
             <label>URL</label>
-            <input type="text" value={action.url ?? ''} placeholder="https://…"
+            <PbInput type="text" variant="plain" value={action.url ?? ''} placeholder="https://…"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ url: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Target</label>
-            <select value={action.target ?? '_self'}
-              onChange={e => onChange({ target: e.target.value as '_self' | '_blank' })}>
-              <option value="_self">Same tab</option>
-              <option value="_blank">New tab</option>
-            </select>
+            <PbSelect value={action.target ?? '_self'}
+              options={LINK_TARGET_OPTIONS}
+              onChange={v => onChange({ target: v as '_self' | '_blank' })} />
           </div>
         </>
       )}
@@ -155,11 +156,9 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
       {type === 'internal-page' && (
         <div className={'pb-prop-row'}>
           <label>Page</label>
-          <select value={action.pageId ?? ''}
-            onChange={e => onChange({ pageId: e.target.value })}>
-            <option value="">— pick page —</option>
-            {pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+          <PbSelect value={action.pageId ?? ''}
+            options={[{ value: '', label: '— pick page —' }, ...pages.map(p => ({ value: p.id, label: p.name }))]}
+            onChange={v => onChange({ pageId: v })} />
         </div>
       )}
 
@@ -167,19 +166,19 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <>
           <div className={'pb-prop-row pb-full'}>
             <label>Email</label>
-            <input type="text" value={action.email ?? ''} placeholder="hello@example.com"
+            <PbInput type="text" variant="plain" value={action.email ?? ''} placeholder="hello@example.com"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ email: e.target.value })} />
           </div>
           <div className={'pb-prop-row pb-full'}>
             <label>Subject</label>
-            <input type="text" value={action.subject ?? ''} placeholder="(optional)"
+            <PbInput type="text" variant="plain" value={action.subject ?? ''} placeholder="(optional)"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ subject: e.target.value })} />
           </div>
           <div className={'pb-prop-row pb-full'}>
             <label>Body</label>
-            <input type="text" value={action.body ?? ''} placeholder="(optional)"
+            <PbInput type="text" variant="plain" value={action.body ?? ''} placeholder="(optional)"
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ body: e.target.value })} />
           </div>
@@ -189,7 +188,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
       {(type === 'make-call' || type === 'send-sms') && (
         <div className={'pb-prop-row pb-full'}>
           <label>Phone</label>
-          <input type="text" value={action.phone ?? ''} placeholder="+1 555 000 0000"
+          <PbInput type="text" variant="plain" value={action.phone ?? ''} placeholder="+1 555 000 0000"
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => onChange({ phone: e.target.value })} />
         </div>
@@ -198,7 +197,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
       {type === 'send-sms' && (
         <div className={'pb-prop-row pb-full'}>
           <label>Message</label>
-          <input type="text" value={action.body ?? ''} placeholder="(optional prefilled text)"
+          <PbInput type="text" variant="plain" value={action.body ?? ''} placeholder="(optional prefilled text)"
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => onChange({ body: e.target.value })} />
         </div>
@@ -208,11 +207,9 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         <>
           <div className={'pb-prop-row'}>
             <label>Section</label>
-            <select value={action.targetSectionId ?? ''}
-              onChange={e => onChange({ targetSectionId: e.target.value })}>
-              <option value="">— pick section —</option>
-              {allSections.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
+            <PbSelect value={action.targetSectionId ?? ''}
+              options={[{ value: '', label: '— pick section —' }, ...allSections.map(s => ({ value: s.id, label: s.label }))]}
+              onChange={v => onChange({ targetSectionId: v })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Smooth</label>

@@ -6,6 +6,7 @@ import { GridCellPanel } from './panels/GridCellPanel';
 import { SectionPanel } from './panels/SectionPanel';
 import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
+import { PanelHeader } from './panels/PanelHeader';
 
 interface Props {
   element: CanvasElement | null;
@@ -87,9 +88,7 @@ export function RightSidebar({
   if (!element) {
     return (
       <aside className={'pb-right-sidebar'}>
-        <div className={'pb-panel-header'}>
-          <span className={'pb-panel-header-title'}>Properties</span>
-        </div>
+        <PanelHeader title="Properties" />
         <div className={'pb-no-selection'}>Select an element or section<br />to edit its properties</div>
       </aside>
     );

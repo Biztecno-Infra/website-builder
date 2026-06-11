@@ -1,0 +1,181 @@
+﻿/* ─── Alignment toolbar ─── */
+.pb-align-toolbar {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border-light);
+  border-radius: var(--pb-radius-lg);
+  padding: 5px 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+}
+
+.pb-align-toolbar-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pb-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 4px;
+}
+
+.pb-align-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--pb-border-light);
+  border-radius: 5px;
+  background: var(--pb-bg-muted);
+  font-size: 14px;
+  color: var(--pb-text-mid);
+  transition: all 0.1s;
+}
+
+.pb-align-btn:hover {
+  border-color: var(--pb-primary);
+  background: var(--pb-bg-subtle);
+  color: var(--pb-primary);
+}
+
+.pb-align-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--pb-border-light);
+  margin: 0 3px;
+}
+
+/* ─── Context menu ─── */
+.pb-context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border-light);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  padding: 5px 0;
+  min-width: 160px;
+}
+
+.pb-context-menu button {
+  display: block;
+  width: 100%;
+  padding: 7px 16px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pb-text-dark);
+  cursor: pointer;
+}
+
+.pb-context-menu button:hover {
+  background: var(--pb-bg-hover);
+  color: var(--pb-primary);
+}
+
+.pb-context-menu-divider {
+  height: 1px;
+  background: var(--pb-border-light);
+  margin: 4px 0;
+}
+
+.pb-context-menu-danger {
+  color: var(--pb-danger) !important;
+}
+
+.pb-context-menu-danger:hover {
+  background: var(--pb-danger-bg) !important;
+  color: var(--pb-danger-dark) !important;
+}
+
+/* ─── Collapsible section header ─── */
+.pb-section-header--collapsible {
+  cursor: pointer;
+  user-select: none;
+  border-radius: 0;
+  margin: 0;
+  transition: var(--pb-transition);
+}
+.pb-section-header--collapsible:hover {
+  background: rgba(0, 110, 117, 0.04);
+}
+.pb-section-collapse-chevron {
+  display: flex;
+  align-items: center;
+  color: var(--pb-border-accent);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.pb-section-collapse-chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ─── Breakpoint banner in right sidebar ─── */
+.pb-bp-banner {
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+  border-bottom: 1px solid;
+}
+
+/* ─── Responsive override badge ─── */
+.pb-resp-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* ─── Tablet/mobile margin overlay (shades area outside content width) ─── */
+.pb-bp-margin-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.06);
+  pointer-events: none;
+  z-index: 200;
+}
+
+.pb-bp-margin-left  { left: 0; }
+.pb-bp-margin-right { right: 0; }
+
+/* ─── Breakpoint width indicator bar ─── */
+.pb-bp-width-indicator {
+  margin: 0 auto;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pb-text-subtle);
+  border-left: 1px solid var(--pb-border-muted);
+  border-right: 1px solid var(--pb-border-muted);
+  position: relative;
+}
+
+.pb-bp-width-indicator::before,
+.pb-bp-width-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 1px;
+  background: var(--pb-border-muted);
+}
+
+.pb-bp-width-indicator::before { left: 0; }
+.pb-bp-width-indicator::after  { right: 0; }

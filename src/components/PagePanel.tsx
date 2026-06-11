@@ -35,13 +35,13 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
   };
 
   return (
-    <aside className={'pb-left-sidebar'}>
+    <aside className={'pb-left-sidebar pb-flex-col'}>
       <div className={'pb-sidebar-section-title'}>Pages</div>
-      <div className={'pb-page-list'}>
+      <div className={'pb-page-list pb-flex-col'}>
         {pages.map((page, i) => (
           <div
             key={page.id}
-            className={['pb-page-row', page.id === activePageId && 'pb-active'].filter(Boolean).join(' ')}
+            className={['pb-page-row pb-flex-row', page.id === activePageId && 'pb-active'].filter(Boolean).join(' ')}
             onClick={() => onSetActivePage(page.id)}
           >
             <span className={'pb-page-index'}>{i + 1}</span>
@@ -61,7 +61,7 @@ export function PagePanel({ pages, activePageId, onSetActivePage, onAddPage, onD
               />
             ) : (
               <span
-                className={'pb-page-name'}
+                className={'pb-page-name pb-truncate'}
                 onDoubleClick={e => { e.stopPropagation(); startRename(page); }}
                 title="Double-click to rename"
               >

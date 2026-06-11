@@ -106,7 +106,7 @@ function PaletteItem({ type, iconId, label, onAdd }: PaletteItemProps) {
   return (
     <button
       ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
-      className={'pb-palette-item'}
+      className={'pb-palette-item pb-flex-col'}
       style={{ opacity: isDragging ? 0.4 : 1 }}
       onClick={() => onAdd(type)}
       title={`Add ${label} — drag to place`}
@@ -175,6 +175,7 @@ interface Props {
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
   onDeleteElement?: (id: string) => void;
+  onDeleteSection?: (id: string) => void;
   // Section data for layers panel
   nodes: NodeMap;
   header: Section;
@@ -202,12 +203,12 @@ export function LeftSidebar({
   onAdd, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
   selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
   onSelect, onSelectGridCell, onSelectContainer, onScrollToElement,
-  onReorderSection, onReorderElement, onMoveElementToSection, onUpdate, onDeleteElement,
+  onReorderSection, onReorderElement, onMoveElementToSection, onUpdate, onDeleteElement, onDeleteSection,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
   theme, onUpdateTheme, onApplyTheme,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme'>('elements');
+  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | null>('elements');
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
 
   const handleResizerMouseDown = (e: React.MouseEvent) => {
@@ -232,34 +233,34 @@ export function LeftSidebar({
   };
 
   return (
-    <div className={'pb-left-panel'} style={{ width: panelWidth }}>
-      <div className={'pb-tab-strip'}>
-        <button className={['pb-tab-btn', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
+    <div className={'pb-left-panel'} style={{ width: activeTab !== null ? panelWidth : 48 }}>
+      <div className={'pb-tab-strip pb-flex-col'}>
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('elements')} title="Blocks">
           <Icon id="sections" size={20} />
         </button>
-        <button className={['pb-tab-btn', activeTab === 'layers' && 'pb-active'].filter(Boolean).join(' ')}
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'layers' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('layers')} title="Layers">
           <Icon id="layers" size={20} />
         </button>
         {/* Pages tab — not in design yet
-        <button className={['pb-tab-btn', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('pages')} title="Pages">
           <span>Pages</span>
         </button>
         */}
-        <button className={['pb-tab-btn', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('theme')} title="Theme">
           <Icon id="palette" size={20} />
         </button>
       </div>
 
       {activeTab === 'elements' && (
-        <aside className={'pb-left-sidebar'}>
+        <aside className={'pb-left-sidebar pb-flex-col'}>
 
           <div className={'pb-blocks-header'}>
             <span className={'pb-blocks-header-title'}>Add Elements</span>
-            <button className={'pb-blocks-close-btn'} title="Close" onClick={() => {}}>✕</button>
+            <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={() => setActiveTab(null)}>✕</button>
           </div>
 
           <div className={'pb-blocks-search'}>
@@ -290,7 +291,7 @@ export function LeftSidebar({
           </div>
 
           <div className={'pb-section-type-list'}>
-            <button className={'pb-section-type-btn'} onClick={onAddFreeSection} title="Add a free-layout section">
+            <button className={'pb-section-type-btn pb-flex-row'} onClick={onAddFreeSection} title="Add a free-layout section">
               <span className={'pb-section-type-icon-box'}>
                 <Icon id="elAccordion" size={14} />
               </span>
@@ -351,6 +352,8 @@ export function LeftSidebar({
           onMoveElementToSection={onMoveElementToSection}
           onUpdateElement={onUpdate}
           onDeleteElement={onDeleteElement}
+          onDeleteSection={onDeleteSection}
+          onClose={() => setActiveTab(null)}
         />
       )}
 
@@ -366,7 +369,7 @@ export function LeftSidebar({
       )}
 
       {activeTab === 'theme' && (
-        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} />
+        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={() => setActiveTab(null)} />
       )}
 
       <div className={'pb-left-panel-resizer'} onMouseDown={handleResizerMouseDown} />

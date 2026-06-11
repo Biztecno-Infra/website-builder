@@ -1,14 +1,27 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import type {
-  Breakpoint, BgType, BuilderState, ContentWidthMode, FlexAlign, FlexConfig,
-  FlexJustify, FlexSection, Section, GridSection, GridCell,
+  Breakpoint, BgType, BuilderState, ContentWidthMode,
+  Section, GridSection, GridCell,
   NodeMap, SectionUpdate, ColumnStyle, SectionBackground, SiteTheme, SectionCssPosition,
 } from '../../types';
 import { equalWidths } from '../../hooks/useBuilderStore';
-import { DEFAULT_FLEX_CONFIG } from '../../utils/builderDefaults';
-import { ThemeSwatches } from './ThemeSwatches';
+
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { PanelHeader } from './PanelHeader';
+import { PbSelect } from '../PbSelect';
+import { PbInput } from '../PbInput';
+import { PbButton } from '../PbButton';
+import {
+  CSS_POSITION_OPTIONS,
+  SCROLL_BEHAVIOR_OPTIONS,
+  CONTENT_WIDTH_OPTIONS,
+  BG_TYPE_OPTIONS,
+  BG_TYPE_WITH_TRANSPARENT_OPTIONS,
+  BG_IMAGE_POSITION_OPTIONS,
+  COLUMN_COUNT_OPTIONS,
+} from '../../utils/selectOptions';
 
 const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
   layout: true,
@@ -23,7 +36,6 @@ const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
 
 const MODE_OPTIONS = [
   { value: 'free', label: 'Free' },
-  { value: 'flex', label: 'Flex' },
   { value: 'grid', label: 'Grid' },
 ];
 
@@ -46,17 +58,14 @@ export function SectionPanel({
 }: Props) {
   const [selectedColIdx, setSelectedColIdx] = useState(0);
   const { sec, toggle } = usePanelSections(SECTION_PANEL_DEFAULTS, 'builder-sidebar-sec');
-  const focusSnapshot = useRef<BuilderState | null>(null);
-  const onNumberFocus = () => { focusSnapshot.current = snapshot; };
-  const onNumberBlur  = () => { if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; } };
+  const { onFocus: onNumberFocus, onBlur: onNumberBlur } = useFocusSnapshot(snapshot, onPushSnapshot);
 
+  const swatches = themeToSwatches(theme);
   const bg = section.style.background;
   const cols = section.style.columns;
   const isGrid = section.layoutMode === 'grid';
-  const isFlex = section.layoutMode === 'flex';
-  const hasGrid = isGrid || isFlex;
-  const gridCfg = hasGrid ? (section as GridSection | FlexSection).grid : { gap: 24, rowGap: 24 };
-  const flexCfg: FlexConfig = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
+  const hasGrid = isGrid;
+  const gridCfg = hasGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 };
   const secPad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const secMargin = section.style.margin ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const secBorder = section.style.border ?? { radius: 0, width: 0, color: '#cccccc', style: 'none' as const };
@@ -75,16 +84,14 @@ export function SectionPanel({
 
   return (
     <aside className={'pb-right-sidebar'}>
-      <div className={'pb-panel-header'}>
-        <span className={'pb-panel-header-title'}>Layout</span>
-      </div>
+      <PanelHeader title="Layout" />
 
       {/* ── Layout ── */}
       <CollapsibleSection sectionKey="layout" label="Layout" isOpen={sec('layout')} onToggle={toggle}>
 
         <div className={'pb-prop-row'}>
           <label>Label</label>
-          <input type="text" value={section.label}
+          <PbInput type="text" value={section.label}
             onFocus={onNumberFocus} onBlur={onNumberBlur}
             onChange={e => onUpdateSection(section.id, { label: e.target.value })} />
         </div>
@@ -96,68 +103,23 @@ export function SectionPanel({
               onPushSnapshot(snapshot);
               if (m === 'free') {
                 onUpdateSection(section.id, { layoutMode: 'free' });
-              } else if (m === 'grid') {
-                onUpdateSection(section.id, { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } });
               } else {
-                onUpdateSection(section.id, { layoutMode: 'flex', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 }, flex: isFlex ? flexCfg : DEFAULT_FLEX_CONFIG });
+                onUpdateSection(section.id, { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } });
               }
             }} />
         </div>
 
-        {/* Flex controls */}
-        {isFlex && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Direction</label>
-              <ToggleGroup
-                options={[{ value: 'row', label: 'Row' }, { value: 'column', label: 'Col' }]}
-                value={flexCfg.direction.startsWith('row') ? 'row' : 'column'}
-                onChange={d => onUpdateSection(section.id, { flex: { ...flexCfg, direction: d as FlexConfig['direction'] } })}
-              />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Justify</label>
-              <select value={flexCfg.justify}
-                onChange={e => onUpdateSection(section.id, { flex: { ...flexCfg, justify: e.target.value as FlexJustify } })}>
-                <option value="flex-start">Start</option>
-                <option value="center">Center</option>
-                <option value="flex-end">End</option>
-                <option value="space-between">Space Between</option>
-                <option value="space-around">Space Around</option>
-              </select>
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Align</label>
-              <select value={flexCfg.align}
-                onChange={e => onUpdateSection(section.id, { flex: { ...flexCfg, align: e.target.value as FlexAlign } })}>
-                <option value="flex-start">Start</option>
-                <option value="center">Center</option>
-                <option value="flex-end">End</option>
-                <option value="stretch">Stretch</option>
-              </select>
-            </div>
-            <div className={'pb-prop-row pb-vis-row'}>
-              <label>Wrap</label>
-              <input type="checkbox" checked={flexCfg.wrap}
-                onChange={e => onUpdateSection(section.id, { flex: { ...flexCfg, wrap: e.target.checked } })} />
-            </div>
-          </>
-        )}
-
         <div className={'pb-prop-row'}>
           <label>Scroll</label>
-          <select
+          <PbSelect
             value={section.scrollBehavior ?? 'normal'}
-            onChange={e => {
+            options={SCROLL_BEHAVIOR_OPTIONS}
+            onChange={v => {
               onPushSnapshot(snapshot);
-              const v = e.target.value as 'normal' | 'sticky' | 'fixed';
-              onUpdateSection(section.id, { scrollBehavior: v, ...(v === 'normal' ? { stickyOffset: undefined } : {}) });
+              const sv = v as 'normal' | 'sticky' | 'fixed';
+              onUpdateSection(section.id, { scrollBehavior: sv, ...(sv === 'normal' ? { stickyOffset: undefined } : {}) });
             }}
-          >
-            <option value="normal">Normal</option>
-            <option value="sticky">Sticky</option>
-            <option value="fixed">Fixed</option>
-          </select>
+          />
         </div>
         {(section.scrollBehavior === 'sticky' || section.scrollBehavior === 'fixed') && (
           <div className={'pb-prop-row'}>
@@ -177,14 +139,11 @@ export function SectionPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>Width</label>
-              <select
+              <PbSelect
                 value={gridCfg.contentWidth ?? 'constrained'}
-                onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: e.target.value as ContentWidthMode } })}
-              >
-                <option value="constrained">Fixed</option>
-                <option value="full">Full</option>
-                <option value="fluid">Fluid</option>
-              </select>
+                options={CONTENT_WIDTH_OPTIONS}
+                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: v as ContentWidthMode } })}
+              />
             </div>
             {(gridCfg.contentWidth ?? 'constrained') === 'constrained' && (
               <div className={'pb-prop-row'}>
@@ -195,43 +154,33 @@ export function SectionPanel({
             )}
             <div className={'pb-prop-row'}>
               <label>Min Height</label>
-              <input type="number" value={gridCfg.minHeight ?? ''} min={0} placeholder="Auto"
+              <PxInput value={gridCfg.minHeight ?? ''} placeholder="Auto"
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => {
-                  const val = e.target.value === '' ? undefined : Math.max(0, Number(e.target.value));
-                  onUpdateSection(section.id, { grid: { ...gridCfg, minHeight: val } });
-                }} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, minHeight: v || undefined } })} />
               {gridCfg.minHeight !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, minHeight: undefined } })}>↺</button>
               )}
             </div>
             <div className={'pb-prop-row'}>
               <label>Row Height</label>
-              <input type="number" value={gridCfg.rowHeight ?? ''} min={0} placeholder="Auto"
+              <PxInput value={gridCfg.rowHeight ?? ''} placeholder="Auto"
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => {
-                  const val = e.target.value === '' ? undefined : Math.max(0, Number(e.target.value));
-                  onUpdateSection(section.id, { grid: { ...gridCfg, rowHeight: val } });
-                }} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, rowHeight: v || undefined } })} />
               {gridCfg.rowHeight !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, rowHeight: undefined } })}>↺</button>
               )}
             </div>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Col Gap</label>
-              <input type="number" value={gridCfg.gap} min={0}
+              <PxInput value={gridCfg.gap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, gap: Number(e.target.value) } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, gap: v } })} />
             </div>
             <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Tab Gap</label>
-              <input type="number" value={section.responsive?.tablet?.gap ?? gridCfg.gap} min={0}
+              <PxInput value={section.responsive?.tablet?.gap ?? gridCfg.gap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, gap: Number(e.target.value) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, gap: v } } })} />
               {section.responsive?.tablet?.gap !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { gap: _g, ...rest } = section.responsive?.tablet ?? {};
@@ -241,10 +190,9 @@ export function SectionPanel({
             </div>
             <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Mob Gap</label>
-              <input type="number" value={section.responsive?.mobile?.gap ?? section.responsive?.tablet?.gap ?? gridCfg.gap} min={0}
+              <PxInput value={section.responsive?.mobile?.gap ?? section.responsive?.tablet?.gap ?? gridCfg.gap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, gap: Number(e.target.value) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, gap: v } } })} />
               {section.responsive?.mobile?.gap !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { gap: _g, ...rest } = section.responsive?.mobile ?? {};
@@ -254,17 +202,15 @@ export function SectionPanel({
             </div>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Row Gap</label>
-              <input type="number" value={gridCfg.rowGap} min={0}
+              <PxInput value={gridCfg.rowGap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { grid: { ...gridCfg, rowGap: Number(e.target.value) } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, rowGap: v } })} />
             </div>
             <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Tab RGap</label>
-              <input type="number" value={section.responsive?.tablet?.rowGap ?? gridCfg.rowGap} min={0}
+              <PxInput value={section.responsive?.tablet?.rowGap ?? gridCfg.rowGap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, rowGap: Number(e.target.value) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, rowGap: v } } })} />
               {section.responsive?.tablet?.rowGap !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { rowGap: _r, ...rest } = section.responsive?.tablet ?? {};
@@ -274,10 +220,9 @@ export function SectionPanel({
             </div>
             <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Mob RGap</label>
-              <input type="number" value={section.responsive?.mobile?.rowGap ?? section.responsive?.tablet?.rowGap ?? gridCfg.rowGap} min={0}
+              <PxInput value={section.responsive?.mobile?.rowGap ?? section.responsive?.tablet?.rowGap ?? gridCfg.rowGap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, rowGap: Number(e.target.value) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, rowGap: v } } })} />
               {section.responsive?.mobile?.rowGap !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { rowGap: _r, ...rest } = section.responsive?.mobile ?? {};
@@ -293,17 +238,15 @@ export function SectionPanel({
           <>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Height</label>
-              <input type="number" value={section.layout.height} min={80}
+              <PxInput value={section.layout.height}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { layout: { ...section.layout, height: Math.max(80, Number(e.target.value)) } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { layout: { ...section.layout, height: Math.max(80, v) } })} />
             </div>
             <div className={['pb-prop-row', breakpoint === 'tablet' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Tablet H</label>
-              <input type="number" value={section.responsive?.tablet?.height ?? section.layout.height} min={80}
+              <PxInput value={section.responsive?.tablet?.height ?? section.layout.height}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, height: Math.max(80, Number(e.target.value)) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, height: Math.max(80, v) } } })} />
               {section.responsive?.tablet?.height !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { height: _h, ...rest } = section.responsive?.tablet ?? {};
@@ -313,10 +256,9 @@ export function SectionPanel({
             </div>
             <div className={['pb-prop-row', breakpoint === 'mobile' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>↳ Mobile H</label>
-              <input type="number" value={section.responsive?.mobile?.height ?? section.responsive?.tablet?.height ?? section.layout.height} min={80}
+              <PxInput value={section.responsive?.mobile?.height ?? section.responsive?.tablet?.height ?? section.layout.height}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, height: Math.max(80, Number(e.target.value)) } } })} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                onChange={v => onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, height: Math.max(80, v) } } })} />
               {section.responsive?.mobile?.height !== undefined && (
                 <button className={'pb-resp-clear-btn'} onClick={() => {
                   const { height: _h, ...rest } = section.responsive?.mobile ?? {};
@@ -326,37 +268,28 @@ export function SectionPanel({
             </div>
             <div className={'pb-prop-row'}>
               <label>Columns</label>
-              <select value={cols.count} onChange={e => {
-                onPushSnapshot(snapshot);
-                const n = Number(e.target.value);
-                const newStyles: Record<string, ColumnStyle> = {};
-                Object.entries(cols.styles).forEach(([idx, style]) => {
-                  if (Number(idx) < n) newStyles[idx] = style;
-                });
-                updateCols({ count: n, widths: n > 1 ? equalWidths(n) : [], styles: newStyles });
-              }}>
-                <option value={1}>None</option>
-                <option value={2}>2 Columns</option>
-                <option value={3}>3 Columns</option>
-                <option value={4}>4 Columns</option>
-                <option value={5}>5 Columns</option>
-                <option value={6}>6 Columns</option>
-              </select>
+              <PbSelect value={String(cols.count)}
+                options={COLUMN_COUNT_OPTIONS}
+                onChange={v => {
+                  onPushSnapshot(snapshot);
+                  const n = Number(v);
+                  const newStyles: Record<string, ColumnStyle> = {};
+                  Object.entries(cols.styles).forEach(([idx, style]) => {
+                    if (Number(idx) < n) newStyles[idx] = style;
+                  });
+                  updateCols({ count: n, widths: n > 1 ? equalWidths(n) : [], styles: newStyles });
+                }} />
             </div>
           </>
         )}
 
         <div className={'pb-prop-row'}>
           <label>Position</label>
-          <select
+          <PbSelect
             value={section.cssPosition ?? 'relative'}
-            onChange={e => { onPushSnapshot(snapshot); onUpdateSection(section.id, { cssPosition: e.target.value as SectionCssPosition }); }}
-          >
-            <option value="relative">Relative</option>
-            <option value="absolute">Absolute</option>
-            <option value="fixed">Fixed</option>
-            <option value="sticky">Sticky</option>
-          </select>
+            options={CSS_POSITION_OPTIONS}
+            onChange={v => { onPushSnapshot(snapshot); onUpdateSection(section.id, { cssPosition: v as SectionCssPosition }); }}
+          />
         </div>
 
       </CollapsibleSection>
@@ -380,14 +313,14 @@ export function SectionPanel({
               );
             })}
           </div>
-          <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             {onAddGridCell && (
-              <button className={'pb-grid-col-add-btn'} style={{ flex: 1 }} onClick={() => onAddGridCell(section.id)}>
-                <span>+</span> Add col
-              </button>
+              <PbButton variant="primary" style={{ flex: 1 }} onClick={() => onAddGridCell(section.id)}>
+                Add col
+              </PbButton>
             )}
             {onUpdateGridCell && section.children.length > 1 && (
-              <button className={'pb-grid-col-add-btn'} onClick={() => {
+              <PbButton variant="outline" style={{ flex: 1 }} onClick={() => {
                 onPushSnapshot(snapshot);
                 const n = section.children.length;
                 const base = Math.floor(12 / n);
@@ -395,7 +328,7 @@ export function SectionPanel({
                 section.children.forEach((cellId, i) => {
                   onUpdateGridCell(cellId, { columnSpan: base + (i < rem ? 1 : 0) });
                 });
-              }}>Equal</button>
+              }}>Equal</PbButton>
             )}
           </div>
         </CollapsibleSection>
@@ -405,13 +338,9 @@ export function SectionPanel({
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
         <div className={'pb-prop-row'}>
           <label>Type</label>
-          <select value={bg.type}
-            onChange={e => { onPushSnapshot(snapshot); updateBg({ type: e.target.value as BgType }); }}>
-            <option value="solid">Solid</option>
-            <option value="linear-gradient">Linear Gradient</option>
-            <option value="radial-gradient">Radial Gradient</option>
-            <option value="transparent">Transparent</option>
-          </select>
+          <PbSelect value={bg.type}
+            options={BG_TYPE_WITH_TRANSPARENT_OPTIONS}
+            onChange={v => { onPushSnapshot(snapshot); updateBg({ type: v as BgType }); }} />
         </div>
         {bg.type === 'solid' && bg.color !== 'transparent' && (
           <>
@@ -420,55 +349,48 @@ export function SectionPanel({
               <ColorField
                 value={bg.color.startsWith('#') ? bg.color : '#ffffff'}
                 onChange={v => updateBg({ color: v })}
-                onFocus={onNumberFocus} onBlur={onNumberBlur} />
+                onFocus={onNumberFocus} onBlur={onNumberBlur}
+                swatches={swatches} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); updateBg({ color: c }); }} />
           </>
         )}
         {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (
           <>
             <div className={'pb-prop-row'}>
               <label>From</label>
-              <ColorField value={bg.from || '#006e75'} onChange={v => updateBg({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} />
+              <ColorField value={bg.from || '#006e75'} onChange={v => updateBg({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); updateBg({ from: c }); }} />
             <div className={'pb-prop-row'}>
               <label>To</label>
-              <ColorField value={bg.to || '#0b978e'} onChange={v => updateBg({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} />
+              <ColorField value={bg.to || '#0b978e'} onChange={v => updateBg({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); updateBg({ to: c }); }} />
             {bg.type === 'linear-gradient' && (
               <div className={'pb-prop-row'}>
                 <label>Angle</label>
-                <input type="number" value={bg.angle ?? 135} min={0} max={360}
+                <PxInput value={bg.angle ?? 135} unit="°"
                   onFocus={onNumberFocus} onBlur={onNumberBlur}
-                  onChange={e => updateBg({ angle: Number(e.target.value) })} />
-                <span style={{ fontSize: 11, color: '#888' }}>°</span>
+                  onChange={v => updateBg({ angle: v })} />
               </div>
             )}
           </>
         )}
         <div className={'pb-prop-row pb-full'}>
           <label>Image URL</label>
-          <input type="text" value={bg.image} placeholder="https://..."
+          <PbInput type="text" value={bg.image} placeholder="https://..."
             onFocus={onNumberFocus} onBlur={onNumberBlur}
             onChange={e => updateBg({ image: e.target.value })} />
         </div>
         {bg.image && (
           <div className={'pb-prop-row'}>
             <label>Image Position</label>
-            <select value={bg.position || 'center'} onChange={e => updateBg({ position: e.target.value })}>
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-              <option value="center">Center</option>
-            </select>
+            <PbSelect value={bg.position || 'center'}
+              options={BG_IMAGE_POSITION_OPTIONS}
+              onChange={v => updateBg({ position: v })} />
           </div>
         )}
         <div className={'pb-prop-row'}>
           <label>Overlay</label>
-          <input type="number" value={bg.overlay} min={0} max={1} step={0.05}
+          <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
             onFocus={onNumberFocus} onBlur={onNumberBlur}
             onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
         </div>
@@ -481,6 +403,7 @@ export function SectionPanel({
           onChange={updates => onUpdateSection(section.id, { style: { ...section.style, border: { ...secBorder, ...updates } } })}
           onFocus={onNumberFocus}
           onBlur={onNumberBlur}
+          swatches={swatches}
         />
       </CollapsibleSection>
 
@@ -491,24 +414,24 @@ export function SectionPanel({
           onChange={updates => onUpdateSection(section.id, { style: { ...section.style, shadow: { ...secShadow, ...updates } } })}
           onFocus={onNumberFocus}
           onBlur={onNumberBlur}
+          swatches={swatches}
         />
       </CollapsibleSection>
 
       {/* ── Spacing ── */}
       <CollapsibleSection sectionKey="spacing" label="Spacing" isOpen={sec('spacing')} onToggle={toggle}>
-        <div className={'pb-trbl-header'}>
-          <span />
-          <span>Top</span><span>Right</span><span>Bottom</span><span>Left</span>
-          <span />
+        <div className={'pb-trbl-col-labels'}>
+          {(['Top', 'Right', 'Bottom', 'Left'] as const).map(s => <span key={s}>{s}</span>)}
+          <span className={'pb-trbl-px-spacer'} />
         </div>
-        <div className={'pb-trbl-row'}>
-          <span className={'pb-trbl-label'}>Margin</span>
+        <div className={'pb-trbl-row-label'}>Margin</div>
+        <div className={'pb-trbl-inputs'}>
           {sides.map(s => (
-            <input key={s} type="number" className={'pb-trbl-input'} value={secMargin[s]}
+            <PbInput key={s} type="number" className={'pb-trbl-input'} value={secMargin[s]}
               onFocus={onNumberFocus} onBlur={onNumberBlur}
               onChange={e => updateSecMargin({ [s]: Number(e.target.value) })} />
           ))}
-          <span className={'pb-trbl-unit'}>px</span>
+          <span className={'pb-trbl-px-cell'}>px</span>
         </div>
         {(() => {
           const bpPadOverride =
@@ -528,15 +451,17 @@ export function SectionPanel({
           };
 
           return (
-            <div className={'pb-trbl-row'}>
-              <span className={'pb-trbl-label'}>Padding</span>
-              {sides.map(s => (
-                <input key={s} type="number" className={'pb-trbl-input'} value={effPad[s]}
-                  onFocus={onNumberFocus} onBlur={onNumberBlur}
-                  onChange={e => updateBpPad(s, Number(e.target.value))} />
-              ))}
-              <span className={'pb-trbl-unit'}>px</span>
-            </div>
+            <>
+              <div className={'pb-trbl-row-label'}>Padding</div>
+              <div className={'pb-trbl-inputs'}>
+                {sides.map(s => (
+                  <PbInput key={s} type="number" className={'pb-trbl-input'} value={effPad[s]}
+                    onFocus={onNumberFocus} onBlur={onNumberBlur}
+                    onChange={e => updateBpPad(s, Number(e.target.value))} />
+                ))}
+                <span className={'pb-trbl-px-cell'}>px</span>
+              </div>
+            </>
           );
         })()}
       </CollapsibleSection>
@@ -559,7 +484,7 @@ export function SectionPanel({
             });
           }}
         />
-        <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5, paddingTop: 4 }}>
+        <div className={'pb-note-text'} style={{ paddingTop: 4 }}>
           Use this to show a desktop navbar and a separate mobile navbar.
         </div>
       </CollapsibleSection>
@@ -587,51 +512,47 @@ export function SectionPanel({
             </div>
             <div className={'pb-prop-row'}>
               <label>Type</label>
-              <select value={csb.type || 'solid'}
-                onChange={e => { onPushSnapshot(snapshot); updateCol({ type: e.target.value as BgType }); }}>
-                <option value="solid">Solid</option>
-                <option value="linear-gradient">Linear Gradient</option>
-                <option value="radial-gradient">Radial Gradient</option>
-              </select>
+              <PbSelect value={csb.type || 'solid'}
+                options={BG_TYPE_OPTIONS}
+                onChange={v => { onPushSnapshot(snapshot); updateCol({ type: v as BgType }); }} />
             </div>
             {(!csb.type || csb.type === 'solid') && (
               <div className={'pb-prop-row'}>
                 <label>Color</label>
                 <ColorField value={colBg.startsWith('#') ? colBg : '#ffffff'}
                   onChange={v => updateCol({ color: v, type: 'solid' })}
-                  onFocus={onNumberFocus} onBlur={onNumberBlur} />
+                  onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
               </div>
             )}
             {(csb.type === 'linear-gradient' || csb.type === 'radial-gradient') && (
               <>
                 <div className={'pb-prop-row'}>
                   <label>From</label>
-                  <ColorField value={csb.from || '#006e75'} onChange={v => updateCol({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} />
+                  <ColorField value={csb.from || '#006e75'} onChange={v => updateCol({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
                 </div>
                 <div className={'pb-prop-row'}>
                   <label>To</label>
-                  <ColorField value={csb.to || '#0b978e'} onChange={v => updateCol({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} />
+                  <ColorField value={csb.to || '#0b978e'} onChange={v => updateCol({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
                 </div>
                 {csb.type === 'linear-gradient' && (
                   <div className={'pb-prop-row'}>
                     <label>Angle</label>
-                    <input type="number" value={csb.angle ?? 135} min={0} max={360}
+                    <PxInput value={csb.angle ?? 135} unit="°"
                       onFocus={onNumberFocus} onBlur={onNumberBlur}
-                      onChange={e => updateCol({ angle: Number(e.target.value) })} />
-                    <span style={{ fontSize: 11, color: '#888' }}>°</span>
+                      onChange={v => updateCol({ angle: v })} />
                   </div>
                 )}
               </>
             )}
             <div className={'pb-prop-row pb-full'}>
               <label>Image URL</label>
-              <input type="text" value={csb.image || ''} placeholder="https://..."
+              <PbInput type="text" value={csb.image || ''} placeholder="https://..."
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateCol({ image: e.target.value })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>Overlay</label>
-              <input type="number" value={csb.overlay ?? 0} min={0} max={1} step={0.05}
+              <PbInput type="number" value={csb.overlay ?? 0} min={0} max={1} step={0.05}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateCol({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
             </div>

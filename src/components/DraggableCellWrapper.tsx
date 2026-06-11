@@ -52,21 +52,21 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
       {children}
       {isSelected && !previewMode && (onMoveLeft || onMoveRight || onCopyCell || onPasteIntoCell || onDeleteCell) && (
         <div className={'pb-cell-action-bar'} onMouseDown={e => e.stopPropagation()}>
-          <button className={'pb-cell-action-btn'} title="Move left" disabled={!onMoveLeft}
+          <button className={'pb-cell-action-btn pb-flex-center'} title="Move left" disabled={!onMoveLeft}
             onClick={e => { e.stopPropagation(); onMoveLeft?.(); }}>←</button>
-          <button className={'pb-cell-action-btn'} title="Move right" disabled={!onMoveRight}
+          <button className={'pb-cell-action-btn pb-flex-center'} title="Move right" disabled={!onMoveRight}
             onClick={e => { e.stopPropagation(); onMoveRight?.(); }}>→</button>
           <div className={'pb-cell-action-divider'} />
-          <button className={'pb-cell-action-btn'} title="Copy column"
+          <button className={'pb-cell-action-btn pb-flex-center'} title="Copy column"
             onClick={e => { e.stopPropagation(); onCopyCell?.(); }}>⧉</button>
           {onPasteIntoCell && (
-            <button className={'pb-cell-action-btn'} title="Paste into this column"
+            <button className={'pb-cell-action-btn pb-flex-center'} title="Paste into this column"
               onClick={e => { e.stopPropagation(); onPasteIntoCell(); }}>⊘</button>
           )}
           {onDeleteCell && (
             <>
               <div className={'pb-cell-action-divider'} />
-              <button className={'pb-cell-action-btn pb-danger'} title="Delete column"
+              <button className={'pb-cell-action-btn pb-flex-center pb-danger'} title="Delete column"
                 onClick={e => { e.stopPropagation(); onDeleteCell(); }}>✕</button>
             </>
           )}

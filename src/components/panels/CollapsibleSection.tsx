@@ -1,4 +1,5 @@
 ﻿import { useCallback, useState, type ReactNode } from 'react';
+import { Icon } from '../Icon';
 
 // ── Shared collapsible section component + hook ───────────────────────────────
 
@@ -15,7 +16,9 @@ export function CollapsibleSection({ sectionKey, label, isOpen, onToggle, childr
     <div className={'pb-prop-section'}>
       <div className={"pb-section-header pb-section-header--collapsible"} onClick={() => onToggle(sectionKey)}>
         {label}
-        <span className={'pb-section-collapse-chevron'}>{isOpen ? '∧' : '∨'}</span>
+        <span className={['pb-section-collapse-chevron', isOpen && 'pb-section-collapse-chevron--open'].filter(Boolean).join(' ')}>
+          <Icon id="chevronDown" size={12} />
+        </span>
       </div>
       {isOpen && <div className="pb-section-content">{children}</div>}
     </div>

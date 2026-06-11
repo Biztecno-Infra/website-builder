@@ -1,0 +1,742 @@
+﻿/* ─── Element hover outline ─── */
+.pb-canvas-el:not(.pb-selected):not(.pb-locked):hover {
+  outline: 1px dashed var(--pb-primary-hover);
+  outline-offset: 1px;
+}
+
+/* ─── Grid section ─── */
+.pb-grid-section-surface {
+  padding: 0;
+}
+
+.pb-section-col-usage {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.pb-section-col-usage.pb-full {
+  background: rgba(16, 185, 129, 0.3);
+}
+
+.pb-section-col-usage.pb-over {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* ─── Grid area wrapper ─── */
+.pb-grid-area-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+
+
+.pb-grid-cells-row {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Empty grid state (no cells yet) ─── */
+.pb-grid-empty-state {
+  flex-direction: column;
+  gap: 8px;
+  padding: 40px 0 24px;
+  color: var(--pb-text-subtle);
+  font-size: 12px;
+  user-select: none;
+}
+
+.pb-grid-empty-icon {
+  font-size: 28px;
+  opacity: 0.5;
+}
+
+.pb-grid-empty-add-btn {
+  background: transparent;
+  border: 1px dashed var(--pb-text-mid);
+  color: var(--pb-text-subtle);
+  border-radius: var(--pb-radius-md);
+  padding: 6px 16px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--pb-transition), border-color 0.12s, color 0.12s;
+}
+.pb-grid-empty-add-btn:hover {
+  background: var(--pb-primary);
+  border-color: var(--pb-primary);
+  color: var(--pb-white);
+}
+
+/* ─── Grid cell ─── */
+.pb-grid-cell {
+  border-radius: var(--pb-radius-sm);
+  transition: outline 0.1s, background 0.1s;
+  outline: 1px dashed transparent;
+  position: relative;
+  min-width: 0;   /* allow cell to shrink below content size in CSS grid */
+}
+
+.pb-grid-cell:not(.pb-grid-cell--selected):not(.pb-child-selected):hover {
+  outline: 1px dashed var(--pb-primary-hover);
+}
+
+.pb-grid-cell--selected {
+  outline: 2px solid var(--pb-primary);
+}
+
+/* Parent cell when a child element/container owns selection — subtle tint, no border */
+.pb-grid-cell.pb-child-selected,
+.pb-grid-cell.pb-child-selected:hover {
+  outline: none !important;
+  background: rgba(0, 110, 117, 0.025) !important;
+}
+
+.pb-grid-cell--drop-over {
+  background: rgba(0, 110, 117, 0.06) !important;
+  outline: 2px dashed var(--pb-primary);
+}
+
+/* ─── Layout drag-drop indicators ─── */
+.pb-grid-cell--layout-hover {
+  outline: 2px dashed var(--pb-warning) !important;
+  outline-offset: -2px;
+  background-color: rgba(245, 158, 11, 0.06) !important;
+}
+.pb-grid-cell--layout-hover::after {
+  content: 'Drop to nest';
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--pb-warning);
+  color: var(--pb-white);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+/* ─── Layer panel scroll-to flash ─── */
+@keyframes canvas-el-flash {
+  0%   { outline: 4px solid var(--pb-blue); outline-offset: 2px;  filter: brightness(1.12); }
+  22%  { outline: 6px solid var(--pb-blue-darker); outline-offset: 12px; filter: brightness(1.18); }
+  42%  { outline: 4px solid var(--pb-blue); outline-offset: 2px;  filter: brightness(1.10); }
+  62%  { outline: 5px solid #60a5fa; outline-offset: 9px;  filter: brightness(1.08); }
+  84%  { outline: 3px solid #93c5fd; outline-offset: 3px;  filter: brightness(1.03); }
+  100% { outline: 2px solid transparent; outline-offset: 2px; filter: brightness(1); }
+}
+.pb-canvas-el--flash {
+  animation: canvas-el-flash 1.3s ease-out forwards;
+  z-index: 9999 !important;
+}
+
+/* ─── Cell overlay element (absolute inside flex cell, clipped to cell) ─── */
+.pb-grid-overlay-el {
+  pointer-events: auto;
+}
+.pb-grid-overlay-el:hover {
+  outline: 1px dashed var(--pb-warning);
+  outline-offset: 1px;
+}
+.pb-grid-overlay-el--selected {
+  outline: 2px solid var(--pb-warning);
+  outline-offset: 1px;
+}
+
+
+/* ─── Empty cell ─── */
+.pb-grid-cell-empty {
+  flex-direction: column;
+  gap: 6px;
+  min-height: 80px;
+  font-size: 10px;
+  font-weight: 500;
+  color: #a8c5c5;
+  border: 1.5px dashed #c8dede;
+  border-radius: var(--pb-radius-sm);
+  user-select: none;
+  transition: border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+
+.pb-grid-cell:hover .pb-grid-cell-empty {
+  border-color: var(--pb-primary-hover);
+  color: var(--pb-primary-hover);
+}
+
+/* Overlay variant: positioned absolutely so it doesn't drive the cell's height.
+   Used in the flex/column/row branch where min-height must come from the cell style, not the placeholder. */
+.pb-grid-cell-empty--overlay {
+  position: absolute;
+  inset: 6px;
+  width: auto;
+  min-height: 0;
+}
+
+.pb-grid-cell-empty-icon {
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.pb-grid-cell-empty-text {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 6px;
+}
+
+/* ─── Column divider drag handle ─── */
+.pb-col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  bottom: 0;
+  width: 10px;
+  cursor: col-resize;
+  z-index: 50;
+  background: transparent;
+  /* Always interactive so resize works regardless of cell content */
+  pointer-events: auto;
+}
+.pb-col-resize-handle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  background: var(--pb-primary-hover);
+  opacity: 0;
+}
+/* Show divider when section is hovered or when handle itself is hovered */
+.pb-section-surface:hover .pb-col-resize-handle::after,
+.pb-grid-section-surface:hover .pb-col-resize-handle::after,
+.pb-col-resize-handle:hover::after {
+  opacity: 0.4;
+}
+.pb-col-resize-handle:hover::after {
+  opacity: 1;
+}
+
+/* ─── Sub-cell delete button (inside container columns) ─── */
+.pb-sub-cell-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pb-danger);
+  color: var(--pb-white);
+  border: none;
+  border-radius: var(--pb-radius-sm);
+  font-size: 10px;
+  cursor: pointer;
+  opacity: 0;
+  z-index: 60;
+  transition: opacity 0.15s;
+  line-height: 1;
+  padding: 0;
+}
+.pb-grid-cell-wrapper:hover .pb-sub-cell-delete-btn {
+  opacity: 1;
+}
+
+/* ─── Cell wrapper stacking ─── */
+.pb-grid-cell-wrapper {
+  z-index: 0;
+  overflow: visible;
+  min-width: 0;   /* grid item must be 0 to allow column to shrink below content */
+}
+
+.pb-grid-cell-wrapper:hover {
+  z-index: 2;
+}
+
+/* ─── Container block (inline layout block inside a grid cell) ─── */
+.pb-container-wrapper {
+  position: relative;
+  width: 100%;
+  flex-shrink: 0;
+}
+.pb-grid-cell--flex-row > .pb-container-wrapper {
+  width: auto;
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+.pb-container {
+  position: relative;
+  width: 100%;
+  border: 1.5px dashed rgba(0, 110, 117, 0.3);
+  border-radius: var(--pb-radius-md);
+  overflow: visible;
+}
+
+.pb-container--selected {
+  border-color: var(--pb-primary);
+  border-style: solid;
+}
+
+/* Dim container when a child element owns selection */
+.pb-container--child-selected {
+  border-color: rgba(0, 110, 117, 0.15);
+  background: rgba(0, 110, 117, 0.02);
+}
+
+.pb-container-actions {
+  position: absolute;
+  top: -26px;
+  right: 0;
+  display: none;
+  align-items: center;
+  gap: 2px;
+  z-index: 30;
+}
+
+/* Toolbar only shows when container is selected — not on hover */
+.pb-container-actions--expanded {
+  display: flex;
+  z-index: 30;
+}
+
+.pb-container-label {
+  padding: 1px 5px;
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.25);
+  border-radius: 3px;
+  color: var(--pb-primary);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.pb-container-handle {
+  cursor: grab;
+  padding: 1px 4px;
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.25);
+  border-radius: 3px;
+  color: var(--pb-primary);
+  font-size: 11px;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.pb-container-handle:active {
+  cursor: grabbing;
+}
+
+/* Subtle container type label — visible on hover when not selected */
+.pb-container-hover-label {
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(0, 110, 117, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  user-select: none;
+  z-index: 2;
+}
+
+.pb-container-wrapper:hover .pb-container-hover-label {
+  opacity: 1;
+}
+
+.pb-container-delete {
+  background: rgba(0, 110, 117, 0.06);
+  border: 1px solid rgba(0, 110, 117, 0.2);
+  padding: 1px 4px;
+  cursor: pointer;
+  color: var(--pb-text-slate);
+  font-size: 10px;
+  line-height: 1.4;
+  border-radius: 3px;
+}
+
+.pb-container-delete:hover {
+  color: var(--pb-danger);
+  background: var(--pb-danger-bg);
+  border-color: #fca5a5;
+}
+
+/* Expanded container toolbar (when selected) */
+.pb-container-actions--expanded {
+  background: rgba(0, 110, 117, 0.07);
+  border: 1px solid rgba(0, 110, 117, 0.2);
+  border-radius: var(--pb-radius-sm);
+  padding: 2px 4px;
+  gap: 3px;
+  top: -30px;
+}
+
+.pb-ctb-mode-btn {
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--pb-text-slate);
+  background: none;
+  line-height: 1.6;
+}
+
+.pb-ctb-mode-btn:hover {
+  background: rgba(0, 110, 117, 0.1);
+  color: var(--pb-primary);
+}
+
+.pb-ctb-mode-btn--active {
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border-color: var(--pb-primary-dark);
+}
+
+.pb-ctb-mode-btn--active:hover {
+  background: var(--pb-primary-dark);
+  color: var(--pb-white);
+}
+
+.pb-ctb-sep {
+  width: 1px;
+  height: 14px;
+  background: rgba(0, 110, 117, 0.2);
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+
+.pb-ctb-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--pb-text-slate);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.pb-ctb-gap-input {
+  width: 36px;
+  padding: 1px 3px;
+  font-size: 10px;
+  border: 1px solid rgba(0, 110, 117, 0.25);
+  border-radius: 3px;
+  background: var(--pb-white);
+  color: var(--pb-text-faint);
+  text-align: center;
+}
+
+.pb-ctb-add-btn {
+  padding: 1px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  border: 1px solid rgba(0, 110, 117, 0.3);
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--pb-primary);
+  background: none;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+.pb-ctb-add-btn:hover {
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border-color: var(--pb-primary-dark);
+}
+
+.pb-container-inner {
+  padding: 0;
+}
+
+.pb-container-empty {
+  flex-direction: column;
+  gap: 6px;
+  min-height: 64px;
+  padding: 12px;
+  border: 1px dashed rgba(0, 110, 117, 0.3);
+  border-radius: var(--pb-radius-sm);
+  background: rgba(0, 110, 117, 0.03);
+  user-select: none;
+}
+
+.pb-container-empty-add {
+  padding: 4px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--pb-primary);
+  background: rgba(0, 110, 117, 0.08);
+  border: 1px solid rgba(0, 110, 117, 0.3);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+}
+
+.pb-container-empty-add:hover {
+  background: var(--pb-primary);
+  color: var(--pb-white);
+}
+
+.pb-container-empty-remove {
+  padding: 2px 10px;
+  font-size: 10px;
+  color: var(--pb-text-subtle);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.pb-container-empty-remove:hover {
+  color: var(--pb-danger);
+}
+
+/* ─── Grid element (inside grid cell) ─── */
+.pb-grid-el {
+  position: relative;
+  border-radius: var(--pb-radius-sm);
+  transition: outline 0.1s;
+  outline: 1px dashed transparent;
+  cursor: pointer;
+}
+
+.pb-grid-el--hovered:not(.pb-grid-el--selected) {
+  outline: 1px dashed var(--pb-primary-hover);
+}
+
+.pb-grid-el--selected {
+  outline: 2px solid var(--pb-primary);
+}
+
+.pb-grid-el-quick-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--pb-radius-md);
+  padding: 3px 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  z-index: 10000;
+  white-space: nowrap;
+}
+
+.pb-el-quick-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--pb-radius-sm);
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.pb-el-quick-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: #f1f5f9;
+}
+.pb-el-quick-btn.pb-danger {
+  color: #fca5a5;
+}
+.pb-el-quick-btn.pb-danger:hover {
+  background: rgba(239,68,68,0.2);
+  color: #f87171;
+}
+
+/* ─── Grid column manager (right sidebar) ─── */
+.pb-grid-col-manager {
+  margin: 0 0 4px;
+}
+
+.pb-grid-col-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.pb-grid-col-manager-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border-muted);
+  border-radius: var(--pb-radius-lg);
+}
+
+.pb-grid-col-manager-num {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pb-text-mid);
+  min-width: 36px;
+  flex-shrink: 0;
+}
+
+.pb-grid-col-manager-bar {
+  flex: 1;
+  height: 10px;
+  background: #d0eeec;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.pb-grid-col-manager-fill {
+  height: 100%;
+  background: var(--pb-primary);
+  border-radius: 5px;
+  transition: width 0.2s;
+}
+
+.pb-grid-col-manager-span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--pb-text-mid);
+  min-width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pb-grid-col-manager-span.pb-over {
+  color: var(--pb-danger);
+}
+
+/* ─── Grid element drag-and-drop ─── */
+.pb-grid-el--dragging {
+  opacity: 0.35 !important;
+  pointer-events: none;
+}
+
+.pb-grid-cell--el-over {
+  outline: 2px dashed var(--pb-primary);
+  background-color: rgba(0, 110, 117, 0.04);
+}
+
+/* Horizontal insertion line (column / wrap cells) */
+.pb-grid-insert-line {
+  width: 100%;
+  height: 2px;
+  background: var(--pb-primary);
+  border-radius: 1px;
+  flex-shrink: 0;
+  pointer-events: none;
+  position: relative;
+}
+
+.pb-grid-insert-line::before,
+.pb-grid-insert-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pb-primary);
+}
+
+.pb-grid-insert-line::before { left: -3px; }
+.pb-grid-insert-line::after  { right: -3px; }
+
+/* Vertical insertion line (row cells) */
+.pb-grid-insert-line--vertical {
+  width: 2px;
+  height: auto;
+  align-self: stretch;
+}
+
+.pb-grid-insert-line--vertical::before,
+.pb-grid-insert-line--vertical::after {
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pb-grid-insert-line--vertical::before { top: -3px; }
+.pb-grid-insert-line--vertical::after  { bottom: -3px; top: auto; }
+
+/* ─── Responsive UX helpers (right sidebar) ─── */
+.pb-resp-row--active {
+  border-left: 2px solid var(--pb-primary);
+  padding-left: 6px;
+  margin-left: -8px;
+}
+
+.pb-resp-clear-btn {
+  background: none;
+  border: none;
+  color: var(--pb-primary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  line-height: 1;
+  opacity: 0.65;
+  flex-shrink: 0;
+}
+.pb-resp-clear-btn:hover { opacity: 1; }
+
+.pb-resp-ref-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0 5px 0;
+  font-size: 10px;
+  color: var(--pb-text-subtle);
+}
+.pb-resp-ref-label { font-weight: 500; }
+.pb-resp-ref-value {
+  font-weight: 600;
+  color: var(--pb-text-muted);
+  text-transform: capitalize;
+}
+
+.pb-desktop-only-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--pb-border-light);
+  color: var(--pb-text-muted);
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+
+/* ─── Stabilization: all builder UI transitions/animations disabled ──────
+   Remove this block when interaction model is stable enough to re-add motion.
+   Canvas element .pb-anim-* and the layer-panel flash are intentionally excluded. */
+.pb-app *:not([class*="pb-anim-"]):not(.pb-canvas-el--flash) {
+  transition: none !important;
+  animation: none !important;
+}

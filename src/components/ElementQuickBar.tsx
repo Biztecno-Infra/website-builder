@@ -21,22 +21,31 @@ export function ElementQuickBar({ anchorRef, onDuplicate, onDelete }: Props) {
       if (!el) { setPos(null); return; }
       const rect = el.getBoundingClientRect();
       setPos({
-        top:  rect.bottom + 6,   // 6px below the element
+        top:  rect.bottom + 6,
         left: rect.left + rect.width / 2,
       });
     };
 
     update();
 
-    const obs = new ResizeObserver(() => {
+    const schedule = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(update);
-    });
-    if (anchorRef.current) obs.observe(anchorRef.current);
+    };
+
+    // ResizeObserver catches size changes; MutationObserver catches style/position changes from drag
+    const resizeObs = new ResizeObserver(schedule);
+    const mutationObs = new MutationObserver(schedule);
+
+    if (anchorRef.current) {
+      resizeObs.observe(anchorRef.current);
+      mutationObs.observe(anchorRef.current, { attributes: true, attributeFilter: ['style'] });
+    }
     window.addEventListener('scroll', update, true);
 
     return () => {
-      obs.disconnect();
+      resizeObs.disconnect();
+      mutationObs.disconnect();
       window.removeEventListener('scroll', update, true);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };

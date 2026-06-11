@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormField, FormFieldType, FormFieldOption, ValidationPreset } from '../../types';
+import { PbSelect } from '../PbSelect';
+import { PbInput } from '../PbInput';
+import {
+  FORM_FIELD_WIDTH_OPTIONS,
+  VALIDATION_PRESET_OPTIONS,
+} from '../../utils/selectOptions';
 
 // Field-list editor for the Form element: add / delete / reorder fields and
 // edit per-field label, name, placeholder, help, required, width, options and
@@ -135,34 +141,33 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                 <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #e2e8f0' }}>
                   <div className={'pb-prop-row'}>
                     <label>Type</label>
-                    <select value={f.type}
-                      onChange={e => update(f.id, { type: e.target.value as FormFieldType, options: HAS_OPTIONS.has(e.target.value as FormFieldType) ? (f.options ?? [{ label: 'Option 1', value: 'option_1' }]) : undefined })}>
-                      {FIELD_TYPES.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
-                    </select>
+                    <PbSelect value={f.type}
+                      options={FIELD_TYPES.map(t => ({ value: t.type, label: t.label }))}
+                      onChange={v => update(f.id, { type: v as FormFieldType, options: HAS_OPTIONS.has(v as FormFieldType) ? (f.options ?? [{ label: 'Option 1', value: 'option_1' }]) : undefined })} />
                   </div>
                   <div className={'pb-prop-row pb-full'}>
                     <label>Label</label>
-                    <input type="text" value={f.label}
+                    <PbInput type="text" value={f.label}
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => update(f.id, { label: e.target.value }, false)} />
                   </div>
                   <div className={'pb-prop-row pb-full'}>
                     <label>Name</label>
-                    <input type="text" value={f.name} placeholder="submission key"
+                    <PbInput type="text" value={f.name} placeholder="submission key"
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => update(f.id, { name: slugify(e.target.value) }, false)} />
                   </div>
                   {f.type !== 'checkbox' && f.type !== 'radio' && (
                     <div className={'pb-prop-row pb-full'}>
                       <label>Placeholder</label>
-                      <input type="text" value={f.placeholder ?? ''}
+                      <PbInput type="text" value={f.placeholder ?? ''}
                         onFocus={onFocus} onBlur={onBlur}
                         onChange={e => update(f.id, { placeholder: e.target.value }, false)} />
                     </div>
                   )}
                   <div className={'pb-prop-row pb-full'}>
                     <label>Help Text</label>
-                    <input type="text" value={f.helpText ?? ''}
+                    <PbInput type="text" value={f.helpText ?? ''}
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => update(f.id, { helpText: e.target.value }, false)} />
                   </div>
@@ -173,16 +178,15 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                   </div>
                   <div className={'pb-prop-row'}>
                     <label>Width</label>
-                    <select value={f.width} onChange={e => update(f.id, { width: e.target.value as 'full' | 'half' })}>
-                      <option value="full">Full</option>
-                      <option value="half">Half</option>
-                    </select>
+                    <PbSelect value={f.width}
+                      options={FORM_FIELD_WIDTH_OPTIONS}
+                      onChange={v => update(f.id, { width: v as 'full' | 'half' })} />
                   </div>
 
                   {f.type === 'textarea' && (
                     <div className={'pb-prop-row'}>
                       <label>Rows</label>
-                      <input type="number" min={2} max={20} value={f.rows ?? 4}
+                      <PbInput type="number" min={2} max={20} value={f.rows ?? 4}
                         onFocus={onFocus} onBlur={onBlur}
                         onChange={e => update(f.id, { rows: Number(e.target.value) })} />
                     </div>
@@ -200,23 +204,19 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                     <>
                       <div className={'pb-prop-row'}>
                         <label>Preset</label>
-                        <select value={f.validation?.preset ?? 'none'}
-                          onChange={e => updateValidation(f.id, { preset: e.target.value as ValidationPreset })}>
-                          <option value="none">None</option>
-                          <option value="email">Email</option>
-                          <option value="url">URL</option>
-                          <option value="number">Number only</option>
-                        </select>
+                        <PbSelect value={f.validation?.preset ?? 'none'}
+                          options={VALIDATION_PRESET_OPTIONS}
+                          onChange={v => updateValidation(f.id, { preset: v as ValidationPreset })} />
                       </div>
                       <div className={'pb-prop-row'}>
                         <label>Min Len</label>
-                        <input type="number" min={0} value={f.validation?.minLength ?? ''}
+                        <PbInput type="number" min={0} value={f.validation?.minLength ?? ''}
                           onFocus={onFocus} onBlur={onBlur}
                           onChange={e => updateValidation(f.id, { minLength: e.target.value === '' ? undefined : Number(e.target.value) })} />
                       </div>
                       <div className={'pb-prop-row'}>
                         <label>Max Len</label>
-                        <input type="number" min={0} value={f.validation?.maxLength ?? ''}
+                        <PbInput type="number" min={0} value={f.validation?.maxLength ?? ''}
                           onFocus={onFocus} onBlur={onBlur}
                           onChange={e => updateValidation(f.id, { maxLength: e.target.value === '' ? undefined : Number(e.target.value) })} />
                       </div>
@@ -240,13 +240,13 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                   )}
                   <div className={'pb-prop-row pb-full'}>
                     <label>Pattern</label>
-                    <input type="text" value={f.validation?.pattern ?? ''} placeholder="regex (advanced)"
+                    <PbInput type="text" value={f.validation?.pattern ?? ''} placeholder="regex (advanced)"
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => updateValidation(f.id, { pattern: e.target.value || undefined }, false)} />
                   </div>
                   <div className={'pb-prop-row pb-full'}>
                     <label>Error Msg</label>
-                    <input type="text" value={f.validation?.errorMessage ?? ''} placeholder="(optional)"
+                    <PbInput type="text" value={f.validation?.errorMessage ?? ''} placeholder="(optional)"
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => updateValidation(f.id, { errorMessage: e.target.value || undefined }, false)} />
                   </div>
@@ -258,10 +258,11 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
       </div>
 
       <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-        <select value={addType} onChange={e => setAddType(e.target.value as FormFieldType)}
-          style={{ flex: 1, fontSize: 12 }}>
-          {FIELD_TYPES.map(t => <option key={t.type} value={t.type}>{t.label}</option>)}
-        </select>
+        <div style={{ flex: 1 }}>
+          <PbSelect value={addType}
+            options={FIELD_TYPES.map(t => ({ value: t.type, label: t.label }))}
+            onChange={v => setAddType(v as FormFieldType)} />
+        </div>
         <button onClick={addField}
           style={{ padding: '4px 12px', fontSize: 12, fontWeight: 600, background: '#006e75', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
           + Add
@@ -284,7 +285,7 @@ function OptionsEditor({ field, onChange, onFocus, onBlur }: {
       <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.4 }}>Options</div>
       {opts.map((o, i) => (
         <div key={i} style={{ display: 'flex', gap: 4, marginTop: 4, alignItems: 'center' }}>
-          <input type="text" value={o.label} placeholder="Label"
+          <PbInput type="text" value={o.label} placeholder="Label"
             style={{ flex: 1, minWidth: 0 }}
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => set(opts.map((x, j) => j === i ? { label: e.target.value, value: slugify(e.target.value) } : x), false)} />
