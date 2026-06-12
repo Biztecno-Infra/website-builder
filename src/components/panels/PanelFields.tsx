@@ -129,7 +129,7 @@ export function ToggleGroup({ options, value, onChange }: {
 const SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
 export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange, onFocus, onBlur }: {
-  margin?: Padding;
+  margin?: Partial<Padding>;
   onMarginChange?: (key: keyof Padding, val: number) => void;
   padding?: Padding;
   onPaddingChange?: (key: keyof Padding, val: number) => void;
@@ -147,7 +147,7 @@ export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange
           <div className="pb-trbl-row-label">Margin</div>
           <div className="pb-trbl-inputs">
             {SIDES.map(s => (
-              <PbInput key={s} type="number" className="pb-trbl-input" value={margin[s]}
+              <PbInput key={s} type="number" className="pb-trbl-input" value={margin[s] ?? 0}
                 onFocus={onFocus} onBlur={onBlur}
                 onChange={e => onMarginChange(s, Number(e.target.value))} />
             ))}

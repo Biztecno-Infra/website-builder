@@ -67,20 +67,6 @@ export function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
   }
 }
 
-export function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
-  return cell.children.flatMap(childId => {
-    const child = nodes[childId];
-    if (!child) return [];
-    if (child.type === 'container') {
-      const block = child as Container;
-      return block.children.flatMap(subId => {
-        const sub = nodes[subId] as GridCell | undefined;
-        return sub ? collectElementIds(sub, nodes) : [];
-      });
-    }
-    return [childId];
-  });
-}
 
 export function removeNodesForSection(nodes: NodeMap, sec: Section): void {
   if (sec.layoutMode === 'grid' || sec.layoutMode === 'flex') {

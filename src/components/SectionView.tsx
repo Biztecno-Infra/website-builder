@@ -1,4 +1,4 @@
-﻿import { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import type React from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasElement, canvasDragShared } from './CanvasElement';
@@ -7,40 +7,22 @@ import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
 import { DND_TYPE, LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
-import type { Breakpoint, BreakpointOverride, GridCell, GridSection, FlexSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { GridSection, FlexSection, Section, CanvasElement as El, BreakpointOverride } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
+import { resolveResponsive } from '../utils/responsive';
+import { useCanvasContext } from '../contexts/CanvasContext';
 
-
+// Props that are truly per-section — section-specific data and closures.
+// Shared canvas state (nodes, breakpoint, selectedId, etc.) is consumed from CanvasContext.
 interface Props {
   section: Section;
-  nodes: NodeMap;
   role: 'header' | 'section' | 'footer';
   isSelected: boolean;
-  selectedId: string | null;
-  selectedIds: string[];
-  selectedGridCellId?: string | null;
-  canvasWidth: number;
   onSelectSection: () => void;
-  onSelectElement: (id: string, shift: boolean) => void;
-  onSelectGridCell?: (id: string | null) => void;
-  onUpdateElement: (id: string, updates: Partial<El>) => void;
-  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
-  onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
-  onDeleteGridCell?: (id: string) => void;
-  onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
-  onCommit: (prev: BuilderState) => void;
-  snapshot: BuilderState;
-  snapEnabled: boolean;
-  onContextMenu: (id: string, x: number, y: number) => void;
-  onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
-  onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
-  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
   onPromoteSection?: (role: 'header' | 'footer') => void;
-  onAddGridSectionBefore?: (columnSpans: number[]) => void;
-  onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
   onCopyGridCell?: (id: string) => void;
@@ -50,68 +32,37 @@ interface Props {
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
   onMarqueeSelect?: (ids: string[]) => void;
-  previewMode?: boolean;
-  breakpoint?: Breakpoint;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onDuplicateElement?: (id: string) => void;
-  onDeleteElement?: (id: string) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
   isDragOverTarget?: boolean;
-  dragOverGridCellId?: string | null;
-  onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
-  onDropGridLayout?: (sectionId: string, columnSpans: number[]) => void;
-  onRemoveColumnsBlock?: (blockId: string) => void;
-  onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
-  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
-  onAddSubCell?: (containerId: string) => void;
-  selectedContainerId?: string | null;
-  onSelectContainer?: (id: string) => void;
   pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
 export function SectionView(props: Props) {
   if (props.section.layoutMode === 'grid' || props.section.layoutMode === 'flex') {
-    const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, onDropGridLayout, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer, onAddGridSectionBefore, onAddGridSectionAfter, ...rest } = props;
-    return (
-      <GridSectionView
-        section={section as GridSection | FlexSection}
-        onSelectGridCell={onSelectGridCell ?? (() => {})}
-        onUpdateGridCell={onUpdateGridCell ?? (() => {})}
-        onAddGridCell={onAddGridCell ?? (() => {})}
-        onDeleteGridCell={onDeleteGridCell ?? (() => {})}
-        onAddElementToCell={onAddElementToCell ?? (() => {})}
-        onDropGridLayout={onDropGridLayout}
-        onRemoveColumnsBlock={onRemoveColumnsBlock}
-        onAddContainer={onAddContainer}
-        onUpdateContainer={onUpdateContainer}
-        onAddSubCell={onAddSubCell}
-        selectedContainerId={selectedContainerId}
-        onSelectContainer={onSelectContainer}
-        onAddGridSectionBefore={onAddGridSectionBefore}
-        onAddGridSectionAfter={onAddGridSectionAfter}
-        {...rest}
-      />
-    );
+    const { section, ...rest } = props;
+    return <GridSectionView section={section as GridSection | FlexSection} {...rest} />;
   }
   return <FreeSectionView {...props} />;
 }
 
 function FreeSectionView({
-  section, nodes, role, isSelected,
-  selectedId, selectedIds, canvasWidth,
-  onSelectSection, onSelectElement,
-  onUpdateElement,
-  onCommit, snapshot, snapEnabled, onContextMenu,
-  onDrop, onUpdateSection, onMoveElementToSection,
-  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onCopyGridCell: _onCopyGridCell, onPasteGridCell: _onPasteGridCell, onPasteIntoGridCell: _onPasteIntoGridCell, hasCellClipboard: _hasCellClipboard, onMoveSectionUp, onMoveSectionDown,
-  onPromoteSection,
-  onMarqueeSelect, previewMode,
-  breakpoint = 'desktop', onUpdateResponsive,
-  onDuplicateElement, onDeleteElement,
-  isDragOverTarget = false,
-  onDropGridLayout,
+  section, role, isSelected,
+  onSelectSection,
+  onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection,
+  onCopyGridCell: _onCopyGridCell, onPasteGridCell: _onPasteGridCell,
+  onPasteIntoGridCell: _onPasteIntoGridCell, hasCellClipboard: _hasCellClipboard,
+  onMoveSectionUp, onMoveSectionDown, onPromoteSection: _onPromoteSection,
+  onMarqueeSelect, isDragOverTarget = false,
 }: Props) {
+  const {
+    nodes, canvasWidth, snapshot, snapEnabled, onCommit,
+    previewMode, breakpoint = 'desktop', onUpdateResponsive,
+    selectedId, selectedIds, onSelectElement, onUpdateElement,
+    onDrop, onMoveElementToSection, onUpdateSection,
+    onDuplicateElement, onDeleteElement, onContextMenu,
+    onDropGridLayout,
+  } = useCanvasContext();
+
   const bgRef = useRef<HTMLDivElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
@@ -127,10 +78,7 @@ function FreeSectionView({
     : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
     : undefined;
   const effPad = { ...basePad, ...bpPadOverride };
-  const sectionHeight =
-    breakpoint === 'mobile' ? (section.responsive?.mobile?.height ?? section.responsive?.tablet?.height ?? section.layout.height) :
-    breakpoint === 'tablet' ? (section.responsive?.tablet?.height ?? section.layout.height) :
-    section.layout.height;
+  const sectionHeight = resolveResponsive(breakpoint, section.layout.height, section.responsive?.tablet?.height, section.responsive?.mobile?.height);
   const sectionElements = section.children.map(id => nodes[id] as El | undefined).filter((el): el is El => !!el);
 
   const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
@@ -294,8 +242,6 @@ function FreeSectionView({
     breakpoint === 'tablet' ? section.responsive?.tablet?.hidden : false;
   if (bpHidden) return null;
 
-  // Fixed renders as sticky in the editor canvas — true position:fixed would escape the canvas DOM.
-  // The export emits genuine position:fixed.
   const secMargin = section.style.margin;
   const marginStyle: React.CSSProperties = secMargin
     ? { marginTop: secMargin.top, marginRight: secMargin.right, marginBottom: secMargin.bottom, marginLeft: secMargin.left }

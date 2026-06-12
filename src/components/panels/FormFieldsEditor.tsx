@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import type { FormField, FormFieldType, FormFieldOption, ValidationPreset } from '../../types';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
+import { PbButton } from '../PbButton';
 import {
   FORM_FIELD_WIDTH_OPTIONS,
   VALIDATION_PRESET_OPTIONS,
+  FORM_FIELD_TYPE_OPTIONS,
 } from '../../utils/selectOptions';
 
 // Field-list editor for the Form element: add / delete / reorder fields and
@@ -12,19 +14,8 @@ import {
 // validation. Commits (undo snapshots) happen via onChange; live typing uses
 // onChangeNoCommit so a single edit = a single undo step.
 
-const FIELD_TYPES: Array<{ type: FormFieldType; label: string }> = [
-  { type: 'text',     label: 'Text Input' },
-  { type: 'email',    label: 'Email' },
-  { type: 'number',   label: 'Number' },
-  { type: 'textarea', label: 'Textarea' },
-  { type: 'select',   label: 'Dropdown' },
-  { type: 'checkbox', label: 'Checkbox' },
-  { type: 'radio',    label: 'Radio Button' },
-  { type: 'date',     label: 'Date Picker' },
-];
-
 const TYPE_LABEL: Record<FormFieldType, string> =
-  Object.fromEntries(FIELD_TYPES.map(t => [t.type, t.label])) as Record<FormFieldType, string>;
+  Object.fromEntries(FORM_FIELD_TYPE_OPTIONS.map(t => [t.value, t.label])) as Record<FormFieldType, string>;
 
 const HAS_OPTIONS = new Set<FormFieldType>(['select', 'radio', 'checkbox']);
 const TEXTUAL = new Set<FormFieldType>(['text', 'email', 'textarea']);
@@ -109,40 +100,40 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
 
   return (
     <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className={'pb-field-list'}>
         {fields.length === 0 && (
-          <div style={{ fontSize: 11, color: '#94a3b8', padding: '4px 0' }}>No fields yet.</div>
+          <div className={'pb-field-empty'}>No fields yet.</div>
         )}
         {fields.map((f, idx) => {
           const open = expandedId === f.id;
           const isFocused = focusedFieldId === f.id;
           return (
             <div key={f.id} ref={el => { rowRefs.current[f.id] = el; }}
-              style={{ border: `1px solid ${isFocused ? '#006e75' : '#e2e8f0'}`, borderRadius: 6, overflow: 'hidden', boxShadow: isFocused ? '0 0 0 2px rgba(0,110,117,0.15)' : undefined }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px', background: '#f8fafc' }}>
+              className={['pb-field-item', isFocused && 'pb-field-item--focused'].filter(Boolean).join(' ')}>
+              <div className={'pb-field-header'}>
                 <button title="Move up" disabled={idx === 0}
                   onClick={() => move(idx, -1)}
-                  style={{ border: 'none', background: 'none', cursor: idx === 0 ? 'default' : 'pointer', opacity: idx === 0 ? 0.3 : 0.7, padding: 0, fontSize: 12 }}>▲</button>
+                  className={'pb-field-move-btn'}>▲</button>
                 <button title="Move down" disabled={idx === fields.length - 1}
                   onClick={() => move(idx, 1)}
-                  style={{ border: 'none', background: 'none', cursor: idx === fields.length - 1 ? 'default' : 'pointer', opacity: idx === fields.length - 1 ? 0.3 : 0.7, padding: 0, fontSize: 12 }}>▼</button>
+                  className={'pb-field-move-btn'}>▼</button>
                 <button onClick={() => { setExpandedId(open ? null : f.id); if (focusedFieldId && focusedFieldId !== f.id) onFocusField?.(null); }}
-                  style={{ flex: 1, textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600, color: '#334155', display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {f.label || '(no label)'}{f.required && <span style={{ color: '#dc2626' }}> *</span>}
+                  className={'pb-field-label-btn'}>
+                  <span className={'pb-field-label-text'}>
+                    {f.label || '(no label)'}{f.required && <span className={'pb-field-required'}> *</span>}
                   </span>
-                  <span style={{ fontSize: 10, fontWeight: 500, color: '#94a3b8' }}>{TYPE_LABEL[f.type]}</span>
+                  <span className={'pb-field-type-label'}>{TYPE_LABEL[f.type]}</span>
                 </button>
                 <button title="Delete field" onClick={() => removeField(f.id)}
-                  style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444', padding: '0 2px', fontSize: 13 }}>✕</button>
+                  className={'pb-field-delete-btn'}>✕</button>
               </div>
 
               {open && (
-                <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #e2e8f0' }}>
+                <div className={'pb-field-body'}>
                   <div className={'pb-prop-row'}>
                     <label>Type</label>
                     <PbSelect value={f.type}
-                      options={FIELD_TYPES.map(t => ({ value: t.type, label: t.label }))}
+                      options={FORM_FIELD_TYPE_OPTIONS}
                       onChange={v => update(f.id, { type: v as FormFieldType, options: HAS_OPTIONS.has(v as FormFieldType) ? (f.options ?? [{ label: 'Option 1', value: 'option_1' }]) : undefined })} />
                   </div>
                   <div className={'pb-prop-row pb-full'}>
@@ -199,7 +190,7 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                   )}
 
                   {/* Validation */}
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.4 }}>Validation</div>
+                  <div className={'pb-sublabel'} style={{ marginTop: 4 }}>Validation</div>
                   {TEXTUAL.has(f.type) && (
                     <>
                       <div className={'pb-prop-row'}>
@@ -226,15 +217,15 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                     <>
                       <div className={'pb-prop-row'}>
                         <label>Min</label>
-                        <input type={f.type === 'date' ? 'date' : 'number'} value={f.validation?.min as never ?? ''}
-                          onFocus={onFocus} onBlur={onBlur}
-                          onChange={e => updateValidation(f.id, { min: e.target.value === '' ? undefined : (f.type === 'date' ? (e.target.value as never) : Number(e.target.value)) })} />
+                        {f.type === 'date'
+                          ? <input className="pb-input" type="date" value={f.validation?.min as string ?? ''} onFocus={onFocus} onBlur={onBlur} onChange={e => updateValidation(f.id, { min: e.target.value || undefined })} />
+                          : <PbInput type="number" value={f.validation?.min as number ?? ''} onFocus={onFocus} onBlur={onBlur} onChange={e => updateValidation(f.id, { min: e.target.value === '' ? undefined : Number(e.target.value) })} />}
                       </div>
                       <div className={'pb-prop-row'}>
                         <label>Max</label>
-                        <input type={f.type === 'date' ? 'date' : 'number'} value={f.validation?.max as never ?? ''}
-                          onFocus={onFocus} onBlur={onBlur}
-                          onChange={e => updateValidation(f.id, { max: e.target.value === '' ? undefined : (f.type === 'date' ? (e.target.value as never) : Number(e.target.value)) })} />
+                        {f.type === 'date'
+                          ? <input className="pb-input" type="date" value={f.validation?.max as string ?? ''} onFocus={onFocus} onBlur={onBlur} onChange={e => updateValidation(f.id, { max: e.target.value || undefined })} />
+                          : <PbInput type="number" value={f.validation?.max as number ?? ''} onFocus={onFocus} onBlur={onBlur} onChange={e => updateValidation(f.id, { max: e.target.value === '' ? undefined : Number(e.target.value) })} />}
                       </div>
                     </>
                   )}
@@ -257,16 +248,13 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
         })}
       </div>
 
-      <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
-        <div style={{ flex: 1 }}>
+      <div className={'pb-field-add-row'}>
+        <div className={'pb-field-add-select'}>
           <PbSelect value={addType}
-            options={FIELD_TYPES.map(t => ({ value: t.type, label: t.label }))}
+            options={FORM_FIELD_TYPE_OPTIONS}
             onChange={v => setAddType(v as FormFieldType)} />
         </div>
-        <button onClick={addField}
-          style={{ padding: '4px 12px', fontSize: 12, fontWeight: 600, background: '#006e75', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer' }}>
-          + Add
-        </button>
+        <PbButton onClick={addField}>+ Add</PbButton>
       </div>
     </div>
   );
@@ -282,19 +270,19 @@ function OptionsEditor({ field, onChange, onFocus, onBlur }: {
   const set = (next: FormFieldOption[], commit: boolean) => onChange(next, commit);
   return (
     <div>
-      <div style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.4 }}>Options</div>
+      <div className={'pb-sublabel'} style={{ marginTop: 2 }}>Options</div>
       {opts.map((o, i) => (
-        <div key={i} style={{ display: 'flex', gap: 4, marginTop: 4, alignItems: 'center' }}>
+        <div key={i} className={'pb-option-row'}>
           <PbInput type="text" value={o.label} placeholder="Label"
             style={{ flex: 1, minWidth: 0 }}
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => set(opts.map((x, j) => j === i ? { label: e.target.value, value: slugify(e.target.value) } : x), false)} />
           <button title="Remove" onClick={() => set(opts.filter((_, j) => j !== i), true)}
-            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#ef4444', fontSize: 13 }}>✕</button>
+            className={'pb-field-delete-btn'}>✕</button>
         </div>
       ))}
       <button onClick={() => set([...opts, { label: `Option ${opts.length + 1}`, value: `option_${opts.length + 1}` }], true)}
-        style={{ marginTop: 5, padding: '3px 10px', fontSize: 11, fontWeight: 600, background: '#e2e8f0', color: '#334155', border: 'none', borderRadius: 4, cursor: 'pointer' }}>
+        className={'pb-add-option-btn'}>
         + Option
       </button>
     </div>

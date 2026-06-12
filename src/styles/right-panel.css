@@ -30,6 +30,12 @@
   flex-direction: column;
   overflow-y: auto;
   border-left: 1px solid var(--pb-border);
+  transition: width 0.2s ease;
+}
+.pb-right-sidebar--hidden {
+  width: 0;
+  overflow: hidden;
+  border-left: none;
 }
 
 .pb-panel-header {
@@ -64,14 +70,6 @@
   background: var(--pb-danger);
   color: var(--pb-white);
   border-color: var(--pb-danger);
-}
-
-.pb-no-selection {
-  padding: 32px 16px;
-  color: var(--pb-text-subtle);
-  font-size: 12px;
-  text-align: center;
-  line-height: 1.6;
 }
 
 .pb-delete-btn {

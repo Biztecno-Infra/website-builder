@@ -555,15 +555,4 @@
 
 
 
-/* ─── Toolbar primary button ─── */
-.pb-toolbar-btn.pb-primary {
-  background: var(--pb-primary);
-  color: var(--pb-white);
-  border-color: var(--pb-primary);
-}
-.pb-toolbar-btn.pb-primary:hover { background: var(--pb-primary-hover); border-color: var(--pb-primary-hover); }
-.pb-toolbar-btn.pb-active {
-  background: var(--pb-bg-subtle);
-  color: var(--pb-primary);
-  border-color: var(--pb-primary);
-}
+/* .pb-toolbar-btn.pb-primary and .pb-active are defined in toolbar.css */

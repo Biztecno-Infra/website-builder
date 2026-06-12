@@ -4,6 +4,7 @@ import { SectionDropZone } from './SectionDropZone';
 import { canvasDragShared } from './CanvasElement';
 import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
+import { CanvasContextProvider } from '../contexts/CanvasContext';
 
 
 export { CANVAS_W };
@@ -192,24 +193,25 @@ export function Canvas({
     };
   }, []);
 
-  const commonProps = {
-    nodes,
-    selectedId, selectedIds, selectedGridCellId, canvasWidth,
-    onSelectElement, onSelectGridCell, onUpdateElement: onUpdate,
-    onCommit, snapshot, snapEnabled, onContextMenu,
-    onDrop, onUpdateSection, onMoveElementToSection, previewMode,
-    breakpoint, onUpdateResponsive,
-    onDuplicateElement, onDeleteElement,
-    onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
-    onMoveGridElement, onReorderGridCell,
-    onDropGridLayout, onRemoveColumnsBlock,
+  const ctxValue = {
+    nodes, snapshot, canvasWidth,
+    breakpoint, previewMode: previewMode ?? false, snapEnabled,
+    onCommit,
+    selectedId, selectedIds, selectedGridCellId: selectedGridCellId ?? null,
+    onSelectElement, onUpdateElement: onUpdate, onUpdateResponsive,
+    onDuplicateElement, onDeleteElement, onContextMenu,
+    onUpdateSection, onDrop, onMoveElementToSection,
+    onSelectGridCell, onUpdateGridCell, onDeleteGridCell, onAddGridCell,
+    onAddElementToCell, onMoveGridElement, onReorderGridCell, onDropGridLayout, onRemoveColumnsBlock,
     onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer,
+    dragOverGridCellId,
   };
 
   const BP_CLASS_MAP: Record<string, string | undefined> = { tablet: 'pb-bp-tablet', mobile: 'pb-bp-mobile' };
   const bpClass = BP_CLASS_MAP[breakpoint];
 
   return (
+    <CanvasContextProvider value={ctxValue}>
     <div ref={wrapperRef} className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
@@ -250,7 +252,6 @@ export function Canvas({
         {sections.map((sec, i) => (
           <React.Fragment key={sec.id}>
             <SectionView
-              {...commonProps}
               pageLayoutWidth={layoutWidth}
               section={sec}
               role={sec.role}
@@ -258,8 +259,6 @@ export function Canvas({
               onSelectSection={() => onSelectSection(sec.id)}
               onAddSectionAfter={() => onAddSection(sec.id)}
               onAddSectionBefore={i === 0 ? () => onAddSection(undefined, true) : () => onAddSection(sections[i - 1].id)}
-              onAddGridSectionAfter={(spans: number[]) => onDropGridLayout?.(sec.id, spans)}
-              onAddGridSectionBefore={(spans: number[]) => i === 0 ? onDropGridLayout?.(null, spans, true) : onDropGridLayout?.(sections[i - 1].id, spans)}
               onPromoteSection={onPromoteSection ? (role) => onPromoteSection(sec.id, role) : undefined}
               onDeleteSection={() => {
                 if (sections.length <= 1) { alert('At least one section is required.'); return; }
@@ -274,7 +273,6 @@ export function Canvas({
               onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
               onMarqueeSelect={ids => onMultiSelect(ids, sec.id)}
               isDragOverTarget={dragOverSectionId === sec.id}
-              dragOverGridCellId={dragOverGridCellId}
             />
             <SectionDropZone
               afterId={sec.id}
@@ -286,5 +284,6 @@ export function Canvas({
 
       </div>
     </div>
+    </CanvasContextProvider>
   );
 }

@@ -1,19 +1,20 @@
-﻿import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { DraggableCellWrapper } from './DraggableCellWrapper';
 import { LAYOUT_DND_TYPE } from './LeftSidebar';
 import { GridCellView } from './GridCellView';
 import { canvasDragShared } from './CanvasElement';
 import type {
-  Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  ContentWidthMode, FlexSection, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
+  FlexSection, GridCell, GridSection,
 } from '../types';
 import { DEFAULT_FLEX_CONFIG } from '../utils/builderDefaults';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 import { getCellColumnSpan } from '../utils/cellUtils';
+import { resolveResponsive } from '../utils/responsive';
+import { useCanvasContext } from '../contexts/CanvasContext';
 
-function isCellOrDescendant(nodes: NodeMap, parentId: string, targetId: string | null | undefined): boolean {
+function isCellOrDescendant(nodes: import('../types').NodeMap, parentId: string, targetId: string | null | undefined): boolean {
   if (!targetId) return false;
   if (parentId === targetId) return true;
   const node = nodes[parentId];
@@ -21,30 +22,14 @@ function isCellOrDescendant(nodes: NodeMap, parentId: string, targetId: string |
   return (node as { children: string[] }).children.some(cid => isCellOrDescendant(nodes, cid, targetId));
 }
 
-
+// Props that are truly per-section. All shared canvas state comes from CanvasContext.
 interface Props {
   section: GridSection | FlexSection;
-  nodes: NodeMap;
   role: 'header' | 'section' | 'footer';
   isSelected: boolean;
-  selectedId: string | null;
-  selectedGridCellId?: string | null;
-  canvasWidth: number;
   onSelectSection: () => void;
-  onSelectGridCell: (id: string | null) => void;
-  onSelectElement: (id: string, shift: boolean) => void;
-  onUpdateElement: (id: string, updates: Partial<El>) => void;
-  onUpdateGridCell: (id: string, updates: Partial<GridCell>) => void;
-  onAddGridCell: (sectionId: string, columnSpan?: number) => void;
-  onDeleteGridCell: (id: string) => void;
-  onAddElementToCell: (type: ElementType, cellId: string, x?: number, y?: number) => void;
-  onCommit: (prev: BuilderState) => void;
-  snapshot: BuilderState;
-  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
-  onAddGridSectionBefore?: (columnSpans: number[]) => void;
-  onAddGridSectionAfter?: (columnSpans: number[]) => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
   onCopyGridCell?: (id: string) => void;
@@ -54,46 +39,27 @@ interface Props {
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
   onPromoteSection?: (role: 'header' | 'footer') => void;
-  previewMode?: boolean;
-  breakpoint?: Breakpoint;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onDuplicateElement?: (id: string) => void;
-  onDeleteElement?: (id: string) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: import('../types').CellLayoutMode) => void;
-  dragOverGridCellId?: string | null;
-  onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
-  onDropGridLayout?: (sectionId: string, columnSpans: number[]) => void;
-  onRemoveColumnsBlock?: (blockId: string) => void;
-  onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
-  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
-  onAddSubCell?: (containerId: string) => void;
-  selectedContainerId?: string | null;
-  onSelectContainer?: (id: string) => void;
-  pageLayoutWidth?: 'fixed' | 'fluid'; // page-level layout; drives section default (fixed→constrained, fluid→full)
+  pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 export function GridSectionView({
-  section, nodes, role, isSelected,
-  selectedId, selectedGridCellId,
-  canvasWidth, onSelectSection, onSelectGridCell,
-  onSelectElement, onUpdateElement,
-  onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
-  onCommit, snapshot, onUpdateSection,
-  onAddSectionBefore, onAddSectionAfter, onAddGridSectionBefore, onAddGridSectionAfter,
+  section, role, isSelected,
+  onSelectSection,
+  onAddSectionBefore, onAddSectionAfter,
   onDeleteSection, onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
-  onMoveSectionUp, onMoveSectionDown, onPromoteSection,
-  previewMode, breakpoint = 'desktop',
-  onUpdateResponsive, onDuplicateElement, onDeleteElement,
-  onMoveGridElement,
-  dragOverGridCellId,
-  onReorderGridCell,
-  onDropGridLayout,
-  onRemoveColumnsBlock,
-  onAddContainer, onUpdateContainer, onAddSubCell,
-  selectedContainerId,
-  onSelectContainer,
+  onMoveSectionUp, onMoveSectionDown, onPromoteSection: _onPromoteSection,
   pageLayoutWidth = 'fixed',
 }: Props) {
+  const {
+    nodes, canvasWidth, snapshot, onCommit,
+    previewMode, breakpoint = 'desktop',
+    selectedId, selectedGridCellId,
+    onSelectElement, onSelectGridCell, onUpdateSection,
+    onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
+    onReorderGridCell, onDropGridLayout,
+    dragOverGridCellId,
+  } = useCanvasContext();
+
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -133,14 +99,8 @@ export function GridSectionView({
   const bg = section.style.background;
   const gridCfg = section.grid;
 
-  const gap =
-    breakpoint === 'mobile' ? (section.responsive?.mobile?.gap ?? section.responsive?.tablet?.gap ?? gridCfg.gap) :
-    breakpoint === 'tablet' ? (section.responsive?.tablet?.gap ?? gridCfg.gap) :
-    gridCfg.gap;
-  const rowGap =
-    breakpoint === 'mobile' ? (section.responsive?.mobile?.rowGap ?? section.responsive?.tablet?.rowGap ?? gridCfg.rowGap) :
-    breakpoint === 'tablet' ? (section.responsive?.tablet?.rowGap ?? gridCfg.rowGap) :
-    gridCfg.rowGap;
+  const gap    = resolveResponsive(breakpoint, gridCfg.gap,    section.responsive?.tablet?.gap,    section.responsive?.mobile?.gap);
+  const rowGap = resolveResponsive(breakpoint, gridCfg.rowGap, section.responsive?.tablet?.rowGap, section.responsive?.mobile?.rowGap);
 
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative', width: '100%',
@@ -157,7 +117,7 @@ export function GridSectionView({
 
   const isFlex = section.layoutMode === 'flex';
   const flexCfg = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
-  const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
+  const contentWidthMode = gridCfg.contentWidth ?? 'constrained';
   const maxW = gridCfg.maxWidth ?? 1280;
 
   const cells = section.children
@@ -169,18 +129,17 @@ export function GridSectionView({
   const scrollBehavior = section.scrollBehavior ?? 'normal';
   const isSticky = scrollBehavior === 'sticky';
   const isFixed  = scrollBehavior === 'fixed';
-  // True when a descendant (cell, element, or container) owns the selection — section should dim
   const hasActiveChild = !!(
     (selectedGridCellId && section.children.includes(selectedGridCellId)) ||
     (selectedId && (() => {
       const el = nodes[selectedId];
       if (!el || !('parent' in el)) return false;
       const p1 = (el as any).parent as string;
-      if (section.children.includes(p1)) return true;        // element → cell in section
+      if (section.children.includes(p1)) return true;
       const p1Node = nodes[p1];
       if (!p1Node || !('parent' in p1Node)) return false;
       const p2 = (p1Node as any).parent as string;
-      return section.children.includes(p2);                  // element → container → cell in section
+      return section.children.includes(p2);
     })())
   );
 
@@ -199,7 +158,7 @@ export function GridSectionView({
     backgroundColor: `rgba(0,0,0,${bg.overlay})`,
     pointerEvents: 'none', zIndex: 0,
   } : undefined;
-  // Hide section at current breakpoint if configured
+
   const bpHidden =
     breakpoint === 'mobile' ? section.responsive?.mobile?.hidden :
     breakpoint === 'tablet' ? section.responsive?.tablet?.hidden : false;
@@ -234,7 +193,7 @@ export function GridSectionView({
       <div ref={bgRefCallback} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
-          e.stopPropagation(); onSelectSection(); onSelectGridCell(null);
+          e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);
         }}
       >
         {overlayStyle && <div style={overlayStyle} />}
@@ -245,12 +204,11 @@ export function GridSectionView({
           </>
         )}
 
-        {/* Label badge lives on pb-section-bg so surface needs no top padding */}
         {!previewMode && !hasActiveChild && (hovered || isSelected) && (
           <div
             className={['pb-section-label-badge', 'pb-section-label-badge--clickable', isSelected && !selectedGridCellId && 'pb-section-label-badge--active'].filter(Boolean).join(' ')}
             title="Click to select grid section"
-            onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell(null); }}
+            onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null); }}
           >
             {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
             <span className={'pb-section-label-mode'}> · Grid</span>
@@ -270,7 +228,7 @@ export function GridSectionView({
           style={sectionContentStyle}
           onMouseDown={e => {
             if ((e.target as HTMLElement).closest('.grid-cell')) return;
-            e.stopPropagation(); onSelectSection(); onSelectGridCell(null);
+            e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);
           }}
         >
           {!previewMode && isSelected && !hasActiveChild && (
@@ -283,7 +241,7 @@ export function GridSectionView({
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
               <div className={'pb-section-action-divider'} />
               <button className={'pb-section-action-btn pb-flex-center'} title="Add column"
-                onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>+ Col</button>
+                onClick={e => { e.stopPropagation(); onAddGridCell?.(section.id); }}>+ Col</button>
               <div className={'pb-section-action-divider'} />
               {(() => {
                 const effectiveMode = section.grid.contentWidth ?? (pageLayoutWidth === 'fixed' ? 'constrained' : 'full');
@@ -339,7 +297,7 @@ export function GridSectionView({
                   onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
                   onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}
                   onPasteIntoCell={hasCellClipboard && onPasteIntoGridCell ? () => onPasteIntoGridCell(cell.id) : undefined}
-                  onDeleteCell={cells.length > 1 ? () => onDeleteGridCell(cell.id) : undefined}
+                  onDeleteCell={cells.length > 1 ? () => onDeleteGridCell?.(cell.id) : undefined}
                   onResizeDragStart={nextCell ? (e, span, el) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -352,8 +310,8 @@ export function GridSectionView({
                     const onMove = (ev: MouseEvent) => {
                       const delta = Math.round((ev.clientX - startX) / unitWidth);
                       const newLeft = Math.max(1, Math.min(total - 1, startLeft + delta));
-                      onUpdateGridCell(cell.id, { columnSpan: newLeft });
-                      onUpdateGridCell(nextCell.id, { columnSpan: total - newLeft });
+                      onUpdateGridCell?.(cell.id, { columnSpan: newLeft });
+                      onUpdateGridCell?.(nextCell.id, { columnSpan: total - newLeft });
                     };
                     const onUp = () => {
                       document.removeEventListener('mousemove', onMove);
@@ -365,46 +323,22 @@ export function GridSectionView({
                 >
                   <GridCellView
                     cell={cell}
-                    nodes={nodes}
                     isSelected={selectedGridCellId === cell.id}
-                    selectedElementId={selectedId}
-                    selectedGridCellId={selectedGridCellId}
-                    onSelectCell={() => { onSelectGridCell(cell.id); onSelectSection(); }}
+                    onSelectCell={() => { onSelectGridCell?.(cell.id); onSelectSection(); }}
                     onSelectElement={elId => {
-                      // Select section + immediate parent cell + element in one click
                       onSelectSection();
                       const el = nodes[elId];
                       const elParent = el?.type !== 'section' ? el?.parent : undefined;
                       const parentCellId = elParent && nodes[elParent]?.type === 'grid-cell'
                         ? elParent
                         : cell.id;
-                      onSelectGridCell(parentCellId);
+                      onSelectGridCell?.(parentCellId);
                       onSelectElement(elId, false);
                     }}
-                    onUpdateElement={onUpdateElement}
-                    onUpdateCell={updates => onUpdateGridCell(cell.id, updates)}
-                    onDeleteCell={() => onDeleteGridCell(cell.id)}
-                    onAddElement={(type, x, y) => onAddElementToCell(type, cell.id, x, y)}
-                    onCommit={onCommit}
-                    snapshot={snapshot}
-                    previewMode={previewMode}
-                    breakpoint={breakpoint}
-                    onUpdateResponsive={onUpdateResponsive}
-                    onDuplicateElement={onDuplicateElement}
-                    onDeleteElement={onDeleteElement}
-                    onMoveGridElement={onMoveGridElement}
+                    onUpdateCell={updates => onUpdateGridCell?.(cell.id, updates)}
+                    onDeleteCell={() => onDeleteGridCell?.(cell.id)}
+                    onAddElement={(type, x, y) => onAddElementToCell?.(type, cell.id, x, y)}
                     isDragOverTarget={dragOverGridCellId === cell.id}
-                    onUpdateGridCell={onUpdateGridCell}
-                    onDeleteGridCell={onDeleteGridCell}
-                    onAddElementToCell={onAddElementToCell}
-                    onSelectGridCell={onSelectGridCell}
-                    onReorderGridCell={onReorderGridCell}
-                    onRemoveColumnsBlock={onRemoveColumnsBlock}
-                    onAddContainer={onAddContainer}
-                    onUpdateContainer={onUpdateContainer}
-                    onAddSubCell={onAddSubCell}
-                    selectedContainerId={selectedContainerId}
-                    onSelectContainer={onSelectContainer}
                   />
                 </DraggableCellWrapper>
               );
@@ -414,7 +348,7 @@ export function GridSectionView({
             {cells.length === 0 && !previewMode && (
               <div className={'pb-grid-empty-state pb-flex-center'}>
                 <span className={'pb-grid-empty-icon'}>⊞</span>
-                <button className={'pb-grid-empty-add-btn'} onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>
+                <button className={'pb-grid-empty-add-btn'} onClick={e => { e.stopPropagation(); onAddGridCell?.(section.id); }}>
                   + Add first column
                 </button>
               </div>

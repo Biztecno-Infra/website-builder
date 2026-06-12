@@ -46,10 +46,16 @@ export function Toolbar({
   const [zoomDropOpen, setZoomDropOpen] = useState(false);
   const pageDropRef = useRef<HTMLDivElement>(null);
   const publishDropRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const ZOOM_PRESETS = [50, 75, 100, 125, 150, 200];
 
-  const closeDrop = (setter: (v: boolean) => void) => () => setter(false);
+  const closeDrop = (setter: (v: boolean) => void) => () => {
+    closeTimerRef.current = setTimeout(() => setter(false), 120);
+  };
+  const keepDrop = () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+  };
 
   return (
     <header className="pb-toolbar pb-flex-row">
@@ -74,7 +80,7 @@ export function Toolbar({
             <Icon id="chevronDown" size={12} />
           </button>
           {pageDropOpen && (
-            <div className="pb-toolbar-drop pb-toolbar-drop--left" onMouseLeave={closeDrop(setPageDropOpen)}>
+            <div className="pb-toolbar-drop pb-toolbar-drop--left" onMouseLeave={closeDrop(setPageDropOpen)} onMouseEnter={keepDrop}>
               {pages.map(p => (
                 <button
                   key={p.id}
@@ -145,7 +151,7 @@ export function Toolbar({
             <Icon id="chevronDown" size={12} />
           </button>
           {zoomDropOpen && (
-            <div className="pb-toolbar-drop pb-toolbar-drop--center" onMouseLeave={closeDrop(setZoomDropOpen)}>
+            <div className="pb-toolbar-drop pb-toolbar-drop--center" onMouseLeave={closeDrop(setZoomDropOpen)} onMouseEnter={keepDrop}>
               {ZOOM_PRESETS.map(z => (
                 <button
                   key={z}
@@ -164,14 +170,19 @@ export function Toolbar({
         </div>
       </div>
 
-      {/* ── Right: preview + publish ── */}
+      {/* ── Right: clear + preview + publish ── */}
       <div className="pb-toolbar-right pb-flex-row">
+        <button className="pb-toolbar-clear-btn" onClick={onClear} title="Clear canvas">
+          <Icon id="trash" size={16} />
+          <span>Clear</span>
+        </button>
+
         <button className="pb-toolbar-preview-btn" onClick={onPreview} title="Preview (Ctrl+Shift+P)">
           <Icon id="preview" size={16} />
           <span>Preview</span>
         </button>
 
-        {/* Publish dropdown (minimal — chevron only) */}
+        {/* Publish dropdown */}
         <div className="pb-toolbar-dropdown-wrap" ref={publishDropRef}>
           <div className="pb-toolbar-publish-group">
             <button className="pb-toolbar-publish-btn" onClick={onExportHTML} title="Publish / Export HTML">
@@ -187,7 +198,7 @@ export function Toolbar({
             </button>
           </div>
           {publishDropOpen && (
-            <div className="pb-toolbar-drop pb-toolbar-drop--right" onMouseLeave={closeDrop(setPublishDropOpen)}>
+            <div className="pb-toolbar-drop pb-toolbar-drop--right" onMouseLeave={closeDrop(setPublishDropOpen)} onMouseEnter={keepDrop}>
               <button className="pb-toolbar-drop-item" onClick={() => { onExportHTML(); setPublishDropOpen(false); }}>
                 Export HTML
               </button>
@@ -212,9 +223,6 @@ export function Toolbar({
               <div className="pb-toolbar-drop-divider" />
               <button className="pb-toolbar-drop-item" onClick={() => { onLoadDemo(); setPublishDropOpen(false); }}>
                 Load demo
-              </button>
-              <button className="pb-toolbar-drop-item pb-toolbar-drop-item--danger" onClick={() => { onClear(); setPublishDropOpen(false); }}>
-                Clear canvas
               </button>
             </div>
           )}

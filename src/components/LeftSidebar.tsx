@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type React from 'react';
 import { useDrag } from 'react-dnd';
 import type { CanvasElement, ContainerLayoutMode, ElementType, NodeMap, Page, Section, SiteTheme } from '../types';
@@ -29,36 +29,6 @@ function ColumnPreviewIcon({ spans }: { spans: number[] }) {
   );
 }
 
-const CELL_LAYOUT_PRESETS: Array<{ label: string; icon: string; mode: ContainerLayoutMode; columnSpans?: number[] }> = [
-  { label: '2 Cols',  icon: '⊞', mode: 'grid',     columnSpans: [6, 6]    },
-  { label: '3 Cols',  icon: '⊟', mode: 'grid',     columnSpans: [4, 4, 4] },
-  { label: 'Stack',   icon: '☰', mode: 'flex-col'                          },
-  { label: 'Row',     icon: '⇔', mode: 'flex-row'                          },
-];
-
-function CellLayoutItem({ label, icon, mode, columnSpans, disabled, onAdd }: {
-  label: string; icon: string; mode: ContainerLayoutMode;
-  columnSpans?: number[]; disabled: boolean;
-  onAdd: (mode: ContainerLayoutMode, columnSpans?: number[]) => void;
-}) {
-  const [{ isDragging }, dragRef] = useDrag<CellLayoutDragItem, void, { isDragging: boolean }>({
-    type: CELL_LAYOUT_DND_TYPE,
-    item: { mode, columnSpans },
-    collect: m => ({ isDragging: m.isDragging() }),
-  });
-  return (
-    <button
-      ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
-      className={['pb-cell-layout-item', disabled ? 'pb-cell-layout-item--disabled' : ''].filter(Boolean).join(' ')}
-      style={{ opacity: isDragging ? 0.4 : 1 }}
-      title={disabled ? `Drag into a cell, or select a cell to click-add ${label}` : `Add ${label} container — click or drag into cell`}
-      onClick={() => !disabled && onAdd(mode, columnSpans)}
-    >
-      <span className={'pb-cell-layout-icon'}>{icon}</span>
-      <span style={{ fontSize: 10, fontWeight: 600 }}>{label}</span>
-    </button>
-  );
-}
 
 const LAYOUT_PRESETS: Array<{ label: string; desc: string; columnSpans: number[] }> = [
   { label: '1 Column',      desc: 'Full width',            columnSpans: [12]            },
@@ -209,7 +179,48 @@ export function LeftSidebar({
   theme, onUpdateTheme, onApplyTheme,
 }: Props) {
   const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | null>('elements');
+  const [isOpen, setIsOpen] = useState(true);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openRafRef = useRef<number | null>(null);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    if (openRafRef.current) cancelAnimationFrame(openRafRef.current);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+    if (openRafRef.current) { cancelAnimationFrame(openRafRef.current); openRafRef.current = null; }
+    setIsOpen(false);
+    closeTimerRef.current = setTimeout(() => {
+      setActiveTab(null);
+      closeTimerRef.current = null;
+    }, 260);
+  }, []);
+
+  const handleTabClick = useCallback((tab: 'elements' | 'layers' | 'pages' | 'theme') => {
+    // same tab while open → toggle close
+    if (activeTab === tab && isOpen) {
+      handleClose();
+      return;
+    }
+    // panel already open, just switching content — no width animation
+    if (isOpen && activeTab !== null) {
+      setActiveTab(tab);
+      return;
+    }
+    // panel is closed — slide open
+    if (closeTimerRef.current) { clearTimeout(closeTimerRef.current); closeTimerRef.current = null; }
+    if (openRafRef.current) cancelAnimationFrame(openRafRef.current);
+    setActiveTab(tab);
+    openRafRef.current = requestAnimationFrame(() => {
+      openRafRef.current = requestAnimationFrame(() => {
+        setIsOpen(true);
+        openRafRef.current = null;
+      });
+    });
+  }, [activeTab, isOpen, handleClose]);
 
   const handleResizerMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -233,34 +244,35 @@ export function LeftSidebar({
   };
 
   return (
-    <div className={'pb-left-panel'} style={{ width: activeTab !== null ? panelWidth : 48 }}>
+    <div className={'pb-left-panel'}>
       <div className={'pb-tab-strip pb-flex-col'}>
         <button className={['pb-tab-btn pb-flex-center', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => setActiveTab('elements')} title="Blocks">
+          onClick={() => handleTabClick('elements')} title="Blocks">
           <Icon id="sections" size={20} />
         </button>
         <button className={['pb-tab-btn pb-flex-center', activeTab === 'layers' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => setActiveTab('layers')} title="Layers">
+          onClick={() => handleTabClick('layers')} title="Layers">
           <Icon id="layers" size={20} />
         </button>
         {/* Pages tab — not in design yet
         <button className={['pb-tab-btn pb-flex-center', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => setActiveTab('pages')} title="Pages">
+          onClick={() => handleTabClick('pages')} title="Pages">
           <span>Pages</span>
         </button>
         */}
         <button className={['pb-tab-btn pb-flex-center', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => setActiveTab('theme')} title="Theme">
+          onClick={() => handleTabClick('theme')} title="Theme">
           <Icon id="palette" size={20} />
         </button>
       </div>
 
+      <div className={'pb-left-panel-content'} style={{ width: isOpen && activeTab !== null ? panelWidth - 48 : 0 }}>
       {activeTab === 'elements' && (
         <aside className={'pb-left-sidebar pb-flex-col'}>
 
           <div className={'pb-blocks-header'}>
             <span className={'pb-blocks-header-title'}>Add Elements</span>
-            <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={() => setActiveTab(null)}>✕</button>
+            <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={handleClose}>✕</button>
           </div>
 
           <div className={'pb-blocks-search'}>
@@ -353,7 +365,7 @@ export function LeftSidebar({
           onUpdateElement={onUpdate}
           onDeleteElement={onDeleteElement}
           onDeleteSection={onDeleteSection}
-          onClose={() => setActiveTab(null)}
+          onClose={handleClose}
         />
       )}
 
@@ -369,8 +381,9 @@ export function LeftSidebar({
       )}
 
       {activeTab === 'theme' && (
-        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={() => setActiveTab(null)} />
+        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={handleClose} />
       )}
+      </div>
 
       <div className={'pb-left-panel-resizer'} onMouseDown={handleResizerMouseDown} />
     </div>

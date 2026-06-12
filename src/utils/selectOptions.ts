@@ -180,3 +180,32 @@ export const LINK_TARGET_OPTIONS: SelectOption[] = [
   { value: '_self',  label: 'Same tab' },
   { value: '_blank', label: 'New tab' },
 ];
+
+export const SECTION_LAYOUT_MODE_OPTIONS: SelectOption[] = [
+  { value: 'free', label: 'Free' },
+  { value: 'grid', label: 'Grid' },
+];
+
+export const FORM_FIELD_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'text',     label: 'Text Input' },
+  { value: 'email',    label: 'Email' },
+  { value: 'number',   label: 'Number' },
+  { value: 'textarea', label: 'Textarea' },
+  { value: 'select',   label: 'Dropdown' },
+  { value: 'checkbox', label: 'Checkbox' },
+  { value: 'radio',    label: 'Radio Button' },
+  { value: 'date',     label: 'Date Picker' },
+];
+
+export const BASE_ACTION_OPTIONS: SelectOption[] = [
+  { value: 'none',              label: 'None' },
+  { value: 'external-url',      label: 'Open External URL' },
+  { value: 'download-file',     label: 'Download File' },
+  { value: 'internal-page',     label: 'Open Internal Page' },
+  { value: 'send-email',        label: 'Send Email' },
+  { value: 'make-call',         label: 'Make a Call' },
+  { value: 'send-sms',          label: 'Send SMS' },
+  { value: 'open-popup',        label: 'Open Popup' },
+  { value: 'scroll-to-section', label: 'Scroll to Section' },
+  { value: 'scroll-to-top',     label: 'Scroll to Top' },
+];

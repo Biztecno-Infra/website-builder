@@ -21,6 +21,7 @@ import {
   BG_TYPE_WITH_TRANSPARENT_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
   COLUMN_COUNT_OPTIONS,
+  SECTION_LAYOUT_MODE_OPTIONS,
 } from '../../utils/selectOptions';
 
 const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
@@ -33,11 +34,6 @@ const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
   visibility: false,
   columnStyles: false,
 };
-
-const MODE_OPTIONS = [
-  { value: 'free', label: 'Free' },
-  { value: 'grid', label: 'Grid' },
-];
 
 interface Props {
   section: Section;
@@ -98,7 +94,7 @@ export function SectionPanel({
 
         <div className={'pb-prop-row'}>
           <label>Mode</label>
-          <ToggleGroup options={MODE_OPTIONS} value={section.layoutMode}
+          <ToggleGroup options={SECTION_LAYOUT_MODE_OPTIONS} value={section.layoutMode}
             onChange={m => {
               onPushSnapshot(snapshot);
               if (m === 'free') {
@@ -129,7 +125,7 @@ export function SectionPanel({
           </div>
         )}
         {section.scrollBehavior === 'fixed' && (
-          <div className={'pb-prop-row'} style={{ fontSize: 11, color: '#888', paddingLeft: 4 }}>
+          <div className={'pb-prop-row pb-hint-inline'} style={{ paddingLeft: 4 }}>
             Previewed as sticky; exports as position:fixed
           </div>
         )}
@@ -313,14 +309,14 @@ export function SectionPanel({
               );
             })}
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className={'pb-layout-btn-row'}>
             {onAddGridCell && (
-              <PbButton variant="primary" style={{ flex: 1 }} onClick={() => onAddGridCell(section.id)}>
+              <PbButton variant="primary" onClick={() => onAddGridCell(section.id)}>
                 Add col
               </PbButton>
             )}
             {onUpdateGridCell && section.children.length > 1 && (
-              <PbButton variant="outline" style={{ flex: 1 }} onClick={() => {
+              <PbButton variant="outline" onClick={() => {
                 onPushSnapshot(snapshot);
                 const n = section.children.length;
                 const base = Math.floor(12 / n);
@@ -444,9 +440,9 @@ export function SectionPanel({
             if (breakpoint === 'desktop') {
               updateSecPad({ [key]: val });
             } else if (breakpoint === 'tablet') {
-              onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...secPad, ...section.responsive?.tablet?.padding, [key]: val } } } });
+              onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...section.responsive?.tablet?.padding, [key]: val } } } });
             } else {
-              onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...secPad, ...section.responsive?.tablet?.padding, ...section.responsive?.mobile?.padding, [key]: val } } } });
+              onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...section.responsive?.mobile?.padding, [key]: val } } } });
             }
           };
 

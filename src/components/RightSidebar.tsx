@@ -6,7 +6,6 @@ import { GridCellPanel } from './panels/GridCellPanel';
 import { SectionPanel } from './panels/SectionPanel';
 import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
-import { PanelHeader } from './panels/PanelHeader';
 
 interface Props {
   element: CanvasElement | null;
@@ -40,9 +39,11 @@ export function RightSidebar({
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
 }: Props) {
-  if (!element && container && onUpdateContainer) {
-    return (
-      <aside className={'pb-right-sidebar'}>
+  const hasSelection = !!(element || (container && onUpdateContainer) || (gridCell && onUpdateGridCell) || section);
+
+  return (
+    <aside className={['pb-right-sidebar', !hasSelection && 'pb-right-sidebar--hidden'].filter(Boolean).join(' ')}>
+      {!element && container && onUpdateContainer && (
         <ContainerPanel
           container={container}
           snapshot={snapshot}
@@ -50,63 +51,47 @@ export function RightSidebar({
           onPushSnapshot={onPushSnapshot}
           breakpoint={breakpoint}
         />
-      </aside>
-    );
-  }
-
-  if (!element && gridCell && onUpdateGridCell) {
-    return (
-      <GridCellPanel
-        gridCell={gridCell}
-        nodes={nodes}
-        snapshot={snapshot}
-        onUpdateGridCell={onUpdateGridCell}
-        onDeleteGridCell={onDeleteGridCell}
-        onPushSnapshot={onPushSnapshot}
-        breakpoint={breakpoint}
-        theme={theme}
-      />
-    );
-  }
-
-  if (!element && section) {
-    return (
-      <SectionPanel
-        section={section}
-        nodes={nodes}
-        snapshot={snapshot}
-        onUpdateSection={onUpdateSection}
-        onAddGridCell={onAddGridCell}
-        onUpdateGridCell={onUpdateGridCell}
-        onPushSnapshot={onPushSnapshot}
-        breakpoint={breakpoint}
-        theme={theme}
-      />
-    );
-  }
-
-  if (!element) {
-    return (
-      <aside className={'pb-right-sidebar'}>
-        <PanelHeader title="Properties" />
-        <div className={'pb-no-selection'}>Select an element or section<br />to edit its properties</div>
-      </aside>
-    );
-  }
-
-  return (
-    <ElementPanel
-      element={element}
-      isInGridCell={isInGridCell}
-      nodes={nodes}
-      snapshot={snapshot}
-      onUpdate={onUpdate}
-      onPushSnapshot={onPushSnapshot}
-      onDelete={onDelete}
-      breakpoint={breakpoint}
-      onUpdateResponsive={onUpdateResponsive}
-      theme={theme}
-      pages={pages}
-    />
+      )}
+      {!element && !container && gridCell && onUpdateGridCell && (
+        <GridCellPanel
+          gridCell={gridCell}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdateGridCell={onUpdateGridCell}
+          onDeleteGridCell={onDeleteGridCell}
+          onPushSnapshot={onPushSnapshot}
+          breakpoint={breakpoint}
+          theme={theme}
+        />
+      )}
+      {!element && !container && !gridCell && section && (
+        <SectionPanel
+          section={section}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdateSection={onUpdateSection}
+          onAddGridCell={onAddGridCell}
+          onUpdateGridCell={onUpdateGridCell}
+          onPushSnapshot={onPushSnapshot}
+          breakpoint={breakpoint}
+          theme={theme}
+        />
+      )}
+      {element && (
+        <ElementPanel
+          element={element}
+          isInGridCell={isInGridCell}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdate={onUpdate}
+          onPushSnapshot={onPushSnapshot}
+          onDelete={onDelete}
+          breakpoint={breakpoint}
+          onUpdateResponsive={onUpdateResponsive}
+          theme={theme}
+          pages={pages}
+        />
+      )}
+    </aside>
   );
 }

@@ -1,11 +1,11 @@
 ﻿import React, { useCallback, useRef, useState } from 'react';
 import { richTextState } from '../utils/richTextState';
-import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { useDrag, useDrop } from 'react-dnd';
-import type { CanvasElement as El, Breakpoint, BreakpointOverride, BuilderState, CellLayoutMode, FlexItemLayout } from '../types';
+import type { CanvasElement as El, CellLayoutMode, FlexItemLayout } from '../types';
 import { ElementContent } from './CanvasElement';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
 import { ElementQuickBar } from './ElementQuickBar';
+import { useCanvasContext } from '../contexts/CanvasContext';
 
 
 // ── DND contract (imported by GridCellView) ────────────────────────────────
@@ -46,12 +46,7 @@ interface Props {
   isSelected: boolean;
   onSelect: () => void;
   onUpdate: (updates: Partial<El>) => void;
-  onCommit: (prev: BuilderState) => void;
-  snapshot: BuilderState;
-  previewMode?: boolean;
   disableDrag?: boolean;
-  breakpoint?: Breakpoint;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
   /** Called on hover so the parent cell can render an insertion line. */
@@ -68,17 +63,13 @@ export function GridElementView({
   isSelected,
   onSelect,
   onUpdate,
-  onCommit,
-  snapshot,
-  previewMode,
   disableDrag = false,
-  breakpoint = 'desktop',
-  onUpdateResponsive,
   onDuplicate,
   onDelete,
   onDragHover,
   onDropAtChildIdx,
 }: Props) {
+  const { snapshot, onCommit, previewMode, breakpoint = 'desktop' } = useCanvasContext();
   const el = applyBreakpoint(rawEl, breakpoint);
 
   const [editing, setEditing] = useState(false);
@@ -190,48 +181,6 @@ export function GridElementView({
     e.stopPropagation();
     onSelect();
   };
-
-  // ── Legacy free-canvas mode (no longer used — CellLayoutMode dropped 'free') ─
-  if ((cellMode as string) === 'free') {
-    return (
-      <div
-        ref={mergedRef}
-        data-el-id={rawEl.id}
-        className={['pb-grid-el', isSelected && !previewMode && 'pb-grid-el--selected', hovered && !isSelected && !previewMode && 'pb-grid-el--hovered', isDragging && 'pb-grid-el--dragging'].filter(Boolean).join(' ')}
-        style={{
-          position: 'absolute',
-          left: rawEl.layout.x,
-          top: rawEl.layout.y,
-          width: rawEl.layout.width,
-          height: rawEl.layout.height,
-          zIndex: rawEl.layout.zIndex,
-          opacity: isDragging ? 0.35 : el.style.opacity,
-          boxShadow: shadow,
-          borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
-          cursor: previewMode ? 'default' : disableDrag ? 'inherit' : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
-          userSelect: editing ? 'text' : 'none',
-          boxSizing: 'border-box',
-        }}
-        onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        onContextMenu={e => { if (!previewMode) e.preventDefault(); }}
-      >
-        <ElementContent
-          el={el}
-          editing={editing}
-          editRef={editRef}
-          onBlur={handleEditBlur}
-          onKeyDown={handleEditKeyDown}
-          breakpoint={breakpoint}
-        />
-        {isSelected && !previewMode && (
-          <ElementQuickBar anchorRef={domRef} onDuplicate={onDuplicate} onDelete={onDelete} />
-        )}
-      </div>
-    );
-  }
 
   // ── Flex-flow mode (column / row / wrap) ───────────────────────────────────
   const flexSizing = resolveFlexItemWidth(el.flexLayout, cellMode);

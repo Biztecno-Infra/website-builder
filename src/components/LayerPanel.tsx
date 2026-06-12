@@ -132,23 +132,6 @@ function SectionGroup({
       .map(id => nodes[id] as GridCell | undefined)
       .filter((c): c is GridCell => !!c);
 
-    function countCellElements(cell: GridCell): number {
-      return cell.children.reduce((sum, id) => {
-        const child = nodes[id];
-        if (!child) return sum;
-        if (child.type === 'container') {
-          const block = child as Container;
-          return sum + block.children.reduce((cs, subId) => {
-            const sub = nodes[subId] as GridCell | undefined;
-            return cs + (sub ? countCellElements(sub) : 0);
-          }, 0);
-        }
-        return sum + 1;
-      }, 0);
-    }
-
-    const totalElements = cells.reduce((sum, c) => sum + countCellElements(c), 0);
-
     const renderGridElementRow = (el: CanvasElement, elDepth: number) => {
       const isSelected = selectedIds.includes(el.id);
       const hidden = el.state.hidden;
