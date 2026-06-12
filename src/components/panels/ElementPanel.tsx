@@ -1,6 +1,8 @@
 ﻿import { useEffect, useRef, useState } from 'react';
+import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
+import { BREAKPOINT_WIDTHS } from '../Canvas';
 import type {
-  Breakpoint, BorderStyle, BgType, AnimationType, AnimationTrigger,
+  Breakpoint, BgType, AnimationType, AnimationTrigger,
   CanvasElement, BuilderState, TextAlign, ObjectFit,
   BreakpointOverride, ElementBackground, ElementLayout, ElementContent,
   ElementAnimation, Border, Padding, Shadow, Typography,
@@ -12,10 +14,29 @@ import { DEFAULT_ACTION } from '../../utils/builderDefaults';
 import { richTextState } from '../../utils/richTextState';
 import { createCleanPasteHandler } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
-import { ThemeSwatches } from './ThemeSwatches';
+
+import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
+import { PanelHeader } from './PanelHeader';
+import { ColorField, PxInput, ToggleGroup, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
+import { PbSelect } from '../PbSelect';
+import { PbInput } from '../PbInput';
+import { PbTextarea } from '../PbTextarea';
+import {
+  CSS_POSITION_OPTIONS,
+  FONT_WEIGHT_OPTIONS,
+  FONT_FAMILY_OPTIONS,
+  TEXT_TRANSFORM_OPTIONS,
+  FLEX_WIDTH_MODE_WITH_SAME_OPTIONS,
+  ALIGN_SELF_OPTIONS,
+  BG_TYPE_OPTIONS,
+  IMAGE_POSITION_OPTIONS,
+  OBJECT_FIT_OPTIONS,
+  OBJECT_POSITION_OPTIONS,
+  DIVIDER_ORIENTATION_OPTIONS,
+} from '../../utils/selectOptions';
 
 const ELEMENT_SECTION_DEFAULTS: Record<string, boolean> = {
   layout: true, sizing: true,
@@ -47,8 +68,7 @@ export function ElementPanel({
   onUpdate, onPushSnapshot, onDelete,
   breakpoint = 'desktop', onUpdateResponsive, theme, pages,
 }: Props) {
-  const focusSnapshot = useRef<BuilderState | null>(null);
-  const [flexAdvanced, setFlexAdvanced] = useState(false);
+  const swatches = themeToSwatches(theme);
   const sidebarEditRef = useRef<HTMLDivElement>(null);
   const { sec, toggle: toggleSection } = usePanelSections(ELEMENT_SECTION_DEFAULTS, 'builder-sidebar-el');
 
@@ -100,7 +120,7 @@ export function ElementPanel({
   const currentAction: ElementAction = element.action ?? DEFAULT_ACTION;
   // Commit-on-change: dropdowns/checkboxes commit immediately; text inputs use onFocus/onBlur for the undo snapshot.
   const changeAction = (updates: Partial<ElementAction>) => {
-    if (focusSnapshot.current === null) onPushSnapshot(snapshot);
+    if (!isFocused()) onPushSnapshot(snapshot);
     change({ action: { ...currentAction, ...updates } });
   };
   const setFormFields = (formFields: FormField[], commit: boolean) => {
@@ -120,14 +140,10 @@ export function ElementPanel({
   const respOverrides = breakpoint === 'tablet' ? element.responsive.tablet
     : breakpoint === 'mobile' ? element.responsive.mobile : undefined;
 
-  const bpWidths: Record<string, number> = { desktop: CANVAS_W, tablet: 768, mobile: 375 };
-  const bpScale = bpWidths[breakpoint] / CANVAS_W;
+  const bpScale = BREAKPOINT_WIDTHS[breakpoint] / CANVAS_W;
   const eff = applyBreakpoint(element, breakpoint, bpScale);
 
-  const onFocus = () => { if (!focusSnapshot.current) focusSnapshot.current = snapshot; };
-  const onBlur  = () => {
-    if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; }
-  };
+  const { onFocus, onBlur, isFocused } = useFocusSnapshot(snapshot, onPushSnapshot);
 
   const commitChange = (updates: Partial<CanvasElement>) => { onPushSnapshot(snapshot); change(updates); };
   const commitResp   = (updates: Partial<BreakpointOverride>) => { onPushSnapshot(snapshot); changeResp(updates); };
@@ -150,12 +166,9 @@ export function ElementPanel({
   return (
     <aside className={'pb-right-sidebar'}>
       {/* ── Panel header ── */}
-      <div className={'pb-panel-header'}>
-        <span className={'pb-panel-header-title'}>{elementLabel}</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <button className={'pb-delete-btn'} onClick={() => onDelete(id)} title="Delete (Del)">✕</button>
-        </div>
-      </div>
+      <PanelHeader title={elementLabel}>
+        <button className={'pb-delete-btn'} onClick={() => onDelete(id)} title="Delete (Del)">✕</button>
+      </PanelHeader>
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>
@@ -179,19 +192,19 @@ export function ElementPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>X</label>
-              <input type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+              <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>Y</label>
-              <input type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
+              <PbInput type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
             {/* Dividers get Width in the Divider section below. */}
             {element.type !== 'divider' && (
               <div className={'pb-prop-row'}>
                 <label>W</label>
-                <input type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+                <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                   onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
               </div>
             )}
@@ -215,17 +228,17 @@ export function ElementPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>X</label>
-              <input type="number" value={element.layout.x} onFocus={onFocus} onBlur={onBlur}
+              <PbInput type="number" value={element.layout.x} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeLayout({ x: Number(e.target.value) })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>Y</label>
-              <input type="number" value={element.layout.y} onFocus={onFocus} onBlur={onBlur}
+              <PbInput type="number" value={element.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeLayout({ y: Number(e.target.value) })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>W</label>
-              <input type="number" value={element.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+              <PbInput type="number" value={element.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeLayout({ width: Math.max(minSize, Number(e.target.value)) })} />
             </div>
           </>
@@ -233,120 +246,70 @@ export function ElementPanel({
         {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
           <div className={'pb-prop-row'}>
             <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
-            <input type="number" value={eff.layout.height} min={minSize} onFocus={onFocus} onBlur={onBlur}
+            <PbInput type="number" value={eff.layout.height} min={minSize} onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
           </div>
         )}
         <div className={'pb-prop-row'}>
           <label>Opacity</label>
-          <input type="number" value={element.style.opacity} min={0} max={1} step={0.05}
+          <PbInput type="number" value={element.style.opacity} min={0} max={1} step={0.05}
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => change({ style: { ...element.style, opacity: Math.max(0, Math.min(1, Number(e.target.value))) } })} />
         </div>
       </CollapsibleSection>
 
-      {/* ── Sizing (grid elements only, not overlay) ──
-          Dividers skip the flex-preset Sizing section: they get explicit
-          Width/Height/Thickness + a Fill toggle in the Divider section below,
-          so the experience matches the free canvas. */}
+      {/* ── Sizing (grid elements only, not overlay) ── */}
       {isInGridCell && !element.overlayInCell && element.type !== 'divider' && (() => {
-        type Preset = { label: string; widthMode: FlexWidthMode; flexGrow: number; alignSelf: typeof element.flexLayout.alignSelf };
-        const presets: Preset[] = [
-          { label: 'Natural', widthMode: 'auto',    flexGrow: 0, alignSelf: 'auto' },
-          { label: 'Fill',    widthMode: 'fill',    flexGrow: 0, alignSelf: 'auto' },
-          { label: 'Expand',  widthMode: 'fill',    flexGrow: 1, alignSelf: 'stretch' },
-          { label: 'Fixed',   widthMode: 'fixed',   flexGrow: 0, alignSelf: 'auto' },
-          { label: '%',       widthMode: 'percent', flexGrow: 0, alignSelf: 'auto' },
+        const { widthMode, widthValue } = element.flexLayout;
+        const sizingValue = widthMode === 'auto' ? 'auto' : widthMode === 'fill' ? 'fill' : 'fixed';
+        const sizingOptions = [
+          { value: 'auto',  label: 'Auto'  },
+          { value: 'fill',  label: 'Fill'  },
+          { value: 'fixed', label: 'Fixed' },
         ];
-        const { widthMode, flexGrow, alignSelf, widthValue } = element.flexLayout;
-        const activePreset = presets.findIndex(p =>
-          p.widthMode === widthMode && p.flexGrow === flexGrow && p.alignSelf === alignSelf
-        );
-        const applyPreset = (p: Preset) => {
+        const applySizing = (val: string) => {
           onPushSnapshot(snapshot);
-          change({ flexLayout: { ...element.flexLayout, widthMode: p.widthMode, flexGrow: p.flexGrow, alignSelf: p.alignSelf } });
+          if (val === 'auto')  change({ flexLayout: { ...element.flexLayout, widthMode: 'auto',  flexGrow: 0, alignSelf: 'auto' } });
+          if (val === 'fill')  change({ flexLayout: { ...element.flexLayout, widthMode: 'fill',  flexGrow: 0, alignSelf: 'auto' } });
+          if (val === 'fixed') change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed', flexGrow: 0, alignSelf: 'auto' } });
         };
         return (
-          <CollapsibleSection
-            sectionKey="sizing"
-            label={<>
-              Sizing
-              <button className={'pb-resp-clear-btn'} style={{ marginLeft: 'auto', fontSize: 10 }}
-                onClick={e => { e.stopPropagation(); setFlexAdvanced(v => !v); }}
-                title="Toggle advanced controls"
-              >{flexAdvanced ? 'Simple' : 'Advanced'}</button>
-            </>}
-            isOpen={sec('sizing')} onToggle={toggleSection}
-          >
-            <div className={'pb-flex-preset-grid'}>
-              {presets.map((p, i) => (
-                <button key={p.label}
-                  className={['pb-flex-preset-btn', activePreset === i && 'pb-active'].filter(Boolean).join(' ')}
-                  title={`${p.label}: widthMode=${p.widthMode}, grow=${p.flexGrow}, alignSelf=${p.alignSelf}`}
-                  onClick={() => applyPreset(p)}
-                >{p.label}</button>
-              ))}
+          <CollapsibleSection sectionKey="sizing" label="Sizing" isOpen={sec('sizing')} onToggle={toggleSection}>
+            <div className={'pb-prop-row'}>
+              <label>Width</label>
+              <PbSelect size="sm" value={sizingValue} options={sizingOptions} onChange={applySizing} />
             </div>
             {(widthMode === 'fixed' || widthMode === 'percent') && (
               <div className={'pb-prop-row'}>
-                <label>{widthMode === 'fixed' ? 'px' : '%'}</label>
-                <input type="number" value={widthValue} min={0}
+                <label>Value</label>
+                <PbInput type="number" value={widthValue} min={0}
                   max={widthMode === 'percent' ? 100 : undefined}
                   onFocus={onFocus} onBlur={onBlur}
                   onChange={e => change({ flexLayout: { ...element.flexLayout, widthValue: Number(e.target.value) } })} />
+                <div className={'pb-toggle-group'}>
+                  <button className={['pb-toggle-btn', widthMode === 'fixed' && 'pb-active'].filter(Boolean).join(' ')}
+                    onClick={() => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed' } }); }}>px</button>
+                  <button className={['pb-toggle-btn', widthMode === 'percent' && 'pb-active'].filter(Boolean).join(' ')}
+                    onClick={() => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, widthMode: 'percent' } }); }}>%</button>
+                </div>
               </div>
-            )}
-            {flexAdvanced && (
-              <>
-                <div className={'pb-prop-row'}>
-                  <label>Width</label>
-                  <select value={widthMode}
-                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, widthMode: e.target.value as FlexWidthMode } }); }}>
-                    <option value="fill">Fill</option>
-                    <option value="auto">Auto</option>
-                    <option value="fixed">Fixed px</option>
-                    <option value="percent">Percent %</option>
-                  </select>
-                </div>
-                <div className={'pb-prop-row'}>
-                  <label>Grow</label>
-                  <input type="checkbox" checked={flexGrow === 1}
-                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, flexGrow: e.target.checked ? 1 : 0 } }); }} />
-                </div>
-                <div className={'pb-prop-row'}>
-                  <label>Align Self</label>
-                  <select value={alignSelf}
-                    onChange={e => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, alignSelf: e.target.value as typeof element.flexLayout.alignSelf } }); }}>
-                    <option value="auto">Auto</option>
-                    <option value="flex-start">Start</option>
-                    <option value="center">Center</option>
-                    <option value="flex-end">End</option>
-                    <option value="stretch">Stretch</option>
-                  </select>
-                </div>
-              </>
             )}
             {breakpoint !== 'desktop' && onUpdateResponsive && (
               <>
-                <div style={{ fontSize: 10, color: '#888', padding: '4px 0 2px' }}>
+                <div style={{ fontSize: 10, color: 'var(--pb-text-subtle)', padding: '4px 0 2px' }}>
                   {breakpoint === 'tablet' ? 'Tablet override' : 'Mobile override'}
                 </div>
                 <div className={'pb-prop-row'}>
                   <label>Width</label>
-                  <select
+                  <PbSelect
                     value={respOverrides?.flexLayout?.widthMode ?? ''}
-                    onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive!(id, breakpoint, { flexLayout: { widthMode: (e.target.value || undefined) as FlexWidthMode | undefined } }); }}>
-                    <option value="">Same</option>
-                    <option value="fill">Fill</option>
-                    <option value="auto">Auto</option>
-                    <option value="fixed">Fixed px</option>
-                    <option value="percent">Percent %</option>
-                  </select>
+                    options={FLEX_WIDTH_MODE_WITH_SAME_OPTIONS}
+                    onChange={v => { onPushSnapshot(snapshot); onUpdateResponsive!(id, breakpoint, { flexLayout: { widthMode: (v || undefined) as FlexWidthMode | undefined } }); }} />
                 </div>
                 {(respOverrides?.flexLayout?.widthMode === 'fixed' || respOverrides?.flexLayout?.widthMode === 'percent') && (
                   <div className={'pb-prop-row'}>
                     <label>{respOverrides.flexLayout.widthMode === 'fixed' ? 'px' : '%'}</label>
-                    <input type="number" value={respOverrides.flexLayout.widthValue ?? 0} min={0}
+                    <PbInput type="number" value={respOverrides.flexLayout.widthValue ?? 0} min={0}
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => onUpdateResponsive!(id, breakpoint, { flexLayout: { ...respOverrides?.flexLayout, widthValue: Number(e.target.value) } })} />
                   </div>
@@ -446,125 +409,88 @@ export function ElementPanel({
             <>
               <div className={'pb-prop-row'}>
                 <label>Label</label>
-                <input type="text" value={element.content.label}
+                <PbInput type="text" value={element.content.label}
                   onFocus={onFocus} onBlur={onBlur}
                   onChange={e => changeContent({ label: e.target.value })} />
               </div>
               <div className={'pb-prop-row'}>
                 <label>Style</label>
-                <div className={'pb-btn-group'}>
-                  <button
-                    className={element.style.background.color !== 'transparent' ? 'active' : ''}
-                    title="Filled button"
-                    onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: '#0B978E' }, border: { ...element.style.border, width: 0 } } }); }}
-                  >Filled</button>
-                  <button
-                    className={element.style.background.color === 'transparent' ? 'active' : ''}
-                    title="Outline button"
-                    onClick={() => { onPushSnapshot(snapshot); onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: 'transparent' }, border: { ...element.style.border, width: 2, color: element.style.typography.color, style: 'solid' } } }); }}
-                  >Outline</button>
-                </div>
+                <ToggleGroup
+                  options={[{ value: 'filled', label: 'Filled' }, { value: 'outline', label: 'Outline' }]}
+                  value={element.style.background.color === 'transparent' ? 'outline' : 'filled'}
+                  onChange={v => {
+                    onPushSnapshot(snapshot);
+                    if (v === 'filled') {
+                      onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: '#0B978E' }, border: { ...element.style.border, width: 0 } } });
+                    } else {
+                      onUpdate(id, { style: { ...element.style, background: { ...element.style.background, color: 'transparent' }, border: { ...element.style.border, width: 2, color: element.style.typography.color, style: 'solid' } } });
+                    }
+                  }}
+                />
               </div>
             </>
           )}
           <div className={'pb-prop-row'}>
             <label>Size</label>
-            <input type="number" value={eff.style.typography.size} min={8} max={200}
+            <PbInput type="number" value={eff.style.typography.size} min={8} max={200}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeResp({ style: { typography: { size: Number(e.target.value) } } })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Weight</label>
-            <select value={eff.style.typography.weight}
-              onChange={e => commitResp({ style: { typography: { weight: e.target.value } } })}>
-              <option value="100">Thin (100)</option>
-              <option value="200">ExtraLight (200)</option>
-              <option value="300">Light (300)</option>
-              <option value="normal">Regular (400)</option>
-              <option value="500">Medium (500)</option>
-              <option value="600">SemiBold (600)</option>
-              <option value="bold">Bold (700)</option>
-              <option value="800">ExtraBold (800)</option>
-              <option value="900">Heavy (900)</option>
-            </select>
+            <PbSelect value={eff.style.typography.weight}
+              options={FONT_WEIGHT_OPTIONS}
+              onChange={v => commitResp({ style: { typography: { weight: v } } })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Font</label>
-            <select value={element.style.typography.family}
-              onChange={e => { injectGoogleFont(e.target.value); commitChange({ style: { ...element.style, typography: { ...element.style.typography, family: e.target.value } } }); }}>
-              <optgroup label="Sans-serif">
-                <option value="Inter, sans-serif">Inter</option>
-                <option value="Arial, sans-serif">Arial</option>
-                <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-                <option value="Verdana, sans-serif">Verdana</option>
-                <option value="Tahoma, sans-serif">Tahoma</option>
-                <option value="'Segoe UI', sans-serif">Segoe UI</option>
-                <option value="Roboto, sans-serif">Roboto</option>
-                <option value="'Open Sans', sans-serif">Open Sans</option>
-                <option value="Lato, sans-serif">Lato</option>
-                <option value="Montserrat, sans-serif">Montserrat</option>
-                <option value="Poppins, sans-serif">Poppins</option>
-                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                <option value="'Lucida Sans', sans-serif">Lucida Sans</option>
-                <option value="sans-serif">System Sans-serif</option>
-              </optgroup>
-              <optgroup label="Serif">
-                <option value="Georgia, serif">Georgia</option>
-                <option value="'Times New Roman', serif">Times New Roman</option>
-                <option value="Merriweather, serif">Merriweather</option>
-                <option value="'Palatino Linotype', Palatino, serif">Palatino</option>
-              </optgroup>
-              <optgroup label="Monospace">
-                <option value="'Courier New', monospace">Courier New</option>
-              </optgroup>
-              <optgroup label="Display">
-                <option value="'Comic Sans MS', cursive, sans-serif">Comic Sans MS</option>
-              </optgroup>
-            </select>
+            <PbSelect value={element.style.typography.family}
+              options={FONT_FAMILY_OPTIONS}
+              onChange={v => { injectGoogleFont(v); commitChange({ style: { ...element.style, typography: { ...element.style.typography, family: v } } }); }} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Color</label>
-            <input type="color"
+            <ColorField
               value={element.style.typography.color.startsWith('#') ? element.style.typography.color : '#333333'}
+              onChange={v => changeTypo({ color: v })}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeTypo({ color: e.target.value })} />
+              swatches={swatches} />
           </div>
-          <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeTypo({ color: c }); }} />
           <div className={'pb-prop-row'}>
             <label>Align</label>
-            <div className={'pb-btn-group'}>
-              {(['left', 'center', 'right'] as TextAlign[]).map(a => (
-                <button key={a}
-                  className={eff.style.typography.align === a ? 'active' : ''}
-                  onClick={() => commitResp({ style: { typography: { align: a } } })}
-                  title={a}>
-                  {a === 'left' ? 'L' : a === 'center' ? 'C' : 'R'}
-                </button>
-              ))}
-            </div>
+            <ToggleGroup
+              options={[
+                { value: 'left',   label: <Icon id="alignLeft"   size={14} />, title: 'Left'   },
+                { value: 'center', label: <Icon id="alignCenter" size={14} />, title: 'Center' },
+                { value: 'right',  label: <Icon id="alignRight"  size={14} />, title: 'Right'  },
+              ]}
+              value={eff.style.typography.align}
+              onChange={a => commitResp({ style: { typography: { align: a as TextAlign } } })}
+            />
           </div>
           <div className={'pb-prop-row'}>
             <label>Line H</label>
-            <input type="number" value={element.style.typography.lineHeight} min={0.5} max={5} step={0.1}
+            <PbInput type="number" value={element.style.typography.lineHeight} min={0.5} max={5} step={0.1}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeTypo({ lineHeight: Number(e.target.value) })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Spacing</label>
-            <input type="number" value={element.style.typography.letterSpacing ?? 0} min={-10} max={50} step={0.5}
+            <PxInput value={element.style.typography.letterSpacing ?? 0} step={0.5}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeTypo({ letterSpacing: Number(e.target.value) })} />
-            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              onChange={v => changeTypo({ letterSpacing: v })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Transform</label>
-            <select value={element.style.typography.textTransform ?? 'none'}
-              onChange={e => commitChange({ style: { ...element.style, typography: { ...element.style.typography, textTransform: e.target.value as TextTransform } } })}>
-              <option value="none">None</option>
-              <option value="uppercase">UPPERCASE</option>
-              <option value="lowercase">lowercase</option>
-              <option value="capitalize">Capitalize</option>
-            </select>
+            <PbSelect value={element.style.typography.textTransform ?? 'none'}
+              options={TEXT_TRANSFORM_OPTIONS}
+              onChange={v => commitChange({ style: { ...element.style, typography: { ...element.style.typography, textTransform: v as TextTransform } } })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <PbSelect value={element.cssPosition ?? 'relative'}
+              options={CSS_POSITION_OPTIONS}
+              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
           </div>
         </CollapsibleSection>
       )}
@@ -582,16 +508,15 @@ export function ElementPanel({
           <div style={{ height: 1, background: '#e2e8f0', margin: '10px 0' }} />
           <div className={'pb-prop-row'}>
             <label>Submit Label</label>
-            <input type="text" value={element.content.submitLabel ?? 'Submit'}
+            <PbInput type="text" variant="plain" value={element.content.submitLabel ?? 'Submit'}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ submitLabel: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Field Gap</label>
-            <input type="number" min={0} max={48} value={element.content.fieldGap ?? 14}
+            <PxInput value={element.content.fieldGap ?? 14}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ fieldGap: Number(e.target.value) })} />
-            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              onChange={v => changeContent({ fieldGap: v })} />
           </div>
         </CollapsibleSection>
       )}
@@ -619,25 +544,40 @@ export function ElementPanel({
       {element.type === 'image' && (
         <CollapsibleSection sectionKey="image" label="Image" isOpen={sec('image')} onToggle={toggleSection}>
           <div className={"pb-prop-row pb-full"}>
-            <label>URL</label>
-            <input type="text" value={element.content.src} placeholder="https://..."
+            <label>Image path</label>
+            <PbInput type="text" variant="plain" value={element.content.src} placeholder="https://..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ src: e.target.value })} />
           </div>
+          <div className={"pb-prop-row pb-full"}>
+            <label>Link</label>
+            <PbInput type="text" variant="plain" value={element.content.linkUrl ?? ''} placeholder="https://..."
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ linkUrl: e.target.value })} />
+          </div>
           <div className={'pb-prop-row'}>
-            <label>Alt</label>
-            <input type="text" value={element.content.alt}
+            <label>Alt text</label>
+            <PbInput type="text" variant="plain" value={element.content.alt}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ alt: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Fit</label>
-            <select value={element.content.objectFit}
-              onChange={e => commitChange({ content: { ...element.content, objectFit: e.target.value as ObjectFit } })}>
-              <option value="cover">Cover</option>
-              <option value="contain">Contain</option>
-              <option value="fill">Fill</option>
-            </select>
+            <label>Image Position</label>
+            <PbSelect value={element.content.objectPosition ?? 'center'}
+              options={OBJECT_POSITION_OPTIONS}
+              onChange={v => commitChange({ content: { ...element.content, objectPosition: v } })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Image Fit</label>
+            <PbSelect value={element.content.objectFit ?? 'cover'}
+              options={OBJECT_FIT_OPTIONS}
+              onChange={v => commitChange({ content: { ...element.content, objectFit: v as ObjectFit } })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <PbSelect value={element.cssPosition ?? 'relative'}
+              options={CSS_POSITION_OPTIONS}
+              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
           </div>
         </CollapsibleSection>
       )}
@@ -646,10 +586,22 @@ export function ElementPanel({
       {element.type === 'video' && (
         <CollapsibleSection sectionKey="video" label="Video" isOpen={sec('video')} onToggle={toggleSection}>
           <div className={"pb-prop-row pb-full"}>
-            <label>YouTube / Video URL</label>
-            <input type="text" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=..."
+            <label>Video path</label>
+            <PbInput type="text" variant="plain" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ videoUrl: e.target.value })} />
+          </div>
+          <div className={"pb-prop-row pb-full"}>
+            <label>Thumbnail path</label>
+            <PbInput type="text" variant="plain" value={element.content.thumbnailUrl ?? ''} placeholder="https://..."
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeContent({ thumbnailUrl: e.target.value })} />
+          </div>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <PbSelect value={element.cssPosition ?? 'relative'}
+              options={CSS_POSITION_OPTIONS}
+              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
           </div>
         </CollapsibleSection>
       )}
@@ -659,22 +611,17 @@ export function ElementPanel({
         <CollapsibleSection sectionKey="icon" label="Icon" isOpen={sec('icon')} onToggle={toggleSection}>
           <div className={'pb-prop-row'}>
             <label>Size</label>
-            <input type="number" value={element.content.iconSize ?? 40} min={8} max={200}
+            <PxInput value={element.content.iconSize ?? 40}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => {
-                // Use current element.content from closure but push snapshot first
-                // so undo captures the state before this change
-                onUpdate(id, { content: { ...element.content, iconSize: Number(e.target.value) } });
-              }} />
-            <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              onChange={v => onUpdate(id, { content: { ...element.content, iconSize: v } })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Color</label>
-            <input type="color"
+            <ColorField
               value={element.style.typography.color.startsWith('#') ? element.style.typography.color : '#333333'}
+              onChange={v => changeTypo({ color: v })}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeTypo({ color: e.target.value })} />
-            <span style={{ fontSize: 10, color: '#888' }}>applies to SVG + symbol</span>
+              swatches={swatches} />
           </div>
 
           {/* SVG paste area */}
@@ -682,11 +629,11 @@ export function ElementPanel({
             <div style={{ fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 6 }}>
               Paste SVG code
             </div>
-            <textarea
+            <PbTextarea
               rows={5}
+              mono
               placeholder={'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">\n  <path d="M12 2..."/>\n</svg>'}
               value={element.content.iconSvg ?? ''}
-              style={{ width: '100%', fontSize: 11, fontFamily: 'monospace', resize: 'vertical', boxSizing: 'border-box', border: '1px solid #ddd', borderRadius: 4, padding: '6px 8px', color: '#334155', background: '#f8fafc', lineHeight: 1.5 }}
               onChange={e => {
                 const raw = e.target.value.trim();
                 // Never auto-clear on empty — use the ✕ button for that.
@@ -716,14 +663,20 @@ export function ElementPanel({
           {!element.content.iconSvg && (
             <div className={'pb-prop-row'}>
               <label>Symbol</label>
-              <input type="text" value={element.content.iconName ?? '★'}
+              <PbInput type="text" value={element.content.iconName ?? '★'}
                 placeholder="★ or any emoji"
                 onFocus={onFocus} onBlur={onBlur}
                 onChange={e => { if (e.target.value) changeContent({ iconName: e.target.value }); }} />
             </div>
           )}
 
-          <div style={{ fontSize: 10, color: '#94a3b8', lineHeight: 1.5, paddingTop: 6 }}>
+          <div className={'pb-prop-row'}>
+            <label>Position</label>
+            <PbSelect value={element.cssPosition ?? 'relative'}
+              options={CSS_POSITION_OPTIONS}
+              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
+          </div>
+          <div className={'pb-note-text'} style={{ paddingTop: 6 }}>
             Get SVGs free from heroicons.com, tabler.io/icons, or icons.getbootstrap.com
           </div>
         </CollapsibleSection>
@@ -765,22 +718,17 @@ export function ElementPanel({
           <CollapsibleSection sectionKey="divider" label="Divider" isOpen={sec('divider')} onToggle={toggleSection}>
             <div className={'pb-prop-row'}>
               <label>Orientation</label>
-              <select value={element.content.orientation ?? 'horizontal'}
-                onChange={e => {
-                  const newOrientation = e.target.value as 'horizontal' | 'vertical';
+              <PbSelect value={element.content.orientation ?? 'horizontal'}
+                options={DIVIDER_ORIENTATION_OPTIONS}
+                onChange={v => {
+                  const newOrientation = v as 'horizontal' | 'vertical';
                   const isChanging = newOrientation !== (element.content.orientation ?? 'horizontal');
                   onPushSnapshot(snapshot);
-                  // Always set orientation on the base content.
                   change({ content: { ...element.content, orientation: newOrientation } });
-                  // Swap the *effective* (breakpoint-aware) width/height and write it back
-                  // through changeResp so the swap lands on the active breakpoint, not just desktop.
                   if (isChanging) {
                     changeResp({ layout: { width: eff.layout.height, height: eff.layout.width } });
                   }
-                }}>
-                <option value="horizontal">Horizontal</option>
-                <option value="vertical">Vertical</option>
-              </select>
+                }} />
             </div>
 
             {inGrid && (
@@ -807,31 +755,26 @@ export function ElementPanel({
             {!isVertical && (
               <div className={'pb-prop-row'}>
                 <label>Width</label>
-                <input type="number" value={eff.layout.width} min={minSize} disabled={isFill}
+                <PxInput value={eff.layout.width} disabled={isFill}
                   onFocus={onFocus} onBlur={onBlur}
-                  onChange={e => setWidth(Number(e.target.value))} />
-                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                  onChange={v => setWidth(v)} />
               </div>
             )}
 
             {isVertical && (
               <div className={'pb-prop-row'}>
                 <label>Height</label>
-                <input type="number" value={eff.layout.height} min={minSize}
+                <PxInput value={eff.layout.height}
                   onFocus={onFocus} onBlur={onBlur}
-                  onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
-                <span style={{ fontSize: 11, color: '#888' }}>px</span>
+                  onChange={v => changeResp({ layout: { height: Math.max(minSize, v) } })} />
               </div>
             )}
 
             <div className={'pb-prop-row'}>
               <label>Thickness</label>
-              <input type="number" value={thickness} min={1} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => {
-                  const v = Math.max(1, Number(e.target.value));
-                  changeResp({ layout: isVertical ? { width: v } : { height: v } });
-                }} />
-              <span style={{ fontSize: 11, color: '#888' }}>px</span>
+              <PxInput value={thickness}
+                onFocus={onFocus} onBlur={onBlur}
+                onChange={v => changeResp({ layout: isVertical ? { width: Math.max(1, v) } : { height: Math.max(1, v) } })} />
             </div>
           </CollapsibleSection>
         );
@@ -842,72 +785,57 @@ export function ElementPanel({
         isOpen={sec('background')} onToggle={toggleSection}>
         <div className={'pb-prop-row'}>
           <label>Type</label>
-          <select value={elBg.type}
-            onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, type: e.target.value as BgType } } })}>
-            <option value="solid">Solid</option>
-            <option value="linear-gradient">Linear Gradient</option>
-            <option value="radial-gradient">Radial Gradient</option>
-          </select>
+          <PbSelect value={elBg.type}
+            options={BG_TYPE_OPTIONS}
+            onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, type: v as BgType } } })} />
         </div>
         {elBg.type === 'solid' && (
           <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color" value={bgColor} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ color: e.target.value })} />
-              <label className={'pb-transparent-label'}>
-                <input type="checkbox" checked={elBg.color === 'transparent'}
-                  onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
-                {' '}None
-              </label>
+            {elBg.color !== 'transparent' && (
+              <div className={'pb-prop-row'}>
+                <label>Color</label>
+                <ColorField value={bgColor} onChange={v => changeBg({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+              </div>
+            )}
+            <div className={'pb-prop-row pb-vis-row'}>
+              <label>Transparent</label>
+              <input type="checkbox" checked={elBg.color === 'transparent'}
+                onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ color: c }); }} />
           </>
         )}
         {(elBg.type === 'linear-gradient' || elBg.type === 'radial-gradient') && (
           <>
             <div className={'pb-prop-row'}>
               <label>From</label>
-              <input type="color" value={elBg.from || '#006e75'} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ from: e.target.value })} />
+              <ColorField value={elBg.from || '#006e75'} onChange={v => changeBg({ from: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ from: c }); }} />
             <div className={'pb-prop-row'}>
               <label>To</label>
-              <input type="color" value={elBg.to || '#0b978e'} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBg({ to: e.target.value })} />
+              <ColorField value={elBg.to || '#0b978e'} onChange={v => changeBg({ to: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
             </div>
-            <ThemeSwatches colors={theme.colors} onPick={c => { onPushSnapshot(snapshot); changeBg({ to: c }); }} />
             {elBg.type === 'linear-gradient' && (
               <div className={'pb-prop-row'}>
                 <label>Angle</label>
-                <input type="number" value={elBg.angle ?? 135} min={0} max={360}
+                <PxInput value={elBg.angle ?? 135} unit="°"
                   onFocus={onFocus} onBlur={onBlur}
-                  onChange={e => changeBg({ angle: Number(e.target.value) })} />
-                <span style={{ fontSize: 11, color: '#888' }}>°</span>
+                  onChange={v => changeBg({ angle: v })} />
               </div>
             )}
           </>
         )}
         <div className={"pb-prop-row pb-full"}>
           <label>Image</label>
-          <input type="text" value={elBg.image} placeholder="https://..."
+          <PbInput type="text" value={elBg.image} placeholder="https://..."
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => changeBg({ image: e.target.value })} />
         </div>
         {elBg.image && (
           <div className={'pb-prop-row'}>
             <label>Position</label>
-            <select value={elBg.position}
-              onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, position: e.target.value } } })}>
-              <option value="center">Center</option>
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-              <option value="top left">Top Left</option>
-              <option value="top right">Top Right</option>
-            </select>
+            <PbSelect value={elBg.position}
+              options={IMAGE_POSITION_OPTIONS}
+              onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, position: v } } })} />
           </div>
         )}
       </CollapsibleSection>
@@ -915,121 +843,23 @@ export function ElementPanel({
       {/* ── Border ── */}
       <CollapsibleSection sectionKey="border" label={<>Border {allBpBadge}</>}
         isOpen={sec('border')} onToggle={toggleSection}>
-        <div className={'pb-prop-row'}>
-          <label>Radius</label>
-          <input type="number" value={element.style.border.radius} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeBorder({ radius: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Width</label>
-          <input type="number" value={element.style.border.width} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeBorder({ width: Number(e.target.value) })} />
-        </div>
-        {element.style.border.width > 0 && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color"
-                value={element.style.border.color.startsWith('#') ? element.style.border.color : '#cccccc'}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeBorder({ color: e.target.value })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Style</label>
-              <select value={element.style.border.style}
-                onChange={e => commitChange({ style: { ...element.style, border: { ...element.style.border, style: e.target.value as BorderStyle } } })}>
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-            </div>
-          </>
-        )}
+        <BorderEditor border={element.style.border} onChange={changeBorder} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
       </CollapsibleSection>
 
       {/* ── Spacing ── */}
       <CollapsibleSection sectionKey="spacing" label={<>Spacing {allBpBadge}</>}
         isOpen={sec('spacing')} onToggle={toggleSection}>
-        <div className={'pb-prop-row'}>
-          <label>Top</label>
-          <input type="number" value={element.style.padding.top} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ top: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Right</label>
-          <input type="number" value={element.style.padding.right} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ right: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Bottom</label>
-          <input type="number" value={element.style.padding.bottom} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ bottom: Number(e.target.value) })} />
-        </div>
-        <div className={'pb-prop-row'}>
-          <label>Left</label>
-          <input type="number" value={element.style.padding.left} min={0}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changePad({ left: Number(e.target.value) })} />
-        </div>
+        <SpacingEditor
+          padding={element.style.padding}
+          onPaddingChange={(k, v) => changePad({ [k]: v })}
+          onFocus={onFocus} onBlur={onBlur}
+        />
       </CollapsibleSection>
 
       {/* ── Shadow ── */}
-      <CollapsibleSection
-        sectionKey="shadow"
-        label={<>
-          Shadow {allBpBadge}
-          <label className={'pb-transparent-label'} style={{ marginLeft: 'auto' }}
-            onClick={e => e.stopPropagation()}>
-            <input type="checkbox" checked={element.style.shadow.enabled}
-              onChange={e => commitChange({ style: { ...element.style, shadow: { ...element.style.shadow, enabled: e.target.checked } } })} />
-            {' '}On
-          </label>
-        </>}
-        isOpen={sec('shadow')} onToggle={toggleSection}
-      >
-        {element.style.shadow.enabled && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>X</label>
-              <input type="number" value={element.style.shadow.x}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ x: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Y</label>
-              <input type="number" value={element.style.shadow.y}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ y: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Blur</label>
-              <input type="number" value={element.style.shadow.blur} min={0}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ blur: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Spread</label>
-              <input type="number" value={element.style.shadow.spread}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ spread: Number(e.target.value) })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <input type="color"
-                value={element.style.shadow.color.startsWith('#') ? element.style.shadow.color : '#000000'}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeShadow({ color: e.target.value })} />
-            </div>
-          </>
-        )}
-        {!element.style.shadow.enabled && (
-          <div style={{ fontSize: 11, color: '#aaa', padding: '2px 0 4px' }}>Enable via the On toggle above</div>
-        )}
+      <CollapsibleSection sectionKey="shadow" label={<>Shadow {allBpBadge}</>}
+        isOpen={sec('shadow')} onToggle={toggleSection}>
+        <ShadowEditor shadow={element.style.shadow} onChange={changeShadow} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
       </CollapsibleSection>
 
       {/* Animation panel hidden during stabilization — data + export still intact */}
@@ -1039,10 +869,9 @@ export function ElementPanel({
         isOpen={sec('advanced')} onToggle={toggleSection}>
         <div className={'pb-prop-row'}>
           <label>Rotation</label>
-          <input type="number" value={element.layout.rotation} min={-360} max={360}
+          <PxInput value={element.layout.rotation} unit="°"
             onFocus={onFocus} onBlur={onBlur}
-            onChange={e => changeLayout({ rotation: Number(e.target.value) })} />
-          <span style={{ fontSize: 11, color: '#888' }}>°</span>
+            onChange={v => changeLayout({ rotation: v })} />
         </div>
         <div className={'pb-prop-row'}>
           <label>Lock</label>
@@ -1055,21 +884,15 @@ export function ElementPanel({
         </div>
       </CollapsibleSection>
 
-      {/* ── Responsive ── */}
+      {/* ── Visibility ── */}
       {onUpdateResponsive && (
-        <CollapsibleSection sectionKey="responsive" label="Responsive" isOpen={sec('responsive')} onToggle={toggleSection}>
-          <div className={'pb-prop-row'}>
-            <label>Hide Tablet</label>
-            <input type="checkbox"
-              checked={!!(element.responsive.tablet?.state?.hidden)}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'tablet', { state: { hidden: e.target.checked } }); }} />
-          </div>
-          <div className={'pb-prop-row'}>
-            <label>Hide Mobile</label>
-            <input type="checkbox"
-              checked={!!(element.responsive.mobile?.state?.hidden)}
-              onChange={e => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'mobile', { state: { hidden: e.target.checked } }); }} />
-          </div>
+        <CollapsibleSection sectionKey="responsive" label="Visibility" isOpen={sec('responsive')} onToggle={toggleSection}>
+          <VisibilityEditor
+            hideOnTablet={!!element.responsive.tablet?.state?.hidden}
+            hideOnMobile={!!element.responsive.mobile?.state?.hidden}
+            onTabletChange={v => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'tablet', { state: { hidden: v } }); }}
+            onMobileChange={v => { onPushSnapshot(snapshot); onUpdateResponsive(id, 'mobile', { state: { hidden: v } }); }}
+          />
         </CollapsibleSection>
       )}
     </aside>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { interactionToAction } from '../utils/builderDefaults';
 import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import type {
   Accordion, AccordionBpOverride, AccordionItem, AccordionProps,
@@ -9,402 +8,34 @@ import type {
   SectionUpdate, SiteTheme, TextAlign, TextTransform,
 } from '../types';
 import { useUndoRedo } from './useUndoRedo';
-import { hydrateNodes, sparsifyNodes } from '../utils/sparse';
+import { sparsifyNodes } from '../utils/sparse';
+import { newId, newSectionId, newPageId, newGridCellId, newColumnsId } from '../utils/ids';
 import {
   DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
   DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
-  DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH, DEFAULT_CAROUSEL_SLIDE_COUNT,
-  DEFAULT_ACCORDION_PROPS, DEFAULT_ACCORDION_WIDTH, DEFAULT_ACCORDION_ITEM_COUNT, DEFAULT_ACCORDION_ICON_SVG,
-  defaultFormFields,
+  DEFAULT_CAROUSEL_SLIDE_COUNT, DEFAULT_ACCORDION_ITEM_COUNT,
 } from '../utils/builderDefaults';
+import {
+  isContainer, isSection, isGridCell, isGridSection, isFreeSection,
+  isCarousel, isAccordion, isInsideCarousel,
+  makeSection, makeGridCell, removeGridCellNodes, removeNodesForSection, removeFromParent, appendToParent,
+  makeSlide, makeSlidePlaceholderImage, makeCarousel, removeCarouselNodes,
+  makeAccordion, makeAccordionItem, removeAccordionNodes, cloneAccordionInto,
+  newCarouselId, newAccordionId, newAccordionItemId,
+} from '../utils/nodeHelpers';
+import { CANVAS_W, createDefaultElement } from '../utils/elementDefaults';
+import { migrateState, makeEmpty } from '../utils/migration';
 
 export {
   DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
   DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
 } from '../utils/builderDefaults';
+export { CANVAS_W } from '../utils/elementDefaults';
+export { equalWidths } from '../utils/nodeHelpers';
+export { migrateState, makeEmpty } from '../utils/migration';
 
 const STORAGE_KEY = 'microsite-builder-v5';
 const LEGACY_KEYS = ['page-builder-v3', 'page-builder-v2', 'page-builder-v1'];
-export const CANVAS_W = 1280;
-export const SCHEMA_VERSION = '2.0';
-
-let _idCounter = 0;
-const newId = () => `el_${Date.now()}_${_idCounter++}`;
-const newSectionId = () => `sec_${Date.now()}_${_idCounter++}`;
-const newPageId = () => `page_${Date.now()}_${_idCounter++}`;
-const newGridCellId = () => `gc_${Date.now()}_${_idCounter++}`;
-const newColumnsId  = () => `cb_${Date.now()}_${_idCounter++}`;
-const newCarouselId = () => `crs_${Date.now()}_${_idCounter++}`;
-const newAccordionId = () => `acc_${Date.now()}_${_idCounter++}`;
-const newAccordionItemId = () => `acci_${Date.now()}_${_idCounter++}`;
-
-// ── Type guards ────────────────────────────────────────────────────────
-
-function isContainer(node: AnyNode): node is Container {
-  return node.type === 'container';
-}
-
-function isCarousel(node: AnyNode): node is Carousel {
-  return node.type === 'carousel';
-}
-
-function isAccordion(node: AnyNode): node is Accordion {
-  return node.type === 'accordion';
-}
-
-// True if the node lives inside a Carousel (its parent chain reaches a carousel
-// before reaching a Section). Used to keep carousel slide content from being
-// dragged out of the carousel and detached.
-function isInsideCarousel(nodes: NodeMap, node: AnyNode | undefined): boolean {
-  let cur = node;
-  while (cur && 'parent' in cur) {
-    const parent = nodes[(cur as { parent: string }).parent];
-    if (!parent) return false;
-    if (isCarousel(parent)) return true;
-    if (isSection(parent)) return false;
-    cur = parent;
-  }
-  return false;
-}
-
-function isSection(node: AnyNode): node is Section {
-  return (node as Section).type === 'section';
-}
-
-function isGridCell(node: AnyNode): node is GridCell {
-  return (node as GridCell).type === 'grid-cell';
-}
-
-function isGridSection(node: AnyNode): node is GridSection {
-  return isSection(node) && (node as Section).layoutMode === 'grid';
-}
-
-function isFreeSection(node: AnyNode): node is FreeSection {
-  return isSection(node) && (node as Section).layoutMode === 'free';
-}
-
-
-// ── Defaults ───────────────────────────────────────────────────────────
-
-// ── Factory helpers ────────────────────────────────────────────────────
-
-function makeSection(id: string, role: SectionRole, partial?: SectionUpdate, bgColor?: string): Section {
-  return {
-    id, type: 'section', role,
-    label: role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : 'Section',
-    layout: { height: role === 'header' ? 80 : role === 'footer' ? 100 : 400 },
-    style: {
-      background: { ...DEFAULT_SECTION_BG, color: bgColor ?? (role === 'footer' ? '#f5f5f5' : '#ffffff') },
-      columns: { count: 1, widths: [], styles: {} },
-      padding: { top: 0, right: 0, bottom: 0, left: 0 },
-    },
-    children: [],
-    layoutMode: 'free',  // default; overridden by partial when creating grid sections
-    ...partial,
-  } as Section;
-}
-
-
-function makeGridCell(id: string, parentId: string, columnSpan = 4): GridCell {
-  return {
-    id, type: 'grid-cell', parent: parentId,
-    columnSpan,
-    rowSpan: 1,
-    style: {
-      ...DEFAULT_GRID_CELL_STYLE,
-      padding: { ...DEFAULT_GRID_CELL_STYLE.padding },
-      background: { ...DEFAULT_BG, overlay: 0 },
-      border: { ...DEFAULT_GRID_CELL_STYLE.border! },
-    },
-    children: [],
-    responsive: { mobile: { columnSpan: 12 } },
-  };
-}
-
-// A slide is a GridCell parented to a Carousel. It fills the carousel's full
-// width (span 12) and stretches to the configured height. Reusing GridCell
-// means slides inherit drop / style / responsive / copy-paste behaviour for free.
-function makeSlide(id: string, carouselId: string): GridCell {
-  return {
-    id, type: 'grid-cell', parent: carouselId,
-    columnSpan: 12,
-    rowSpan: 1,
-    style: {
-      ...DEFAULT_GRID_CELL_STYLE,
-      layoutMode: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: { top: 24, right: 24, bottom: 24, left: 24 },
-      background: { ...DEFAULT_BG, overlay: 0 },
-      border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
-    },
-    children: [],
-    responsive: {},
-  };
-}
-
-// A placeholder image element used to populate fresh slides so the carousel is
-// immediately visible. `n` is the 1-based slide number, used only in the label text.
-function makeSlidePlaceholderImage(slideId: string, n: number, theme?: SiteTheme): CanvasElement {
-  const el = createDefaultElement('image', 0, slideId, undefined, undefined, theme);
-  return {
-    ...el,
-    layout: { ...el.layout, width: 480, height: 280 },
-    flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' },
-    content: { ...el.content, src: `https://placehold.co/960x540/e2e8f0/64748b?text=Slide+${n}`, alt: `Slide ${n}` },
-  };
-}
-
-function makeCarousel(id: string, sectionId: string, dropX?: number, dropY?: number, props?: Partial<CarouselProps>): Carousel {
-  const x = dropX ?? Math.round(CANVAS_W / 2 - DEFAULT_CAROUSEL_WIDTH / 2);
-  const y = dropY ?? 120;
-  return {
-    id, type: 'carousel', parent: sectionId,
-    children: [],
-    props: { ...DEFAULT_CAROUSEL_PROPS, ...props },
-    layout: { x, y, width: DEFAULT_CAROUSEL_WIDTH, height: DEFAULT_CAROUSEL_HEIGHT, zIndex: 0 },
-    responsive: {},
-    activeSlide: 0,
-  };
-}
-
-// Recursively delete a grid cell and all its descendants (elements, sub-cells, or carousels)
-function removeGridCellNodes(nodes: NodeMap, cell: GridCell): void {
-  for (const childId of cell.children) {
-    const child = nodes[childId];
-    if (child?.type === 'container') {
-      const block = child as Container;
-      for (const subId of block.children) {
-        const sub = nodes[subId] as GridCell | undefined;
-        if (sub) { removeGridCellNodes(nodes, sub); delete nodes[subId]; }
-      }
-    } else if (child?.type === 'carousel') {
-      removeCarouselNodes(nodes, child as Carousel);
-    } else if (child?.type === 'accordion') {
-      removeAccordionNodes(nodes, child as Accordion);
-    }
-    delete nodes[childId];
-  }
-}
-
-// Recursively delete a carousel and all of its slide cells (and their contents).
-function removeCarouselNodes(nodes: NodeMap, carousel: Carousel): void {
-  for (const slideId of carousel.children) {
-    const slide = nodes[slideId] as GridCell | undefined;
-    if (slide) { removeGridCellNodes(nodes, slide); delete nodes[slideId]; }
-  }
-}
-
-// ── Accordion factories ────────────────────────────────────────────────
-// Each item is built from real nodes so it reuses all existing behaviour:
-//   • title  → a 'text' CanvasElement (full typography editing + inline edit)
-//   • icon   → an 'icon' CanvasElement (icon picker, size/color)
-//   • content→ a GridCell (the entire droppable container pipeline)
-// All three are parented to the Accordion id and live in the flat NodeMap.
-
-// The content panel for an item: a GridCell in column layout, full width,
-// behaving exactly like a Section/Container droppable area.
-function makeAccordionContentCell(id: string, accordionId: string): GridCell {
-  return {
-    id, type: 'grid-cell', parent: accordionId,
-    columnSpan: 12,
-    rowSpan: 1,
-    style: {
-      ...DEFAULT_GRID_CELL_STYLE,
-      layoutMode: 'column',
-      alignItems: 'stretch',
-      justifyContent: 'flex-start',
-      padding: { top: 16, right: 16, bottom: 16, left: 16 },
-      background: { ...DEFAULT_BG, overlay: 0 },
-      border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
-      minHeight: 60,
-    },
-    children: [],
-    responsive: {},
-  };
-}
-
-// Build one accordion item plus its three backing nodes, mutating `nodes`.
-// `n` is the 1-based item number used for the default heading text.
-function makeAccordionItem(accordionId: string, n: number, nodes: NodeMap, theme?: SiteTheme): AccordionItem {
-  const titleId = newId();
-  const iconId = newId();
-  const cellId = newGridCellId();
-
-  const tc = theme?.colors ?? DEFAULT_THEME.colors;
-
-  // Title — a text element flowing to fill the header's free space.
-  const titleBase = createDefaultElement('text', 0, accordionId, undefined, undefined, theme);
-  nodes[titleId] = {
-    ...titleBase, id: titleId, parent: accordionId,
-    flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' },
-    style: { ...titleBase.style, typography: { ...titleBase.style.typography, size: 16, weight: '600', color: tc.text } },
-    content: { ...titleBase.content, plain: 'Heading' },
-  };
-
-  // Icon — the chevron, fixed-size, theme-colored, with the default chevron SVG.
-  const iconBase = createDefaultElement('icon', 0, accordionId, undefined, undefined, theme);
-  nodes[iconId] = {
-    ...iconBase, id: iconId, parent: accordionId,
-    layout: { ...iconBase.layout, width: 20, height: 20 },
-    flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 20 },
-    style: { ...iconBase.style, typography: { ...iconBase.style.typography, color: tc.text } },
-    content: { ...iconBase.content, iconSvg: DEFAULT_ACCORDION_ICON_SVG, iconSize: 20 },
-  };
-
-  // Content panel.
-  nodes[cellId] = makeAccordionContentCell(cellId, accordionId);
-
-  void n;
-  return { id: newAccordionItemId(), titleElId: titleId, iconElId: iconId, contentCellId: cellId };
-}
-
-function makeAccordion(id: string, parentId: string, dropX?: number, dropY?: number, props?: Partial<AccordionProps>): Accordion {
-  const x = dropX ?? Math.round(CANVAS_W / 2 - DEFAULT_ACCORDION_WIDTH / 2);
-  const y = dropY ?? 120;
-  return {
-    id, type: 'accordion', parent: parentId,
-    children: [],
-    items: [],
-    props: { ...DEFAULT_ACCORDION_PROPS, ...props },
-    layout: { x, y, width: DEFAULT_ACCORDION_WIDTH, zIndex: 0 },
-    responsive: {},
-    activeItems: [],
-  };
-}
-
-// Recursively delete an accordion: every item's title/icon elements and its
-// content cell (with all nested descendants).
-function removeAccordionNodes(nodes: NodeMap, accordion: Accordion): void {
-  for (const item of accordion.items) {
-    delete nodes[item.titleElId];
-    delete nodes[item.iconElId];
-    const cell = nodes[item.contentCellId] as GridCell | undefined;
-    if (cell) { removeGridCellNodes(nodes, cell); delete nodes[item.contentCellId]; }
-  }
-}
-
-// Deep-clone an accordion (header elements + content cells) into `nodes`,
-// returning the new accordion id. `cloneCell` clones a content GridCell and all
-// its descendants under a new parent (each call site supplies its own cloner so
-// the id-prefix scheme stays consistent). `cloneEl` clones a plain element.
-function cloneAccordionInto(
-  nodes: NodeMap,
-  accordion: Accordion,
-  newParentId: string,
-  cloneCell: (cellId: string, newParentId: string) => string,
-): string {
-  const newAccId = newAccordionId();
-  const newItems: AccordionItem[] = accordion.items.map(item => {
-    const newTitleId = newId();
-    const newIconId = newId();
-    const title = nodes[item.titleElId] as CanvasElement | undefined;
-    const icon = nodes[item.iconElId] as CanvasElement | undefined;
-    if (title) nodes[newTitleId] = { ...title, id: newTitleId, parent: newAccId };
-    if (icon) nodes[newIconId] = { ...icon, id: newIconId, parent: newAccId };
-    const newCellId = cloneCell(item.contentCellId, newAccId);
-    return { id: newAccordionItemId(), titleElId: newTitleId, iconElId: newIconId, contentCellId: newCellId };
-  });
-  nodes[newAccId] = { ...accordion, id: newAccId, parent: newParentId, items: newItems, children: [] };
-  return newAccId;
-}
-
-function collectElementIds(cell: GridCell, nodes: NodeMap): string[] {
-  return cell.children.flatMap(childId => {
-    const child = nodes[childId];
-    if (!child) return [];
-    if (child.type === 'container') {
-      const block = child as Container;
-      return block.children.flatMap(subId => {
-        const sub = nodes[subId] as GridCell | undefined;
-        return sub ? collectElementIds(sub, nodes) : [];
-      });
-    }
-    return [childId];
-  });
-}
-
-function removeNodesForSection(nodes: NodeMap, sec: Section): void {
-  if (sec.layoutMode === 'grid') {
-    for (const cellId of sec.children) {
-      const cell = nodes[cellId] as GridCell | undefined;
-      if (cell) { removeGridCellNodes(nodes, cell); delete nodes[cellId]; }
-    }
-  } else {
-    for (const childId of sec.children) {
-      const child = nodes[childId];
-      if (child?.type === 'carousel') removeCarouselNodes(nodes, child as Carousel);
-      else if (child?.type === 'accordion') removeAccordionNodes(nodes, child as Accordion);
-      delete nodes[childId];
-    }
-  }
-}
-
-function removeFromParent(nodes: NodeMap, parentId: string, childId: string): void {
-  const parent = nodes[parentId];
-  if (!parent) return;
-  if (isSection(parent) || isGridCell(parent) || isContainer(parent) || isCarousel(parent)) {
-    const p = parent as { children: string[] };
-    nodes[parentId] = { ...parent, children: p.children.filter(c => c !== childId) } as AnyNode;
-  }
-}
-
-function appendToParent(nodes: NodeMap, parentId: string, childId: string): void {
-  const parent = nodes[parentId];
-  if (!parent) return;
-  if (isSection(parent) || isGridCell(parent) || isContainer(parent) || isCarousel(parent)) {
-    const p = parent as { children: string[] };
-    nodes[parentId] = { ...parent, children: [...p.children, childId] } as AnyNode;
-  }
-}
-
-function createDefaultElement(type: ElementType, count: number, parentId: string, dropX?: number, dropY?: number, theme?: SiteTheme, useAccent = false): CanvasElement {
-  const offset = (count % 8) * 20;
-  const cx = Math.round(CANVAS_W / 2 - 100 + offset);
-  const cy = Math.round(150 + offset);
-  const id = newId();
-  const tc = theme?.colors ?? DEFAULT_THEME.colors;
-  const tf = theme?.fonts.body ?? DEFAULT_STYLE.typography.family;
-
-  const base: CanvasElement = {
-    id, type, parent: parentId,
-    layout: { x: dropX ?? cx, y: dropY ?? cy, width: 200, height: 100, zIndex: count, rotation: 0 },
-    style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: tf, color: tc.text } },
-    content: { ...DEFAULT_CONTENT },
-    interaction: { ...DEFAULT_INTERACTION },
-    animation: { ...DEFAULT_ANIMATION },
-    state: { hidden: false, locked: false },
-    responsive: {},
-    flexLayout: { ...DEFAULT_FLEX_LAYOUT },
-  };
-
-  switch (type) {
-    case 'text':    return { ...base, layout: { ...base.layout, width: 220, height: 48 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, content: { ...base.content, plain: 'Click to edit text' } };
-    case 'image':   return { ...base, layout: { ...base.layout, width: 240, height: 240 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' }, style: { ...base.style, background: { ...base.style.background, color: '#e2e8f0' } }, content: { ...base.content, src: 'https://placehold.co/240x160/e2e8f0/64748b?text=Image' } };
-    case 'button':  return { ...base, layout: { ...base.layout, width: 140, height: 44 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'auto' }, style: { ...base.style, background: { ...base.style.background, color: useAccent ? tc.accent : tc.primary }, border: { radius: 6, width: 0, color: '#cccccc', style: 'solid' }, padding: { top: 10, right: 24, bottom: 10, left: 24 }, typography: { ...base.style.typography, size: 15, weight: '600', color: '#ffffff', align: 'center' } }, content: { ...base.content, label: useAccent ? 'Learn more' : 'Click me' } };
-    case 'box':     return { ...base, layout: { ...base.layout, width: 200, height: 160 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { radius: 0, width: 2, color: tc.light, style: 'solid' } } };
-    case 'divider': return { ...base, layout: { ...base.layout, width: 400, height: 4 }, style: { ...base.style, background: { ...base.style.background, color: tc.light }, border: { ...base.style.border, radius: 2 } }, content: { ...base.content, orientation: 'horizontal' } };
-    case 'video':   return { ...base, layout: { ...base.layout, width: 400, height: 225 }, style: { ...base.style, background: { ...base.style.background, color: '#000000' } } };
-    case 'spacer':  return { ...base, layout: { ...base.layout, width: 200, height: 60 } };
-    case 'icon':    return { ...base, layout: { ...base.layout, width: 60, height: 60 }, flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fixed', widthValue: 60 }, style: { ...base.style, typography: { ...base.style.typography, color: tc.primary } } };
-    case 'form':    return {
-      ...base,
-      layout: { ...base.layout, width: 420, height: 360 },
-      flexLayout: { ...DEFAULT_FLEX_LAYOUT, widthMode: 'fill' },
-      style: { ...base.style, typography: { ...base.style.typography, color: tc.text } },
-      content: { ...base.content, formFields: defaultFormFields(), fieldGap: 14, submitLabel: 'Submit' },
-      action: { type: 'submit-form', email: '', subject: 'New form submission' },
-    };
-  }
-}
-
-export function equalWidths(n: number): number[] {
-  if (n <= 1) return [];
-  const w = Math.floor(100 / n);
-  const widths = new Array<number>(n).fill(w);
-  widths[n - 1] = 100 - w * (n - 1);
-  return widths;
-}
 
 // ── applyBreakpoint ────────────────────────────────────────────────────
 
@@ -426,7 +57,7 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
   const layout: ElementLayout = {
     ...el.layout,
     x:      slo?.x      ?? flo?.x      ?? (scale !== 1 ? Math.round(el.layout.x * scale)                          : el.layout.x),
-    y:      slo?.y      ?? flo?.y      ?? (scale !== 1 ? Math.round(el.layout.y * scale)                          : el.layout.y),
+    y:      slo?.y      ?? flo?.y      ?? el.layout.y,
     width:  slo?.width  ?? flo?.width  ?? (scale !== 1 ? Math.max(minScaledW, Math.round(el.layout.width * scale)) : el.layout.width),
     height: slo?.height ?? flo?.height ?? (scale !== 1 ? Math.max(1,           Math.round(el.layout.height * scale)): el.layout.height),
   };
@@ -446,184 +77,6 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
   const hidden = srcOvr?.state?.hidden ?? fallOvr?.state?.hidden;
 
   return { ...el, layout, style, flexLayout, responsive: baseResponsive, state: hidden !== undefined ? { ...baseState, hidden } : baseState };
-}
-
-// ── Migration helpers ──────────────────────────────────────────────────
-
-function migrateOldBreakpoint(old: Record<string, unknown>): BreakpointOverride {
-  const hasLayout = old.x !== undefined || old.y !== undefined || old.width !== undefined || old.height !== undefined;
-  const hasTypo = old.fontSize !== undefined || old.fontWeight !== undefined || old.textAlign !== undefined;
-  const hasState = old.hidden !== undefined;
-  return {
-    layout: hasLayout ? { x: old.x as number | undefined, y: old.y as number | undefined, width: old.width as number | undefined, height: old.height as number | undefined } : undefined,
-    style: hasTypo ? { typography: { size: old.fontSize as number | undefined, weight: old.fontWeight as string | undefined, align: old.textAlign as TextAlign | undefined } } : undefined,
-    state: hasState ? { hidden: old.hidden as boolean } : undefined,
-  };
-}
-
-function migrateOldElement(r: Record<string, unknown>, parentId: string): CanvasElement {
-  return {
-    id: r.id as string,
-    type: r.type as ElementType,
-    parent: parentId,
-    layout: { x: (r.x as number) ?? 0, y: (r.y as number) ?? 0, width: (r.width as number) ?? 200, height: (r.height as number) ?? 100, zIndex: (r.zIndex as number) ?? 0, rotation: (r.rotation as number) ?? 0 },
-    style: {
-      opacity: (r.opacity as number) ?? 1,
-      background: { type: (r.backgroundType as import('../types').BgType) ?? 'solid', color: (r.backgroundColor as string) ?? 'transparent', image: (r.backgroundImage as string) ?? '', position: (r.backgroundPosition as string) ?? 'center', from: (r.gradientFrom as string) ?? '#006e75', to: (r.gradientTo as string) ?? '#0b978e', angle: (r.gradientAngle as number) ?? 135 },
-      padding: { top: (r.paddingTop as number) ?? 0, right: (r.paddingRight as number) ?? 0, bottom: (r.paddingBottom as number) ?? 0, left: (r.paddingLeft as number) ?? 0 },
-      border: { radius: (r.borderRadius as number) ?? 0, width: (r.borderWidth as number) ?? 0, color: (r.borderColor as string) ?? '#cccccc', style: (r.borderStyle as import('../types').BorderStyle) ?? 'solid' },
-      shadow: { enabled: (r.shadowEnabled as boolean) ?? false, x: (r.shadowX as number) ?? 4, y: (r.shadowY as number) ?? 4, blur: (r.shadowBlur as number) ?? 12, spread: (r.shadowSpread as number) ?? 0, color: (r.shadowColor as string) ?? 'rgba(0,0,0,0.2)' },
-      typography: { family: (r.fontFamily as string) ?? 'Inter, sans-serif', size: (r.fontSize as number) ?? 16, weight: (r.fontWeight as string) ?? 'normal', color: (r.color as string) ?? '#333333', align: (r.textAlign as TextAlign) ?? 'left', lineHeight: (r.lineHeight as number) ?? 1.5, letterSpacing: 0, textTransform: 'none' as TextTransform },
-    },
-    content: { plain: (r.text as string) ?? '', rich: (r.richText as string) ?? '', src: (r.src as string) ?? '', alt: (r.alt as string) ?? 'image', objectFit: (r.objectFit as import('../types').ObjectFit) ?? 'cover', label: (r.label as string) ?? 'Button', videoUrl: (r.videoUrl as string) ?? '', iconName: (r.iconName as string) ?? '★', iconSize: (r.iconSize as number) ?? 40 },
-    interaction: { type: 'link', linkUrl: (r.linkUrl as string) ?? '', linkTarget: (r.linkTarget as '_self' | '_blank') ?? '_self', smoothScroll: false },
-    animation: { type: (r.animationType as import('../types').AnimationType) ?? 'none', trigger: (r.animationTrigger as import('../types').AnimationTrigger) ?? 'load', duration: (r.animationDuration as number) ?? 600, delay: (r.animationDelay as number) ?? 0 },
-    state: { hidden: (r.hidden as boolean) ?? false, locked: (r.locked as boolean) ?? false },
-    responsive: {
-      tablet: r.responsiveTablet ? migrateOldBreakpoint(r.responsiveTablet as Record<string, unknown>) : undefined,
-      mobile: r.responsiveMobile ? migrateOldBreakpoint(r.responsiveMobile as Record<string, unknown>) : undefined,
-    },
-    flexLayout: { ...DEFAULT_FLEX_LAYOUT },
-  };
-}
-
-function migrateOldSection(r: Record<string, unknown>, role: SectionRole, nodes: NodeMap): Section {
-  const id = r.id as string;
-  const elements = (r.elements as Record<string, unknown>) ?? {};
-  const order = (r.order as string[]) ?? [];
-  for (const elId of order) {
-    const el = elements[elId] as Record<string, unknown> | undefined;
-    if (el) nodes[elId] = migrateOldElement(el, id);
-  }
-  const oldStyles = (r.columnStyles as Record<string, unknown>) ?? {};
-  const newStyles: Record<string, ColumnStyle> = {};
-  for (const [idx, cs] of Object.entries(oldStyles)) {
-    const c = cs as Record<string, unknown>;
-    newStyles[idx] = { background: { type: (c.backgroundType as import('../types').BgType) ?? 'solid', color: (c.backgroundColor as string) ?? '#ffffff', image: (c.backgroundImage as string) ?? '', position: 'center', from: (c.gradientFrom as string) ?? '#006e75', to: (c.gradientTo as string) ?? '#0b978e', angle: (c.gradientAngle as number) ?? 135, overlay: (c.backgroundOverlay as number) ?? 0 } };
-  }
-  return {
-    id, type: 'section', role,
-    label: (r.label as string) ?? (role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : 'Section'),
-    layout: { height: (r.height as number) ?? (role === 'header' ? 80 : role === 'footer' ? 100 : 400) },
-    style: {
-      background: { type: (r.backgroundType as import('../types').BgType) ?? 'solid', color: (r.backgroundColor as string) ?? '#ffffff', image: (r.backgroundImage as string) ?? '', position: 'center', from: (r.gradientFrom as string) ?? '#006e75', to: (r.gradientTo as string) ?? '#0b978e', angle: (r.gradientAngle as number) ?? 135, overlay: (r.backgroundOverlay as number) ?? 0 },
-      columns: { count: (r.columns as number) ?? 1, widths: (r.columnWidths as number[]) ?? [], styles: newStyles },
-    },
-    children: order,
-    layoutMode: 'free',
-  } as Section;
-}
-
-function migrateFromOldFormat(r: Record<string, unknown>): BuilderState {
-  const nodes: NodeMap = {};
-  let headerId = '';
-  let footerId = '';
-
-  if (r.header && typeof r.header === 'object') {
-    const h = r.header as Record<string, unknown>;
-    headerId = (h.id as string) || newSectionId(); h.id = headerId;
-    nodes[headerId] = migrateOldSection(h, 'header', nodes);
-  } else { headerId = newSectionId(); nodes[headerId] = makeSection(headerId, 'header'); }
-
-  if (r.footer && typeof r.footer === 'object') {
-    const f = r.footer as Record<string, unknown>;
-    footerId = (f.id as string) || newSectionId(); f.id = footerId;
-    nodes[footerId] = migrateOldSection(f, 'footer', nodes);
-  } else { footerId = newSectionId(); nodes[footerId] = makeSection(footerId, 'footer'); }
-
-  let pages: Page[] = [];
-  let activePageId = '';
-
-  if (r.pages && Array.isArray(r.pages)) {
-    for (const p of r.pages as Array<Record<string, unknown>>) {
-      const pSections: string[] = [];
-      for (const s of ((p.sections ?? []) as Array<Record<string, unknown>>)) {
-        const secId = (s.id as string) || newSectionId(); s.id = secId;
-        nodes[secId] = migrateOldSection(s, 'section', nodes);
-        pSections.push(secId);
-      }
-      const pid = (p.id as string) || newPageId();
-      pages.push({ id: pid, name: (p.name as string) ?? 'Page', slug: (p.slug as string) ?? '/', seo: { title: `${(p.name as string) ?? 'Page'} | My Site`, description: '', ogImage: '' }, sections: [headerId, ...pSections, footerId] });
-    }
-    activePageId = (r.activePageId as string) ?? pages[0]?.id ?? '';
-  } else if (r.sections && Array.isArray(r.sections)) {
-    const pSections: string[] = [];
-    for (const s of r.sections as Array<Record<string, unknown>>) {
-      const secId = (s.id as string) || newSectionId(); s.id = secId;
-      nodes[secId] = migrateOldSection(s, 'section', nodes);
-      pSections.push(secId);
-    }
-    const pageId = newPageId();
-    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, ...pSections, footerId] }];
-    activePageId = pageId;
-  } else {
-    const sectionId = newSectionId();
-    nodes[sectionId] = migrateOldSection({ id: sectionId, elements: r.elements, order: r.order }, 'section', nodes);
-    const pageId = newPageId();
-    pages = [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, sectionId, footerId] }];
-    activePageId = pageId;
-  }
-
-  const oldTheme = r.theme as Record<string, unknown> | undefined;
-  const oldColors = oldTheme?.colors as string[] | undefined;
-  const theme: SiteTheme = {
-    colors: { primary: oldColors?.[0] ?? '#006e75', secondary: oldColors?.[1] ?? '#0b978e', text: oldColors?.[2] ?? '#333333', background: oldColors?.[3] ?? '#ffffff', light: oldColors?.[4] ?? '#f5f5f5', accent: oldColors?.[5] ?? '#e74c3c', sectionBg: DEFAULT_THEME.colors.sectionBg },
-    fonts: { body: (oldTheme?.bodyFont as string) ?? ((oldTheme as any)?.fonts?.body as string) ?? 'Inter, sans-serif' },
-  };
-
-  // Migrate legacy interaction → action on every element so in-memory state is consistent
-  for (const node of Object.values(nodes)) {
-    if (node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container') {
-      const el = node as CanvasElement;
-      if (!el.action || el.action.type === 'none') {
-        const migrated = interactionToAction(el.interaction);
-        if (migrated) el.action = migrated;
-      }
-    }
-  }
-  return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en' }, theme, pages, activePageId, nodes };
-}
-
-
-export function migrateState(raw: unknown): BuilderState {
-  if (!raw || typeof raw !== 'object') return makeEmpty();
-  const r = raw as Record<string, unknown>;
-  if (r.schema === '2.0' && r.nodes) {
-    const nodes = hydrateNodes(r.nodes as Record<string, unknown>);
-    const rt = (r.theme as Partial<SiteTheme> | undefined);
-    const mergedTheme: SiteTheme = { ...DEFAULT_THEME, ...rt, colors: { ...DEFAULT_THEME.colors, ...(rt?.colors ?? {}) }, fonts: { ...DEFAULT_THEME.fonts, ...(rt?.fonts ?? {}) } };
-    // Migrate old page format that had separate header/footer fields
-    const rawPages = (r.pages as Array<Record<string, unknown>>) ?? [];
-    const pages: Page[] = rawPages.map(p => {
-      if ('header' in p && 'footer' in p) {
-        const hId = p.header as string;
-        const fId = p.footer as string;
-        const body = (p.sections as string[]) ?? [];
-        return { id: p.id, name: p.name, slug: p.slug, seo: p.seo, sections: [hId, ...body, fId] } as Page;
-      }
-      return p as unknown as Page;
-    });
-    return { schema: SCHEMA_VERSION, site: { name: 'My Site', favicon: '', language: 'en', ...((r.site as object) ?? {}) }, theme: mergedTheme, pages, activePageId: (r.activePageId as string) ?? '', nodes };
-  }
-  if ((r.pages || r.sections || r.elements) && (r.header || r.sections || r.elements)) {
-    return migrateFromOldFormat(r);
-  }
-  return makeEmpty();
-}
-
-export function makeEmpty(): BuilderState {
-  const pageId = newPageId();
-  const headerId = newSectionId();
-  const sectionId = newSectionId();
-  const footerId = newSectionId();
-  return {
-    schema: SCHEMA_VERSION,
-    site: { name: 'My Site', favicon: '', language: 'en' },
-    theme: DEFAULT_THEME,
-    pages: [{ id: pageId, name: 'Home', slug: '/', seo: { title: 'Home | My Site', description: '', ogImage: '' }, sections: [headerId, sectionId, footerId] }],
-    activePageId: pageId,
-    nodes: { [headerId]: makeSection(headerId, 'header'), [footerId]: makeSection(footerId, 'footer'), [sectionId]: makeSection(sectionId, 'section', { label: 'Section 1' }) },
-  };
 }
 
 function loadFromStorage(): BuilderState {
@@ -651,6 +104,7 @@ export function useBuilderStore() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedGridCellId, setSelectedGridCellId] = useState<string | null>(null);
+  const [selectedContainerId, setSelectedContainerId] = useState<string | null>(null);
   const { push, undo, redo, canUndo, canRedo } = useUndoRedo();
 
   const clipboard = useRef<CanvasElement | null>(null);
@@ -663,10 +117,17 @@ export function useBuilderStore() {
 
   useEffect(() => { saveToStorage(state); }, [state]);
 
+  // Clear selectedContainerId if the node was removed (e.g. after undo)
+  useEffect(() => {
+    if (selectedContainerId && !state.nodes[selectedContainerId]) {
+      setSelectedContainerId(null);
+    }
+  }, [state.nodes, selectedContainerId]);
+
   const allElements = useMemo(() => {
     const map: Record<string, CanvasElement> = {};
     for (const [id, node] of Object.entries(state.nodes)) {
-      if (!isSection(node) && !isGridCell(node) && !isContainer(node) && !isCarousel(node)) map[id] = node as CanvasElement;
+      if (!isSection(node) && !isGridCell(node) && !isContainer(node) && !isCarousel(node) && !isAccordion(node)) map[id] = node as CanvasElement;
     }
     return map;
   }, [state]);
@@ -741,7 +202,7 @@ export function useBuilderStore() {
 
   const setActivePage = useCallback((id: string) => {
     setState(s => ({ ...s, activePageId: id }));
-    setSelectedIds([]); setSelectedSectionId(null);
+    setSelectedIds([]); setSelectedSectionId(null); setSelectedGridCellId(null);
   }, []);
 
   // ── Section ops ────────────────────────────────────────────────────
@@ -805,18 +266,14 @@ export function useBuilderStore() {
           const node = s.nodes[id];
           if (!node || !isSection(node)) return s;
           const nodes = { ...s.nodes };
+          removeNodesForSection(nodes, node);
           if (newMode === 'grid') {
-            for (const elId of node.children) delete nodes[elId];
             const c1 = newGridCellId(), c2 = newGridCellId(), c3 = newGridCellId();
             nodes[c1] = makeGridCell(c1, id, 4);
             nodes[c2] = makeGridCell(c2, id, 4);
             nodes[c3] = makeGridCell(c3, id, 4);
             nodes[id] = { ...node, ...updates, children: [c1, c2, c3] } as Section;
           } else {
-            for (const cellId of node.children) {
-              const cell = nodes[cellId] as GridCell | undefined;
-              if (cell) { for (const elId of cell.children) delete nodes[elId]; delete nodes[cellId]; }
-            }
             nodes[id] = { ...node, ...updates, children: [] } as Section;
           }
           return { ...s, nodes };
@@ -854,7 +311,7 @@ export function useBuilderStore() {
       const newSecId = newSectionId();
       const nodes = { ...s.nodes };
       let newChildren: string[];
-      if (src.layoutMode === 'grid') {
+      if (src.layoutMode === 'grid' || src.layoutMode === 'flex') {
         const deepCopyCell = (cell: GridCell, newParentId: string): string => {
           const newCellId = newGridCellId();
           const newCellChildren = cell.children.map(childId => {
@@ -1004,6 +461,7 @@ export function useBuilderStore() {
       let children = [...sec.children];
       if (afterCellId) {
         const idx = children.indexOf(afterCellId);
+        if (idx === -1) return s;
         children.splice(idx + 1, 0, newCellId);
       } else {
         children.push(newCellId);
@@ -1067,14 +525,16 @@ export function useBuilderStore() {
     const s = stateRef.current;
     const cell = s.nodes[cellId] as GridCell | undefined;
     if (!cell) return;
-    // Second button in the same cell uses accent color instead of primary
     const hasButton = type === 'button' && cell.children.some(id => s.nodes[id]?.type === 'button');
-    const el = createDefaultElement(type, cell.children.length, cellId, x, y, stateRef.current.theme, hasButton);
+    const theme = stateRef.current.theme;
+    // Pre-build element for id; zIndex is overwritten inside setState from live state to avoid race
+    const el = createDefaultElement(type, cell.children.length, cellId, x, y, theme, hasButton);
     push(s);
     setState(prev => {
       const c = prev.nodes[cellId] as GridCell | undefined;
       if (!c) return prev;
-      return { ...prev, nodes: { ...prev.nodes, [el.id]: el, [cellId]: { ...c, children: [...c.children, el.id] } } };
+      const fixed = { ...el, layout: { ...el.layout, zIndex: c.children.length } };
+      return { ...prev, nodes: { ...prev.nodes, [el.id]: fixed, [cellId]: { ...c, children: [...c.children, el.id] } } };
     });
     setSelectedIds([el.id]); setSelectedGridCellId(cellId);
   }, [push]);
@@ -2134,8 +1594,8 @@ export function useBuilderStore() {
     state, nodes: state.nodes, elements: allElements,
     header, sections, footer, allSections,
     pages: state.pages, activePageId: state.activePageId, activePage,
-    selectedId, selectedIds, selectedSectionId, selectedGridCellId,
-    setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, toggleSelectedId,
+    selectedId, selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId,
+    setSelectedId, setSelectedIds, setSelectedSectionId, setSelectedGridCellId, setSelectedContainerId, toggleSelectedId,
     addPage, deletePage, renamePage, updatePageLayout, setActivePage,
     addSection, addGridSection, addSectionFromTemplate, deleteSection, promoteSection, updateSection, reorderSection, duplicateSection,
     addElement, addElementAt, addElementToCell, duplicateElement, copyElement, pasteElement,

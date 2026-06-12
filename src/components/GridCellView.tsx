@@ -550,7 +550,7 @@ export function GridCellView({
       }
 
       {flexChildren.length === 0 && !previewMode && (
-        <div className={'pb-grid-cell-empty pb-grid-cell-empty--overlay'}>
+        <div className={'pb-grid-cell-empty pb-flex-center pb-grid-cell-empty--overlay'}>
           <span className={'pb-grid-cell-empty-icon'}>+</span>
           <span className={'pb-grid-cell-empty-text'}>{isPaletteOver ? 'Drop here' : 'Drop element'}</span>
         </div>

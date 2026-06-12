@@ -1,7 +1,7 @@
-﻿import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
-
-const CANVAS_W = 1280;
+import { Icon } from './Icon';
+import { CANVAS_W } from '../hooks/useBuilderStore';
 
 function inferColumnIndex(el: CanvasElement, cols: SectionColumns): number {
   if (cols.count <= 1 || !cols.widths.length) return 0;
@@ -13,6 +13,40 @@ function inferColumnIndex(el: CanvasElement, cols: SectionColumns): number {
   }
   return cols.widths.length - 1;
 }
+
+const TYPE_ICON_ID: Record<string, string> = {
+  text: 'elText', image: 'elImage', button: 'elButton', box: 'elBox',
+  divider: 'elDivider', video: 'elVideo', spacer: 'elSpacer', icon: 'elIcon', form: 'elForm',
+};
+
+function elementLabel(el: CanvasElement): string {
+  switch (el.type) {
+    case 'text':    return el.content.plain?.slice(0, 24) || 'Text';
+    case 'button':  return el.content.label || 'Button';
+    case 'image':   return el.content.alt || 'Image';
+    case 'video':   return 'Video';
+    case 'divider': return 'Divider';
+    case 'spacer':  return 'Spacer';
+    case 'icon':    return el.content.iconName ? `Icon ${el.content.iconName}` : 'Icon';
+    default:        return 'Box';
+  }
+}
+
+function CollapseArrow({ collapsed }: { collapsed: boolean }) {
+  return (
+    <span className={['pb-layer-arrow pb-flex-center', !collapsed && 'pb-layer-arrow--open'].filter(Boolean).join(' ')}>
+      <Icon id="chevronRight" size={10} />
+    </span>
+  );
+}
+
+interface ActiveDrag {
+  sectionId: string;
+  panelIdx: number;
+  elId: string;
+}
+
+let _layerDrag: ActiveDrag | null = null;
 
 interface Props {
   header: Section;
@@ -36,39 +70,17 @@ interface Props {
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  onDeleteElement?: (id: string) => void;
+  onDeleteSection?: (id: string) => void;
+  onClose?: () => void;
 }
-
-const TYPE_ICON: Record<string, string> = {
-  text: 'T', image: 'Img', button: 'Btn', box: 'Box',
-  divider: 'Div', video: 'Vid', spacer: 'Spc', icon: 'Ico',
-};
-
-function elementLabel(el: CanvasElement): string {
-  switch (el.type) {
-    case 'text':    return el.content.plain?.slice(0, 24) || 'Text';
-    case 'button':  return el.content.label || 'Button';
-    case 'image':   return el.content.alt || 'Image';
-    case 'video':   return 'Video';
-    case 'divider': return 'Divider';
-    case 'spacer':  return 'Spacer';
-    case 'icon':    return el.content.iconName ? `Icon ${el.content.iconName}` : 'Icon';
-    default:        return 'Box';
-  }
-}
-
-interface ActiveDrag {
-  sectionId: string;
-  panelIdx: number;
-  elId: string;
-}
-
-let _layerDrag: ActiveDrag | null = null;
 
 interface SectionGroupProps {
   section: Section;
   nodes: NodeMap;
   role: 'header' | 'section' | 'footer';
   index: number;
+  depth: number;
   isSectionSelected: boolean;
   selectedIds: string[];
   selectedGridCellId: string | null;
@@ -85,6 +97,8 @@ interface SectionGroupProps {
   onSelectAccordion?: (id: string) => void;
   onScrollToElement?: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  onDeleteElement?: (id: string) => void;
+  onDeleteSection?: (id: string) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
   onSectionDragStart: (index: number) => void;
@@ -94,8 +108,10 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId, isDragOver, isDragging,
-  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement, onUpdateElement, onReorderElement, onMoveElementToSection,
+  section, nodes, role, index, depth, isSectionSelected, selectedIds,
+  selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId, isDragOver, isDragging,
+  onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion,
+  onScrollToElement, onUpdateElement, onDeleteElement, onDeleteSection, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -103,6 +119,7 @@ function SectionGroup({
 
   const draggable = role === 'section';
   const isGrid = section.layoutMode === 'grid';
+  const indent = depth * 16;
 
   useEffect(() => {
     if (!selectedIds.length) return;
@@ -154,76 +171,65 @@ function SectionGroup({
 
     const totalElements = cells.reduce((sum, c) => sum + countCellElements(c), 0);
 
-    const renderGridElementRow = (el: CanvasElement) => {
+    const renderGridElementRow = (el: CanvasElement, elDepth: number) => {
       const isSelected = selectedIds.includes(el.id);
       const hidden = el.state.hidden;
-      const locked = el.state.locked;
+      const elIndent = elDepth * 16;
       return (
         <div
           key={el.id}
-          className={['pb-layer-row', 'pb-layer-row--grid-el', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+          className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 + elIndent }}
           onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
         >
-          <span className={'pb-layer-el-drag-handle'} style={{ visibility: 'hidden' }}>⠿</span>
-          <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
-          <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
-          <span className={'pb-layer-actions'}>
-            <button
-              className={['pb-layer-btn', hidden && 'pb-active'].filter(Boolean).join(' ')}
-              title={hidden ? 'Show' : 'Hide'}
-              onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, hidden: !hidden } }); }}
-            >{hidden ? '🙈' : '👁'}</button>
-            <button
-              className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
-              title={locked ? 'Unlock' : 'Lock'}
-              onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
-            >{locked ? 'L' : 'L'}</button>
+          <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+          <span className={'pb-layer-type-icon pb-flex-center'}>
+            <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
           </span>
+          <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+          {onDeleteElement && (
+            <span className={'pb-layer-actions'}>
+              <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete"
+                onClick={e => { e.stopPropagation(); onDeleteElement(el.id); }}>
+                <Icon id="trash" size={14} />
+              </button>
+            </span>
+          )}
         </div>
       );
     };
 
-    function renderCellLayer(cell: GridCell, cellIdx: number, depth: number): React.ReactNode {
+    function CellLayerRow({ cell, cellIdx, cellDepth }: { cell: GridCell; cellIdx: number; cellDepth: number }): React.ReactElement {
+      const [cellCollapsed, setCellCollapsed] = useState(false);
       const isCellSelected = selectedGridCellId === cell.id;
-      const indent = depth * 12;
-
+      const cellIndent = cellDepth * 16;
       const cellChildren = cell.children.map(id => nodes[id]).filter(Boolean);
-      const childCount = cellChildren.length;
+      const hasChildren = cellChildren.length > 0;
 
       return (
-        <div key={cell.id} className={'pb-layer-grid-cell-group'}>
+        <div key={cell.id}>
           <div
-            className={['pb-layer-grid-cell-header', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
-            style={{ paddingLeft: 8 + indent }}
+            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
+            style={{ paddingLeft: 8 + cellIndent }}
             onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
           >
-            <span className={'pb-layer-column-icon'}>⊟</span>
-            <span className={'pb-layer-column-label'}>Col {cellIdx + 1}</span>
-            <span className={'pb-layer-grid-cell-span'}>span {cell.columnSpan}</span>
-            <span className={'pb-layer-section-count'}>{childCount}</span>
+            {hasChildren ? (
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCellCollapsed(c => !c); }}>
+                <CollapseArrow collapsed={cellCollapsed} />
+              </button>
+            ) : (
+              <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+            )}
+            <span className={'pb-layer-section-icon'}>⊟</span>
+            <span className={'pb-layer-name pb-truncate'}>Col {cellIdx + 1}</span>
           </div>
-          {childCount === 0 && (
-            <div className={'pb-layer-empty-section'} style={{ paddingLeft: 20 + indent }}>Empty</div>
-          )}
-          {cellChildren.map((child) => {
+          {!cellCollapsed && cellChildren.map((child) => {
             if (!child) return null;
             if (child.type === 'container') {
               const block = child as Container;
               const subCells = block.children.map((id: string) => nodes[id] as GridCell | undefined).filter((c: GridCell | undefined): c is GridCell => !!c);
-              const containerElCount = subCells.reduce((s, sub) => s + countCellElements(sub), 0);
               return (
-                <div key={block.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
-                  <div
-                    className={['pb-layer-grid-cell-header', selectedContainerId === block.id && 'pb-selected'].filter(Boolean).join(' ')}
-                    style={{ paddingLeft: 8, cursor: 'pointer' }}
-                    onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); }}
-                  >
-                    <span className={'pb-layer-column-icon'}>⊞</span>
-                    <span className={'pb-layer-column-label'}>Container</span>
-                    <span className={'pb-layer-section-count'}>{containerElCount}</span>
-                  </div>
-                  {subCells.map((sub: GridCell, si: number) => renderCellLayer(sub, si, depth + 1))}
-                </div>
+                <ContainerLayerRow key={block.id} block={block} cellIndent={cellIndent} subCells={subCells} />
               );
             }
             if (child.type === 'carousel') {
@@ -231,17 +237,19 @@ function SectionGroup({
               const isCarSelected = selectedCarouselId === carousel.id;
               const slides = carousel.children.map(id => nodes[id] as GridCell | undefined).filter((c): c is GridCell => !!c);
               return (
-                <div key={carousel.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
+                <div key={carousel.id}>
                   <div
-                    className={['pb-layer-grid-cell-header', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
-                    style={{ paddingLeft: 8 }}
+                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
                     onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
                   >
-                    <span className={'pb-layer-column-icon'}>▦</span>
-                    <span className={'pb-layer-column-label'}>Carousel</span>
-                    <span className={'pb-layer-section-count'}>{slides.length}</span>
+                    <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+                    <span className={'pb-layer-section-icon'}>▦</span>
+                    <span className={'pb-layer-name pb-truncate'}>Carousel</span>
                   </div>
-                  {slides.map((slide, si) => renderCellLayer(slide, si, depth + 1))}
+                  {slides.map((slide, si) => (
+                    <CellLayerRow key={slide.id} cell={slide} cellIdx={si} cellDepth={cellDepth + 1} />
+                  ))}
                 </div>
               );
             }
@@ -249,25 +257,56 @@ function SectionGroup({
               const acc = child as Accordion;
               const isAccSelected = selectedAccordionId === acc.id;
               return (
-                <div key={acc.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 8 + indent }}>
+                <div key={acc.id}>
                   <div
-                    className={['pb-layer-grid-cell-header', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
-                    style={{ paddingLeft: 8 }}
+                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
                     onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
                   >
-                    <span className={'pb-layer-column-icon'}>☰</span>
-                    <span className={'pb-layer-column-label'}>Accordion</span>
-                    <span className={'pb-layer-section-count'}>{acc.items.length}</span>
+                    <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+                    <span className={'pb-layer-section-icon'}>☰</span>
+                    <span className={'pb-layer-name pb-truncate'}>Accordion</span>
                   </div>
                   {acc.items.map((it, ii) => {
                     const cell = nodes[it.contentCellId] as GridCell | undefined;
-                    return cell ? renderCellLayer(cell, ii, depth + 1) : null;
+                    return cell ? (
+                      <CellLayerRow key={cell.id} cell={cell} cellIdx={ii} cellDepth={cellDepth + 1} />
+                    ) : null;
                   })}
                 </div>
               );
             }
-            return renderGridElementRow(child as CanvasElement);
+            return renderGridElementRow(child as CanvasElement, cellDepth + 1);
           })}
+        </div>
+      );
+    }
+
+    function ContainerLayerRow({ block, cellIndent, subCells }: { block: Container; cellIndent: number; subCells: GridCell[] }): React.ReactElement {
+      const [containerCollapsed, setContainerCollapsed] = useState(false);
+      const isContainerSelected = selectedContainerId === block.id;
+      const hasChildren = subCells.length > 0;
+
+      return (
+        <div>
+          <div
+            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isContainerSelected && 'pb-selected'].filter(Boolean).join(' ')}
+            style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
+            onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); }}
+          >
+            {hasChildren ? (
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setContainerCollapsed(c => !c); }}>
+                <CollapseArrow collapsed={containerCollapsed} />
+              </button>
+            ) : (
+              <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+            )}
+            <span className={'pb-layer-section-icon'}>⊞</span>
+            <span className={'pb-layer-name pb-truncate'}>Container</span>
+          </div>
+          {!containerCollapsed && subCells.map((sub, si) => (
+            <CellLayerRow key={sub.id} cell={sub} cellIdx={si} cellDepth={3} />
+          ))}
         </div>
       );
     }
@@ -279,30 +318,30 @@ function SectionGroup({
         onDrop={e => { e.preventDefault(); onSectionDrop(); }}
       >
         <div
-          className={['pb-layer-section-header', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          className={['pb-layer-section-header pb-flex-row', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 + indent }}
           draggable={draggable}
           onDragStart={() => draggable && onSectionDragStart(index)}
           onDragEnd={() => draggable && onSectionDragEnd()}
           onClick={() => onSelectSection(section.id)}
         >
-          {draggable && <span className={'pb-layer-drag-handle'} title="Drag to reorder">⠿</span>}
-          <button
-            className={'pb-layer-collapse-btn'}
-            onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
-          >
-            {collapsed ? '›' : '⌄'}
+          <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}>
+            <CollapseArrow collapsed={collapsed} />
           </button>
           <span className={'pb-layer-section-icon'}>⊞</span>
-          <span className={'pb-layer-section-name'}>{section.label}</span>
-          <span className={'pb-layer-section-count'}>{totalElements}</span>
+          <span className={'pb-layer-section-name pb-truncate'}>{section.label}</span>
+          {draggable && onDeleteSection && (
+            <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete section"
+              onClick={e => { e.stopPropagation(); onDeleteSection(section.id); }}>
+              <Icon id="trash" size={14} />
+            </button>
+          )}
         </div>
 
         {!collapsed && (
           <div className={'pb-layer-element-list'}>
-            {cells.length === 0 && (
-              <div className={'pb-layer-empty-section'}>No columns yet</div>
-            )}
-            {cells.map((cell, cellIdx) => renderCellLayer(cell, cellIdx, 0))}
+            {cells.length === 0 && <div className={'pb-layer-empty-row'}>No columns yet</div>}
+            {cells.map((cell, cellIdx) => <CellLayerRow key={cell.id} cell={cell} cellIdx={cellIdx} cellDepth={depth + 1} />)}
           </div>
         )}
       </div>
@@ -326,35 +365,60 @@ function SectionGroup({
     .filter((node): node is Accordion => !!node && node.type === 'accordion');
   const n = section.children.length;
 
+  // Renders the elements inside a carousel slide / accordion-item content cell.
+  // Self-contained (the grid-only CellLayerRow component is out of scope here).
+  const renderCellContents = (cell: GridCell, cellDepth: number): React.ReactNode => {
+    const isCellSelected = selectedGridCellId === cell.id;
+    const cellEls = cell.children.map(id => nodes[id]).filter(Boolean) as CanvasElement[];
+    return (
+      <div key={cell.id}>
+        <div
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 + cellDepth * 16, cursor: 'pointer' }}
+          onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+        >
+          <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+          <span className={'pb-layer-section-icon'}>⊟</span>
+          <span className={'pb-layer-name pb-truncate'}>Content</span>
+        </div>
+        {cellEls.map(el => {
+          const isSelected = selectedIds.includes(el.id);
+          const hidden = el.state?.hidden;
+          return (
+            <div
+              key={el.id}
+              className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+              style={{ paddingLeft: 8 + (cellDepth + 1) * 16 }}
+              onClick={() => { onSelectGridCell(cell.id); onSelectElement(el.id); onScrollToElement?.(el.id); }}
+            >
+              <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+              <span className={'pb-layer-type-icon pb-flex-center'}>
+                <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
+              </span>
+              <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const renderAccordionLayer = (acc: Accordion): React.ReactNode => {
     const isAccSelected = selectedAccordionId === acc.id;
     return (
-      <div key={acc.id} className={'pb-layer-grid-cell-group'}>
+      <div key={acc.id}>
         <div
-          className={['pb-layer-grid-cell-header', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
-          style={{ paddingLeft: 8 }}
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
           onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
         >
-          <span className={'pb-layer-column-icon'}>☰</span>
-          <span className={'pb-layer-column-label'}>Accordion</span>
-          <span className={'pb-layer-section-count'}>{acc.items.length}</span>
+          <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+          <span className={'pb-layer-section-icon'}>☰</span>
+          <span className={'pb-layer-name pb-truncate'}>Accordion</span>
         </div>
-        {acc.items.map((it, ii) => {
+        {acc.items.map(it => {
           const cell = nodes[it.contentCellId] as GridCell | undefined;
-          const isCellSel = selectedGridCellId === it.contentCellId;
-          return (
-            <div key={it.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 12 }}>
-              <div
-                className={['pb-layer-grid-cell-header', isCellSel && 'pb-selected'].filter(Boolean).join(' ')}
-                style={{ paddingLeft: 8 }}
-                onClick={() => { onSelectSection(section.id); if (cell) onSelectGridCell(cell.id); }}
-              >
-                <span className={'pb-layer-column-icon'}>▭</span>
-                <span className={'pb-layer-column-label'}>Item {ii + 1}</span>
-                <span className={'pb-layer-section-count'}>{cell ? cell.children.length : 0}</span>
-              </div>
-            </div>
-          );
+          return cell ? renderCellContents(cell, depth + 2) : null;
         })}
       </div>
     );
@@ -364,50 +428,17 @@ function SectionGroup({
     const slides = carousel.children.map(id => nodes[id] as GridCell | undefined).filter((c): c is GridCell => !!c);
     const isCarSelected = selectedCarouselId === carousel.id;
     return (
-      <div key={carousel.id} className={'pb-layer-grid-cell-group'}>
+      <div key={carousel.id}>
         <div
-          className={['pb-layer-grid-cell-header', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
-          style={{ paddingLeft: 8 }}
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
           onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
         >
-          <span className={'pb-layer-column-icon'}>▦</span>
-          <span className={'pb-layer-column-label'}>Carousel</span>
-          <span className={'pb-layer-section-count'}>{slides.length}</span>
+          <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+          <span className={'pb-layer-section-icon'}>▦</span>
+          <span className={'pb-layer-name pb-truncate'}>Carousel</span>
         </div>
-        {slides.map((slide, si) => {
-          const isSlideSelected = selectedGridCellId === slide.id;
-          const slideEls = slide.children.map(id => nodes[id]).filter(Boolean);
-          return (
-            <div key={slide.id} className={'pb-layer-grid-cell-group'} style={{ paddingLeft: 12 }}>
-              <div
-                className={['pb-layer-grid-cell-header', isSlideSelected && 'pb-selected'].filter(Boolean).join(' ')}
-                style={{ paddingLeft: 8 }}
-                onClick={() => { onSelectSection(section.id); onSelectGridCell(slide.id); }}
-              >
-                <span className={'pb-layer-column-icon'}>▭</span>
-                <span className={'pb-layer-column-label'}>Slide {si + 1}</span>
-                <span className={'pb-layer-section-count'}>{slideEls.length}</span>
-              </div>
-              {slideEls.map(child => {
-                if (!child) return null;
-                const el = child as CanvasElement;
-                const isSelected = selectedIds.includes(el.id);
-                const hidden = el.state?.hidden;
-                return (
-                  <div
-                    key={el.id}
-                    className={['pb-layer-row', 'pb-layer-row--grid-el', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
-                    style={{ paddingLeft: 24 }}
-                    onClick={() => { onSelectGridCell(slide.id); onSelectElement(el.id); onScrollToElement?.(el.id); }}
-                  >
-                    <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
-                    <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
+        {slides.map(slide => renderCellContents(slide, depth + 2))}
       </div>
     );
   };
@@ -483,12 +514,12 @@ function SectionGroup({
   const renderElementRow = (el: CanvasElement, panelIdx: number) => {
     const isSelected = selectedIds.includes(el.id);
     const isDropTarget = dragOverElIdx === panelIdx && _layerDrag !== null && _layerDrag.elId !== el.id;
-    const hidden = el.state.hidden;
-    const locked = el.state.locked;
+    const elIndent = (depth + 1) * 16;
     return (
       <div
         key={el.id}
-        className={['pb-layer-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden', locked && 'pb-layer-locked', isDropTarget && 'pb-el-drop-target'].filter(Boolean).join(' ')}
+        className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', isDropTarget && 'pb-el-drop-target'].filter(Boolean).join(' ')}
+        style={{ paddingLeft: 8 + elIndent }}
         draggable
         onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
         onDragStart={e => handleElDragStart(e, panelIdx, el.id)}
@@ -496,21 +527,19 @@ function SectionGroup({
         onDrop={e => handleElDrop(e, panelIdx)}
         onDragEnd={handleElDragEnd}
       >
-        <span className={'pb-layer-el-drag-handle'}>⠿</span>
-        <span className={'pb-layer-type-icon'}>{TYPE_ICON[el.type] ?? '□'}</span>
-        <span className={'pb-layer-name'} title={elementLabel(el)}>{elementLabel(el)}</span>
-        <span className={'pb-layer-actions'}>
-          <button
-            className={['pb-layer-btn', hidden && 'pb-active'].filter(Boolean).join(' ')}
-            title={hidden ? 'Show' : 'Hide'}
-            onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, hidden: !hidden } }); }}
-          >{hidden ? '🙈' : '👁'}</button>
-          <button
-            className={['pb-layer-btn', locked && 'pb-active'].filter(Boolean).join(' ')}
-            title={locked ? 'Unlock' : 'Lock'}
-            onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
-          >{locked ? 'L' : 'L'}</button>
+        <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+        <span className={'pb-layer-type-icon pb-flex-center'}>
+          <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
         </span>
+        <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+        {onDeleteElement && (
+          <span className={'pb-layer-actions'}>
+            <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete"
+              onClick={e => { e.stopPropagation(); onDeleteElement(el.id); }}>
+              <Icon id="trash" size={14} />
+            </button>
+          </span>
+        )}
       </div>
     );
   };
@@ -525,26 +554,28 @@ function SectionGroup({
       onDrop={handleSectionBodyDrop}
     >
       <div
-        className={['pb-layer-section-header', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+        className={['pb-layer-section-header pb-flex-row', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+        style={{ paddingLeft: 8 + indent }}
         draggable={draggable}
         onDragStart={() => draggable && onSectionDragStart(index)}
         onDragEnd={() => draggable && onSectionDragEnd()}
         onClick={() => onSelectSection(section.id)}
       >
-        {draggable && <span className={'pb-layer-drag-handle'} title="Drag to reorder">⠿</span>}
-        <button
-          className={'pb-layer-collapse-btn'}
-          onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
-        >
-          {collapsed ? '›' : '⌄'}
+        <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}>
+          <CollapseArrow collapsed={collapsed} />
         </button>
         <span className={'pb-layer-section-icon'}>
           {role === 'header' ? '⬆' : role === 'footer' ? '⬇' : '▭'}
         </span>
-        <span className={'pb-layer-section-name'}>
+        <span className={'pb-layer-section-name pb-truncate'}>
           {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
         </span>
-        <span className={'pb-layer-section-count'}>{section.children.length}</span>
+        {draggable && onDeleteSection && (
+          <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete section"
+            onClick={e => { e.stopPropagation(); onDeleteSection(section.id); }}>
+            <Icon id="trash" size={14} />
+          </button>
+        )}
       </div>
 
       {!collapsed && (
@@ -562,20 +593,18 @@ function SectionGroup({
           }}
         >
           {elements.length === 0 && carousels.length === 0 && accordions.length === 0 && (
-            <div className={'pb-layer-empty-section'}>Drop element here</div>
+            <div className={'pb-layer-empty-row'}>Drop element here</div>
           )}
 
           {hasColumns ? (
             columnGroups.map((group, colIdx) => (
-              <div key={colIdx} className={'pb-layer-column-group'}>
-                <div className={'pb-layer-column-header'}>
-                  <span className={'pb-layer-column-icon'}>⊟</span>
-                  <span className={'pb-layer-column-label'}>Column {colIdx + 1}</span>
-                  <span className={'pb-layer-section-count'}>{group.length}</span>
+              <div key={colIdx}>
+                <div className={'pb-layer-row pb-flex-row pb-layer-row--cell'} style={{ paddingLeft: 8 + (depth + 1) * 16 }}>
+                  <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+                  <span className={'pb-layer-section-icon'}>⊟</span>
+                  <span className={'pb-layer-name pb-truncate'}>Column {colIdx + 1}</span>
                 </div>
-                {group.length === 0 && (
-                  <div className={'pb-layer-empty-section'}>Empty</div>
-                )}
+                {group.length === 0 && <div className={'pb-layer-empty-row'} style={{ paddingLeft: 8 + (depth + 2) * 16 }}>Empty</div>}
                 {group.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
               </div>
             ))
@@ -596,15 +625,16 @@ export function LayerPanel({
   selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement,
-  onMoveElementToSection, onUpdateElement,
+  onMoveElementToSection, onUpdateElement, onDeleteElement, onDeleteSection, onClose,
 }: Props) {
   const sectionDragFromIndex = useRef<number | null>(null);
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
+  const [pageCollapsed, setPageCollapsed] = useState(false);
+  const [search, setSearch] = useState('');
   const layerListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Delay so collapsed sections have time to expand (setCollapsed re-render) before scrolling
     const t = setTimeout(() => {
       const list = layerListRef.current;
       if (!list) return;
@@ -613,36 +643,10 @@ export function LayerPanel({
       const listTop = list.getBoundingClientRect().top;
       const elTop = selected.getBoundingClientRect().top;
       const relativeTop = elTop - listTop + list.scrollTop;
-      // Centre the row in the visible area
       list.scrollTo({ top: relativeTop - list.clientHeight / 2 + selected.offsetHeight / 2 });
     }, 60);
     return () => clearTimeout(t);
   }, [selectedIds, selectedSectionId]);
-
-  function countCellElementsDeep(cell: GridCell): number {
-    return cell.children.reduce((sum, id) => {
-      const child = nodes[id];
-      if (!child) return sum;
-      if (child.type === 'container') {
-        const block = child as Container;
-        return sum + block.children.reduce((cs, subId) => {
-          const sub = nodes[subId] as GridCell | undefined;
-          return cs + (sub ? countCellElementsDeep(sub) : 0);
-        }, 0);
-      }
-      return sum + 1;
-    }, 0);
-  }
-
-  const totalElements = ([header, ...sections, footer] as (Section | undefined)[]).filter((s): s is Section => !!s).reduce((sum, s) => {
-    if (s.layoutMode === 'grid') {
-      return sum + s.children.reduce((cSum, cellId) => {
-        const cell = nodes[cellId] as GridCell | undefined;
-        return cSum + (cell ? countCellElementsDeep(cell) : 0);
-      }, 0);
-    }
-    return sum + s.children.length;
-  }, 0);
 
   const handleSectionDrop = () => {
     if (sectionDragFromIndex.current !== null && sectionDragOverIndex !== null && sectionDragFromIndex.current !== sectionDragOverIndex) {
@@ -674,51 +678,82 @@ export function LayerPanel({
     onSelectAccordion,
     onScrollToElement,
     onUpdateElement,
+    onDeleteElement,
+    onDeleteSection,
     onReorderElement,
     onMoveElementToSection,
     onSectionDragEnd: handleSectionDragEnd,
   };
 
   return (
-    <aside className={"pb-left-sidebar pb-layer-panel"}>
-      <div className={'pb-sidebar-section-title'}>
-        Layers <span className={'pb-layer-count'}>({totalElements})</span>
+    <aside className={'pb-left-sidebar pb-flex-col pb-layer-panel'}>
+
+      <div className={'pb-blocks-header'}>
+        <span className={'pb-blocks-header-title'}>Layers</span>
+        <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={onClose}>✕</button>
       </div>
-      <div className={'pb-layer-list'} ref={layerListRef}>
-        <SectionGroup
-          {...commonSectionProps}
-          section={header} role="header" index={-1}
-          isSectionSelected={selectedSectionId === header.id}
-          isDragOver={false} isDragging={false}
-          onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
-        />
 
-        {sections.map((sec, i) => (
-          <SectionGroup
-            {...commonSectionProps}
-            key={sec.id}
-            section={sec} role="section" index={i}
-            isSectionSelected={selectedSectionId === sec.id}
-            isDragOver={sectionDragOverIndex === i}
-            isDragging={draggingSectionIndex === i}
-            onSectionDragStart={idx => {
-              sectionDragFromIndex.current = idx;
-              setDraggingSectionIndex(idx);
-              setSectionDragOverIndex(null);
-            }}
-            onSectionDragOver={setSectionDragOverIndex}
-            onSectionDrop={handleSectionDrop}
+      <div className={'pb-blocks-search'}>
+        <div className={'pb-blocks-search-inner'}>
+          <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
+          <input
+            type="text"
+            placeholder="Search layers..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
           />
-        ))}
+        </div>
+      </div>
 
-        {footer && (
-          <SectionGroup
-            {...commonSectionProps}
-            section={footer} role="footer" index={-1}
-            isSectionSelected={selectedSectionId === footer.id}
-            isDragOver={false} isDragging={false}
-            onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
-          />
+      <div className={'pb-layer-list pb-flex-col'} ref={layerListRef}>
+
+        {/* Page virtual root */}
+        <div className={'pb-layer-page-row pb-flex-row'} onClick={() => setPageCollapsed(c => !c)}>
+          <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setPageCollapsed(c => !c); }}>
+            <CollapseArrow collapsed={pageCollapsed} />
+          </button>
+          <span className={'pb-layer-section-icon'}>◻</span>
+          <span className={'pb-layer-section-name pb-truncate'}>Page</span>
+        </div>
+
+        {!pageCollapsed && (
+          <>
+            <SectionGroup
+              {...commonSectionProps}
+              section={header} role="header" index={-1} depth={1}
+              isSectionSelected={selectedSectionId === header.id}
+              isDragOver={false} isDragging={false}
+              onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
+            />
+
+            {sections.map((sec, i) => (
+              <SectionGroup
+                {...commonSectionProps}
+                key={sec.id}
+                section={sec} role="section" index={i} depth={1}
+                isSectionSelected={selectedSectionId === sec.id}
+                isDragOver={sectionDragOverIndex === i}
+                isDragging={draggingSectionIndex === i}
+                onSectionDragStart={idx => {
+                  sectionDragFromIndex.current = idx;
+                  setDraggingSectionIndex(idx);
+                  setSectionDragOverIndex(null);
+                }}
+                onSectionDragOver={setSectionDragOverIndex}
+                onSectionDrop={handleSectionDrop}
+              />
+            ))}
+
+            {footer && (
+              <SectionGroup
+                {...commonSectionProps}
+                section={footer} role="footer" index={-1} depth={1}
+                isSectionSelected={selectedSectionId === footer.id}
+                isDragOver={false} isDragging={false}
+                onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
+              />
+            )}
+          </>
         )}
       </div>
     </aside>

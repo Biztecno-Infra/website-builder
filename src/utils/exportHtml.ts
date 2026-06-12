@@ -1,12 +1,12 @@
-import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
 import { sectionBgCssStr } from './sectionStyle';
-import { interactionToAction } from './builderDefaults';
+import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
+import { CANVAS_W } from '../hooks/useBuilderStore';
 
-const CANVAS_W = 1280;
 const TABLET_W = 768;
 const MOBILE_W = 375;
-const MOBILE_BREAK = TABLET_W - 1; // 767 — matches the mobile @media boundary used elsewhere
+const MOBILE_BREAK = TABLET_W - 1;
 
 function toYouTubeEmbedUrl(url: string): string {
   if (!url) return url;
@@ -67,7 +67,7 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
   };
 
   for (const sec of sections) {
-    if (sec.layoutMode === 'grid') {
+    if (sec.layoutMode === 'grid' || sec.layoutMode === 'flex') {
       for (const cellId of sec.children) {
         const cell = nodes[cellId] as GridCell | undefined;
         if (cell) collectFromCell(cell);
@@ -95,6 +95,7 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
     }
   }
   add(state.theme.fonts.body);
+  if (state.theme.fonts.heading) add(state.theme.fonts.heading);
   return Array.from(fonts);
 }
 
@@ -104,7 +105,9 @@ function elContentStyle(el: CanvasElement): string {
   const bg = el.style.background;
   const border = el.style.border;
 
-  if (bg.type === 'linear-gradient') {
+  if (bg.type === 'transparent') {
+    parts.push('background:transparent');
+  } else if (bg.type === 'linear-gradient') {
     parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
   } else if (bg.type === 'radial-gradient') {
     parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
@@ -157,7 +160,7 @@ function actionOf(el: CanvasElement): ElementAction | null {
 
 function smsHref(phone: string, body?: string): string {
   const num = phone.replace(/[^+\d]/g, '');
-  const q = body ? `?&body=${encodeURIComponent(body)}` : '';
+  const q = body ? `?body=${encodeURIComponent(body)}` : '';
   return `sms:${num}${q}`;
 }
 
@@ -209,7 +212,7 @@ function resolveAction(a: ElementAction | null): { href: string; target: string;
         ? `{method:'${method}',headers:{'Content-Type':'application/json'},body:${JSON.stringify(body)}}`
         : `{method:'${method}'}`;
       const onclick = `fetch(${JSON.stringify(a.apiUrl)},${init}).catch(function(e){console.error(e);});return false;`;
-      return { href: '#', target: '_self', onclick: esc(onclick) };
+      return { href: '#', target: '_self', onclick };
     }
     case 'open-popup':   // not yet functional in static export
     case 'submit-form':  // handled by the <form> element, not as a link
@@ -886,6 +889,43 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
   </div>`;
 }
 
+function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
+  const bg = sec.style.background;
+  const overlay = bg.overlay > 0
+    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
+    : '';
+  const cells = sec.children
+    .map(id => nodes[id] as GridCell | undefined)
+    .filter((c): c is GridCell => !!c)
+    .map(cell => renderGridCell(cell, nodes))
+    .join('\n      ');
+
+  const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
+
+  const hasExplicitMode = sec.grid.contentWidth != null;
+  const contentMode = hasExplicitMode ? sec.grid.contentWidth! : (pageFixed ? 'constrained' : 'full');
+  const maxW = sec.grid.maxWidth ?? pageMaxWidth;
+  const widthCss = contentMode === 'constrained'
+    ? `width:100%;max-width:${maxW}px;margin:0 auto`
+    : `width:100%`;
+
+  const flexCfg = sec.flex ?? DEFAULT_FLEX_CONFIG;
+  const flexCss = `display:flex;flex-direction:${flexCfg.direction};justify-content:${flexCfg.justify};align-items:${flexCfg.align};flex-wrap:${flexCfg.wrap ? 'wrap' : 'nowrap'};gap:${sec.grid.rowGap}px ${sec.grid.gap}px`;
+
+  const secBorder = sec.style.border;
+  const borderCss = secBorder && secBorder.width > 0
+    ? `;border:${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}${secBorder.radius ? `;border-radius:${secBorder.radius}px` : ''}`
+    : secBorder?.radius ? `;border-radius:${secBorder.radius}px` : '';
+
+  return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}">
+    ${overlay}
+    <div class="sc-flex-${sec.id} sc-pad-${sec.id}" style="${flexCss};${widthCss};padding:${padCss};box-sizing:border-box">
+      ${cells}
+    </div>
+  </div>`;
+}
+
 // Wrap a carousel in an absolutely-positioned box matching its free layout.
 // Position/size live in a per-carousel CSS class (crs-wrap-${id}) so tablet/mobile
 // media queries can override x/y/width — the same model as free elements.
@@ -965,6 +1005,7 @@ function renderFreeAccordion(accordion: Accordion, nodes: NodeMap): string {
 
 function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   if (sec.layoutMode === 'grid') return renderGridSection(sec as GridSection, nodes, pageFixed, pageMaxWidth);
+  if (sec.layoutMode === 'flex') return renderFlexSection(sec as FlexSection, nodes, pageFixed, pageMaxWidth);
 
   const bg = sec.style.background;
   const overlay = bg.overlay > 0

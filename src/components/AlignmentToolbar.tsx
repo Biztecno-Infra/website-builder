@@ -33,25 +33,25 @@ export function AlignmentToolbar({ selectedIds, elements, onUpdateElements }: Pr
     <div className={'pb-align-toolbar'}>
       <span className={'pb-align-toolbar-label'}>Align:</span>
 
-      <button className={'pb-align-btn'} title="Align Left"
+      <button className={'pb-align-btn pb-flex-center'} title="Align Left"
         onClick={() => align(el => ({ layout: { ...el.layout, x: minLeft } }))}>⊢</button>
-      <button className={'pb-align-btn'} title="Center Horizontally"
+      <button className={'pb-align-btn pb-flex-center'} title="Center Horizontally"
         onClick={() => align(el => ({ layout: { ...el.layout, x: Math.round(centerH - el.layout.width / 2) } }))}>⊣⊢</button>
-      <button className={'pb-align-btn'} title="Align Right"
+      <button className={'pb-align-btn pb-flex-center'} title="Align Right"
         onClick={() => align(el => ({ layout: { ...el.layout, x: maxRight - el.layout.width } }))}>⊣</button>
 
       <div className={'pb-align-toolbar-sep'} />
 
-      <button className={'pb-align-btn'} title="Align Top"
+      <button className={'pb-align-btn pb-flex-center'} title="Align Top"
         onClick={() => align(el => ({ layout: { ...el.layout, y: minTop } }))}>⊤</button>
-      <button className={'pb-align-btn'} title="Center Vertically"
+      <button className={'pb-align-btn pb-flex-center'} title="Center Vertically"
         onClick={() => align(el => ({ layout: { ...el.layout, y: Math.round(centerV - el.layout.height / 2) } }))}>⊥⊤</button>
-      <button className={'pb-align-btn'} title="Align Bottom"
+      <button className={'pb-align-btn pb-flex-center'} title="Align Bottom"
         onClick={() => align(el => ({ layout: { ...el.layout, y: maxBottom - el.layout.height } }))}>⊥</button>
 
       <div className={'pb-align-toolbar-sep'} />
 
-      <button className={'pb-align-btn'} title="Distribute Horizontally" onClick={() => {
+      <button className={'pb-align-btn pb-flex-center'} title="Distribute Horizontally" onClick={() => {
         const gap = (maxRight - minLeft - totalW) / Math.max(1, els.length - 1);
         const sorted = [...els].sort((a, b) => a.layout.x - b.layout.x);
         let cursor = minLeft;
@@ -62,7 +62,7 @@ export function AlignmentToolbar({ selectedIds, elements, onUpdateElements }: Pr
         }));
       }}>⇔</button>
 
-      <button className={'pb-align-btn'} title="Distribute Vertically" onClick={() => {
+      <button className={'pb-align-btn pb-flex-center'} title="Distribute Vertically" onClick={() => {
         const gap = (maxBottom - minTop - totalH) / Math.max(1, els.length - 1);
         const sorted = [...els].sort((a, b) => a.layout.y - b.layout.y);
         let cursor = minTop;

@@ -2,12 +2,12 @@ export type ElementType = 'text' | 'image' | 'button' | 'box' | 'divider' | 'vid
 export type TextAlign = 'left' | 'center' | 'right';
 export type ObjectFit = 'cover' | 'contain' | 'fill';
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
-export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient';
+export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient' | 'transparent';
 export type AnimationType = 'none' | 'fade-in' | 'slide-up' | 'slide-left' | 'zoom-in';
 export type AnimationTrigger = 'load' | 'scroll';
 export type Breakpoint = 'desktop' | 'large-desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
-export type SectionLayoutMode = 'free' | 'grid';
+export type SectionLayoutMode = 'free' | 'grid' | 'flex';
 export type CellLayoutMode = 'column' | 'row' | 'wrap';
 export type FlexWidthMode = 'fill' | 'auto' | 'fixed' | 'percent';
 
@@ -89,8 +89,11 @@ export interface ElementContent {
   src?: string;
   alt?: string;
   objectFit?: ObjectFit;
+  objectPosition?: string;
+  linkUrl?: string;
   label?: string;
   videoUrl?: string;
+  thumbnailUrl?: string;
   iconName?: string;
   iconSize?: number;
   iconSvg?: string;
@@ -256,6 +259,7 @@ export interface CanvasElement {
   responsive: ElementResponsive;
   flexLayout: FlexItemLayout;
   overlayInCell?: boolean;
+  cssPosition?: 'relative' | 'absolute' | 'fixed' | 'sticky';
 }
 
 // ── Section column ─────────────────────────────────────────────────────
@@ -274,14 +278,18 @@ export interface SectionStyle {
   background: SectionBackground;
   columns: SectionColumns;
   padding: Padding;
+  margin?: Padding;
   border?: Border;
+  shadow?: Shadow;
 }
+
+export type SectionCssPosition = 'relative' | 'absolute' | 'fixed' | 'sticky';
 
 export interface SectionLayout {
   height: number;
 }
 
-export type ContentWidthMode = 'constrained' | 'full';
+export type ContentWidthMode = 'constrained' | 'full' | 'fluid';
 
 export interface GridConfig {
   gap: number;
@@ -310,6 +318,7 @@ interface SectionBase {
   style: SectionStyle;
   scrollBehavior?: SectionScrollBehavior;
   stickyOffset?: number;
+  cssPosition?: SectionCssPosition;
   responsive?: SectionResponsive;
   hidden?: boolean;
 }
@@ -325,7 +334,25 @@ export interface GridSection extends SectionBase {
   grid: GridConfig;
 }
 
-export type Section = FreeSection | GridSection;
+export type FlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
+export type FlexJustify = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+export type FlexAlign = 'flex-start' | 'center' | 'flex-end' | 'stretch';
+
+export interface FlexConfig {
+  direction: FlexDirection;
+  justify: FlexJustify;
+  align: FlexAlign;
+  wrap: boolean;
+}
+
+export interface FlexSection extends SectionBase {
+  layoutMode: 'flex';
+  children: string[];  // GridCell IDs (same structure as grid sections)
+  grid: GridConfig;    // reused for gap, maxWidth etc.
+  flex: FlexConfig;
+}
+
+export type Section = FreeSection | GridSection | FlexSection;
 
 // Used in all update-operation signatures — covers fields from both variants.
 export type SectionUpdate = {
@@ -336,8 +363,10 @@ export type SectionUpdate = {
   layoutMode?: SectionLayoutMode;
   children?: string[];
   grid?: GridConfig;
+  flex?: FlexConfig;
   scrollBehavior?: SectionScrollBehavior;
   stickyOffset?: number;
+  cssPosition?: SectionCssPosition;
   responsive?: SectionResponsive;
 };
 
@@ -604,6 +633,7 @@ export interface SiteTheme {
   colors: ThemeColors;
   fonts: {
     body: string;
+    heading?: string;
   };
 }
 

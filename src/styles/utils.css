@@ -1,0 +1,9 @@
+/* ─── Utility Classes ─── */
+
+/* Flex layouts */
+.pb-flex-row    { display: flex; align-items: center; }
+.pb-flex-col    { display: flex; flex-direction: column; }
+.pb-flex-center { display: flex; align-items: center; justify-content: center; }
+
+/* Text truncation */
+.pb-truncate    { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -7,6 +7,7 @@ import { SECTION_TEMPLATES } from '../data/sectionTemplates';
 import { LayerPanel } from './LayerPanel';
 import { PagePanel } from './PagePanel';
 import { ThemePanel } from './ThemePanel';
+import { Icon } from './Icon';
 
 export const DND_TYPE = 'PALETTE_ITEM';
 export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
@@ -22,9 +23,9 @@ export interface CellLayoutDragItem { mode: ContainerLayoutMode; columnSpans?: n
 
 function ColumnPreviewIcon({ spans }: { spans: number[] }) {
   return (
-    <div style={{ display: 'flex', gap: 2, width: 26, height: 16, flexShrink: 0 }}>
+    <div className={'pb-col-preview'}>
       {spans.map((s, i) => (
-        <div key={i} style={{ flex: s, background: 'currentColor', borderRadius: 2, opacity: 0.65 }} />
+        <div key={i} className={'pb-col-preview-bar'} style={{ flex: s }} />
       ))}
     </div>
   );
@@ -70,7 +71,7 @@ const LAYOUT_PRESETS: Array<{ label: string; desc: string; columnSpans: number[]
   { label: 'Sidebar Right', desc: '75 / 25',              columnSpans: [9, 3]          },
 ];
 
-function LayoutItem({ label, desc, columnSpans, onAdd }: { label: string; desc: string; columnSpans: number[]; onAdd: (spans: number[]) => void }) {
+function LayoutItem({ label, columnSpans, onAdd }: { label: string; desc: string; columnSpans: number[]; onAdd: (spans: number[]) => void }) {
   const [{ isDragging }, dragRef] = useDrag<LayoutDragItem, void, { isDragging: boolean }>({
     type: LAYOUT_DND_TYPE,
     item: { columnSpans },
@@ -79,29 +80,25 @@ function LayoutItem({ label, desc, columnSpans, onAdd }: { label: string; desc: 
   return (
     <button
       ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
-      className={'pb-palette-item'}
+      className={'pb-layout-item'}
       style={{ opacity: isDragging ? 0.4 : 1 }}
-      title={`${label} (${desc}) — click to add or drag to position`}
+      title={`${label} — click to add or drag to position`}
       onClick={() => onAdd(columnSpans)}
     >
       <ColumnPreviewIcon spans={columnSpans} />
-      <div className={'pb-palette-label'} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <span style={{ fontWeight: 600, fontSize: 11 }}>{label}</span>
-        <span style={{ fontSize: 9, opacity: 0.55, fontWeight: 500 }}>{desc}</span>
-      </div>
-      <span className={'pb-palette-drag-icon'}>⠿</span>
+      <span className={'pb-layout-label'}>{label}</span>
     </button>
   );
 }
 
 interface PaletteItemProps {
   type: ElementType;
-  icon: string;
+  iconId: string;
   label: string;
   onAdd: (type: ElementType) => void;
 }
 
-function PaletteItem({ type, icon, label, onAdd }: PaletteItemProps) {
+function PaletteItem({ type, iconId, label, onAdd }: PaletteItemProps) {
   const [{ isDragging }, dragRef] = useDrag({
     type: DND_TYPE,
     item: { type },
@@ -111,14 +108,13 @@ function PaletteItem({ type, icon, label, onAdd }: PaletteItemProps) {
   return (
     <button
       ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
-      className={'pb-palette-item'}
+      className={'pb-palette-item pb-flex-col'}
       style={{ opacity: isDragging ? 0.4 : 1 }}
       onClick={() => onAdd(type)}
       title={`Add ${label} — drag to place`}
     >
-      <span className={'pb-palette-icon'}>{icon}</span>
+      <Icon id={iconId} size={20} />
       <span className={'pb-palette-label'}>{label}</span>
-      <span className={'pb-palette-drag-icon'}>⠿</span>
     </button>
   );
 }
@@ -196,16 +192,16 @@ function TemplateCard({ tpl, onAdd }: {
   );
 }
 
-const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
-  { type: 'text',    icon: '',  label: 'Text'    },
-  { type: 'image',   icon: '',  label: 'Image'   },
-  { type: 'button',  icon: '',  label: 'Button'  },
-  { type: 'box',     icon: '',  label: 'Box'     },
-  { type: 'divider', icon: '',  label: 'Divider' },
-  { type: 'video',   icon: '',  label: 'Video'   },
-  { type: 'spacer',  icon: '',  label: 'Spacer'  },
-  { type: 'icon',    icon: '',  label: 'Icon'    },
-  { type: 'form',    icon: '',  label: 'Form'    },
+const PALETTE: Array<{ type: ElementType; iconId: string; label: string }> = [
+  { type: 'text',      iconId: 'elText',      label: 'Text'      },
+  { type: 'image',     iconId: 'elImage',     label: 'Image'     },
+  { type: 'button',    iconId: 'elButton',    label: 'Button'    },
+  { type: 'box',       iconId: 'elBox',       label: 'Box'       },
+  { type: 'divider',   iconId: 'elDivider',   label: 'Divider'   },
+  { type: 'video',     iconId: 'elVideo',     label: 'Video'     },
+  { type: 'spacer',    iconId: 'elSpacer',    label: 'Spacer'    },
+  { type: 'icon',      iconId: 'elIcon',      label: 'Icon'      },
+  { type: 'form',    iconId: 'elForm',    label: 'Form'    },
 ];
 
 interface Props {
@@ -232,6 +228,8 @@ interface Props {
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
+  onDeleteElement?: (id: string) => void;
+  onDeleteSection?: (id: string) => void;
   // Section data for layers panel
   nodes: NodeMap;
   header: Section;
@@ -259,13 +257,12 @@ export function LeftSidebar({
   onAdd, onAddCarousel, onAddAccordion, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
   selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
   onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
-  onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
+  onReorderSection, onReorderElement, onMoveElementToSection, onUpdate, onDeleteElement, onDeleteSection,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
   theme, onUpdateTheme, onApplyTheme,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme'>('elements');
-  const [templatesOpen, setTemplatesOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | null>('elements');
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
 
   const handleResizerMouseDown = (e: React.MouseEvent) => {
@@ -290,44 +287,54 @@ export function LeftSidebar({
   };
 
   return (
-    <div className={'pb-left-panel'} style={{ width: panelWidth }}>
-      <div className={'pb-tab-strip'}>
-        <button className={['pb-tab-btn', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => setActiveTab('elements')} title="Elements">
-          <span className={'pb-tab-btn-icon'}>⊞</span>
-          <span>Blocks</span>
+    <div className={'pb-left-panel'} style={{ width: activeTab !== null ? panelWidth : 48 }}>
+      <div className={'pb-tab-strip pb-flex-col'}>
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'elements' && 'pb-active'].filter(Boolean).join(' ')}
+          onClick={() => setActiveTab('elements')} title="Blocks">
+          <Icon id="sections" size={20} />
         </button>
-        <button className={['pb-tab-btn', activeTab === 'layers' && 'pb-active'].filter(Boolean).join(' ')}
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'layers' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('layers')} title="Layers">
-          <span className={'pb-tab-btn-icon'}>⧉</span>
-          <span>Layers</span>
+          <Icon id="layers" size={20} />
         </button>
-        <button className={['pb-tab-btn', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
+        {/* Pages tab — not in design yet
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('pages')} title="Pages">
-          <span className={'pb-tab-btn-icon'}>☰</span>
           <span>Pages</span>
         </button>
-        <button className={['pb-tab-btn', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
+        */}
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => setActiveTab('theme')} title="Theme">
-          <span className={'pb-tab-btn-icon'}>🎨</span>
-          <span>Theme</span>
+          <Icon id="palette" size={20} />
         </button>
       </div>
 
       {activeTab === 'elements' && (
-        <aside className={'pb-left-sidebar'}>
+        <aside className={'pb-left-sidebar pb-flex-col'}>
 
-          <div className={'pb-sidebar-section-title'}>Elements</div>
+          <div className={'pb-blocks-header'}>
+            <span className={'pb-blocks-header-title'}>Add Elements</span>
+            <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={() => setActiveTab(null)}>✕</button>
+          </div>
+
+          <div className={'pb-blocks-search'}>
+            <div className={'pb-blocks-search-inner'}>
+              <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
+              <input type="text" placeholder="Search layers..." />
+            </div>
+          </div>
+
+          <div className={'pb-sidebar-section-title'}>Basic</div>
           <div className={'pb-palette-list'}>
             {PALETTE.map(item => (
-              <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
+              <PaletteItem key={item.type} type={item.type} iconId={item.iconId} label={item.label} onAdd={onAdd} />
             ))}
             <CarouselPaletteItem onAdd={onAddCarousel} />
             <AccordionPaletteItem onAdd={onAddAccordion} />
           </div>
 
-          <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Grid Layouts</div>
-          <div className={'pb-palette-list'}>
+          <div className={'pb-sidebar-section-title'}>Grid Layout</div>
+          <div className={'pb-layout-list'}>
             {LAYOUT_PRESETS.map(preset => (
               <LayoutItem
                 key={preset.label}
@@ -338,9 +345,12 @@ export function LeftSidebar({
               />
             ))}
           </div>
-          <div className={'pb-section-type-list'} style={{ marginTop: 4 }}>
-            <button className={'pb-section-type-btn'} onClick={onAddFreeSection} title="Add a free-layout section">
-              <span className={'pb-section-type-icon'}>⬜</span>
+
+          <div className={'pb-section-type-list'}>
+            <button className={'pb-section-type-btn pb-flex-row'} onClick={onAddFreeSection} title="Add a free-layout section">
+              <span className={'pb-section-type-icon-box'}>
+                <Icon id="elAccordion" size={14} />
+              </span>
               <div className={'pb-section-type-info'}>
                 <span className={'pb-section-type-label'}>Free Section</span>
                 <span className={'pb-section-type-desc'}>Absolute positioning</span>
@@ -348,6 +358,7 @@ export function LeftSidebar({
             </button>
           </div>
 
+          {/* Cell Layouts — not in design yet, kept for future use
           <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Cell Layouts</div>
           <div style={{ paddingLeft: 12, paddingBottom: 4, fontSize: 10, color: '#94a3b8' }}>
             {selectedGridCellId ? 'Drop into cell or click to add' : 'Select a grid cell first'}
@@ -365,22 +376,14 @@ export function LeftSidebar({
               />
             ))}
           </div>
+          */}
 
-          <button
-            className={'pb-sidebar-collapsible-header'}
-            onClick={() => setTemplatesOpen(o => !o)}
-          >
-            <span className={'pb-sidebar-collapsible-icon'}>{templatesOpen ? '▾' : '▸'}</span>
-            <span>Templates</span>
-            <span className={'pb-sidebar-collapsible-count'}>{SECTION_TEMPLATES.length}</span>
-          </button>
-          {templatesOpen && (
-            <div className={'pb-template-card-list'}>
-              {SECTION_TEMPLATES.map(tpl => (
-                <TemplateCard key={tpl.key} tpl={tpl} onAdd={onAddSectionFromTemplate} />
-              ))}
-            </div>
-          )}
+          <div className={'pb-sidebar-section-title'}>Template</div>
+          <div className={'pb-template-card-list'}>
+            {SECTION_TEMPLATES.map(tpl => (
+              <TemplateCard key={tpl.key} tpl={tpl} onAdd={onAddSectionFromTemplate} />
+            ))}
+          </div>
 
         </aside>
       )}
@@ -408,6 +411,9 @@ export function LeftSidebar({
           onReorderElement={onReorderElement}
           onMoveElementToSection={onMoveElementToSection}
           onUpdateElement={onUpdate}
+          onDeleteElement={onDeleteElement}
+          onDeleteSection={onDeleteSection}
+          onClose={() => setActiveTab(null)}
         />
       )}
 
@@ -423,7 +429,7 @@ export function LeftSidebar({
       )}
 
       {activeTab === 'theme' && (
-        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} />
+        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={() => setActiveTab(null)} />
       )}
 
       <div className={'pb-left-panel-resizer'} onMouseDown={handleResizerMouseDown} />

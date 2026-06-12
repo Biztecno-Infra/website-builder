@@ -231,7 +231,7 @@ export function Canvas({
     <div ref={wrapperRef} className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
-      <div className={'pb-canvas-column'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
+      <div className={'pb-canvas-column pb-flex-col'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
 
         {layoutWidth === 'fixed' && !previewMode && breakpoint === 'desktop' && (
           <div

@@ -9,7 +9,7 @@ import { CarouselView } from './CarouselView';
 import { AccordionView } from './AccordionView';
 import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
-import type { Accordion, Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
+import type { Accordion, Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, FlexSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 
@@ -91,11 +91,11 @@ interface Props {
 
 // Pure dispatcher — no hooks here, so React hook count never changes between renders.
 export function SectionView(props: Props) {
-  if (props.section.layoutMode === 'grid') {
+  if (props.section.layoutMode === 'grid' || props.section.layoutMode === 'flex') {
     const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, onDropGridLayout, onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId, onSelectContainer, onAddGridSectionBefore, onAddGridSectionAfter, ...rest } = props;
     return (
       <GridSectionView
-        section={section as GridSection}
+        section={section as GridSection | FlexSection}
         onSelectGridCell={onSelectGridCell ?? (() => {})}
         onUpdateGridCell={onUpdateGridCell ?? (() => {})}
         onAddGridCell={onAddGridCell ?? (() => {})}
@@ -355,9 +355,16 @@ function FreeSectionView({
 
   // Fixed renders as sticky in the editor canvas — true position:fixed would escape the canvas DOM.
   // The export emits genuine position:fixed.
+  const secMargin = section.style.margin;
+  const marginStyle: React.CSSProperties = secMargin
+    ? { marginTop: secMargin.top, marginRight: secMargin.right, marginBottom: secMargin.bottom, marginLeft: secMargin.left }
+    : {};
+  const cssPos = section.cssPosition;
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
-    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
-    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
+    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50, ...marginStyle }
+    : cssPos && cssPos !== 'relative'
+      ? { flexShrink: 0, position: cssPos as React.CSSProperties['position'], zIndex: 50, ...marginStyle }
+      : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined, ...marginStyle };
 
   return (
     <div
@@ -368,13 +375,13 @@ function FreeSectionView({
       {!previewMode && !hasActiveChild && (hovered || isSelected) && (
         <>
           <button
-            className={'pb-section-insert-btn pb-section-insert-btn--above'}
+            className={'pb-section-insert-btn pb-flex-center pb-section-insert-btn--above'}
             title="Insert section above"
             onMouseDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); onAddSectionBefore?.(); }}
           >+</button>
           <button
-            className={'pb-section-insert-btn pb-section-insert-btn--below'}
+            className={'pb-section-insert-btn pb-flex-center pb-section-insert-btn--below'}
             title="Insert section below"
             onMouseDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); onAddSectionAfter?.(); }}
@@ -414,7 +421,7 @@ function FreeSectionView({
           style={sectionContentStyle}
           onMouseDown={handleSurfaceMouseDown}
         >
-          {!previewMode && !hasActiveChild && (hovered || isSelected) && (
+          {!previewMode && (!hasActiveChild && (hovered || isSelected)) && (
             <div className={'pb-section-label-badge'}>
               {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
               {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
@@ -422,16 +429,28 @@ function FreeSectionView({
             </div>
           )}
 
+          {isFixed && !previewMode && (
+            <div className={'pb-fixed-notice'}>
+              Fixed · preview is sticky — export uses position:fixed
+            </div>
+          )}
+
+          {section.layoutMode === 'free' && breakpoint !== 'desktop' && !previewMode && (
+            <div className={'pb-free-mobile-notice'}>
+              Free layout · position each element manually for {breakpoint}
+            </div>
+          )}
+
           {!previewMode && isSelected && !hasActiveChild && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
-              <button className={'pb-section-action-btn'} title="Move up"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
-              <button className={'pb-section-action-btn'} title="Move down"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Move down"
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
-              <button className={'pb-section-action-btn'} title="Duplicate section"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
               <div className={'pb-section-action-divider'} />
-              <button className={"pb-section-action-btn pb-danger"} title="Delete section"
+              <button className={"pb-section-action-btn pb-flex-center pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
             </div>
           )}

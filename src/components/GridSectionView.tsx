@@ -6,8 +6,9 @@ import { GridCellView } from './GridCellView';
 import { canvasDragShared } from './CanvasElement';
 import type {
   Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  ContentWidthMode, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
+  ContentWidthMode, FlexSection, GridCell, GridSection, NodeMap, SectionUpdate, ElementType,
 } from '../types';
+import { DEFAULT_FLEX_CONFIG } from '../utils/builderDefaults';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps } from '../utils/sectionStyle';
 import { getCellColumnSpan } from '../utils/cellUtils';
@@ -22,7 +23,7 @@ function isCellOrDescendant(nodes: NodeMap, parentId: string, targetId: string |
 
 
 interface Props {
-  section: GridSection;
+  section: GridSection | FlexSection;
   nodes: NodeMap;
   role: 'header' | 'section' | 'footer';
   isSelected: boolean;
@@ -172,6 +173,8 @@ export function GridSectionView({
     ? { ...desktopPad, ...section.responsive?.tablet?.padding }
     : desktopPad;
 
+  const isFlex = section.layoutMode === 'flex';
+  const flexCfg = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
   const contentWidthMode: ContentWidthMode = gridCfg.contentWidth ?? 'constrained';
   const maxW = gridCfg.maxWidth ?? 1280;
 
@@ -233,13 +236,13 @@ export function GridSectionView({
       {!previewMode && !hasActiveChild && (hovered || isSelected) && (
         <>
           <button
-            className={'pb-section-insert-btn pb-section-insert-btn--above'}
+            className={'pb-section-insert-btn pb-flex-center pb-section-insert-btn--above'}
             title="Insert section above"
             onMouseDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); onAddSectionBefore?.(); }}
           >+</button>
           <button
-            className={'pb-section-insert-btn pb-section-insert-btn--below'}
+            className={'pb-section-insert-btn pb-flex-center pb-section-insert-btn--below'}
             title="Insert section below"
             onMouseDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); onAddSectionAfter?.(); }}
@@ -290,14 +293,14 @@ export function GridSectionView({
         >
           {!previewMode && isSelected && !hasActiveChild && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
-              <button className={'pb-section-action-btn'} title="Move up"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Move up"
                 onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
-              <button className={'pb-section-action-btn'} title="Move down"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Move down"
                 onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
-              <button className={'pb-section-action-btn'} title="Duplicate section"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Duplicate section"
                 onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
               <div className={'pb-section-action-divider'} />
-              <button className={'pb-section-action-btn'} title="Add column"
+              <button className={'pb-section-action-btn pb-flex-center'} title="Add column"
                 onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>+ Col</button>
               <div className={'pb-section-action-divider'} />
               {(() => {
@@ -306,7 +309,7 @@ export function GridSectionView({
                 const isBoxed = effectiveMode === 'constrained';
                 return (
                   <button
-                    className={['pb-section-action-btn', 'pb-section-width-toggle', isOverride && 'pb-section-width-override'].filter(Boolean).join(' ')}
+                    className={['pb-section-action-btn pb-flex-center', 'pb-section-width-toggle', isOverride && 'pb-section-width-override'].filter(Boolean).join(' ')}
                     title={isBoxed ? 'Section is Boxed (max-width) — click for Full width' : 'Section is Full width — click for Boxed (max-width)'}
                     onClick={e => {
                       e.stopPropagation();
@@ -316,7 +319,7 @@ export function GridSectionView({
                 );
               })()}
               <div className={'pb-section-action-divider'} />
-              <button className={"pb-section-action-btn pb-danger"} title="Delete section"
+              <button className={"pb-section-action-btn pb-flex-center pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
             </div>
           )}
@@ -324,7 +327,15 @@ export function GridSectionView({
           <div className={'pb-grid-area-wrapper'}>
             <div
               className={'pb-grid-cells-row'}
-              style={{
+              style={isFlex ? {
+                display: 'flex',
+                flexDirection: flexCfg.direction,
+                justifyContent: flexCfg.justify,
+                alignItems: flexCfg.align,
+                flexWrap: flexCfg.wrap ? 'wrap' : 'nowrap',
+                gap: `${rowGap}px ${gap}px`,
+                minHeight: gridCfg.minHeight || undefined,
+              } : {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(12, 1fr)',
                 gap: `${rowGap}px ${gap}px`,
@@ -434,7 +445,7 @@ export function GridSectionView({
             </div>
 
             {cells.length === 0 && !previewMode && (
-              <div className={'pb-grid-empty-state'}>
+              <div className={'pb-grid-empty-state pb-flex-center'}>
                 <span className={'pb-grid-empty-icon'}>⊞</span>
                 <button className={'pb-grid-empty-add-btn'} onClick={e => { e.stopPropagation(); onAddGridCell(section.id); }}>
                   + Add first column

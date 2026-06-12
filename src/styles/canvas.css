@@ -1,0 +1,569 @@
+﻿/* ─── Content wrapper (canvas + property panel) ─── */
+.pb-content-wrapper {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Canvas wrapper ─── */
+.pb-canvas-wrapper {
+  flex: 1;
+  overflow: auto;
+  background: var(--pb-border-base);
+  background-image: radial-gradient(circle, #c0c0c0 1px, transparent 1px);
+  background-size: 20px 20px;
+  padding: 32px 48px 80px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+/* ─── Canvas column (stacked sections — full-width) ─── */
+.pb-canvas-column {
+  width: 100%;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.13);
+}
+
+.pb-bp-tablet .pb-canvas-column {
+  width: 768px;
+  margin: 0 auto;
+}
+.pb-bp-mobile .pb-canvas-column {
+  width: 375px;
+  margin: 0 auto;
+}
+
+/* ─── Section background (full-width, carries background color/image) ─── */
+.pb-section-bg {
+  overflow: visible;
+}
+
+/* ─── Section surface (centered content container — elements live here) ─── */
+.pb-section-surface {
+  position: relative;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.pb-canvas-wrapper:not(.pb-preview-mode) .pb-section-surface::before,
+.pb-canvas-wrapper:not(.pb-preview-mode) .pb-section-surface::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0,0,0,0.07);
+  pointer-events: none;
+  z-index: 9999;
+}
+.pb-canvas-wrapper:not(.pb-preview-mode) .pb-section-surface::before { left: 0; }
+.pb-canvas-wrapper:not(.pb-preview-mode) .pb-section-surface::after  { right: 0; }
+
+/* ─── Section empty state ─── */
+.pb-section-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--pb-text-subtle);
+  font-size: 13px;
+  pointer-events: none;
+  text-align: center;
+  padding: 16px;
+}
+
+/* ─── Section label badge ─── */
+.pb-section-label-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-bottom-right-radius: 5px;
+  pointer-events: none;
+}
+.pb-section-label-badge--clickable {
+  pointer-events: auto;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--pb-transition);
+}
+.pb-section-label-badge--clickable:hover {
+  background: var(--pb-primary-dark);
+}
+.pb-section-label-badge--active {
+  background: #004a50;
+  box-shadow: 0 0 0 2px #00c8c8;
+}
+
+/* ─── Fixed-section preview notice ─── */
+.pb-fixed-notice {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  background: var(--pb-warning);
+  color: #7c3a00;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ─── Free-layout mobile warning banner ─── */
+.pb-free-mobile-notice {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 99;
+  background: rgba(245, 158, 11, 0.12);
+  border-bottom: 1px solid var(--pb-warning);
+  color: #92400e;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  padding: 3px 8px;
+  pointer-events: none;
+}
+
+/* ─── Section action bar ─── */
+.pb-section-action-bar {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 101;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 4px;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border-base);
+  border-radius: 7px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.pb-section-action-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 13px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--pb-text-muted);
+  cursor: pointer;
+  transition: var(--pb-transition);
+}
+
+.pb-section-action-btn:hover {
+  background: var(--pb-bg-hover);
+  color: var(--pb-primary);
+}
+
+.pb-section-action-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--pb-border-base);
+  margin: 0 2px;
+}
+
+.pb-section-action-btn.pb-danger:hover {
+  background: var(--pb-danger-bg);
+  color: var(--pb-danger);
+}
+
+.pb-cell-action-bar {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 102;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border-base);
+  border-radius: var(--pb-radius-md);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.pb-cell-action-btn {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 13px;
+  border: none;
+  border-radius: var(--pb-radius-sm);
+  background: transparent;
+  color: var(--pb-text-muted);
+  cursor: pointer;
+  transition: var(--pb-transition);
+}
+
+.pb-cell-action-btn:hover:not(:disabled) { background: var(--pb-bg-hover); color: var(--pb-primary); }
+.pb-cell-action-btn:disabled { opacity: 0.3; cursor: default; }
+
+.pb-cell-action-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--pb-border-base);
+  margin: 0 2px;
+}
+
+.pb-section-width-toggle {
+  width: auto !important;
+  padding: 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.pb-section-width-override {
+  color: var(--pb-primary);
+}
+
+/* ─── Section hover insert buttons ─── */
+.pb-section-insert-btn {
+  position: absolute;
+  left: 50%;
+  z-index: 30;
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 400;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0,0,0,.3);
+  pointer-events: all;
+}
+.pb-section-insert-btn--above {
+  top: 0;
+  transform: translate(-50%, -50%);
+}
+.pb-section-insert-btn--below {
+  bottom: 0;
+  transform: translate(-50%, 50%);
+}
+.pb-section-insert-btn:hover {
+  background: #004f55;
+}
+
+/* ─── Section resize handle ─── */
+.pb-section-resize-handle {
+  height: 6px;
+  background: transparent;
+  cursor: ns-resize;
+  transition: var(--pb-transition);
+  position: relative;
+  z-index: 100;
+}
+
+.pb-section-resize-handle:hover,
+.pb-section-resize-handle:active {
+  background: var(--pb-primary-hover)44;
+}
+
+/* ─── Grid cell height resize handle ─── */
+.pb-grid-cell-height-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  cursor: ns-resize;
+  z-index: 20;
+  background: transparent;
+  transition: var(--pb-transition);
+}
+.pb-grid-cell-height-resize-handle:hover,
+.pb-grid-cell-height-resize-handle:active {
+  background: var(--pb-primary-hover)44;
+}
+.pb-grid-cell-height-resize-handle::before {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pb-primary-hover);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.pb-grid-cell-height-resize-handle:hover::before,
+.pb-grid-cell-height-resize-handle:active::before {
+  opacity: 1;
+}
+
+/* ─── Animation keyframes ─── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(40px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.75); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.pb-anim-pending { opacity: 0 !important; }
+.pb-anim-fade-in  { animation: fadeIn    var(--anim-duration, 600ms) var(--anim-delay, 0ms) both ease-out; }
+.pb-anim-slide-up { animation: slideUp   var(--anim-duration, 600ms) var(--anim-delay, 0ms) both ease-out; }
+.pb-anim-slide-left { animation: slideLeft var(--anim-duration, 600ms) var(--anim-delay, 0ms) both ease-out; }
+.pb-anim-zoom-in  { animation: zoomIn    var(--anim-duration, 600ms) var(--anim-delay, 0ms) both ease-out; }
+
+
+/* ─── Theme panel ─── */
+
+/* 2-column color card grid */
+/* ─── Theme panel header ─── */
+
+/* ─── Theme color grid ─── */
+.pb-tc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0 8px;
+}
+
+.pb-tc-card {
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+}
+
+.pb-tc-pill {
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border: 1.5px solid var(--pb-border-light);
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.pb-tc-pill:hover {
+  border-color: var(--pb-primary);
+}
+
+.pb-tc-swatch {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1.5px solid rgba(0,0,0,0.1);
+}
+
+.pb-tc-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--pb-text-dark);
+  flex: 1;
+  min-width: 0;
+}
+
+.pb-tc-hex {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pb-text-dark);
+  font-family: monospace;
+  flex-shrink: 0;
+}
+
+
+/* ─── Smart alignment guides ─── */
+.pb-guide-v {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--pb-danger-dark);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.pb-guide-h {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--pb-danger-dark);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ─── Drag position guides ─── */
+.pb-drag-guide-v {
+  position: absolute;
+  width: 1.5px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--pb-info) 0px, var(--pb-info) 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-h {
+  position: absolute;
+  height: 1.5px;
+  background: repeating-linear-gradient(
+    to right,
+    var(--pb-info) 0px, var(--pb-info) 4px,
+    transparent 4px, transparent 8px
+  );
+  pointer-events: none;
+  z-index: 9995;
+  overflow: visible;
+}
+
+.pb-drag-guide-lbl {
+  position: absolute;
+  background: var(--pb-info);
+  color: var(--pb-white);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Label on a vertical guide: sits to the right, centered on the line */
+.pb-drag-guide-lbl--v {
+  left: 5px;
+  transform: translateY(-50%);
+}
+
+/* Label on a horizontal guide: sits below, centered on the line */
+.pb-drag-guide-lbl--h {
+  top: 4px;
+  transform: translateX(-50%);
+}
+
+.pb-drag-size-lbl {
+  position: absolute;
+  background: rgba(26, 115, 232, 0.88);
+  color: var(--pb-white);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  line-height: 16px;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translateX(-50%);
+}
+
+/* ─── Marquee selection rect ─── */
+.pb-marquee-rect {
+  position: absolute;
+  border: 1px dashed var(--pb-primary);
+  background: rgba(0, 110, 117, 0.08);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ─── Column guides ─── */
+.pb-column-guides {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pb-column-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  transform: translateX(-3px);
+  cursor: col-resize;
+  pointer-events: all;
+  z-index: 2;
+}
+
+.pb-column-divider::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--pb-primary)44;
+  transition: var(--pb-transition);
+}
+
+.pb-column-divider:hover::before,
+.pb-column-divider:active::before {
+  background: var(--pb-primary)cc;
+}
+
+
+/* ─── Section drop zone (drag layout between sections) ─── */
+.pb-section-drop-zone {
+  width: 100%;
+  flex-shrink: 0;
+  border-radius: var(--pb-radius-md);
+  transition: var(--pb-transition-all);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.pb-section-drop-zone-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pb-primary-hover);
+  pointer-events: none;
+}
+
+
+
+/* ─── Toolbar primary button ─── */
+.pb-toolbar-btn.pb-primary {
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border-color: var(--pb-primary);
+}
+.pb-toolbar-btn.pb-primary:hover { background: var(--pb-primary-hover); border-color: var(--pb-primary-hover); }
+.pb-toolbar-btn.pb-active {
+  background: var(--pb-bg-subtle);
+  color: var(--pb-primary);
+  border-color: var(--pb-primary);
+}

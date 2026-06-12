@@ -63,7 +63,14 @@ export function interactionToAction(i: ElementInteraction | undefined): ElementA
 
 export const DEFAULT_THEME: SiteTheme = {
   colors: { primary: '#006e75', text: '#333333', background: '#ffffff', light: '#f5f5f5', accent: '#e74c3c', sectionBg: '#ffffff' },
-  fonts: { body: 'Inter, sans-serif' },
+  fonts: { body: 'Inter, sans-serif', heading: 'Inter, sans-serif' },
+};
+
+export const DEFAULT_FLEX_CONFIG = {
+  direction: 'row' as const,
+  justify: 'flex-start' as const,
+  align: 'flex-start' as const,
+  wrap: false,
 };
 
 export const DEFAULT_FLEX_LAYOUT: FlexItemLayout = {

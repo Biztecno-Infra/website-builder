@@ -1,5 +1,7 @@
-import { useRef } from 'react';
 import type { Breakpoint, BuilderState, Container, ContainerLayoutMode, ContainerResponsive } from '../../types';
+import { PanelHeader } from './PanelHeader';
+import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
+import { resolveResponsive } from '../../utils/responsive';
 
 interface Props {
   container: Container;
@@ -16,18 +18,11 @@ const MODES: Array<{ mode: ContainerLayoutMode; label: string; icon: string }> =
 ];
 
 export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushSnapshot, breakpoint = 'desktop' }: Props) {
-  const focusSnapshot = useRef<BuilderState | null>(null);
-  const onFocus = () => { if (!focusSnapshot.current) focusSnapshot.current = snapshot; };
-  const onBlur  = () => { if (focusSnapshot.current) { onPushSnapshot(focusSnapshot.current); focusSnapshot.current = null; } };
+  const { onFocus, onBlur } = useFocusSnapshot(snapshot, onPushSnapshot);
 
   const resp = container.responsive ?? {};
 
-  const effectiveMode: ContainerLayoutMode =
-    breakpoint === 'mobile'
-      ? (resp.mobile?.layoutMode ?? resp.tablet?.layoutMode ?? container.layoutMode)
-      : breakpoint === 'tablet'
-      ? (resp.tablet?.layoutMode ?? container.layoutMode)
-      : container.layoutMode;
+  const effectiveMode = resolveResponsive(breakpoint, container.layoutMode, resp.tablet?.layoutMode, resp.mobile?.layoutMode);
 
   const isOverridden =
     (breakpoint === 'tablet' && resp.tablet?.layoutMode !== undefined) ||
@@ -61,13 +56,11 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
 
   return (
     <div style={{ borderBottom: '1px solid #e9eef4', paddingBottom: 12, marginBottom: 4 }}>
-      <div className={'pb-panel-header'} style={{ paddingBottom: 6 }}>
-        <span className={'pb-panel-header-title'}>Container</span>
-      </div>
+      <PanelHeader title="Container" />
 
       <div style={{ padding: '0 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+          <div className={'pb-sublabel'}>
             Layout mode{breakpoint !== 'desktop' ? ` · ${breakpoint}` : ''}
           </div>
           {isOverridden && (
@@ -101,7 +94,7 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
         {breakpoint === 'desktop' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Gap</div>
+              <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Gap</div>
               <input
                 type="number" min={0} max={80}
                 value={container.gap}
@@ -112,7 +105,7 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
               />
             </div>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 4 }}>Row Gap</div>
+              <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Row Gap</div>
               <input
                 type="number" min={0} max={80}
                 value={container.rowGap}

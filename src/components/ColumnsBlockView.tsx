@@ -306,7 +306,7 @@ export function ColumnsBlockView({
             );
           })}
           {subCells.length === 0 && !previewMode && (
-            <div className={'pb-container-empty'}>
+            <div className={'pb-container-empty pb-flex-center'}>
               <span style={{ marginBottom: 6, color: '#94a3b8', fontSize: 11 }}>Empty container</span>
               <button
                 className={'pb-container-empty-add'}
