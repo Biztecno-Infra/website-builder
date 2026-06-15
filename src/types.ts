@@ -74,6 +74,17 @@ export interface ElementLayout {
   rotation: number;
 }
 
+// Phase 1 button hover: a single enabled toggle + optional hover colors + the
+// transition duration. Colors are optional so an unconfigured value falls back
+// to the element's default (non-hover) style. Kept intentionally minimal — no
+// scale/shadow/animation/active/disabled state.
+export interface ElementHover {
+  enabled: boolean;
+  backgroundColor?: string;
+  textColor?: string;
+  transitionDuration: number; // milliseconds
+}
+
 export interface ElementStyle {
   opacity: number;
   background: ElementBackground;
@@ -82,6 +93,7 @@ export interface ElementStyle {
   border: Border;
   shadow: Shadow;
   typography: Typography;
+  hover?: ElementHover;
 }
 
 export interface ElementContent {

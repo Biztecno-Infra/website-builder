@@ -21,7 +21,7 @@ const ELEMENT_SECTION_DEFAULTS: Record<string, boolean> = {
   layout: true, sizing: true,
   typography: true, image: true, video: true, icon: true,
   form: true, action: true,
-  background: true, border: true, spacing: true,
+  background: true, hover: true, border: true, spacing: true,
   shadow: false, interactions: false, animation: false,
   advanced: false, responsive: false,
 };
@@ -56,6 +56,7 @@ export function ElementPanel({
   const changePad    = (p: Partial<Padding>) => change({ style: { ...element.style, padding: { ...element.style.padding, ...p } } });
   const changeMargin = (p: Partial<Padding>) => change({ style: { ...element.style, margin: { ...element.style.margin, ...p } } });
   const changeShadow = (s: Partial<Shadow>) => change({ style: { ...element.style, shadow: { ...element.style.shadow, ...s } } });
+  const changeHover  = (h: Partial<import('../../types').ElementHover>) => change({ style: { ...element.style, hover: { enabled: false, transitionDuration: 200, ...element.style.hover, ...h } } });
   const changeTypo   = (t: Partial<Typography>) => change({ style: { ...element.style, typography: { ...element.style.typography, ...t } } });
   const changeLayout = (l: Partial<import('../../types').ElementLayout>) => change({ layout: { ...element.layout, ...l } });
   const changeContent = (c: Partial<ElementContent>) => change({ content: { ...element.content, ...c } });
@@ -263,6 +264,7 @@ export function ElementPanel({
         changeBg={changeBg} changeBorder={changeBorder}
         changePad={changePad} changeMargin={changeMargin}
         changeShadow={changeShadow} changeLayout={changeLayout}
+        changeHover={changeHover}
         commitChange={commitChange}
         allBpBadge={allBpBadge} swatches={swatches}
         onUpdateResponsive={onUpdateResponsive}
