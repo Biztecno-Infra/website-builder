@@ -207,7 +207,7 @@
 /* ─── Palette items ─── */
 .pb-palette-list {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding: 4px 12px 12px;
 }
@@ -253,7 +253,7 @@
 /* ─── Grid layout presets ─── */
 .pb-layout-list {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
   padding: 4px 12px 12px;
 }
