@@ -1,52 +1,32 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
-import type { Accordion, Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El, CellLayoutMode, ContainerLayoutMode, GridCell, NodeMap, ElementType, Container, Carousel } from '../types';
+import type { Accordion, Breakpoint, CanvasElement as El, GridCell, ElementType, Container, Carousel } from '../types';
 import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
 import { CarouselView } from './CarouselView';
 import { AccordionView } from './AccordionView';
 import { canvasDragShared } from './CanvasElement';
-import { DragGuides } from './DragGuides';
 import type { CellLayoutDragItem } from './LeftSidebar';
 import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
 import { ColumnsBlockView } from './ColumnsBlockView';
-import { getCellColumnSpan, getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../utils/cellUtils';
+import { getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../utils/cellUtils';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
+import { resolveResponsive } from '../utils/responsive';
+import { useCanvasContext } from '../contexts/CanvasContext';
 
+// Props that are truly per-cell — cell data and closures that close over cell.id.
+// All shared canvas state comes from CanvasContext.
 interface Props {
   cell: GridCell;
-  nodes: NodeMap;
   isSelected: boolean;
-  selectedElementId: string | null;
   onSelectCell: () => void;
   onSelectElement: (id: string) => void;
-  onUpdateElement: (id: string, updates: Partial<El>) => void;
   onUpdateCell: (updates: Partial<GridCell>) => void;
   onDeleteCell: () => void;
   onAddElement: (type: ElementType, x?: number, y?: number) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: CellLayoutMode) => void;
-  onCommit: (prev: BuilderState) => void;
-  snapshot: BuilderState;
-  previewMode?: boolean;
-  breakpoint?: Breakpoint;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onDuplicateElement?: (id: string) => void;
-  onDeleteElement?: (id: string) => void;
   isDragOverTarget?: boolean;
-  // Nested grid support — raw callbacks for rendering sub-cells
-  selectedGridCellId?: string | null;
-  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
-  onDeleteGridCell?: (id: string) => void;
-  onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
-  onSelectGridCell?: (id: string | null) => void;
-  onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
-  onRemoveColumnsBlock?: (blockId: string) => void;
-  onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
-  onUpdateContainer?: (id: string, updates: Partial<Pick<import('../types').Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
-  onAddSubCell?: (containerId: string) => void;
-  selectedContainerId?: string | null;
-  onSelectContainer?: (id: string) => void;
-  // Carousel support — a carousel can flow inside a cell (parallel to elements/containers)
+  // Carousel support — a carousel can flow inside a cell (parallel to elements/containers).
+  // Shared grid/container ops come from CanvasContext.
   selectedCarouselId?: string | null;
   onSelectCarousel?: (id: string) => void;
   onUpdateCarousel?: (id: string, updates: Partial<Omit<Carousel, 'id' | 'type' | 'parent' | 'children'>>) => void;
@@ -58,7 +38,7 @@ interface Props {
   // Accordion support — an accordion can flow inside a cell too
   selectedAccordionId?: string | null;
   onSelectAccordion?: (id: string) => void;
-  onUpdateAccordion?: (id: string, updates: Partial<Omit<import('../types').Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
+  onUpdateAccordion?: (id: string, updates: Partial<Omit<Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>>) => void;
   onUpdateAccordionResponsive?: (id: string, bp: Breakpoint, updates: import('../types').AccordionBpOverride) => void;
   onToggleAccordionItem?: (accordionId: string, itemId: string) => void;
   onAddAccordionItem?: (accordionId: string, afterItemId?: string) => void;
@@ -70,26 +50,29 @@ function getRowSpan(cell: GridCell): number {
 }
 
 export function GridCellView({
-  cell, nodes, isSelected, selectedElementId,
-  onSelectCell, onSelectElement, onUpdateElement,
-  onUpdateCell, onDeleteCell, onAddElement, onMoveGridElement,
-  onCommit, snapshot, previewMode,
-  breakpoint = 'desktop',
-  onUpdateResponsive, onDuplicateElement, onDeleteElement,
+  cell, isSelected,
+  onSelectCell, onSelectElement, onUpdateCell, onDeleteCell, onAddElement,
   isDragOverTarget,
-  selectedGridCellId, onUpdateGridCell, onDeleteGridCell,
-  onAddElementToCell, onSelectGridCell, onReorderGridCell,
-  onRemoveColumnsBlock, onAddContainer, onUpdateContainer, onAddSubCell,
-  selectedContainerId, onSelectContainer,
+  // Carousel/accordion-in-cell props (shared grid/container ops come from CanvasContext)
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide,
   onAddCarouselToCell, canvasWidth = 1200,
   selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   onAddAccordionToCell,
 }: Props) {
+  const {
+    nodes, snapshot, onCommit, previewMode,
+    breakpoint = 'desktop', onUpdateResponsive,
+    selectedId, selectedGridCellId, onUpdateElement,
+    onDuplicateElement, onDeleteElement, onMoveGridElement,
+    onUpdateGridCell, onDeleteGridCell, onAddElementToCell, onSelectGridCell,
+    onReorderGridCell, onRemoveColumnsBlock,
+    onAddContainer, onUpdateContainer, onAddSubCell,
+    selectedContainerId, onSelectContainer,
+  } = useCanvasContext();
 
   const bp = breakpoint;
-  const span = getCellColumnSpan(cell, bp);
-  const rowSpan = getRowSpan(cell);
+  const _rowSpan = getRowSpan(cell);
+
   // Canvas elements only (no containers) — used for free branch, overlay els, drop logic
   const allElements = cell.children
     .map(id => nodes[id])
@@ -215,7 +198,6 @@ export function GridCellView({
       const insertAt = afterChildIdx + 1;
       setTimeout(() => onMoveGridElement?.(elementId, sourceCellId, cell.id, insertAt, undefined, sourceCellMode), 0);
     } else if (item.kind === 'container' && item.parentCellId === cell.id) {
-      // same-cell container reorder
       const toIndex = afterChildIdx >= item.fromChildIdx ? afterChildIdx : afterChildIdx + 1;
       onReorderGridCell?.(cell.id, item.fromChildIdx, toIndex);
     }
@@ -237,10 +219,8 @@ export function GridCellView({
       const nx = Math.max(0, Math.round(me.clientX - cellRect.left - grabX));
       const ny = Math.max(0, Math.round(me.clientY - cellRect.top - grabY));
       if (bpNow === 'desktop') {
-        // Desktop: write to main layout
         onUpdateElement(rawEl.id, { layout: { ...rawEl.layout, x: nx, y: ny } });
       } else {
-        // Tablet/mobile: write to responsive override — never touch desktop layout
         onUpdateResponsive?.(rawEl.id, bpNow, { layout: { x: nx, y: ny } });
       }
       setLiveDragPos({ x: nx, y: ny, width: rawEl.layout.width, height: rawEl.layout.height, cellW: cellRect.width });
@@ -267,7 +247,6 @@ export function GridCellView({
   const cellMode = getCellLayoutMode(cell, bp);
   const { gap, padding, border, minHeight: desktopMinH } = cell.style;
 
-  // Responsive padding — cascade: mobile overrides tablet, tablet overrides desktop
   const bpPadding =
     bp === 'mobile'
       ? { ...padding, ...cell.responsive.tablet?.padding, ...cell.responsive.mobile?.padding }
@@ -277,13 +256,8 @@ export function GridCellView({
 
   const padStr = `${bpPadding.top}px ${bpPadding.right}px ${bpPadding.bottom}px ${bpPadding.left}px`;
 
-  const effectiveMinH =
-    bp === 'mobile' ? (cell.responsive.mobile?.minHeight ?? cell.responsive.tablet?.minHeight ?? desktopMinH)
-    : bp === 'tablet' ? (cell.responsive.tablet?.minHeight ?? desktopMinH)
-    : desktopMinH;
+  const effectiveMinH = resolveResponsive(bp, desktopMinH, cell.responsive.tablet?.minHeight, cell.responsive.mobile?.minHeight);
 
-  // Only enforce a 40px floor on empty cells so they stay droppable.
-  // Cells with content shrink freely to fit.
   const cellIsEmpty = flexChildren.length === 0 && allElements.length === 0;
   const appliedMinH = effectiveMinH ?? (cellIsEmpty ? 40 : undefined);
 
@@ -335,20 +309,23 @@ export function GridCellView({
     document.addEventListener('mouseup', onUp);
   }, [effectiveMinH, bp, cell, onUpdateCell, onCommit, snapshot]);
 
-
-  // True when a descendant element or container owns selection — cell should show tint, not border
+  // True when a descendant element or container owns selection
   const hasSelectedChild = !previewMode && !isSelected && !!(
-    (selectedElementId && cell.children.includes(selectedElementId)) ||
+    (selectedId && cell.children.includes(selectedId)) ||
     (selectedContainerId && cell.children.includes(selectedContainerId))
   );
 
-  // ── Elements branch ───────────────────────────────────────────────────────
   const isRow = cellMode === 'row';
 
   const insertionLine = (afterIdx: number) =>
     insertAfterIndex === afterIdx ? (
       <div key={`ins-${afterIdx}`} className={['pb-grid-insert-line', isRow && 'pb-grid-insert-line--vertical'].filter(Boolean).join(' ')} />
     ) : null;
+
+  // Void reference to suppress unused-variable warnings for variables only used in callbacks
+  void elements;
+  void _rowSpan;
+  void liveDragPos;
 
   return (
     <div
@@ -389,7 +366,7 @@ export function GridCellView({
                   accordion={acc}
                   nodes={nodes}
                   isSelected={selectedAccordionId === acc.id}
-                  selectedId={selectedElementId}
+                  selectedId={selectedId}
                   selectedGridCellId={selectedGridCellId}
                   selectedContainerId={selectedContainerId}
                   previewMode={previewMode}
@@ -432,7 +409,7 @@ export function GridCellView({
                   carousel={car}
                   nodes={nodes}
                   isSelected={selectedCarouselId === car.id}
-                  selectedId={selectedElementId}
+                  selectedId={selectedId}
                   selectedGridCellId={selectedGridCellId}
                   selectedContainerId={selectedContainerId}
                   previewMode={previewMode}
@@ -474,29 +451,21 @@ export function GridCellView({
                 <ColumnsBlockView
                   block={block}
                   nodes={nodes}
-                  cellChildIndex={childIdx}
                   childIdx={childIdx}
                   isSelected={selectedContainerId === block.id}
                   onSelectContainer={onSelectContainer}
                   selectedGridCellId={selectedGridCellId}
-                  selectedElementId={selectedElementId}
+                  selectedElementId={selectedId}
                   onSelectGridCell={onSelectGridCell}
                   onSelectElement={onSelectElement}
-                  onUpdateElement={onUpdateElement}
                   onUpdateGridCell={onUpdateGridCell}
                   onDeleteGridCell={onDeleteGridCell}
                   onAddElementToCell={onAddElementToCell}
-                  onMoveGridElement={onMoveGridElement}
                   onCommit={onCommit}
                   snapshot={snapshot}
                   previewMode={previewMode}
                   breakpoint={breakpoint}
-                  onUpdateResponsive={onUpdateResponsive}
-                  onDuplicateElement={onDuplicateElement}
-                  onDeleteElement={onDeleteElement}
-                  onReorderGridCell={onReorderGridCell}
                   onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
-                  onAddContainer={onAddContainer}
                   onUpdateContainer={onUpdateContainer}
                   onAddSubCell={onAddSubCell}
                   selectedContainerId={selectedContainerId}
@@ -530,14 +499,9 @@ export function GridCellView({
                 cellId={cell.id}
                 childIdx={childIdx}
                 cellMode={cellMode}
-                isSelected={selectedElementId === el.id}
+                isSelected={selectedId === el.id}
                 onSelect={() => onSelectElement(el.id)}
                 onUpdate={updates => onUpdateElement(el.id, updates)}
-                onCommit={onCommit}
-                snapshot={snapshot}
-                previewMode={previewMode}
-                breakpoint={breakpoint}
-                onUpdateResponsive={onUpdateResponsive}
                 onDuplicate={onDuplicateElement ? () => onDuplicateElement(el.id) : undefined}
                 onDelete={onDeleteElement ? () => onDeleteElement(el.id) : undefined}
                 onDragHover={handleDragHover}
@@ -560,8 +524,6 @@ export function GridCellView({
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 50 }}>
           {overlayEls.map(rawOverlay => {
             const el = applyBreakpoint(rawOverlay, bp);
-            // If no explicit x/y override exists for this breakpoint, default to top-left
-            // so the overlay is always visible — not clipped off a narrower cell.
             const tO = rawOverlay.responsive.tablet?.layout;
             const mO = rawOverlay.responsive.mobile?.layout;
             const hasExplicitX = bp === 'desktop' || (bp === 'tablet' ? tO?.x !== undefined : (mO?.x ?? tO?.x) !== undefined);
@@ -571,7 +533,7 @@ export function GridCellView({
             return (
             <div
               key={rawOverlay.id}
-              className={['pb-grid-overlay-el', selectedElementId === rawOverlay.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
+              className={['pb-grid-overlay-el', selectedId === rawOverlay.id && !previewMode && 'pb-grid-overlay-el--selected'].filter(Boolean).join(' ')}
               style={{
                 position: 'absolute',
                 left: overlayX,
@@ -596,12 +558,7 @@ export function GridCellView({
                 isSelected={false}
                 onSelect={() => onSelectElement(rawOverlay.id)}
                 onUpdate={updates => onUpdateElement(rawOverlay.id, updates)}
-                onCommit={onCommit}
-                snapshot={snapshot}
-                previewMode={previewMode}
                 disableDrag={true}
-                breakpoint={breakpoint}
-                onUpdateResponsive={onUpdateResponsive}
                 onDuplicate={onDuplicateElement ? () => onDuplicateElement(rawOverlay.id) : undefined}
                 onDelete={onDeleteElement ? () => onDeleteElement(rawOverlay.id) : undefined}
                 onDragHover={() => {}}

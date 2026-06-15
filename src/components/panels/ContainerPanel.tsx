@@ -1,7 +1,11 @@
+import React from 'react';
 import type { Breakpoint, BuilderState, Container, ContainerLayoutMode, ContainerResponsive } from '../../types';
 import { PanelHeader } from './PanelHeader';
+import { ToggleGroup } from './PanelFields';
+import { PbInput } from '../PbInput';
+import { Icon } from '../Icon';
 import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
-import { resolveResponsive } from '../../utils/responsive';
+import { resolveResponsive, isBreakpointOverridden } from '../../utils/responsive';
 
 interface Props {
   container: Container;
@@ -11,10 +15,10 @@ interface Props {
   breakpoint?: Breakpoint;
 }
 
-const MODES: Array<{ mode: ContainerLayoutMode; label: string; icon: string }> = [
-  { mode: 'grid',     label: 'Columns', icon: '⊞' },
-  { mode: 'flex-col', label: 'Stack',   icon: '☰' },
-  { mode: 'flex-row', label: 'Row',     icon: '⇔' },
+const MODE_OPTIONS: Array<{ value: ContainerLayoutMode; label: React.ReactNode; title: string }> = [
+  { value: 'grid',     label: <Icon id="flexWrap"   size={14} />, title: 'Columns' },
+  { value: 'flex-col', label: <Icon id="flexColumn" size={14} />, title: 'Stack'   },
+  { value: 'flex-row', label: <Icon id="flexRow"    size={14} />, title: 'Row'     },
 ];
 
 export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushSnapshot, breakpoint = 'desktop' }: Props) {
@@ -24,9 +28,7 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
 
   const effectiveMode = resolveResponsive(breakpoint, container.layoutMode, resp.tablet?.layoutMode, resp.mobile?.layoutMode);
 
-  const isOverridden =
-    (breakpoint === 'tablet' && resp.tablet?.layoutMode !== undefined) ||
-    (breakpoint === 'mobile' && resp.mobile?.layoutMode !== undefined);
+  const isOverridden = isBreakpointOverridden(breakpoint, resp.tablet?.layoutMode, resp.mobile?.layoutMode);
 
   const setMode = (mode: ContainerLayoutMode) => {
     onPushSnapshot(snapshot);
@@ -70,48 +72,29 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
             >reset</button>
           )}
         </div>
-        <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
-          {MODES.map(({ mode, label, icon }) => (
-            <button
-              key={mode}
-              onClick={() => setMode(mode)}
-              style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                padding: '6px 4px', border: '1px solid',
-                borderColor: effectiveMode === mode ? '#0b978e' : '#e2e8f0',
-                borderRadius: 6, background: effectiveMode === mode ? '#f0faf9' : '#fff',
-                color: effectiveMode === mode ? '#0b978e' : '#64748b',
-                fontSize: 10, fontWeight: 600, cursor: 'pointer',
-                opacity: (isOverridden && mode === container.layoutMode && effectiveMode !== mode) ? 0.45 : 1,
-              }}
-            >
-              <span style={{ fontSize: 16 }}>{icon}</span>
-              {label}
-            </button>
-          ))}
+        <div style={{ marginBottom: 12 }}>
+          <ToggleGroup
+            options={MODE_OPTIONS}
+            value={effectiveMode}
+            onChange={v => setMode(v as ContainerLayoutMode)}
+          />
         </div>
 
         {breakpoint === 'desktop' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
             <div>
               <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Gap</div>
-              <input
-                type="number" min={0} max={80}
+              <PbInput type="number" min={0} max={80}
                 value={container.gap}
-                className={'pb-input'}
-                onFocus={onFocus}
-                onBlur={onBlur}
+                onFocus={onFocus} onBlur={onBlur}
                 onChange={e => onUpdateContainer(container.id, { gap: Math.max(0, Number(e.target.value)) })}
               />
             </div>
             <div>
               <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Row Gap</div>
-              <input
-                type="number" min={0} max={80}
+              <PbInput type="number" min={0} max={80}
                 value={container.rowGap}
-                className={'pb-input'}
-                onFocus={onFocus}
-                onBlur={onBlur}
+                onFocus={onFocus} onBlur={onBlur}
                 onChange={e => onUpdateContainer(container.id, { rowGap: Math.max(0, Number(e.target.value)) })}
               />
             </div>

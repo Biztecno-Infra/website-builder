@@ -78,6 +78,7 @@ export interface ElementStyle {
   opacity: number;
   background: ElementBackground;
   padding: Padding;
+  margin?: Partial<Padding>;
   border: Border;
   shadow: Shadow;
   typography: Typography;
@@ -218,19 +219,13 @@ export interface ElementAnimation {
   delay: number;
 }
 
-export interface ResponsiveLayout {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-}
 
 export interface ResponsiveStyle {
   typography?: Partial<Pick<Typography, 'size' | 'weight' | 'align' | 'letterSpacing' | 'textTransform'>>;
 }
 
 export interface BreakpointOverride {
-  layout?: ResponsiveLayout;
+  layout?: Partial<ElementLayout>;
   style?: ResponsiveStyle;
   state?: Partial<ElementState>;
   flexLayout?: Partial<FlexItemLayout>;

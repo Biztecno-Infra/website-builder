@@ -209,12 +209,7 @@ export function AccordionView({
         isSelected={selectedId === elId}
         onSelect={() => { onSelectAccordion(); onSelectElement(elId, false); }}
         onUpdate={updates => onUpdateElement(elId, updates)}
-        onCommit={onCommit}
-        snapshot={snapshot}
-        previewMode={previewMode}
         disableDrag
-        breakpoint={breakpoint}
-        onUpdateResponsive={onUpdateResponsive}
         onDuplicate={undefined}
         onDelete={undefined}
         onDragHover={() => {}}
@@ -291,10 +286,7 @@ export function AccordionView({
               <div className={'pb-accordion-panel'}>
                 <GridCellView
                   cell={cell}
-                  nodes={nodes}
                   isSelected={selectedGridCellId === cell.id}
-                  selectedElementId={selectedId}
-                  selectedGridCellId={selectedGridCellId}
                   onSelectCell={() => { onSelectGridCell?.(cell.id); }}
                   onSelectElement={elId => {
                     const el = nodes[elId];
@@ -303,30 +295,10 @@ export function AccordionView({
                     onSelectGridCell?.(parentCellId);
                     onSelectElement(elId, false);
                   }}
-                  onUpdateElement={onUpdateElement}
                   onUpdateCell={updates => onUpdateGridCell?.(cell.id, updates)}
                   onDeleteCell={() => onDeleteGridCell?.(cell.id)}
                   onAddElement={(type, x, y) => onAddElementToCell?.(type, cell.id, x, y)}
-                  onMoveGridElement={onMoveGridElement}
-                  onCommit={onCommit}
-                  snapshot={snapshot}
-                  previewMode={previewMode}
-                  breakpoint={breakpoint}
-                  onUpdateResponsive={onUpdateResponsive}
-                  onDuplicateElement={onDuplicateElement}
-                  onDeleteElement={onDeleteElement}
                   isDragOverTarget={dragOverGridCellId === cell.id}
-                  onUpdateGridCell={onUpdateGridCell}
-                  onDeleteGridCell={onDeleteGridCell}
-                  onAddElementToCell={onAddElementToCell}
-                  onSelectGridCell={onSelectGridCell}
-                  onReorderGridCell={onReorderGridCell}
-                  onRemoveColumnsBlock={onRemoveColumnsBlock}
-                  onAddContainer={onAddContainer}
-                  onUpdateContainer={onUpdateContainer}
-                  onAddSubCell={onAddSubCell}
-                  selectedContainerId={selectedContainerId}
-                  onSelectContainer={onSelectContainer}
                 />
               </div>
             )}

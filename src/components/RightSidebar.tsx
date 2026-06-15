@@ -8,7 +8,6 @@ import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
 import { CarouselPanel } from './panels/CarouselPanel';
 import { AccordionPanel } from './panels/AccordionPanel';
-import { PanelHeader } from './panels/PanelHeader';
 
 interface Props {
   element: CanvasElement | null;
@@ -66,52 +65,51 @@ export function RightSidebar({
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
 }: Props) {
-  if (!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
-      && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell) {
-    return (
-      <AccordionPanel
-        accordion={accordion}
-        nodes={nodes}
-        snapshot={snapshot}
-        breakpoint={breakpoint}
-        selectedItemCellId={selectedSlideId}
-        onUpdateAccordion={onUpdateAccordion}
-        onUpdateAccordionResponsive={onUpdateAccordionResponsive}
-        onAddItem={onAddAccordionItem}
-        onDeleteItem={onDeleteAccordionItem}
-        onDuplicateItem={onDuplicateAccordionItem}
-        onReorderItem={onReorderAccordionItem}
-        onToggleItem={onToggleAccordionItem}
-        onSelectItemCell={onSelectAccordionItemCell}
-        onPushSnapshot={onPushSnapshot}
-      />
-    );
-  }
-  if (!element && carousel && onUpdateCarousel && onUpdateCarouselResponsive
-      && onAddSlide && onDeleteSlide && onDuplicateSlide && onReorderSlide && onSetActiveSlide && onSelectSlide) {
-    return (
-      <CarouselPanel
-        carousel={carousel}
-        nodes={nodes}
-        snapshot={snapshot}
-        breakpoint={breakpoint}
-        selectedSlideId={selectedSlideId}
-        onUpdateCarousel={onUpdateCarousel}
-        onUpdateCarouselResponsive={onUpdateCarouselResponsive}
-        onAddSlide={onAddSlide}
-        onDeleteSlide={onDeleteSlide}
-        onDuplicateSlide={onDuplicateSlide}
-        onReorderSlide={onReorderSlide}
-        onSetActiveSlide={onSetActiveSlide}
-        onSelectSlide={onSelectSlide}
-        onPushSnapshot={onPushSnapshot}
-      />
-    );
-  }
+  const showAccordionPanel = !!(!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
+    && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell);
+  const showCarouselPanel = !!(!element && !accordion && carousel && onUpdateCarousel && onUpdateCarouselResponsive
+    && onAddSlide && onDeleteSlide && onDuplicateSlide && onReorderSlide && onSetActiveSlide && onSelectSlide);
+  const hasSelection = !!(element || showAccordionPanel || showCarouselPanel || (container && onUpdateContainer) || (gridCell && onUpdateGridCell) || section);
 
-  if (!element && container && onUpdateContainer) {
-    return (
-      <aside className={'pb-right-sidebar'}>
+  return (
+    <aside className={['pb-right-sidebar', !hasSelection && 'pb-right-sidebar--hidden'].filter(Boolean).join(' ')}>
+      {showAccordionPanel && accordion && (
+        <AccordionPanel
+          accordion={accordion}
+          nodes={nodes}
+          snapshot={snapshot}
+          breakpoint={breakpoint}
+          selectedItemCellId={selectedSlideId}
+          onUpdateAccordion={onUpdateAccordion!}
+          onUpdateAccordionResponsive={onUpdateAccordionResponsive!}
+          onAddItem={onAddAccordionItem!}
+          onDeleteItem={onDeleteAccordionItem!}
+          onDuplicateItem={onDuplicateAccordionItem!}
+          onReorderItem={onReorderAccordionItem!}
+          onToggleItem={onToggleAccordionItem!}
+          onSelectItemCell={onSelectAccordionItemCell!}
+          onPushSnapshot={onPushSnapshot}
+        />
+      )}
+      {showCarouselPanel && carousel && (
+        <CarouselPanel
+          carousel={carousel}
+          nodes={nodes}
+          snapshot={snapshot}
+          breakpoint={breakpoint}
+          selectedSlideId={selectedSlideId}
+          onUpdateCarousel={onUpdateCarousel!}
+          onUpdateCarouselResponsive={onUpdateCarouselResponsive!}
+          onAddSlide={onAddSlide!}
+          onDeleteSlide={onDeleteSlide!}
+          onDuplicateSlide={onDuplicateSlide!}
+          onReorderSlide={onReorderSlide!}
+          onSetActiveSlide={onSetActiveSlide!}
+          onSelectSlide={onSelectSlide!}
+          onPushSnapshot={onPushSnapshot}
+        />
+      )}
+      {!element && !accordion && !carousel && container && onUpdateContainer && (
         <ContainerPanel
           container={container}
           snapshot={snapshot}
@@ -119,63 +117,47 @@ export function RightSidebar({
           onPushSnapshot={onPushSnapshot}
           breakpoint={breakpoint}
         />
-      </aside>
-    );
-  }
-
-  if (!element && gridCell && onUpdateGridCell) {
-    return (
-      <GridCellPanel
-        gridCell={gridCell}
-        nodes={nodes}
-        snapshot={snapshot}
-        onUpdateGridCell={onUpdateGridCell}
-        onDeleteGridCell={onDeleteGridCell}
-        onPushSnapshot={onPushSnapshot}
-        breakpoint={breakpoint}
-        theme={theme}
-      />
-    );
-  }
-
-  if (!element && section) {
-    return (
-      <SectionPanel
-        section={section}
-        nodes={nodes}
-        snapshot={snapshot}
-        onUpdateSection={onUpdateSection}
-        onAddGridCell={onAddGridCell}
-        onUpdateGridCell={onUpdateGridCell}
-        onPushSnapshot={onPushSnapshot}
-        breakpoint={breakpoint}
-        theme={theme}
-      />
-    );
-  }
-
-  if (!element) {
-    return (
-      <aside className={'pb-right-sidebar'}>
-        <PanelHeader title="Properties" />
-        <div className={'pb-no-selection'}>Select an element or section<br />to edit its properties</div>
-      </aside>
-    );
-  }
-
-  return (
-    <ElementPanel
-      element={element}
-      isInGridCell={isInGridCell}
-      nodes={nodes}
-      snapshot={snapshot}
-      onUpdate={onUpdate}
-      onPushSnapshot={onPushSnapshot}
-      onDelete={onDelete}
-      breakpoint={breakpoint}
-      onUpdateResponsive={onUpdateResponsive}
-      theme={theme}
-      pages={pages}
-    />
+      )}
+      {!element && !container && gridCell && onUpdateGridCell && (
+        <GridCellPanel
+          gridCell={gridCell}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdateGridCell={onUpdateGridCell}
+          onDeleteGridCell={onDeleteGridCell}
+          onPushSnapshot={onPushSnapshot}
+          breakpoint={breakpoint}
+          theme={theme}
+        />
+      )}
+      {!element && !container && !gridCell && section && (
+        <SectionPanel
+          section={section}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdateSection={onUpdateSection}
+          onAddGridCell={onAddGridCell}
+          onUpdateGridCell={onUpdateGridCell}
+          onPushSnapshot={onPushSnapshot}
+          breakpoint={breakpoint}
+          theme={theme}
+        />
+      )}
+      {element && (
+        <ElementPanel
+          element={element}
+          isInGridCell={isInGridCell}
+          nodes={nodes}
+          snapshot={snapshot}
+          onUpdate={onUpdate}
+          onPushSnapshot={onPushSnapshot}
+          onDelete={onDelete}
+          breakpoint={breakpoint}
+          onUpdateResponsive={onUpdateResponsive}
+          theme={theme}
+          pages={pages}
+        />
+      )}
+    </aside>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import type {
-  Breakpoint, BreakpointOverride, BuilderState, CanvasElement as El,
-  CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+  Breakpoint, BuilderState,
+  Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
 } from '../types';
 import { DraggableCellWrapper } from './DraggableCellWrapper';
 import { GridCellView } from './GridCellView';
@@ -19,7 +19,6 @@ const MODE_LABEL: Record<ContainerLayoutMode, string> = {
 interface Props {
   block: Container;
   nodes: NodeMap;
-  cellChildIndex: number;
   /** Position in parent cell's combined children list — used for unified DND. */
   childIdx: number;
   isSelected?: boolean;
@@ -30,24 +29,18 @@ interface Props {
   selectedElementId: string | null;
   onSelectGridCell?: (id: string | null) => void;
   onSelectElement: (id: string) => void;
-  onUpdateElement: (id: string, updates: Partial<El>) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onDeleteGridCell?: (id: string) => void;
   onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: CellLayoutMode) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   previewMode?: boolean;
   breakpoint?: Breakpoint;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
-  onDuplicateElement?: (id: string) => void;
-  onDeleteElement?: (id: string) => void;
-  onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
   onRemoveColumnsBlock: (blockId: string) => void;
-  onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
   onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
   onAddSubCell?: (containerId: string) => void;
   selectedContainerId?: string | null;
+  onAddContainer?: (cellId: string, mode: import('../types').ContainerLayoutMode, columnSpans?: number[]) => void;
   // Carousel-in-cell support (forwarded to sub-cell GridCellViews)
   selectedCarouselId?: string | null;
   onSelectCarousel?: (id: string) => void;
@@ -69,19 +62,17 @@ interface Props {
 
 export function ColumnsBlockView({
   block, nodes,
-  cellChildIndex, childIdx,
+  childIdx,
   isSelected, onSelectContainer,
   onDragHover, onDropAtChildIdx,
   selectedGridCellId, selectedElementId,
   onSelectGridCell, onSelectElement,
-  onUpdateElement, onUpdateGridCell, onDeleteGridCell,
-  onAddElementToCell, onMoveGridElement,
+  onUpdateGridCell, onDeleteGridCell,
+  onAddElementToCell,
   onCommit, snapshot, previewMode,
   breakpoint = 'desktop',
-  onUpdateResponsive, onDuplicateElement, onDeleteElement,
-  onReorderGridCell,
   onRemoveColumnsBlock,
-  onAddContainer, onUpdateContainer, onAddSubCell, selectedContainerId,
+  onUpdateContainer, onAddSubCell, selectedContainerId,
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell, canvasWidth,
   selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem, onAddAccordionToCell,
 }: Props) {
@@ -256,36 +247,13 @@ export function ColumnsBlockView({
             >
               <GridCellView
                 cell={subCell}
-                nodes={nodes}
                 isSelected={selectedGridCellId === subCell.id}
-                selectedElementId={selectedElementId}
                 onSelectCell={() => onSelectGridCell?.(subCell.id)}
                 onSelectElement={onSelectElement}
-                onUpdateElement={onUpdateElement}
                 onUpdateCell={updates => onUpdateGridCell?.(subCell.id, updates)}
                 onDeleteCell={() => onDeleteGridCell?.(subCell.id)}
                 onAddElement={(type, x, y) => onAddElementToCell?.(type, subCell.id, x, y)}
-                onMoveGridElement={onMoveGridElement}
-                onCommit={onCommit}
-                snapshot={snapshot}
-                previewMode={previewMode}
-                breakpoint={breakpoint}
-                onUpdateResponsive={onUpdateResponsive}
-                onDuplicateElement={onDuplicateElement}
-                onDeleteElement={onDeleteElement}
                 isDragOverTarget={false}
-                selectedGridCellId={selectedGridCellId}
-                onUpdateGridCell={onUpdateGridCell}
-                onDeleteGridCell={onDeleteGridCell}
-                onAddElementToCell={onAddElementToCell}
-                onSelectGridCell={onSelectGridCell}
-                onReorderGridCell={onReorderGridCell}
-                onRemoveColumnsBlock={onRemoveColumnsBlock ?? (() => {})}
-                onAddContainer={onAddContainer}
-                onUpdateContainer={onUpdateContainer}
-                onAddSubCell={onAddSubCell}
-                selectedContainerId={selectedContainerId}
-                onSelectContainer={onSelectContainer}
                 selectedCarouselId={selectedCarouselId}
                 onSelectCarousel={onSelectCarousel}
                 onUpdateCarousel={onUpdateCarousel}

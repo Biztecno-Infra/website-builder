@@ -4,7 +4,7 @@ import type {
 } from '../types';
 import { DEFAULT_FLEX_LAYOUT, DEFAULT_THEME, interactionToAction } from './builderDefaults';
 import { hydrateNodes } from './sparse';
-import { newId, newPageId, newSectionId } from './ids';
+import { newPageId, newSectionId } from './ids';
 import { makeSection } from './nodeHelpers';
 
 export const SCHEMA_VERSION = '2.0';

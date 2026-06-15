@@ -452,94 +452,77 @@ function renderForm(el: CanvasElement, wrapperCss: string, className: string, ex
   return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" data-form-api-url="${esc(apiUrl)}" data-form-api-method="${esc(apiMethod)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${fieldsHtml}${submitBtn}</form>`;
 }
 
-// Element HTML: position/size come from CSS class .el-{id}, NOT inline style.
-// This allows media query class rules to override without !important.
-function renderElement(el: CanvasElement): string {
-  if (el.state.hidden) return '';
-
+// Type-specific inner HTML for an element, shared across all three render contexts.
+// spacerInner is overridable: grid elements need explicit width/height rather than cStyle sizing.
+function renderElementInner(
+  el: CanvasElement,
+  pad: string,
+  cStyle: string,
+  spacerInner = `<div style="${cStyle}"></div>`,
+): string {
   const { padding, typography } = el.style;
-  const pad = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
-  const cStyle = elContentStyle(el);
-
-  let animClass = '';
-  let animData = '';
-  if (el.animation.type !== 'none') {
-    if (el.animation.trigger === 'load') {
-      animClass = ` anim-${el.animation.type}`;
-    } else {
-      animClass = ' anim-pending';
-      animData = ` data-anim="${el.animation.type}"`;
-    }
-  }
-
-  // Form: the positioned wrapper IS the <form> (can't sit inside an <a>).
-  if (el.type === 'form') {
-    return renderForm(el, `${cStyle};padding:${pad}`, `el-${el.id}${animClass}`, animData);
-  }
-
-  let inner = '';
   const textBase = `${cStyle};padding:${pad};word-break:break-word`;
-
   switch (el.type) {
     case 'text': {
       const content = el.content.rich || esc(el.content.plain ?? '');
-      inner = `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${content}</div>`;
-      break;
+      return `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${content}</div>`;
     }
     case 'button': {
       const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
-      inner = `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
-      break;
+      return `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
     }
     case 'image': {
-      if (!el.content.src) {
-        inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
-      } else {
-        inner = `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>`;
-      }
-      break;
+      if (!el.content.src) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
+      return `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>`;
     }
     case 'divider': {
       if (el.content.orientation === 'vertical') {
         const innerW = Math.max(2, el.layout.width - padding.left - padding.right);
-        inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${innerW}px;height:100%;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
-      } else {
-        const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
-        inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
+        return `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${innerW}px;height:100%;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
       }
-      break;
+      const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
+      return `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
     }
     case 'video': {
-      if (!el.content.videoUrl) {
-        inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
-      } else {
-        const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
-        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
-      }
-      break;
+      if (!el.content.videoUrl) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
+      const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
+      return `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
     }
     case 'icon': {
       const iconSz = el.content.iconSize ?? 40;
       const iconInner = el.content.iconSvg
         ? `<span style="display:inline-flex;width:${iconSz}px;height:${iconSz}px;color:${typography.color}">${el.content.iconSvg}</span>`
         : `<span style="font-size:${iconSz}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '★')}</span>`;
-      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${iconInner}</div>`;
-      break;
+      return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${iconInner}</div>`;
     }
-    case 'spacer': {
-      inner = `<div style="${cStyle}"></div>`;
-      break;
-    }
+    case 'spacer':
+      return spacerInner;
     default:
-      inner = `<div style="${cStyle};padding:${pad}"></div>`;
+      return `<div style="${cStyle};padding:${pad}"></div>`;
   }
+}
 
+// Element HTML: position/size come from CSS class .el-{id}, NOT inline style.
+// This allows media query class rules to override without !important.
+function renderElement(el: CanvasElement): string {
+  if (el.state.hidden) return '';
+  const { padding } = el.style;
+  const pad = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
+  const cStyle = elContentStyle(el);
+  let animClass = '';
+  let animData = '';
+  if (el.animation.type !== 'none') {
+    if (el.animation.trigger === 'load') animClass = ` anim-${el.animation.type}`;
+    else { animClass = ' anim-pending'; animData = ` data-anim="${el.animation.type}"`; }
+  }
+  if (el.type === 'form') {
+    return renderForm(el, `${cStyle};padding:${pad}`, `el-${el.id}${animClass}`, animData);
+  }
+  const inner = renderElementInner(el, pad, cStyle);
   const link = resolveElementHref(el);
-  // No inline position/size — the CSS class .el-{id} supplies position:absolute, left, top, width, height
-  const wrapper = link
+  return link
     ? `<a href="${link.href}" target="${link.target}"${link.onclick ? ` onclick="${link.onclick}"` : ''} style="display:block;text-decoration:none;color:inherit" class="el-${el.id}${animClass}"${animData}>${inner}</a>`
     : `<div class="el-${el.id}${animClass}"${animData}>${inner}</div>`;
-  return wrapper;
 }
 
 // Flex-sizing CSS for a single breakpoint's effective layout.
@@ -569,15 +552,13 @@ function cellDirectionCss(mode: CellLayoutMode): string {
 // Render a grid element in free (absolute) mode — position inlined, no class-based sizing.
 function renderFreeElement(el: CanvasElement): string {
   if (el.state.hidden) return '';
-  const { padding, typography } = el.style;
+  const { padding } = el.style;
   const pad = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
   const cStyle = elContentStyle(el);
   const s = el.style.shadow;
   const shadowCss = s.enabled ? `;box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : '';
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
-  const animVars = el.animation.type !== 'none'
-    ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms`
-    : '';
+  const animVars = el.animation.type !== 'none' ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms` : '';
   let animClass = '';
   let animData = '';
   if (el.animation.type !== 'none') {
@@ -585,23 +566,10 @@ function renderFreeElement(el: CanvasElement): string {
     else { animClass = ' anim-pending'; animData = ` data-anim="${el.animation.type}"`; }
   }
   const wrapStyle = `position:absolute;left:${el.layout.x}px;top:${el.layout.y}px;width:${el.layout.width}px;height:${el.layout.height}px;z-index:${el.layout.zIndex ?? 0};box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${animVars}`;
-
   if (el.type === 'form') {
     return renderForm(el, `${cStyle};${wrapStyle};padding:${pad}`, `ge-${el.id}${animClass}`, animData);
   }
-
-  let inner = '';
-  const textBase = `${cStyle};padding:${pad};word-break:break-word`;
-  switch (el.type) {
-    case 'text':   inner = `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${(el.content.rich || el.content.plain) ?? ''}</div>`; break;
-    case 'button': inner = `<div class="ec-${el.id}" style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer">${esc(el.content.label ?? '')}</div>`; break;
-    case 'image':  inner = el.content.src ? `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>` : ''; break;
-    case 'divider': { if (el.content.orientation === 'vertical') { const iw = Math.max(2, el.layout.width - padding.left - padding.right); inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${iw}px;height:100%;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } else { const ih = Math.max(2, el.layout.height - padding.top - padding.bottom); inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${ih}px;background-color:${el.style.background.color || '#ddd'};border-radius:${el.style.border.radius}px"></div></div>`; } break; }
-    case 'icon': { const isz = el.content.iconSize ?? 40; inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz}px;height:${isz}px;color:${esc(typography.color)}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz}px;color:${esc(typography.color)};line-height:1">${esc(el.content.iconName ?? '★')}</span>`}</div>`; break; }
-    case 'spacer': inner = `<div style="${cStyle}"></div>`; break;
-    default:       inner = `<div style="${cStyle};padding:${pad}"></div>`;
-  }
-
+  const inner = renderElementInner(el, pad, cStyle);
   const link = resolveElementHref(el);
   if (link) return `<a href="${link.href}" target="${link.target}"${link.onclick ? ` onclick="${link.onclick}"` : ''} style="${wrapStyle};display:block;text-decoration:none;color:inherit" class="ge-${el.id}${animClass}"${animData}>${inner}</a>`;
   return `<div class="ge-${el.id}${animClass}" style="${wrapStyle}"${animData}>${inner}</div>`;
@@ -610,18 +578,13 @@ function renderFreeElement(el: CanvasElement): string {
 // Render a grid element. Flex-sizing lives in class ge-{id} (generated by CSS).
 function renderGridElement(el: CanvasElement): string {
   if (el.state.hidden) return '';
-
-  const { padding, typography } = el.style;
+  const { padding } = el.style;
   const pad = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
   const cStyle = elContentStyle(el);
-
   const s = el.style.shadow;
   const shadowCss = s.enabled ? `;box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : '';
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
-  const animVars = el.animation.type !== 'none'
-    ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms`
-    : '';
-
+  const animVars = el.animation.type !== 'none' ? `;--anim-duration:${el.animation.duration}ms;--anim-delay:${el.animation.delay}ms` : '';
   const wrapRadiusCss = el.style.border.radius > 0 ? `;border-radius:${el.style.border.radius}px` : '';
   // text/button are content-sized in grid mode; all other types keep explicit height
   const heightCss = (el.type === 'text' || el.type === 'button')
@@ -629,74 +592,20 @@ function renderGridElement(el: CanvasElement): string {
     : `${el.type === 'image' || el.type === 'video' ? 'height' : 'min-height'}:${el.layout.height}px;`;
   // Flex-sizing is class-based (ge-{id}); only non-flex properties here
   const wrapStyle = `${heightCss}box-sizing:border-box;opacity:${el.style.opacity}${shadowCss}${rotateCss}${wrapRadiusCss}${animVars}`;
-
   let animClass = '';
   let animData = '';
   if (el.animation.type !== 'none') {
     if (el.animation.trigger === 'load') animClass = ` anim-${el.animation.type}`;
     else { animClass = ' anim-pending'; animData = ` data-anim="${el.animation.type}"`; }
   }
-
-  const textBase = `${cStyle};padding:${pad};word-break:break-word`;
-
   // Form: the flex/positioned wrapper IS the <form>. Sizing comes from the
   // ge-{id} flex class + min-height in wrapStyle; only background/border here.
   if (el.type === 'form') {
     const bgb = elBgBorderCss(el);
     return renderForm(el, `${bgb ? bgb + ';' : ''}${wrapStyle};padding:${pad}`, `ge-${el.id}${animClass}`, animData);
   }
-
-  let inner = '';
-  switch (el.type) {
-    case 'text': {
-      const content = el.content.rich || esc(el.content.plain ?? '');
-      inner = `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${content}</div>`;
-      break;
-    }
-    case 'button': {
-      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
-      inner = `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
-      break;
-    }
-    case 'image': {
-      if (!el.content.src) {
-        inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
-      } else {
-        inner = `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>`;
-      }
-      break;
-    }
-    case 'divider': {
-      if (el.content.orientation === 'vertical') {
-        const innerW = Math.max(2, el.layout.width - padding.left - padding.right);
-        inner = `<div style="${cStyle};display:flex;justify-content:center;align-items:stretch;padding:${pad}"><div style="width:${innerW}px;height:100%;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
-      } else {
-        const innerH = Math.max(2, el.layout.height - padding.top - padding.bottom);
-        inner = `<div style="${cStyle};display:flex;align-items:center;padding:${pad}"><div style="width:100%;height:${innerH}px;background-color:${el.style.background.color || '#dddddd'};border-radius:${el.style.border.radius}px"></div></div>`;
-      }
-      break;
-    }
-    case 'video': {
-      if (!el.content.videoUrl) {
-        inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
-      } else {
-        const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
-        inner = `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
-      }
-      break;
-    }
-    case 'icon': {
-      const isz2 = el.content.iconSize ?? 40;
-      inner = `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${el.content.iconSvg ? `<span style="display:inline-flex;width:${isz2}px;height:${isz2}px;color:${typography.color}">${el.content.iconSvg}</span>` : `<span style="font-size:${isz2}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '★')}</span>`}</div>`;
-      break;
-    }
-    case 'spacer':
-      inner = `<div style="width:100%;height:${el.layout.height}px"></div>`;
-      break;
-    default:
-      inner = `<div style="${cStyle};padding:${pad}"></div>`;
-  }
-
+  const spacerInner = `<div style="width:100%;height:${el.layout.height}px"></div>`;
+  const inner = renderElementInner(el, pad, cStyle, spacerInner);
   const link = resolveElementHref(el);
   const cls = `ge-${el.id}${animClass}`;
   if (link) {

@@ -7,6 +7,7 @@ import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
+import { Icon } from './components/Icon';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
 import { migrateState } from './hooks/useBuilderStore';
 import { makeKnightState } from './data/knightState';
@@ -44,11 +45,11 @@ export default function App() {
     duplicateElement,
     copyElement,
     pasteElement,
+    deleteSelected,
     updateElement,
     updateElements,
     pushSnapshot,
     deleteElement,
-    deleteSelected,
     bringToFront,
     sendToBack,
     reorderElement,
@@ -131,6 +132,31 @@ export default function App() {
 
   const changeZoom = useCallback((delta: number) =>
     setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
+
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = canvasWrapperRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        changeZoom(e.deltaY > 0 ? -10 : 10);
+      }
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [changeZoom]);
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); handleUndo(); }
+      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); handleRedo(); }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [handleUndo, handleRedo]);
+
   const importRef = useRef<HTMLInputElement>(null);
 
   // Tracks the theme colors from the last time Apply Theme was run.
@@ -441,24 +467,30 @@ export default function App() {
     return (
       <DndProvider backend={HTML5Backend}>
         <div className={"pb-app pb-preview-app"}>
-          <header className={"pb-toolbar pb-preview-toolbar"}>
-            <div className={'pb-toolbar-left'}>
-              <span className={'pb-preview-badge'}>PREVIEW</span>
-              <span className={'pb-app-name'}>{activePage.name}</span>
+          <header className={"pb-toolbar pb-flex-row pb-preview-toolbar"}>
+            <div className={'pb-toolbar-left pb-flex-row'} style={{ gap: 10 }}>
+              <span className={'pb-preview-badge'}>Preview</span>
+              <span className={'pb-toolbar-vdivider'} />
+              <span className={'pb-toolbar-site-name'}>{activePage.name}</span>
             </div>
-            <div className={'pb-toolbar-center'}>
-              {(['desktop', 'tablet', 'mobile'] as const).map(d => (
-                <button key={d}
-                  className={['pb-toolbar-btn', previewDevice === d && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => setPreviewDevice(d)}
-                  title={d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet (768px)' : 'Mobile (375px)'}
-                >
-                  {d === 'desktop' ? 'Desktop' : d === 'tablet' ? 'Tablet' : 'Mobile'}
-                </button>
-              ))}
+            <div className={'pb-toolbar-center pb-flex-row'}>
+              <div className={'pb-toolbar-icon-group pb-flex-row'}>
+                {([
+                  { d: 'desktop', icon: 'desktop', title: 'Desktop' },
+                  { d: 'tablet',  icon: 'tablet',  title: 'Tablet (768px)' },
+                  { d: 'mobile',  icon: 'mobile',  title: 'Mobile (375px)' },
+                ] as const).map(({ d, icon, title }) => (
+                  <button key={d}
+                    className={['pb-toolbar-icon-btn pb-flex-center', previewDevice === d && 'pb-active'].filter(Boolean).join(' ')}
+                    onClick={() => setPreviewDevice(d)}
+                    title={title}
+                  >
+                    <Icon id={icon} size={18} />
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className={'pb-toolbar-right'}>
-              <span className={'pb-preview-shortcut'}>Ctrl+Shift+P</span>
+            <div className={'pb-toolbar-right pb-flex-row'}>
               <button className={"pb-toolbar-btn pb-primary"} onClick={() => setPreviewMode(false)}>
                 Exit Preview
               </button>
@@ -582,7 +614,7 @@ export default function App() {
         />
 
         <div className={'pb-middle-container'}>
-          <div className={'pb-content-wrapper'} style={{ position: 'relative' }}>
+          <div className={'pb-content-wrapper'} style={{ position: 'relative' }} ref={canvasWrapperRef}>
             {selectedIds.length >= 2 && (
               <AlignmentToolbar
                 selectedIds={selectedIds}

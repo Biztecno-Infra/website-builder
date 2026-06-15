@@ -150,6 +150,29 @@
   color: var(--pb-primary);
 }
 
+
+/* Clear canvas button — subtle danger outline */
+.pb-toolbar-clear-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--pb-border-light);
+  border-radius: var(--pb-radius-lg);
+  background: transparent;
+  color: var(--pb-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.pb-toolbar-clear-btn:hover {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #ef4444;
+}
+
 /* Publish button — solid teal */
 .pb-toolbar-publish-group {
   display: flex;

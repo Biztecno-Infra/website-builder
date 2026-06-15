@@ -14,3 +14,15 @@ export function resolveResponsive<T>(
   if (breakpoint === 'tablet') return tablet ?? desktop;
   return desktop;
 }
+
+// Returns true when a breakpoint-specific override exists for any property.
+export function isBreakpointOverridden(
+  breakpoint: Breakpoint,
+  tabletVal: unknown,
+  mobileVal: unknown,
+): boolean {
+  return (
+    (breakpoint === 'tablet' && tabletVal !== undefined) ||
+    (breakpoint === 'mobile' && mobileVal !== undefined)
+  );
+}

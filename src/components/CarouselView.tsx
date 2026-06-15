@@ -279,10 +279,7 @@ export function CarouselView({
         <div className={'pb-carousel-slide'} style={{ width: '100%', height: '100%' }}>
           <GridCellView
             cell={activeSlide}
-            nodes={nodes}
             isSelected={selectedGridCellId === activeSlide.id}
-            selectedElementId={selectedId}
-            selectedGridCellId={selectedGridCellId}
             onSelectCell={() => { onSelectGridCell?.(activeSlide.id); }}
             onSelectElement={elId => {
               const el = nodes[elId];
@@ -291,30 +288,10 @@ export function CarouselView({
               onSelectGridCell?.(parentCellId);
               onSelectElement(elId, false);
             }}
-            onUpdateElement={onUpdateElement}
             onUpdateCell={updates => onUpdateGridCell?.(activeSlide.id, updates)}
             onDeleteCell={() => onDeleteGridCell?.(activeSlide.id)}
             onAddElement={(type, x, y) => onAddElementToCell?.(type, activeSlide.id, x, y)}
-            onMoveGridElement={onMoveGridElement}
-            onCommit={onCommit}
-            snapshot={snapshot}
-            previewMode={previewMode}
-            breakpoint={breakpoint}
-            onUpdateResponsive={onUpdateResponsive}
-            onDuplicateElement={onDuplicateElement}
-            onDeleteElement={onDeleteElement}
             isDragOverTarget={dragOverGridCellId === activeSlide.id}
-            onUpdateGridCell={onUpdateGridCell}
-            onDeleteGridCell={onDeleteGridCell}
-            onAddElementToCell={onAddElementToCell}
-            onSelectGridCell={onSelectGridCell}
-            onReorderGridCell={onReorderGridCell}
-            onRemoveColumnsBlock={onRemoveColumnsBlock}
-            onAddContainer={onAddContainer}
-            onUpdateContainer={onUpdateContainer}
-            onAddSubCell={onAddSubCell}
-            selectedContainerId={selectedContainerId}
-            onSelectContainer={onSelectContainer}
           />
         </div>
 

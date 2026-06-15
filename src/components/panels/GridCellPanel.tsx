@@ -15,6 +15,7 @@ import {
   FLEX_JUSTIFY_OPTIONS,
   FLEX_ALIGN_OPTIONS,
 } from '../../utils/selectOptions';
+import { resolveResponsive, isBreakpointOverridden } from '../../utils/responsive';
 
 const CELL_PANEL_DEFAULTS: Record<string, boolean> = {
   columnSpan: true,
@@ -62,93 +63,47 @@ export function GridCellPanel({
   const bgColor = style.background.color?.startsWith('#') ? style.background.color : '#ffffff';
   const isDesktop = breakpoint === 'desktop';
 
-  const effMode: CellLayoutMode =
-    breakpoint === 'tablet' ? (responsive.tablet?.layoutMode ?? style.layoutMode) :
-    breakpoint === 'mobile' ? (responsive.mobile?.layoutMode ?? responsive.tablet?.layoutMode ?? style.layoutMode) :
-    style.layoutMode;
-
-  const modeIsOverridden =
-    (breakpoint === 'tablet' && responsive.tablet?.layoutMode !== undefined) ||
-    (breakpoint === 'mobile' && responsive.mobile?.layoutMode !== undefined);
-
-  const setCurrentMode = (mode: CellLayoutMode) => {
+  // Writes a single style property into the cell at the correct breakpoint.
+  const writeCellProp = (key: string, v: unknown) => {
     onPushSnapshot(snapshot);
     if (isDesktop) {
-      onUpdateGridCell(gc.id, { style: { ...style, layoutMode: mode } });
+      onUpdateGridCell(gc.id, { style: { ...style, [key]: v } as typeof style });
     } else if (breakpoint === 'tablet') {
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, layoutMode: mode } } });
+      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, [key]: v } as typeof responsive.tablet } });
     } else {
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, layoutMode: mode } } });
+      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, [key]: v } as typeof responsive.mobile } });
     }
   };
 
-  const resetModeOverride = () => {
+  // Removes a breakpoint override for a single style property.
+  const clearCellProp = (key: string) => {
     onPushSnapshot(snapshot);
     if (breakpoint === 'tablet') {
-      const { layoutMode: _lm, ...rest } = responsive.tablet ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
-    } else {
-      const { layoutMode: _lm, ...rest } = responsive.mobile ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
+      const { [key]: _, ...rest } = (responsive.tablet ?? {}) as Record<string, unknown>;
+      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest as typeof responsive.tablet : undefined } });
+    } else if (breakpoint === 'mobile') {
+      const { [key]: _, ...rest } = (responsive.mobile ?? {}) as Record<string, unknown>;
+      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest as typeof responsive.mobile : undefined } });
     }
   };
 
   type JustifyVal = typeof style.justifyContent;
   type AlignVal = typeof style.alignItems;
 
-  const effJustify: JustifyVal =
-    breakpoint === 'tablet' ? (responsive.tablet?.justifyContent ?? style.justifyContent) :
-    breakpoint === 'mobile' ? (responsive.mobile?.justifyContent ?? responsive.tablet?.justifyContent ?? style.justifyContent) :
-    style.justifyContent;
+  const effMode    = resolveResponsive(breakpoint, style.layoutMode, responsive.tablet?.layoutMode, responsive.mobile?.layoutMode);
+  const effJustify = resolveResponsive(breakpoint, style.justifyContent, responsive.tablet?.justifyContent, responsive.mobile?.justifyContent);
+  const effAlign   = resolveResponsive(breakpoint, style.alignItems, responsive.tablet?.alignItems, responsive.mobile?.alignItems);
 
-  const effAlign: AlignVal =
-    breakpoint === 'tablet' ? (responsive.tablet?.alignItems ?? style.alignItems) :
-    breakpoint === 'mobile' ? (responsive.mobile?.alignItems ?? responsive.tablet?.alignItems ?? style.alignItems) :
-    style.alignItems;
+  const modeIsOverridden    = isBreakpointOverridden(breakpoint, responsive.tablet?.layoutMode, responsive.mobile?.layoutMode);
+  const justifyIsOverridden = isBreakpointOverridden(breakpoint, responsive.tablet?.justifyContent, responsive.mobile?.justifyContent);
+  const alignIsOverridden   = isBreakpointOverridden(breakpoint, responsive.tablet?.alignItems, responsive.mobile?.alignItems);
 
-  const justifyIsOverridden =
-    (breakpoint === 'tablet' && responsive.tablet?.justifyContent !== undefined) ||
-    (breakpoint === 'mobile' && responsive.mobile?.justifyContent !== undefined);
-
-  const alignIsOverridden =
-    (breakpoint === 'tablet' && responsive.tablet?.alignItems !== undefined) ||
-    (breakpoint === 'mobile' && responsive.mobile?.alignItems !== undefined);
-
-  const setCurrentJustify = (v: JustifyVal) => {
-    onPushSnapshot(snapshot);
-    if (isDesktop) onUpdateGridCell(gc.id, { style: { ...style, justifyContent: v } });
-    else if (breakpoint === 'tablet') onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, justifyContent: v } } });
-    else onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, justifyContent: v } } });
-  };
-
-  const setCurrentAlign = (v: AlignVal) => {
-    onPushSnapshot(snapshot);
-    if (isDesktop) onUpdateGridCell(gc.id, { style: { ...style, alignItems: v } });
-    else if (breakpoint === 'tablet') onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, alignItems: v } } });
-    else onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, alignItems: v } } });
-  };
-
-  const resetJustifyOverride = () => {
-    onPushSnapshot(snapshot);
-    if (breakpoint === 'tablet') {
-      const { justifyContent: _jc, ...rest } = responsive.tablet ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
-    } else {
-      const { justifyContent: _jc, ...rest } = responsive.mobile ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
-    }
-  };
-
-  const resetAlignOverride = () => {
-    onPushSnapshot(snapshot);
-    if (breakpoint === 'tablet') {
-      const { alignItems: _ai, ...rest } = responsive.tablet ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: Object.keys(rest).length ? rest : undefined } });
-    } else {
-      const { alignItems: _ai, ...rest } = responsive.mobile ?? {};
-      onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: Object.keys(rest).length ? rest : undefined } });
-    }
-  };
+  const setCurrentMode    = (v: CellLayoutMode) => writeCellProp('layoutMode', v);
+  const setCurrentJustify = (v: JustifyVal) => writeCellProp('justifyContent', v);
+  const setCurrentAlign   = (v: AlignVal) => writeCellProp('alignItems', v);
+  const resetModeOverride    = () => clearCellProp('layoutMode');
+  const resetJustifyOverride = () => clearCellProp('justifyContent');
+  const resetAlignOverride   = () => clearCellProp('alignItems');
 
   // Card mode: cell has a visible border and non-transparent background
   const isCard = (gc.style.border?.width ?? 0) > 0 && gc.style.border?.style !== 'none';
@@ -180,8 +135,7 @@ export function GridCellPanel({
     <aside className={'pb-right-sidebar'}>
       <PanelHeader title="Grid Column">
         <button
-          className={['pb-toolbar-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
-          style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
+          className={['pb-toolbar-btn pb-quick-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
           title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
           onClick={toggleCard}
         >{isCard ? '▪ Card' : '□ Card'}</button>
@@ -243,13 +197,13 @@ export function GridCellPanel({
             }}>↺</button>
           )}
         </div>
-        <div className={'pb-prop-row'} style={{ gap: 4 }}>
-          <label style={{ color: '#888', fontSize: 11 }}>Quick</label>
-          <button className={'pb-resp-clear-btn'} style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
+        <div className={'pb-prop-row pb-quick-row'}>
+          <label className={'pb-quick-label'}>Quick</label>
+          <button className={'pb-resp-clear-btn pb-quick-btn'}
             title="Full width on tablet (span 12)"
             onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, columnSpan: 12 } } }); }}>
             Tab full</button>
-          <button className={'pb-resp-clear-btn'} style={{ flex: 1, padding: '3px 0', fontSize: 11 }}
+          <button className={'pb-resp-clear-btn pb-quick-btn'}
             title="Full width on mobile (span 12)"
             onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, columnSpan: 12 } } }); }}>
             Mob full</button>
@@ -331,9 +285,9 @@ export function GridCellPanel({
             if (isDesktop) {
               onUpdateGridCell(gc.id, { style: { ...style, padding: { ...style.padding, [key]: val } } });
             } else if (breakpoint === 'tablet') {
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, padding: { ...style.padding, ...responsive.tablet?.padding, [key]: val } } } });
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, tablet: { ...responsive.tablet, padding: { ...responsive.tablet?.padding, [key]: val } } } });
             } else {
-              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, padding: { ...style.padding, ...responsive.tablet?.padding, ...responsive.mobile?.padding, [key]: val } } } });
+              onUpdateGridCell(gc.id, { responsive: { ...responsive, mobile: { ...responsive.mobile, padding: { ...responsive.mobile?.padding, [key]: val } } } });
             }
           };
 
@@ -416,13 +370,13 @@ export function GridCellPanel({
                 type="range" min={0} max={0.9} step={0.05}
                 value={style.background.overlay ?? 0}
                 onChange={e => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, overlay: Number(e.target.value) } } })}
-                style={{ flex: 1 }}
+                className={'pb-range-input'}
               />
-              <span style={{ fontSize: 11, color: '#888', minWidth: 28 }}>{Math.round((style.background.overlay ?? 0) * 100)}%</span>
+              <span className={'pb-range-value'}>{Math.round((style.background.overlay ?? 0) * 100)}%</span>
             </div>
             <div className={'pb-prop-row'}>
               <button
-                style={{ fontSize: 11, color: '#ef4444', background: 'none', border: '1px solid #fca5a5', borderRadius: 4, padding: '2px 8px', cursor: 'pointer' }}
+                className={'pb-danger-btn'}
                 onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, image: '' } } }); }}
               >✕ Remove image</button>
             </div>

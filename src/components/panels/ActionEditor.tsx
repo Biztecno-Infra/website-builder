@@ -5,30 +5,8 @@ import { PbTextarea } from '../PbTextarea';
 import {
   API_METHOD_OPTIONS,
   LINK_TARGET_OPTIONS,
+  BASE_ACTION_OPTIONS,
 } from '../../utils/selectOptions';
-
-// Shared action configuration UI used by Button elements and the Form submit
-// button. Driven entirely by the ElementAction model. Some action types
-// (internal-page, open-popup) are configurable but flagged as not-yet-functional
-// in the static HTML export until the corresponding builder features exist.
-
-interface ActionOption {
-  type: ActionType;
-  label: string;
-}
-
-const BASE_ACTIONS: ActionOption[] = [
-  { type: 'none',              label: 'None' },
-  { type: 'external-url',      label: 'Open External URL' },
-  { type: 'download-file',     label: 'Download File' },
-  { type: 'internal-page',     label: 'Open Internal Page' },
-  { type: 'send-email',        label: 'Send Email' },
-  { type: 'make-call',         label: 'Make a Call' },
-  { type: 'send-sms',          label: 'Send SMS' },
-  { type: 'open-popup',        label: 'Open Popup' },
-  { type: 'scroll-to-section', label: 'Scroll to Section' },
-  { type: 'scroll-to-top',     label: 'Scroll to Top' },
-];
 
 const INERT_ACTIONS = new Set<ActionType>(['internal-page', 'open-popup']);
 
@@ -48,14 +26,14 @@ interface Props {
 export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFocus, onBlur }: Props) {
   const type = action?.type ?? 'none';
 
-  const options: ActionOption[] = allowSubmit
+  const options = allowSubmit
     ? [
-        { type: 'submit-form', label: 'Submit Form (Email)' },
-        { type: 'submit-api',  label: 'Submit to API' },
-        ...BASE_ACTIONS.filter(o => o.type !== 'none'),
+        { value: 'submit-form', label: 'Submit Form (Email)' },
+        { value: 'submit-api',  label: 'Submit to API' },
+        ...BASE_ACTION_OPTIONS.filter(o => o.value !== 'none'),
       ]
     // Standalone buttons get Submit to API too (fires an HTTP request on click).
-    : [...BASE_ACTIONS, { type: 'submit-api', label: 'Submit to API' }];
+    : [...BASE_ACTION_OPTIONS, { value: 'submit-api', label: 'Submit to API' }];
 
   const allSections = Object.values(nodes)
     .filter((n): n is Section => n.type === 'section')
@@ -66,12 +44,12 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
       <div className={'pb-prop-row'}>
         <label>Action</label>
         <PbSelect value={type}
-          options={options.map(o => ({ value: o.type, label: o.label }))}
+          options={options}
           onChange={v => onChange({ type: v as ActionType })} />
       </div>
 
       {INERT_ACTIONS.has(type) && (
-        <div style={{ fontSize: 11, color: '#b45309', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 4, padding: '5px 8px', margin: '2px 0 6px' }}>
+        <div className={'pb-action-warning'}>
           Saved, but not yet functional in exported HTML.
         </div>
       )}
@@ -108,7 +86,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
               onChange={v => onChange({ apiMethod: v as 'POST' | 'PUT' | 'PATCH' })} />
           </div>
           {allowSubmit ? (
-            <div style={{ fontSize: 11, color: '#64748b', padding: '2px 0 4px', lineHeight: 1.5 }}>
+            <div className={'pb-note-text'}>
               Form fields are sent as a JSON body (Content-Type: application/json).
             </div>
           ) : (
@@ -119,7 +97,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
                   onFocus={onFocus} onBlur={onBlur}
                   onChange={e => onChange({ apiBody: e.target.value })} />
               </div>
-              <div style={{ fontSize: 11, color: '#64748b', padding: '2px 0 4px', lineHeight: 1.5 }}>
+              <div className={'pb-note-text'}>
                 Sent on click as Content-Type: application/json. Fire-and-forget — errors go to the console.
               </div>
             </>
