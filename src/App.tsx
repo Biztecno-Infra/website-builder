@@ -84,6 +84,7 @@ export default function App() {
 
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
+  const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
@@ -149,6 +150,12 @@ export default function App() {
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
     : false;
   const selectedSection = allSections.find(s => s.id === selectedSectionId) ?? null;
+
+  useEffect(() => {
+    if (selectedId || selectedSectionId || selectedGridCellId || selectedContainerId) {
+      setRightPanelOpen(true);
+    }
+  }, [selectedId, selectedSectionId, selectedGridCellId, selectedContainerId]);
 
   const handleApplyTheme = useCallback(() => {
     if (!window.confirm('Apply theme colors & font to matching elements? (Ctrl+Z to undo)')) return;
@@ -422,7 +429,7 @@ export default function App() {
           onChange={handleImportJSON}
         />
         <div className={'pb-app-body'}>
-        <LeftSidebar
+          <LeftSidebar
           nodes={nodes}
           onAdd={handleAddElement}
           onAddFreeSection={addSection}
@@ -523,27 +530,6 @@ export default function App() {
               maxWidth={activePage.maxWidth ?? 1280}
             />
 
-            <RightSidebar
-              element={selectedElement}
-              section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : selectedSection))}
-              gridCell={selectedGridCell}
-              container={selectedContainer}
-              onUpdateContainer={updateContainer}
-              nodes={nodes}
-              isInGridCell={isInGridCell}
-              snapshot={state}
-              onUpdate={updateElement}
-              onUpdateSection={updateSection}
-              onUpdateGridCell={updateGridCell}
-              onDeleteGridCell={selectedGridCellId ? deleteGridCell : undefined}
-              onAddGridCell={addGridCell}
-              onPushSnapshot={pushSnapshot}
-              onDelete={deleteElement}
-              breakpoint={breakpoint}
-              onUpdateResponsive={updateResponsive}
-              theme={state.theme}
-              pages={state.pages}
-            />
           </div>
 
           {contextMenu && (
@@ -570,6 +556,29 @@ export default function App() {
             </div>
           )}
         </div>
+        <RightSidebar
+          element={selectedElement}
+          section={selectedElement ? null : (selectedGridCell ? null : (selectedContainer ? null : selectedSection))}
+          gridCell={selectedGridCell}
+          container={selectedContainer}
+          onUpdateContainer={updateContainer}
+          nodes={nodes}
+          isInGridCell={isInGridCell}
+          snapshot={state}
+          onUpdate={updateElement}
+          onUpdateSection={updateSection}
+          onUpdateGridCell={updateGridCell}
+          onDeleteGridCell={selectedGridCellId ? deleteGridCell : undefined}
+          onAddGridCell={addGridCell}
+          onPushSnapshot={pushSnapshot}
+          onDelete={deleteElement}
+          breakpoint={breakpoint}
+          onUpdateResponsive={updateResponsive}
+          theme={state.theme}
+          pages={state.pages}
+          isOpen={rightPanelOpen}
+          onClose={() => setRightPanelOpen(false)}
+        />
         </div>
       </div>
     </DndProvider>

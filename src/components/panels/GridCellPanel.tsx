@@ -139,13 +139,6 @@ export function GridCellPanel({
           title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
           onClick={toggleCard}
         >{isCard ? '▪ Card' : '□ Card'}</button>
-        {onDeleteGridCell && (
-          <button
-            className={'pb-panel-delete-btn'}
-            title="Delete this column (Ctrl+Z to undo)"
-            onClick={() => { onDeleteGridCell(gc.id); }}
-          >✕ Delete</button>
-        )}
       </PanelHeader>
 
       {breakpoint !== 'desktop' && (
