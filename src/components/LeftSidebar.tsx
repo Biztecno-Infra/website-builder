@@ -243,6 +243,7 @@ export function LeftSidebar({
     if (openRafRef.current) cancelAnimationFrame(openRafRef.current);
   }, []);
 
+
   const handleClose = useCallback(() => {
     if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
     if (openRafRef.current) { cancelAnimationFrame(openRafRef.current); openRafRef.current = null; }

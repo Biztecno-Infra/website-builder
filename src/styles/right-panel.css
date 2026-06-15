@@ -29,13 +29,75 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
   border-left: 1px solid var(--pb-border);
   transition: width 0.2s ease;
+  position: relative;
+  box-sizing: border-box;
 }
 .pb-right-sidebar--hidden {
   width: 0;
   overflow: hidden;
   border-left: none;
+}
+/* Nested panel asides (ElementPanel, SectionPanel, GridCellPanel) must not re-assert 18rem */
+.pb-right-sidebar .pb-right-sidebar {
+  width: 100%;
+  flex-shrink: 1;
+  border-left: none;
+  overflow-x: hidden;
+}
+
+/* ─── Close button (always top-right of sidebar) ─── */
+.pb-right-sidebar-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--pb-text-muted);
+  font-size: 13px;
+  line-height: 1;
+  border-radius: var(--pb-radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--pb-transition);
+}
+.pb-right-sidebar-close:hover {
+  background: var(--pb-bg-hover);
+  color: var(--pb-text-strong);
+}
+
+/* ─── Idle / no-selection state ─── */
+.pb-right-sidebar-idle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.pb-right-sidebar-idle-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 24px;
+  text-align: center;
+}
+.pb-right-sidebar-idle-icon {
+  font-size: 28px;
+  color: var(--pb-border-accent);
+  line-height: 1;
+}
+.pb-right-sidebar-idle-text {
+  font-size: 12px;
+  color: var(--pb-text-subtle);
+  line-height: 1.6;
 }
 
 .pb-panel-header {
@@ -235,12 +297,12 @@
 /* ─── Property sections ─── */
 .pb-prop-section {
   padding: 0;
-  margin: 0 6px;
+  margin: 0 4px;
   border-bottom: 1px solid var(--pb-border);
 }
 
 .pb-section-content {
-  padding: 6px 10px 14px;
+  padding: 6px 8px 12px;
 }
 
 .pb-section-content--flush {
@@ -254,7 +316,7 @@
   font-weight: 700;
   color: var(--pb-primary);
   margin-bottom: 0;
-  padding: 13px 10px;
+  padding: 11px 8px;
   letter-spacing: 0;
 }
 

@@ -91,9 +91,7 @@ export function ElementPanel({
 
   return (
     <aside className={'pb-right-sidebar'}>
-      <PanelHeader title={elementLabel}>
-        <button className={'pb-delete-btn'} onClick={() => onDelete(id)} title="Delete (Del)">✕</button>
-      </PanelHeader>
+      <PanelHeader title={elementLabel} />
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>

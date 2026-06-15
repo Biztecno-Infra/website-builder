@@ -195,10 +195,12 @@ export function Canvas({
 
       const surfaceRect = surface.getBoundingClientRect();
       const scale = scaleRef.current * zoomRef.current;
-      const newX = snapVal((e.clientX - surfaceRect.left - drag.grabOffsetX) / scale);
-      const newY = snapVal((e.clientY - surfaceRect.top - drag.grabOffsetY) / scale);
+      const rawX = (e.clientX - surfaceRect.left - drag.grabOffsetX) / scale;
+      const rawY = (e.clientY - surfaceRect.top  - drag.grabOffsetY) / scale;
+      const newX = snapVal(Math.max(0, Math.min(CANVAS_W - 8, rawX)));
+      const newY = snapVal(Math.max(0, rawY));
 
-      onMoveRef.current?.(drag.id, target.id, Math.max(0, newX), Math.max(0, newY));
+      onMoveRef.current?.(drag.id, target.id, newX, newY);
     };
 
     document.addEventListener('mousemove', onMove);
@@ -231,7 +233,7 @@ export function Canvas({
     <div ref={wrapperRef} className={['pb-canvas-wrapper', previewMode && 'pb-preview-mode', bpClass].filter(Boolean).join(' ')}
       style={previewWidth ? { maxWidth: previewWidth } : undefined}
       onMouseDown={previewMode ? undefined : onDeselect}>
-      <div className={'pb-canvas-column pb-flex-col'} style={{ minWidth: canvasWidth, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
+      <div className={'pb-canvas-column pb-flex-col'} style={{ width: canvasWidth, flexShrink: 0, ...(!previewMode && zoom !== 1 ? { zoom } : {}), position: 'relative' }}>
 
         {layoutWidth === 'fixed' && !previewMode && breakpoint === 'desktop' && (
           <div
@@ -249,12 +251,13 @@ export function Canvas({
           />
         )}
 
-        {!previewMode && (breakpoint !== 'desktop' || (canvasDisplayWidth && canvasDisplayWidth !== CANVAS_W)) && (
+        {!previewMode && (
           <div className={'pb-bp-width-indicator'} style={{ width: canvasWidth }}>
             <span>
               {breakpoint === 'tablet' ? '768px — Tablet'
                : breakpoint === 'mobile' ? '375px — Mobile'
-               : `${canvasWidth}px`}
+               : breakpoint === 'large-desktop' ? `${canvasWidth}px — Large Desktop`
+               : `${canvasWidth}px — Desktop`}
             </span>
           </div>
         )}

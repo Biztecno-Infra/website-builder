@@ -1,7 +1,7 @@
-﻿/* ─── Content wrapper (canvas + property panel) ─── */
+﻿/* ─── Content wrapper (canvas area) ─── */
 .pb-content-wrapper {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
@@ -20,19 +20,10 @@
   min-width: 0;
 }
 
-/* ─── Canvas column (stacked sections — full-width) ─── */
+/* ─── Canvas column — width set by inline style (canvasWidth), never stretches ─── */
 .pb-canvas-column {
-  width: 100%;
-  box-shadow: 0 2px 24px rgba(0,0,0,0.13);
-}
-
-.pb-bp-tablet .pb-canvas-column {
-  width: 768px;
-  margin: 0 auto;
-}
-.pb-bp-mobile .pb-canvas-column {
-  width: 375px;
-  margin: 0 auto;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 32px rgba(0, 0, 0, 0.14);
 }
 
 /* ─── Section background (full-width, carries background color/image) ─── */
