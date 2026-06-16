@@ -2,6 +2,7 @@
 import type { CanvasElement as El, BuilderState, Breakpoint } from '../types';
 import { richTextState } from '../utils/richTextState';
 import { createCleanPasteHandler } from '../utils/cleanPaste';
+import { hoverCss } from '../utils/hoverStyle';
 import { ElementQuickBar } from './ElementQuickBar';
 import { FormPreview } from './FormPreview';
 
@@ -502,17 +503,27 @@ export function ElementContent({
         </div>
       );
     }
+    // Hover (Phase 1): emit a scoped :hover stylesheet so the in-editor canvas
+    // and preview match the published/exported output exactly. Uses the same
+    // shared hoverCss() as the export path; the class scopes it to this element.
+    const hovScoped = hoverCss(el, `.pb-hov-${el.id}`);
     return (
-      <div style={{
-        ...base,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-        color: typography.color, padding: padStr,
-        letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
-        textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
-      }}>
-        {el.content.label}
-      </div>
+      <>
+        {hovScoped && <style>{hovScoped}</style>}
+        <div
+          className={hovScoped ? `pb-hov-${el.id}` : undefined}
+          style={{
+            ...base,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
+            color: typography.color, padding: padStr,
+            letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+            textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
+          }}
+        >
+          {el.content.label}
+        </div>
+      </>
     );
   }
 

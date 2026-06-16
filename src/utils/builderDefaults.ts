@@ -14,6 +14,10 @@ export const DEFAULT_SECTION_BG: SectionBackground = {
   from: '#006e75', to: '#0b978e', angle: 135, overlay: 0,
 };
 
+// Default hover config — disabled, so elements without an explicit hover stay
+// untouched. 200ms matches the Phase 1 spec default transition duration.
+export const DEFAULT_HOVER = { enabled: false, transitionDuration: 200 } as const;
+
 export const DEFAULT_STYLE: ElementStyle = {
   opacity: 1,
   background: { ...DEFAULT_BG },
@@ -21,6 +25,7 @@ export const DEFAULT_STYLE: ElementStyle = {
   border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' },
   shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' },
   typography: { family: 'Inter, sans-serif', size: 16, weight: 'normal', color: '#333333', align: 'left', lineHeight: 1.5, letterSpacing: 0, textTransform: 'none' as TextTransform },
+  hover: { ...DEFAULT_HOVER },
 };
 
 export const DEFAULT_CONTENT: ElementContent = {

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type {
   Breakpoint, BuilderState, CanvasElement, ElementBackground,
-  Border, Padding, Shadow, BreakpointOverride, BgType,
+  Border, Padding, Shadow, BreakpointOverride, BgType, ElementHover,
 } from '../../types';
 
 import { CollapsibleSection } from './CollapsibleSection';
@@ -26,6 +26,7 @@ interface Props {
   changePad: (p: Partial<Padding>) => void;
   changeMargin: (p: Partial<Padding>) => void;
   changeShadow: (s: Partial<Shadow>) => void;
+  changeHover: (h: Partial<ElementHover>) => void;
   changeLayout: (l: Partial<import('../../types').ElementLayout>) => void;
   commitChange: (updates: Partial<CanvasElement>) => void;
   allBpBadge: ReactNode;
@@ -37,11 +38,12 @@ export function ElementPanelStyle({
   element, id, isInGridCell,
   sec, toggleSection,
   onFocus, onBlur, snapshot, onPushSnapshot,
-  changeBg, changeBorder, changePad, changeMargin, changeShadow, changeLayout,
+  changeBg, changeBorder, changePad, changeMargin, changeShadow, changeHover, changeLayout,
   commitChange, allBpBadge, swatches, onUpdateResponsive,
 }: Props) {
   const elBg = element.style.background;
   const bgColor = elBg.color.startsWith('#') ? elBg.color : '#ffffff';
+  const hover = element.style.hover ?? { enabled: false, transitionDuration: 200 };
 
   return (
     <>
@@ -107,13 +109,45 @@ export function ElementPanelStyle({
         </CollapsibleSection>
       )}
 
-      {/* ── Border (not divider / spacer) ── */}
-      {!['divider', 'spacer'].includes(element.type) && (
-        <CollapsibleSection sectionKey="border" label={<>Border {allBpBadge}</>}
-          isOpen={sec('border')} onToggle={toggleSection}>
-          <BorderEditor border={element.style.border} onChange={changeBorder} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+      {/* ── Hover (buttons only — Phase 1) ── */}
+      {element.type === 'button' && (
+        <CollapsibleSection sectionKey="hover" label={<>Hover {allBpBadge}</>}
+          isOpen={sec('hover')} onToggle={toggleSection}>
+          <div className={'pb-prop-row pb-vis-row'}>
+            <label>Enable Hover Effect</label>
+            <input type="checkbox" checked={hover.enabled}
+              onChange={e => commitChange({ style: { ...element.style, hover: { ...hover, enabled: e.target.checked } } })} />
+          </div>
+          {hover.enabled && (
+            <>
+              <div className={'pb-prop-row'}>
+                <label>Background Color</label>
+                <ColorField value={hover.backgroundColor ?? bgColor}
+                  onChange={v => changeHover({ backgroundColor: v })}
+                  onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+              </div>
+              <div className={'pb-prop-row'}>
+                <label>Text Color</label>
+                <ColorField value={hover.textColor ?? element.style.typography.color}
+                  onChange={v => changeHover({ textColor: v })}
+                  onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+              </div>
+              <div className={'pb-prop-row'}>
+                <label>Transition Duration</label>
+                <PxInput value={hover.transitionDuration} unit="ms" min={0} step={50}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={v => changeHover({ transitionDuration: Math.max(0, v) })} />
+              </div>
+            </>
+          )}
         </CollapsibleSection>
       )}
+
+      {/* ── Border ── */}
+      <CollapsibleSection sectionKey="border" label={<>Border {allBpBadge}</>}
+        isOpen={sec('border')} onToggle={toggleSection}>
+        <BorderEditor border={element.style.border} onChange={changeBorder} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+      </CollapsibleSection>
 
       {/* ── Spacing ──
            Margin: only meaningful in grid flow (not free-section, not overlay-in-cell).

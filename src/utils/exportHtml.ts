@@ -2,6 +2,7 @@ import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, 
 import { sectionBgCssStr } from './sectionStyle';
 import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
+import { hoverCss } from './hoverStyle';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
 const TABLET_W = 768;
@@ -1095,6 +1096,8 @@ function generateCellCSS(
       const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
       const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
       baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
+      const hCssAbs = hoverCss(el, `.ec-${el.id}`);
+      if (hCssAbs) baseRules.push(hCssAbs);
       // Tablet/mobile: stay absolutely positioned but default to top-left if no explicit override
       const tO = el.responsive.tablet?.layout;
       const mO = el.responsive.mobile?.layout;
@@ -1118,6 +1121,8 @@ function generateCellCSS(
     const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
     const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
     baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
+    const hCssFlex = hoverCss(el, `.ec-${el.id}`);
+    if (hCssFlex) baseRules.push(hCssFlex);
 
     const tElOverride = el.responsive.tablet;
     const mElOverride = el.responsive.mobile;
@@ -1353,6 +1358,11 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       const tyLs = typo.letterSpacing ? `;letter-spacing:${typo.letterSpacing}px` : '';
       const tyTt = (typo.textTransform && typo.textTransform !== 'none') ? `;text-transform:${typo.textTransform}` : '';
       baseRules.push(`.ec-${el.id}{font-family:${typo.family};font-size:${typo.size}px;font-weight:${typo.weight};color:${typo.color};text-align:${typo.align};line-height:${typo.lineHeight}${tyLs}${tyTt}}`);
+
+      // Hover (Phase 1, buttons) — transition + :hover overrides. Scoped to the
+      // content element (.ec-{id}) so it matches the in-editor canvas/preview.
+      const hCss = hoverCss(el, `.ec-${el.id}`);
+      if (hCss) baseRules.push(hCss);
 
       // Tablet overrides
       const to = el.responsive.tablet;
