@@ -1,5 +1,5 @@
 import type {
-  AnimationTrigger, AnimationType, BgType, BorderStyle, BreakpointOverride, BuilderState,
+  BgType, BorderStyle, BreakpointOverride, BuilderState,
   CanvasElement, ColumnStyle, ElementType, NodeMap, ObjectFit, Page, SectionRole, SiteTheme, TextAlign, TextTransform,
 } from '../types';
 import { DEFAULT_FLEX_LAYOUT, DEFAULT_THEME, interactionToAction } from './builderDefaults';
@@ -36,7 +36,6 @@ function migrateOldElement(r: Record<string, unknown>, parentId: string): Canvas
     },
     content: { plain: (r.text as string) ?? '', rich: (r.richText as string) ?? '', src: (r.src as string) ?? '', alt: (r.alt as string) ?? 'image', objectFit: (r.objectFit as ObjectFit) ?? 'cover', label: (r.label as string) ?? 'Button', videoUrl: (r.videoUrl as string) ?? '', iconName: (r.iconName as string) ?? '★', iconSize: (r.iconSize as number) ?? 40 },
     interaction: { type: 'link', linkUrl: (r.linkUrl as string) ?? '', linkTarget: (r.linkTarget as '_self' | '_blank') ?? '_self', smoothScroll: false },
-    animation: { type: (r.animationType as AnimationType) ?? 'none', trigger: (r.animationTrigger as AnimationTrigger) ?? 'load', duration: (r.animationDuration as number) ?? 600, delay: (r.animationDelay as number) ?? 0 },
     state: { hidden: (r.hidden as boolean) ?? false, locked: (r.locked as boolean) ?? false },
     responsive: {
       tablet: r.responsiveTablet ? migrateOldBreakpoint(r.responsiveTablet as Record<string, unknown>) : undefined,
@@ -67,6 +66,7 @@ function migrateOldSection(r: Record<string, unknown>, role: SectionRole, nodes:
     style: {
       background: { type: (r.backgroundType as BgType) ?? 'solid', color: (r.backgroundColor as string) ?? '#ffffff', image: (r.backgroundImage as string) ?? '', position: 'center', from: (r.gradientFrom as string) ?? '#006e75', to: (r.gradientTo as string) ?? '#0b978e', angle: (r.gradientAngle as number) ?? 135, overlay: (r.backgroundOverlay as number) ?? 0 },
       columns: { count: (r.columns as number) ?? 1, widths: (r.columnWidths as number[]) ?? [], styles: newStyles },
+      padding: { top: 0, right: 0, bottom: 0, left: 0 },
     },
     children: order,
     layoutMode: 'free',

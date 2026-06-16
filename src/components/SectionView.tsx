@@ -215,6 +215,7 @@ function FreeSectionView({
   };
 
   const secBorder = section.style.border;
+  const secShadow = section.style.shadow;
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
@@ -225,6 +226,7 @@ function FreeSectionView({
     ...sectionBgProps(bg),
     ...(secBorder?.radius ? { borderRadius: secBorder.radius } : {}),
     ...(secBorder?.width && secBorder.width > 0 ? { border: `${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}` } : {}),
+    ...(secShadow?.enabled ? { boxShadow: `${secShadow.x}px ${secShadow.y}px ${secShadow.blur}px ${secShadow.spread}px ${secShadow.color}` } : {}),
   };
 
   const scrollBehavior = section.scrollBehavior ?? 'normal';
@@ -310,12 +312,9 @@ function FreeSectionView({
   const marginStyle: React.CSSProperties = secMargin
     ? { marginTop: secMargin.top, marginRight: secMargin.right, marginBottom: secMargin.bottom, marginLeft: secMargin.left }
     : {};
-  const cssPos = section.cssPosition;
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
     ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50, ...marginStyle }
-    : cssPos && cssPos !== 'relative'
-      ? { flexShrink: 0, position: cssPos as React.CSSProperties['position'], zIndex: 50, ...marginStyle }
-      : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined, ...marginStyle };
+    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined, ...marginStyle };
 
   return (
     <div
@@ -580,7 +579,6 @@ function FreeSectionView({
               isSelected={selectedAccordionId === acc.id}
               selectedId={selectedId}
               selectedGridCellId={selectedGridCellId}
-              selectedContainerId={selectedContainerId}
               previewMode={previewMode}
               breakpoint={breakpoint}
               canvasWidth={canvasWidth}
@@ -591,20 +589,12 @@ function FreeSectionView({
               onAddAccordionItem={onAddAccordionItem}
               onSelectGridCell={onSelectGridCell}
               onSelectElement={onSelectElement}
-              onSelectContainer={onSelectContainer}
               onUpdateElement={onUpdateElement}
               onUpdateGridCell={onUpdateGridCell}
               onDeleteGridCell={onDeleteGridCell}
               onAddElementToCell={onAddElementToCell}
-              onMoveGridElement={onMoveGridElement}
-              onReorderGridCell={onReorderGridCell}
-              onRemoveColumnsBlock={onRemoveColumnsBlock}
-              onAddContainer={onAddContainer}
-              onUpdateContainer={onUpdateContainer}
-              onAddSubCell={onAddSubCell}
               onCommit={onCommit}
               snapshot={snapshot}
-              onUpdateResponsive={onUpdateResponsive}
               onDuplicateElement={onDuplicateElement}
               onDeleteElement={onDeleteElement}
               dragOverGridCellId={dragOverGridCellId}

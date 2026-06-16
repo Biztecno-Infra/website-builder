@@ -368,7 +368,6 @@ export function GridCellView({
                   isSelected={selectedAccordionId === acc.id}
                   selectedId={selectedId}
                   selectedGridCellId={selectedGridCellId}
-                  selectedContainerId={selectedContainerId}
                   previewMode={previewMode}
                   breakpoint={breakpoint}
                   canvasWidth={canvasWidth}
@@ -380,20 +379,12 @@ export function GridCellView({
                   onAddAccordionItem={onAddAccordionItem}
                   onSelectGridCell={onSelectGridCell}
                   onSelectElement={id => onSelectElement(id)}
-                  onSelectContainer={onSelectContainer}
                   onUpdateElement={onUpdateElement}
                   onUpdateGridCell={onUpdateGridCell}
                   onDeleteGridCell={onDeleteGridCell}
                   onAddElementToCell={onAddElementToCell}
-                  onMoveGridElement={onMoveGridElement}
-                  onReorderGridCell={onReorderGridCell}
-                  onRemoveColumnsBlock={onRemoveColumnsBlock}
-                  onAddContainer={onAddContainer}
-                  onUpdateContainer={onUpdateContainer}
-                  onAddSubCell={onAddSubCell}
                   onCommit={onCommit}
                   snapshot={snapshot}
-                  onUpdateResponsive={onUpdateResponsive}
                   onDuplicateElement={onDuplicateElement}
                   onDeleteElement={onDeleteElement}
                 />

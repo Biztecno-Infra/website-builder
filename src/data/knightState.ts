@@ -35,7 +35,6 @@ const bdr = (radius = 0, width = 0, color = K.border, style: Border['style'] = '
   ({ radius, width, color, style });
 const shad = (on = false, y = 8, blur = 24): Shadow =>
   ({ enabled: on, x: 0, y, blur, spread: -4, color: 'rgba(0,0,0,0.4)' });
-const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
 const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 const typo = (sz: number, w: string, color: string, align: 'left'|'center'|'right' = 'left', lh = 1.5) =>
@@ -52,7 +51,7 @@ function T(parent: string, plain: string, sz: number, w: string, color: string,
     style: { opacity: 1, background: elBg(), padding: p, border: bdr(), shadow: shad(),
       typography: typo(sz, w, color, align, lh) },
     content: { plain, rich: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(),
+    interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: flex,
   };
 }
@@ -65,7 +64,7 @@ function Btn(parent: string, label: string, bg: string, color: string,
     style: { opacity: 1, background: elBg(bg), padding: p, border: bdr(radius),
       shadow: shad(), typography: typo(15, '600', color, 'center') },
     content: { plain: label, label, rich: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(),
+    interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: fl('auto'),
   };
 }
@@ -76,7 +75,7 @@ function Sp(parent: string, h: number): CanvasElement {
     layout: { x: 0, y: 0, width: 200, height: h, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(), padding: pad(0), border: bdr(), shadow: shad(),
       typography: typo(16, '400', K.body) },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: {}, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: fl('fill'),
   };
 }
@@ -88,7 +87,7 @@ function Img(parent: string, src: string, h: number): CanvasElement {
     style: { opacity: 1, background: elBg('#1a2327'), padding: pad(0), border: bdr(8),
       shadow: shad(true), typography: typo(16, '400', K.body) },
     content: { src, alt: '', objectFit: 'cover' as const },
-    interaction: nolink(), animation: noanim(), state: nostate(),
+    interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: fl('fill'),
   };
 }
@@ -99,7 +98,7 @@ function Div(parent: string, color = K.border): CanvasElement {
     layout: { x: 0, y: 0, width: 400, height: 1, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(color), padding: pad(0), border: bdr(0),
       shadow: shad(), typography: typo(16, '400', K.body) },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: {}, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: fl('fill'),
   };
 }

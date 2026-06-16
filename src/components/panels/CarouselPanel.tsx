@@ -124,6 +124,12 @@ export function CarouselPanel({
           />
         )}
         <Toggle label="Loop" checked={p.loop} onChange={v => setProps({ loop: v })} />
+        <Toggle label="Pause on hover" checked={p.pauseOnHover ?? true} onChange={v => setProps({ pauseOnHover: v })} />
+        <NumberField
+          label="Transition" value={p.transitionDuration ?? 400} min={100} max={2000} step={50} suffix="ms"
+          onCommitStart={onFocus}
+          onChange={v => setProps({ transitionDuration: Math.max(100, Math.min(2000, v)) }, false)}
+        />
         <Toggle label="Show arrows" checked={p.showArrows} onChange={v => setProps({ showArrows: v })} />
         <Toggle label="Show dots / indicators" checked={p.showDots} onChange={v => setProps({ showDots: v })} />
         {p.showDots && (

@@ -1,6 +1,6 @@
 import type { CanvasElement, ElementType, SiteTheme } from '../types';
 import {
-  DEFAULT_ANIMATION, DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_FLEX_LAYOUT,
+  DEFAULT_BG, DEFAULT_CONTENT, DEFAULT_FLEX_LAYOUT,
   DEFAULT_INTERACTION, DEFAULT_STYLE, DEFAULT_THEME, defaultFormFields,
 } from './builderDefaults';
 import { newId } from './ids';
@@ -24,7 +24,6 @@ export function createDefaultElement(
     style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: tf, color: tc.text } },
     content: { ...DEFAULT_CONTENT },
     interaction: { ...DEFAULT_INTERACTION },
-    animation: { ...DEFAULT_ANIMATION },
     state: { hidden: false, locked: false },
     responsive: {},
     flexLayout: { ...DEFAULT_FLEX_LAYOUT },

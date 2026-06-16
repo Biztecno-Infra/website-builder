@@ -5,8 +5,8 @@ import { canvasDragShared } from './CanvasElement';
 import { ElementQuickBar } from './ElementQuickBar';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import type {
-  Accordion, AccordionBpOverride, AccordionItem, Breakpoint, BreakpointOverride, BuilderState,
-  CanvasElement as El, CellLayoutMode, Container, ContainerLayoutMode, GridCell, NodeMap, ElementType,
+  Accordion, AccordionBpOverride, Breakpoint, BuilderState,
+  CanvasElement as El, CellLayoutMode, GridCell, NodeMap, ElementType,
 } from '../types';
 
 // Width-only resize (height is content-driven): the accordion grows with its items.
@@ -23,7 +23,6 @@ interface Props {
   isSelected: boolean;
   selectedId: string | null;
   selectedGridCellId?: string | null;
-  selectedContainerId?: string | null;
   previewMode?: boolean;
   breakpoint?: Breakpoint;
   canvasWidth: number;
@@ -35,20 +34,12 @@ interface Props {
   // Header element + content-cell callbacks (reuse the element + grid-cell pipeline)
   onSelectGridCell?: (id: string | null) => void;
   onSelectElement: (id: string, shift: boolean) => void;
-  onSelectContainer?: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<El>) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onDeleteGridCell?: (id: string) => void;
   onAddElementToCell?: (type: ElementType, cellId: string, x?: number, y?: number) => void;
-  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number, dropPos?: { x: number; y: number }, sourceCellMode?: CellLayoutMode) => void;
-  onReorderGridCell?: (parentId: string, fromIndex: number, toIndex: number) => void;
-  onRemoveColumnsBlock?: (blockId: string) => void;
-  onAddContainer?: (cellId: string, mode: ContainerLayoutMode, columnSpans?: number[]) => void;
-  onUpdateContainer?: (id: string, updates: Partial<Pick<Container, 'layoutMode' | 'gap' | 'rowGap'>>) => void;
-  onAddSubCell?: (containerId: string) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
-  onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
   dragOverGridCellId?: string | null;
@@ -75,14 +66,12 @@ function accordionGeometry(accordion: Accordion, bp: Breakpoint): { x: number; y
 
 export function AccordionView({
   accordion, nodes, isSelected,
-  selectedId, selectedGridCellId, selectedContainerId,
+  selectedId, selectedGridCellId,
   previewMode, breakpoint = 'desktop', canvasWidth,
   onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
-  onSelectGridCell, onSelectElement, onSelectContainer,
+  onSelectGridCell, onSelectElement,
   onUpdateElement, onUpdateGridCell, onDeleteGridCell, onAddElementToCell,
-  onMoveGridElement, onReorderGridCell, onRemoveColumnsBlock,
-  onAddContainer, onUpdateContainer, onAddSubCell,
-  onCommit, snapshot, onUpdateResponsive, onDuplicateElement, onDeleteElement,
+  onCommit, snapshot, onDuplicateElement, onDeleteElement,
   dragOverGridCellId, inCell = false,
 }: Props) {
   const [hovered, setHovered] = useState(false);
@@ -256,7 +245,7 @@ export function AccordionView({
         const iconStyle: React.CSSProperties = {
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'transform 0.2s ease',
-          transform: open && !props.expandedIconSvg ? `rotate(${iconRotation}deg)` : undefined,
+          transform: open ? `rotate(${iconRotation}deg)` : undefined,
         };
         const header = (
           <div

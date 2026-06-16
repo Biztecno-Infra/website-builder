@@ -7,6 +7,7 @@ import { PbColorPicker } from '../PbColorPicker';
 import {
   BG_TYPE_WITH_TRANSPARENT_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
+  BORDER_STYLE_OPTIONS,
 } from '../../utils/selectOptions';
 
 export function themeToSwatches(theme: SiteTheme): string[] {
@@ -216,9 +217,16 @@ export function BorderEditor({ border, onChange, onFocus, onBlur, swatches }: {
   return (
     <>
       <div className="pb-prop-row">
+        <label>Style</label>
+        <PbSelect
+          value={border.style ?? 'solid'}
+          options={BORDER_STYLE_OPTIONS}
+          onChange={v => onChange({ style: v as import('../../types').BorderStyle })} />
+      </div>
+      <div className="pb-prop-row">
         <label>Width</label>
         <PxInput value={border.width} min={0} onFocus={onFocus} onBlur={onBlur}
-          onChange={v => onChange({ width: v, ...(v > 0 && border.style === 'none' ? { style: 'solid' as const } : {}) })} />
+          onChange={v => onChange({ width: v })} />
       </div>
       <div className="pb-prop-row">
         <label>Radius</label>

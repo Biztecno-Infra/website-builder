@@ -1,6 +1,6 @@
 import type { Accordion, AnyNode, CanvasElement, Carousel, Container, ElementAction, FlexSection, GridCell, GridSection, NodeMap, Section } from '../types';
 import {
-  DEFAULT_ANIMATION, DEFAULT_CONTENT, DEFAULT_FLEX_CONFIG, DEFAULT_GRID_CELL_STYLE,
+  DEFAULT_CONTENT, DEFAULT_FLEX_CONFIG, DEFAULT_GRID_CELL_STYLE,
   DEFAULT_INTERACTION, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_FLEX_LAYOUT,
   DEFAULT_CAROUSEL_PROPS, DEFAULT_CAROUSEL_HEIGHT, DEFAULT_CAROUSEL_WIDTH,
   DEFAULT_ACCORDION_PROPS, DEFAULT_ACCORDION_WIDTH,
@@ -61,7 +61,6 @@ const ELEMENT_DEFAULTS = {
   style:       DEFAULT_STYLE,
   content:     DEFAULT_CONTENT,
   interaction: DEFAULT_INTERACTION,
-  animation:   DEFAULT_ANIMATION,
   state:       { hidden: false, locked: false },
   flexLayout:  DEFAULT_FLEX_LAYOUT,
 };
@@ -177,8 +176,6 @@ export function sparsifyNode(node: AnyNode): Obj {
   if (sc !== undefined) out.content = sc;
   const si = sparsifyVal(el.interaction, ELEMENT_DEFAULTS.interaction);
   if (si !== undefined) out.interaction = si;
-  const sa = sparsifyVal(el.animation, ELEMENT_DEFAULTS.animation);
-  if (sa !== undefined) out.animation = sa;
   const sst = sparsifyVal(el.state, ELEMENT_DEFAULTS.state);
   if (sst !== undefined) out.state = sst;
   const sf = sparsifyVal(el.flexLayout, ELEMENT_DEFAULTS.flexLayout);

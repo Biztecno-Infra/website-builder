@@ -1,5 +1,5 @@
 import type {
-  AccordionProps, CarouselProps, ElementAction, ElementAnimation, ElementBackground, ElementContent, ElementInteraction,
+  AccordionProps, CarouselProps, ElementAction, ElementBackground, ElementContent, ElementInteraction,
   ElementStyle, FlexItemLayout, FormField, GridCellStyle, Padding, SectionBackground,
   SiteTheme, TextTransform,
 } from '../types';
@@ -33,7 +33,6 @@ export const DEFAULT_CONTENT: ElementContent = {
 
 export const DEFAULT_INTERACTION: ElementInteraction = { type: 'link', linkUrl: '', linkTarget: '_self', smoothScroll: false };
 export const DEFAULT_ACTION: ElementAction = { type: 'none', target: '_self', smoothScroll: true };
-export const DEFAULT_ANIMATION: ElementAnimation = { type: 'none', trigger: 'load', duration: 600, delay: 0 };
 
 // Default fields for a freshly-dropped Form element.
 export function defaultFormFields(): FormField[] {
@@ -88,9 +87,7 @@ export const DEFAULT_CAROUSEL_PROPS: CarouselProps = {
   loop: true,
   showArrows: true,
   showDots: true,
-  transition: 'slide',
   transitionDuration: 400,
-  slidesPerView: 1,
   pauseOnHover: true,
   dotColor: '#ffffff',
 };

@@ -133,21 +133,6 @@ export function CanvasElement({
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [animVisible, setAnimVisible] = useState(
-    !previewMode || el.animation.type === 'none' || el.animation.trigger === 'load'
-  );
-
-  useEffect(() => {
-    if (!previewMode || el.animation.type === 'none') return;
-    if (el.animation.trigger === 'load') { setAnimVisible(true); return; }
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setAnimVisible(true); observer.disconnect(); } },
-      { threshold: 0.15 }
-    );
-    if (wrapperRef.current) observer.observe(wrapperRef.current);
-    return () => observer.disconnect();
-  }, [previewMode, el.animation.type, el.animation.trigger]);
-
   const handleBodyMouseDown = (e: React.MouseEvent) => {
     if (previewMode) return;
     if (e.button !== 0) return;
@@ -323,18 +308,6 @@ export function CanvasElement({
     ? `${el.style.shadow.x}px ${el.style.shadow.y}px ${el.style.shadow.blur}px ${el.style.shadow.spread}px ${el.style.shadow.color}`
     : undefined;
 
-  const ANIM_CLASSES: Record<string, string> = {
-    'fade-in': 'pb-anim-fade-in',
-    'slide-up': 'pb-anim-slide-up',
-    'slide-left': 'pb-anim-slide-left',
-    'zoom-in': 'pb-anim-zoom-in',
-  };
-  const animClass = previewMode && el.animation.type !== 'none'
-    ? animVisible
-      ? ANIM_CLASSES[el.animation.type] ?? ''
-      : 'pb-anim-pending'
-    : '';
-
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
     left: el.layout.x,
@@ -349,8 +322,6 @@ export function CanvasElement({
     transform: el.layout.rotation ? `rotate(${el.layout.rotation}deg)` : undefined,
     boxShadow: shadow,
     display: el.state.hidden ? 'none' : undefined,
-    ['--anim-duration' as string]: `${el.animation.duration}ms`,
-    ['--anim-delay' as string]: `${el.animation.delay}ms`,
   };
 
   const selected = isSelected || isMultiSelected;
@@ -360,7 +331,7 @@ export function CanvasElement({
       ref={wrapperRef}
       data-el-id={el.id}
       style={wrapperStyle}
-      className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked', animClass || null].filter(Boolean).join(' ')}
+      className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked'].filter(Boolean).join(' ')}
       onMouseDown={handleBodyMouseDown}
       onDoubleClick={previewMode ? undefined : handleDoubleClick}
       onContextMenu={previewMode ? undefined : handleContextMenu}

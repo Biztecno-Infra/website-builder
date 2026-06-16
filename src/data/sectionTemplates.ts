@@ -45,7 +45,6 @@ const bdr = (radius = 0, width = 0, color = '#cccccc', style: Border['style'] = 
   ({ radius, width, color, style });
 const shad = (on = false, x = 0, y = 8, blur = 24, spread = -4, color = 'rgba(0,0,0,0.08)'): Shadow =>
   ({ enabled: on, x, y, blur, spread, color });
-const noanim = () => ({ type: 'none' as const, trigger: 'load' as const, duration: 600, delay: 0 });
 const nostate = () => ({ hidden: false, locked: false });
 const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
@@ -56,45 +55,45 @@ function mkText(id: string, parent: string, text: string, sz: number, w: string,
   align: A3 = 'left', h = 48, lh = 1.5, p = pad(0), flex = fl('fill')): CanvasElement {
   return { id, type: 'text', parent, layout: { x: 0, y: 0, width: 200, height: h, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(), padding: p, border: bdr(), shadow: shad(), typography: typo(sz, w, color, align, lh) },
-    content: { plain: text, rich: '' }, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: { plain: text, rich: '' }, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: flex };
 }
 function mkBtn(id: string, parent: string, label: string, bg: string, color: string,
   sz = 15, radius = 8, p = pad(12, 28), flex = fl('auto'), bdColor?: string, bdW = 0): CanvasElement {
   return { id, type: 'button', parent, layout: { x: 0, y: 0, width: 160, height: 44, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(bg), padding: p, border: bdr(radius, bdW, bdColor ?? bg), shadow: shad(), typography: typo(sz, '600', color, 'center', 1, 0.3) },
-    content: { plain: label, label, rich: '' }, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: { plain: label, label, rich: '' }, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: flex };
 }
 function mkSp(id: string, parent: string, h = 16): CanvasElement {
   return { id, type: 'spacer', parent, layout: { x: 0, y: 0, width: 200, height: h, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(), padding: pad(0), border: bdr(), shadow: shad(), typography: typo(16, 'normal', '#333') },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
+    content: {}, interaction: nolink(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
 }
 function mkBox(id: string, parent: string, h: number, from: string, to: string, radius = 12,
   flex = fl('fill', 1, 'stretch')): CanvasElement {
   return { id, type: 'box', parent, layout: { x: 0, y: 0, width: 200, height: h, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elGrad(from, to), padding: pad(0), border: bdr(radius), shadow: shad(true, 0, 8, 32, -4, 'rgba(0,0,0,0.12)'), typography: typo(16, 'normal', '#fff') },
-    content: { plain: '', rich: '' }, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: { plain: '', rich: '' }, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: flex };
 }
 function mkIcon(id: string, parent: string, icon: string, sz = 32, color = '#006e75'): CanvasElement {
   return { id, type: 'icon', parent, layout: { x: 0, y: 0, width: 60, height: sz + 8, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(), padding: pad(0), border: bdr(), shadow: shad(),
       typography: { family: 'Inter, sans-serif', size: sz, weight: 'normal', color, align: 'left', lineHeight: 1, letterSpacing: 0, textTransform: 'none' } },
-    content: { iconName: icon, iconSize: sz }, interaction: nolink(), animation: noanim(), state: nostate(),
+    content: { iconName: icon, iconSize: sz }, interaction: nolink(), state: nostate(),
     responsive: {}, flexLayout: fl('auto') };
 }
 function mkImg(id: string, parent: string, h: number, radius = 16): CanvasElement {
   return { id, type: 'image', parent, layout: { x: 0, y: 0, width: 400, height: h, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg('#e2e8f0'), padding: pad(0), border: bdr(radius), shadow: shad(true, 0, 8, 32, -4, 'rgba(0,0,0,0.12)'), typography: typo(16, 'normal', '#64748b') },
     content: { src: 'https://placehold.co/800x500/e2e8f0/94a3b8?text=Your+Image', plain: '' },
-    interaction: nolink(), animation: noanim(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
+    interaction: nolink(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
 }
 function mkDivider(id: string, parent: string, color = '#e2e8f0'): CanvasElement {
   return { id, type: 'divider', parent, layout: { x: 0, y: 0, width: 400, height: 2, zIndex: 0, rotation: 0 },
     style: { opacity: 1, background: elBg(color), padding: pad(8, 0), border: bdr(), shadow: shad(), typography: typo(16, 'normal', '#333') },
-    content: {}, interaction: nolink(), animation: noanim(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
+    content: {}, interaction: nolink(), state: nostate(), responsive: {}, flexLayout: fl('fill') };
 }
 function mkCell(id: string, parent: string, span: number, children: string[],
   mode: GridCell['style']['layoutMode'] = 'column',

@@ -1,12 +1,5 @@
 import type { SelectOption } from '../components/PbSelect';
 
-export const CSS_POSITION_OPTIONS: SelectOption[] = [
-  { value: 'relative', label: 'Relative' },
-  { value: 'absolute', label: 'Absolute' },
-  { value: 'fixed',    label: 'Fixed' },
-  { value: 'sticky',   label: 'Sticky' },
-];
-
 export const FONT_WEIGHT_OPTIONS: SelectOption[] = [
   { value: '100',    label: 'Thin (100)' },
   { value: '200',    label: 'ExtraLight (200)' },
@@ -96,7 +89,6 @@ export const SCROLL_BEHAVIOR_OPTIONS: SelectOption[] = [
 export const CONTENT_WIDTH_OPTIONS: SelectOption[] = [
   { value: 'constrained', label: 'Fixed' },
   { value: 'full',        label: 'Full' },
-  { value: 'fluid',       label: 'Fluid' },
 ];
 
 export const BG_TYPE_OPTIONS: SelectOption[] = [
@@ -136,12 +128,11 @@ export const OBJECT_FIT_OPTIONS: SelectOption[] = [
   { value: 'fill',    label: 'Fill' },
 ];
 
-export const OBJECT_POSITION_OPTIONS: SelectOption[] = [
-  { value: 'top',    label: 'Top' },
-  { value: 'bottom', label: 'Bottom' },
-  { value: 'left',   label: 'Left' },
-  { value: 'right',  label: 'Right' },
-  { value: 'center', label: 'Center' },
+export const BORDER_STYLE_OPTIONS: SelectOption[] = [
+  { value: 'solid',  label: 'Solid' },
+  { value: 'dashed', label: 'Dashed' },
+  { value: 'dotted', label: 'Dotted' },
+  { value: 'none',   label: 'None' },
 ];
 
 export const DIVIDER_ORIENTATION_OPTIONS: SelectOption[] = [

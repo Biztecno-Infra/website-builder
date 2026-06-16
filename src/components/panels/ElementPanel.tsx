@@ -22,7 +22,7 @@ const ELEMENT_SECTION_DEFAULTS: Record<string, boolean> = {
   typography: true, image: true, video: true, icon: true,
   form: true, action: true,
   background: true, border: true, spacing: true,
-  shadow: false, interactions: false, animation: false,
+  shadow: false, interactions: false,
   advanced: false, responsive: false,
 };
 
@@ -172,12 +172,14 @@ export function ElementPanel({
               onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
           </div>
         )}
-        <div className={'pb-prop-row'}>
-          <label>Opacity</label>
-          <PbInput type="number" value={element.style.opacity} min={0} max={1} step={0.05}
-            onFocus={onFocus} onBlur={onBlur}
-            onChange={e => change({ style: { ...element.style, opacity: Math.max(0, Math.min(1, Number(e.target.value))) } })} />
-        </div>
+        {element.type !== 'spacer' && (
+          <div className={'pb-prop-row'}>
+            <label>Opacity</label>
+            <PbInput type="number" value={element.style.opacity} min={0} max={1} step={0.05}
+              onFocus={onFocus} onBlur={onBlur}
+              onChange={e => change({ style: { ...element.style, opacity: Math.max(0, Math.min(1, Number(e.target.value))) } })} />
+          </div>
+        )}
       </CollapsibleSection>
 
       {/* ── Sizing (grid elements only, not overlay) ── */}
@@ -256,7 +258,7 @@ export function ElementPanel({
       />
 
       <ElementPanelStyle
-        element={element} id={id} breakpoint={breakpoint}
+        element={element} id={id} breakpoint={breakpoint} isInGridCell={isInGridCell}
         sec={sec} toggleSection={toggleSection}
         onFocus={onFocus} onBlur={onBlur}
         snapshot={snapshot} onPushSnapshot={onPushSnapshot}

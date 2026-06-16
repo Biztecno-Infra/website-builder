@@ -18,13 +18,11 @@ import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbTextarea } from '../PbTextarea';
 import {
-  CSS_POSITION_OPTIONS,
   FONT_WEIGHT_OPTIONS,
   FONT_FAMILY_OPTIONS,
   TEXT_TRANSFORM_OPTIONS,
   DIVIDER_ORIENTATION_OPTIONS,
   OBJECT_FIT_OPTIONS,
-  OBJECT_POSITION_OPTIONS,
 } from '../../utils/selectOptions';
 
 interface Props {
@@ -272,12 +270,6 @@ export function ElementPanelContent({
               options={TEXT_TRANSFORM_OPTIONS}
               onChange={v => commitChange({ style: { ...element.style, typography: { ...element.style.typography, textTransform: v as TextTransform } } })} />
           </div>
-          <div className={'pb-prop-row'}>
-            <label>Position</label>
-            <PbSelect value={element.cssPosition ?? 'relative'}
-              options={CSS_POSITION_OPTIONS}
-              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
-          </div>
         </CollapsibleSection>
       )}
 
@@ -348,22 +340,10 @@ export function ElementPanelContent({
               onChange={e => changeContent({ alt: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Image Position</label>
-            <PbSelect value={element.content.objectPosition ?? 'center'}
-              options={OBJECT_POSITION_OPTIONS}
-              onChange={v => commitChange({ content: { ...element.content, objectPosition: v } })} />
-          </div>
-          <div className={'pb-prop-row'}>
             <label>Image Fit</label>
             <PbSelect value={element.content.objectFit ?? 'cover'}
               options={OBJECT_FIT_OPTIONS}
               onChange={v => commitChange({ content: { ...element.content, objectFit: v as ObjectFit } })} />
-          </div>
-          <div className={'pb-prop-row'}>
-            <label>Position</label>
-            <PbSelect value={element.cssPosition ?? 'relative'}
-              options={CSS_POSITION_OPTIONS}
-              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
           </div>
         </CollapsibleSection>
       )}
@@ -382,12 +362,6 @@ export function ElementPanelContent({
             <PbInput type="text" variant="plain" value={element.content.thumbnailUrl ?? ''} placeholder="https://..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ thumbnailUrl: e.target.value })} />
-          </div>
-          <div className={'pb-prop-row'}>
-            <label>Position</label>
-            <PbSelect value={element.cssPosition ?? 'relative'}
-              options={CSS_POSITION_OPTIONS}
-              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
           </div>
         </CollapsibleSection>
       )}
@@ -445,12 +419,6 @@ export function ElementPanelContent({
                 onChange={e => { if (e.target.value) changeContent({ iconName: e.target.value }); }} />
             </div>
           )}
-          <div className={'pb-prop-row'}>
-            <label>Position</label>
-            <PbSelect value={element.cssPosition ?? 'relative'}
-              options={CSS_POSITION_OPTIONS}
-              onChange={v => commitChange({ cssPosition: v as 'relative' | 'absolute' | 'fixed' | 'sticky' })} />
-          </div>
           <div className={'pb-note-text'} style={{ paddingTop: 6 }}>
             Get SVGs free from heroicons.com, tabler.io/icons, or icons.getbootstrap.com
           </div>
@@ -533,6 +501,20 @@ export function ElementPanelContent({
               <PxInput value={thickness}
                 onFocus={onFocus} onBlur={onBlur}
                 onChange={v => changeResp({ layout: isVertical ? { width: Math.max(1, v) } : { height: Math.max(1, v) } })} />
+            </div>
+            <div className={'pb-prop-row'}>
+              <label>Color</label>
+              <ColorField
+                value={element.style.background.color.startsWith('#') ? element.style.background.color : '#dddddd'}
+                onChange={v => change({ style: { ...element.style, background: { ...element.style.background, color: v } } })}
+                onFocus={onFocus} onBlur={onBlur}
+                swatches={swatches} />
+            </div>
+            <div className={'pb-prop-row'}>
+              <label>Radius</label>
+              <PxInput value={element.style.border.radius}
+                onFocus={onFocus} onBlur={onBlur}
+                onChange={v => change({ style: { ...element.style, border: { ...element.style.border, radius: v } } })} />
             </div>
           </CollapsibleSection>
         );

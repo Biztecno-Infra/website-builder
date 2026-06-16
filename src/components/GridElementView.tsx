@@ -208,6 +208,12 @@ export function GridElementView({
         borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
         cursor: previewMode ? 'default' : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
         userSelect: editing ? 'text' : 'none',
+        ...(el.style.margin && {
+          marginTop:    el.style.margin.top    ?? 0,
+          marginRight:  el.style.margin.right  ?? 0,
+          marginBottom: el.style.margin.bottom ?? 0,
+          marginLeft:   el.style.margin.left   ?? 0,
+        }),
       }}
       onClick={handleClick}
       onDoubleClick={handleDoubleClick}

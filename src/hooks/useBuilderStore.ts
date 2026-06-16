@@ -28,10 +28,7 @@ import {
 import { CANVAS_W, createDefaultElement } from '../utils/elementDefaults';
 import { migrateState, makeEmpty } from '../utils/migration';
 
-export {
-  DEFAULT_BG, DEFAULT_SECTION_BG, DEFAULT_STYLE, DEFAULT_CONTENT,
-  DEFAULT_INTERACTION, DEFAULT_ANIMATION, DEFAULT_THEME, DEFAULT_FLEX_LAYOUT, DEFAULT_GRID_CELL_STYLE,
-} from '../utils/builderDefaults';
+export { DEFAULT_THEME } from '../utils/builderDefaults';
 export { CANVAS_W } from '../utils/elementDefaults';
 export { equalWidths } from '../utils/nodeHelpers';
 export { migrateState, makeEmpty } from '../utils/migration';

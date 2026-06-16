@@ -72,6 +72,7 @@
   background: var(--pb-white);
   background-image: none;
   padding: 0;
+  flex: none;
 }
 .pb-canvas-wrapper.pb-preview-mode .pb-canvas-column {
   box-shadow: none;

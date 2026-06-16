@@ -162,12 +162,14 @@ export function GridSectionView({
   );
 
   const secBorder = section.style.border;
+  const secShadow = section.style.shadow;
   const sectionContentStyle: React.CSSProperties = {
     position: 'relative', boxSizing: 'border-box', width: '100%',
     outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : undefined, outlineOffset: -2,
     paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
     ...(secBorder?.radius ? { borderRadius: secBorder.radius } : {}),
     ...(secBorder?.width && secBorder.width > 0 ? { border: `${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}` } : {}),
+    ...(secShadow?.enabled ? { boxShadow: `${secShadow.x}px ${secShadow.y}px ${secShadow.blur}px ${secShadow.spread}px ${secShadow.color}` } : {}),
     ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
   };
 
@@ -182,9 +184,13 @@ export function GridSectionView({
     breakpoint === 'tablet' ? section.responsive?.tablet?.hidden : false;
   if (bpHidden) return null;
 
+  const sm = section.style.margin;
+  const marginStyle: React.CSSProperties = sm
+    ? { marginTop: sm.top, marginRight: sm.right, marginBottom: sm.bottom, marginLeft: sm.left }
+    : {};
   const outerStyle: React.CSSProperties = (isSticky || isFixed)
-    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50 }
-    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined };
+    ? { flexShrink: 0, position: 'sticky', top: section.stickyOffset ?? 0, zIndex: 50, ...marginStyle }
+    : { position: 'relative', flexShrink: 0, zIndex: (hovered || isSelected || hasActiveChild) ? 10 : undefined, ...marginStyle };
 
   return (
     <div
@@ -260,22 +266,6 @@ export function GridSectionView({
               <div className={'pb-section-action-divider'} />
               <button className={'pb-section-action-btn pb-flex-center'} title="Add column"
                 onClick={e => { e.stopPropagation(); onAddGridCell?.(section.id); }}>+ Col</button>
-              <div className={'pb-section-action-divider'} />
-              {(() => {
-                const effectiveMode = section.grid.contentWidth ?? (pageLayoutWidth === 'fixed' ? 'constrained' : 'full');
-                const isOverride = section.grid.contentWidth != null;
-                const isBoxed = effectiveMode === 'constrained';
-                return (
-                  <button
-                    className={['pb-section-action-btn pb-flex-center', 'pb-section-width-toggle', isOverride && 'pb-section-width-override'].filter(Boolean).join(' ')}
-                    title={isBoxed ? 'Section is Boxed (max-width) — click for Full width' : 'Section is Full width — click for Boxed (max-width)'}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onUpdateSection(section.id, { grid: { ...section.grid, contentWidth: isBoxed ? 'full' : 'constrained' } });
-                    }}
-                  >{isBoxed ? '⊡ Boxed' : '⊞ Full'}</button>
-                );
-              })()}
               <div className={'pb-section-action-divider'} />
               <button className={"pb-section-action-btn pb-flex-center pb-danger"} title="Delete section"
                 onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>

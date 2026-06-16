@@ -3,7 +3,7 @@ import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import type {
   Breakpoint, BgType, BuilderState, ContentWidthMode,
   Section, GridSection, GridCell,
-  NodeMap, SectionUpdate, ColumnStyle, SectionBackground, SiteTheme, SectionCssPosition,
+  NodeMap, SectionUpdate, ColumnStyle, SectionBackground, SiteTheme,
 } from '../../types';
 import { equalWidths } from '../../hooks/useBuilderStore';
 
@@ -14,7 +14,6 @@ import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbButton } from '../PbButton';
 import {
-  CSS_POSITION_OPTIONS,
   SCROLL_BEHAVIOR_OPTIONS,
   CONTENT_WIDTH_OPTIONS,
   BG_TYPE_OPTIONS,
@@ -278,15 +277,6 @@ export function SectionPanel({
             </div>
           </>
         )}
-
-        <div className={'pb-prop-row'}>
-          <label>Position</label>
-          <PbSelect
-            value={section.cssPosition ?? 'relative'}
-            options={CSS_POSITION_OPTIONS}
-            onChange={v => { onPushSnapshot(snapshot); onUpdateSection(section.id, { cssPosition: v as SectionCssPosition }); }}
-          />
-        </div>
 
       </CollapsibleSection>
 

@@ -168,9 +168,9 @@
   white-space: nowrap;
 }
 .pb-toolbar-clear-btn:hover {
-  border-color: #ef4444;
+  border-color: var(--pb-danger);
   background: #fef2f2;
-  color: #ef4444;
+  color: var(--pb-danger);
 }
 
 /* Publish button — solid teal */

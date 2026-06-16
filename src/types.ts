@@ -3,8 +3,6 @@ export type TextAlign = 'left' | 'center' | 'right';
 export type ObjectFit = 'cover' | 'contain' | 'fill';
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
 export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient' | 'transparent';
-export type AnimationType = 'none' | 'fade-in' | 'slide-up' | 'slide-left' | 'zoom-in';
-export type AnimationTrigger = 'load' | 'scroll';
 export type Breakpoint = 'desktop' | 'large-desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
 export type SectionLayoutMode = 'free' | 'grid' | 'flex';
@@ -90,7 +88,6 @@ export interface ElementContent {
   src?: string;
   alt?: string;
   objectFit?: ObjectFit;
-  objectPosition?: string;
   linkUrl?: string;
   label?: string;
   videoUrl?: string;
@@ -212,14 +209,6 @@ export interface ElementState {
   locked: boolean;
 }
 
-export interface ElementAnimation {
-  type: AnimationType;
-  trigger: AnimationTrigger;
-  duration: number;
-  delay: number;
-}
-
-
 export interface ResponsiveStyle {
   typography?: Partial<Pick<Typography, 'size' | 'weight' | 'align' | 'letterSpacing' | 'textTransform'>>;
 }
@@ -249,7 +238,6 @@ export interface CanvasElement {
   interaction: ElementInteraction;
   /** unified click/submit behavior — shared by buttons and form submit */
   action?: ElementAction;
-  animation: ElementAnimation;
   state: ElementState;
   responsive: ElementResponsive;
   flexLayout: FlexItemLayout;
@@ -284,7 +272,7 @@ export interface SectionLayout {
   height: number;
 }
 
-export type ContentWidthMode = 'constrained' | 'full' | 'fluid';
+export type ContentWidthMode = 'constrained' | 'full';
 
 export interface GridConfig {
   gap: number;
@@ -439,7 +427,6 @@ export interface Container {
 // behaviour (drop, style, responsive, copy/paste, clone, delete, layers).
 // Only one slide is shown at a time; the rest are Phase-2 surface area.
 
-export type CarouselTransition = 'slide' | 'fade';  // Phase 1 uses 'slide'; 'fade' reserved for Phase 2
 
 export interface CarouselProps {
   autoplay: boolean;
@@ -449,12 +436,8 @@ export interface CarouselProps {
   showArrows: boolean;
   showDots: boolean;
   // ── Phase 2 surface (optional, defaulted on read so old data stays valid) ──
-  /** transition style — Phase 1 only renders 'slide' */
-  transition?: CarouselTransition;
   /** transition duration in ms */
   transitionDuration?: number;
-  /** slides visible at once — Phase 1 is always 1 */
-  slidesPerView?: number;
   /** pause autoplay while the pointer is over the carousel */
   pauseOnHover?: boolean;
   /** color of the slide-indicator dots (active = full, inactive = faded). Defaults to white. */
@@ -525,9 +508,7 @@ export interface AccordionProps {
   defaultOpen: 'first' | 'all' | 'none';
   /** icon side within the header row */
   iconPosition: 'right' | 'left';
-  /** when set, the icon shown while an item is expanded (SVG markup). Falls back to rotating the collapsed icon 180°. */
-  expandedIconSvg?: string;
-  /** rotate the collapsed icon by this many degrees when expanded (used when no expandedIconSvg). Default 180. */
+  /** degrees to rotate the icon when an item is expanded. Default 180. */
   expandedIconRotation?: number;
   /** gap (px) between the header row and the content panel */
   contentGap?: number;

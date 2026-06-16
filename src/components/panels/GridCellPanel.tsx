@@ -7,7 +7,7 @@ import type {
 
 import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { ColorField, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -60,7 +60,6 @@ export function GridCellPanel({
   const { sec, toggle } = usePanelSections(CELL_PANEL_DEFAULTS, 'builder-sidebar-cell');
 
   const { style, responsive } = gc;
-  const bgColor = style.background.color?.startsWith('#') ? style.background.color : '#ffffff';
   const isDesktop = breakpoint === 'desktop';
 
   // Writes a single style property into the cell at the correct breakpoint.
@@ -328,53 +327,13 @@ export function GridCellPanel({
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
-        {style.background.color !== 'transparent' && (
-          <div className={'pb-prop-row'}>
-            <label>Color</label>
-            <ColorField
-              value={bgColor}
-              onChange={v => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: v, type: 'solid' } } }); }}
-              onFocus={gcFocus} onBlur={gcBlur}
-              swatches={swatches} />
-          </div>
-        )}
-        <div className={'pb-prop-row pb-vis-row'}>
-          <label>Transparent</label>
-          <input type="checkbox" checked={style.background.color === 'transparent' || !style.background.color}
-            onChange={e => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, color: e.target.checked ? 'transparent' : '#ffffff' } } }); }} />
-        </div>
-
-        {/* Cell background image */}
-        <div className={'pb-prop-row'}>
-          <label>Image URL</label>
-          <PbInput
-            type="text"
-            placeholder="https://... or leave empty"
-            value={style.background.image ?? ''}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, image: e.target.value } } })}
-          />
-        </div>
-        {style.background.image && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Overlay</label>
-              <input
-                type="range" min={0} max={0.9} step={0.05}
-                value={style.background.overlay ?? 0}
-                onChange={e => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, overlay: Number(e.target.value) } } })}
-                className={'pb-range-input'}
-              />
-              <span className={'pb-range-value'}>{Math.round((style.background.overlay ?? 0) * 100)}%</span>
-            </div>
-            <div className={'pb-prop-row'}>
-              <button
-                className={'pb-danger-btn'}
-                onClick={() => { onPushSnapshot(snapshot); onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, image: '' } } }); }}
-              >✕ Remove image</button>
-            </div>
-          </>
-        )}
+        <BackgroundEditor
+          bg={style.background}
+          onChange={updates => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, ...updates } } })}
+          onPushSnapshot={() => onPushSnapshot(snapshot)}
+          onFocus={gcFocus} onBlur={gcBlur}
+          theme={theme}
+        />
       </CollapsibleSection>
 
       {/* ── Border ── */}

@@ -598,7 +598,7 @@
 .pb-format-btn {
   width: 28px;
   height: 26px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pb-border-muted);
   border-radius: 4px;
   background: #fff;
   cursor: pointer;
@@ -611,7 +611,7 @@
 .pb-format-color-label {
   width: 28px;
   height: 26px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pb-border-muted);
   border-radius: 4px;
   background: #fff;
   cursor: pointer;
@@ -624,7 +624,7 @@
   flex-shrink: 0;
 }
 .pb-format-color-a {
-  border-bottom: 3px solid #006e75;
+  border-bottom: 3px solid var(--pb-primary);
   line-height: 1;
   padding-bottom: 1px;
 }
@@ -638,7 +638,7 @@
 .pb-format-action-btn {
   padding: 0 8px;
   height: 26px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pb-border-muted);
   border-radius: 4px;
   background: #fff;
   cursor: pointer;
@@ -671,7 +671,7 @@
 .pb-clear-btn {
   margin-top: 4px;
   font-size: 11px;
-  color: #ef4444;
+  color: var(--pb-danger);
   background: none;
   border: none;
   cursor: pointer;
@@ -681,7 +681,7 @@
 /* ─── Panel horizontal rule ─── */
 .pb-panel-hr {
   height: 1px;
-  background: #e2e8f0;
+  background: var(--pb-border-muted);
   margin: 10px 0;
 }
 
@@ -689,12 +689,12 @@
 .pb-field-list { display: flex; flex-direction: column; gap: 6px; }
 .pb-field-empty { font-size: 11px; color: #94a3b8; padding: 4px 0; }
 .pb-field-item {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--pb-border-muted);
   border-radius: 6px;
   overflow: hidden;
 }
 .pb-field-item--focused {
-  border-color: #006e75;
+  border-color: var(--pb-primary);
   box-shadow: 0 0 0 2px rgba(0,110,117,0.15);
 }
 .pb-field-header {
@@ -738,7 +738,7 @@
   border: none;
   background: none;
   cursor: pointer;
-  color: #ef4444;
+  color: var(--pb-danger);
   padding: 0 2px;
   font-size: 13px;
 }
@@ -747,7 +747,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--pb-border-muted);
 }
 .pb-field-add-row { display: flex; gap: 6px; margin-top: 8px; }
 .pb-field-add-select { flex: 1; }
@@ -757,7 +757,7 @@
   padding: 3px 10px;
   font-size: 11px;
   font-weight: 600;
-  background: #e2e8f0;
+  background: var(--pb-border-muted);
   color: #334155;
   border: none;
   border-radius: 4px;
@@ -772,7 +772,7 @@
 .pb-range-value { font-size: 11px; color: #888; min-width: 28px; }
 .pb-danger-btn {
   font-size: 11px;
-  color: #ef4444;
+  color: var(--pb-danger);
   background: none;
   border: 1px solid #fca5a5;
   border-radius: 4px;
