@@ -49,7 +49,10 @@ export function useElementOps(
       return;
     }
     const page = s.pages.find(p => p.id === s.activePageId) ?? s.pages[0];
-    const sectionId = selectedSectionIdRef.current ?? page.sections[0];
+    const fallbackSectionId =
+      page.sections.find(id => (s.nodes[id] as Section | undefined)?.role === 'section') ??
+      page.sections[0];
+    const sectionId = selectedSectionIdRef.current ?? fallbackSectionId;
     if (!sectionId) return;
     const sec = s.nodes[sectionId] as Section | undefined;
     if (!sec) return;

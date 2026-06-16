@@ -27,8 +27,6 @@ interface Props {
   onPromoteSection?: (role: 'header' | 'footer') => void;
   onDeleteSection?: () => void;
   onDuplicateSection?: () => void;
-  onCopySection?: () => void;
-  onPasteSection?: () => void;
   onCopyGridCell?: (id: string) => void;
   onPasteGridCell?: (sectionId: string, afterCellId?: string) => void;
   onPasteIntoGridCell?: (cellId: string) => void;

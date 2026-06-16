@@ -195,7 +195,6 @@ export function useSectionOps(
   ) => {
     push(stateRef.current);
     const theme = stateRef.current.theme;
-    console.log('[template] inserting with theme primary:', theme.colors.primary);
     const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId }, theme);
     const fontFamily = theme.fonts.body;
     Object.values(result.nodes).forEach(node => {
