@@ -50,6 +50,12 @@
   /* Typography */
   --pb-font:              'Montserrat', sans-serif;
 
+  /* Border radius */
+  --pb-radius-sm:         4px;
+  --pb-radius-md:         6px;
+  --pb-radius-lg:         8px;
+
   /* Transitions */
   --pb-transition:        background 0.12s, color 0.12s;
+  --pb-transition-all:    all 0.15s ease;
 }
