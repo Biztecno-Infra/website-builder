@@ -598,8 +598,8 @@ export default function App() {
           selectedContainerId={selectedContainerId}
           selectedCarouselId={selectedCarouselId}
           onSelect={id => { setSelectedId(id); setSelectedCarouselId(null); setSelectedAccordionId(null); setSelectedContainerId(null); }}
-          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
-          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
           onSelectCarousel={id => { const c = nodes[id]; setSelectedCarouselId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedAccordionId(null); }}
           onAddAccordion={() => handleAddAccordion()}
           selectedAccordionId={selectedAccordionId}
@@ -614,7 +614,7 @@ export default function App() {
           header={header}
           sections={sections}
           footer={footer}
-          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); }}
+          onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
           pages={pages}
           activePageId={activePageId}
           onSetActivePage={setActivePage}
