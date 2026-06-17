@@ -8,6 +8,7 @@ import type {
 import { equalWidths } from '../../hooks/useBuilderStore';
 
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
+import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal';
 import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
@@ -38,7 +39,7 @@ interface Props {
   section: Section;
   nodes: NodeMap;
   snapshot: BuilderState;
-  onUpdateSection: (id: string, updates: SectionUpdate) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate, opts?: { preserveContent?: boolean }) => void;
   onAddGridCell?: (sectionId: string) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onPushSnapshot: (snapshot: BuilderState) => void;
@@ -52,6 +53,7 @@ export function SectionPanel({
   breakpoint = 'desktop', theme,
 }: Props) {
   const [selectedColIdx, setSelectedColIdx] = useState(0);
+  const [showLayoutModal, setShowLayoutModal] = useState(false);
   const { sec, toggle } = usePanelSections(SECTION_PANEL_DEFAULTS, 'builder-sidebar-sec');
   const { onFocus: onNumberFocus, onBlur: onNumberBlur } = useFocusSnapshot(snapshot, onPushSnapshot);
 
@@ -95,12 +97,21 @@ export function SectionPanel({
           <label>Mode</label>
           <ToggleGroup options={SECTION_LAYOUT_MODE_OPTIONS} value={section.layoutMode}
             onChange={m => {
-              onPushSnapshot(snapshot);
+              if (m === section.layoutMode) return;
               if (m === 'free') {
+                onPushSnapshot(snapshot);
                 onUpdateSection(section.id, { layoutMode: 'free' });
-              } else {
-                onUpdateSection(section.id, { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } });
+                return;
               }
+              // free → grid: if the section already holds elements, ask the user
+              // how to handle them before converting (modal handles the change).
+              if (section.layoutMode === 'free' && section.children.length > 0) {
+                setShowLayoutModal(true);
+                return;
+              }
+              // Empty section (or already grid-config) — convert directly.
+              onPushSnapshot(snapshot);
+              onUpdateSection(section.id, { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } });
             }} />
         </div>
 
@@ -545,6 +556,21 @@ export function SectionPanel({
           </CollapsibleSection>
         );
       })()}
+
+      {showLayoutModal && (
+        <LayoutChangeModal
+          onCancel={() => setShowLayoutModal(false)}
+          onConfirm={(choice: LayoutChangeChoice) => {
+            setShowLayoutModal(false);
+            onPushSnapshot(snapshot);
+            onUpdateSection(
+              section.id,
+              { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } },
+              { preserveContent: choice === 'preserve' },
+            );
+          }}
+        />
+      )}
     </aside>
   );
 }

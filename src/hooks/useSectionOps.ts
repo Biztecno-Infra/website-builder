@@ -64,20 +64,65 @@ export function useSectionOps(
     setSelectedSectionId(null); setSelectedGridCellId(null);
   }, [push]);
 
-  const updateSection = useCallback((id: string, updates: SectionUpdate) => {
+  // `opts.preserveContent` (free → grid only): instead of discarding the free
+  // section's existing children, reparent them all into the first grid cell so
+  // no element / styling / order is lost during the conversion.
+  const updateSection = useCallback((id: string, updates: SectionUpdate, opts?: { preserveContent?: boolean }) => {
     const newMode = updates.layoutMode;
     if (newMode !== undefined) {
       const currentNode = stateRef.current.nodes[id];
       const currentMode = (isSection(currentNode) ? currentNode.layoutMode : undefined) ?? 'free';
       if (newMode !== currentMode) {
         push(stateRef.current);
+        // Pre-generate cell ids so selection can target cell 1 without depending
+        // on the (lazily-run) state updater having executed first.
+        const c1 = newGridCellId(), c2 = newGridCellId(), c3 = newGridCellId();
         setState(s => {
           const node = s.nodes[id];
           if (!node || !isSection(node)) return s;
           const nodes = { ...s.nodes };
+          const preserve =
+            opts?.preserveContent === true &&
+            newMode === 'grid' &&
+            currentMode === 'free' &&
+            node.children.length > 0;
+
+          if (preserve) {
+            // Carry the existing free children into the first grid cell. The
+            // old child nodes are NOT removed — they are reparented to cell 1,
+            // keeping their configuration, styling and order intact.
+            const movedChildren = [...node.children];
+            nodes[c1] = { ...makeGridCell(c1, id, 4), children: movedChildren };
+            nodes[c2] = makeGridCell(c2, id, 4);
+            nodes[c3] = makeGridCell(c3, id, 4);
+            movedChildren.forEach(childId => {
+              const child = nodes[childId];
+              if (!child) return;
+              if (child.type === 'section' || child.type === 'grid-cell') return;
+              if (child.type === 'carousel' || child.type === 'accordion') {
+                // Containers without a flex layout — just reparent.
+                nodes[childId] = { ...child, parent: c1 };
+                return;
+              }
+              // CanvasElement: normalise the free-positioned element for in-cell
+              // flow exactly as a drag from a free section into a cell would.
+              const cel = child as CanvasElement;
+              nodes[childId] = {
+                ...cel, parent: c1,
+                layout: { ...cel.layout, x: 0, y: 0, zIndex: 0, rotation: 0 },
+                flexLayout: { ...cel.flexLayout, widthMode: 'fixed', widthValue: cel.layout.width },
+                responsive: {
+                  tablet: cel.responsive.tablet ? { ...cel.responsive.tablet, layout: undefined } : cel.responsive.tablet,
+                  mobile: cel.responsive.mobile ? { ...cel.responsive.mobile, layout: undefined } : cel.responsive.mobile,
+                },
+              };
+            });
+            nodes[id] = { ...node, ...updates, children: [c1, c2, c3] } as Section;
+            return { ...s, nodes };
+          }
+
           removeNodesForSection(nodes, node);
           if (newMode === 'grid') {
-            const c1 = newGridCellId(), c2 = newGridCellId(), c3 = newGridCellId();
             nodes[c1] = makeGridCell(c1, id, 4);
             nodes[c2] = makeGridCell(c2, id, 4);
             nodes[c3] = makeGridCell(c3, id, 4);
@@ -87,7 +132,12 @@ export function useSectionOps(
           }
           return { ...s, nodes };
         });
-        setSelectedIds([]); setSelectedGridCellId(null);
+        setSelectedIds([]);
+        // When preserving content, keep cell 1 selected so the moved elements
+        // stay visible/in focus; otherwise clear the grid-cell selection.
+        const willPreserve =
+          opts?.preserveContent === true && newMode === 'grid' && currentMode === 'free';
+        setSelectedGridCellId(willPreserve ? c1 : null);
         return;
       }
     }

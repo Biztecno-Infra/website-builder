@@ -527,8 +527,14 @@ export default function App() {
               snapEnabled={false}
               onContextMenu={() => {}}
               onMultiSelect={() => {}}
+              // Interactive runtime callbacks — these mutate only transient UI
+              // state (activeSlide / activeItems), never the document or undo
+              // history, so Preview behaves like the exported/published site.
+              onSetActiveSlide={setActiveSlide}
+              onToggleAccordionItem={toggleAccordionItem}
               previewMode
               previewWidth={previewWidth}
+              onPreviewNavigatePage={setActivePage}
               breakpoint={previewBp}
               layoutWidth={activePage.layoutWidth ?? 'fixed'}
               maxWidth={activePage.maxWidth ?? 1280}

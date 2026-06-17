@@ -214,7 +214,7 @@ export function GridSectionView({
           >+</button>
         </>
       )}
-      <div ref={bgRefCallback} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
+      <div ref={bgRefCallback} id={`sec-${section.id}`} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
           e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);

@@ -88,6 +88,7 @@ function FreeSectionView({
   const {
     nodes, canvasWidth, snapshot, snapEnabled, onCommit,
     previewMode, breakpoint = 'desktop', onUpdateResponsive,
+    onPreviewNavigatePage,
     selectedId, selectedIds, onSelectElement, onUpdateElement,
     onDrop, onMoveElementToSection, onUpdateSection,
     onDuplicateElement, onDeleteElement, onContextMenu,
@@ -344,6 +345,7 @@ function FreeSectionView({
           (bgRef as { current: HTMLDivElement | null }).current = node;
           (layoutDropRef as unknown as (el: HTMLDivElement | null) => void)(node);
         }}
+        id={`sec-${section.id}`}
         className={'pb-section-bg'}
         style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
         onMouseDown={e => {
@@ -523,6 +525,7 @@ function FreeSectionView({
                 sectionElements={sectionElements}
                 onGuides={(gs, di) => { setGuides(gs); setDragInfo(di ?? null); }}
                 previewMode={previewMode}
+                onPreviewNavigatePage={onPreviewNavigatePage}
                 onDuplicate={onDuplicateElement ? () => onDuplicateElement(id) : undefined}
                 onDelete={onDeleteElement ? () => onDeleteElement(id) : undefined}
                 breakpoint={breakpoint}

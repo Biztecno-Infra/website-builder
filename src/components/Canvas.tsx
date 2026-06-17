@@ -46,6 +46,7 @@ interface Props {
   previewMode?: boolean;
   previewWidth?: number;
   canvasDisplayWidth?: number;
+  onPreviewNavigatePage?: (pageId: string) => void;
   breakpoint?: Breakpoint;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
@@ -96,6 +97,7 @@ export function Canvas({
   onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
   onMoveSectionUp, onMoveSectionDown,
   snapEnabled, onContextMenu, onMultiSelect, previewMode, previewWidth, canvasDisplayWidth,
+  onPreviewNavigatePage,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
   onMoveElementToSection, onMoveElementToGridCell,
@@ -214,6 +216,7 @@ export function Canvas({
   const ctxValue = {
     nodes, snapshot, canvasWidth,
     breakpoint, previewMode: previewMode ?? false, snapEnabled,
+    onPreviewNavigatePage,
     onCommit,
     selectedId, selectedIds, selectedGridCellId: selectedGridCellId ?? null,
     onSelectElement, onUpdateElement: onUpdate, onUpdateResponsive,

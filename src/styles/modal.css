@@ -1,0 +1,144 @@
+/* ─── Modal / Dialog ─── */
+
+.pb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.45);
+  animation: pb-modal-fade 0.12s ease;
+}
+
+.pb-modal {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  background: var(--pb-white);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  box-shadow: 0 12px 40px rgba(15, 23, 42, 0.25);
+  font-family: var(--pb-font);
+  color: var(--pb-text);
+  overflow: hidden;
+  animation: pb-modal-pop 0.14s ease;
+}
+
+.pb-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--pb-border);
+}
+
+.pb-modal-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pb-text-strong);
+}
+
+.pb-modal-close {
+  border: none;
+  background: transparent;
+  color: var(--pb-text-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: var(--pb-radius-sm);
+  transition: var(--pb-transition);
+}
+.pb-modal-close:hover {
+  background: var(--pb-bg-muted);
+  color: var(--pb-text-strong);
+}
+
+.pb-modal-body {
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.pb-modal-message {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--pb-text-mid);
+}
+
+.pb-modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pb-modal-option {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--pb-border-muted);
+  border-radius: var(--pb-radius-md);
+  cursor: pointer;
+  transition: var(--pb-transition-all);
+}
+.pb-modal-option:hover {
+  border-color: var(--pb-border-accent);
+  background: var(--pb-bg-hover);
+}
+.pb-modal-option.pb-active {
+  border-color: var(--pb-primary);
+  background: var(--pb-bg-active);
+}
+
+.pb-modal-option > input[type='radio'] {
+  margin-top: 2px;
+  accent-color: var(--pb-primary);
+  flex: 0 0 auto;
+}
+
+.pb-modal-option-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pb-modal-option-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pb-text-strong);
+}
+
+.pb-modal-option-points {
+  margin: 0;
+  padding-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pb-modal-option-points li {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--pb-text-muted);
+}
+
+.pb-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--pb-border);
+}
+
+@keyframes pb-modal-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pb-modal-pop {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

@@ -3,6 +3,7 @@ import type { CanvasElement as El, BuilderState, Breakpoint } from '../types';
 import { richTextState } from '../utils/richTextState';
 import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { hoverCss } from '../utils/hoverStyle';
+import { runPreviewAction, hasPreviewAction } from '../utils/previewAction';
 import { ElementQuickBar } from './ElementQuickBar';
 import { FormPreview } from './FormPreview';
 
@@ -44,6 +45,8 @@ interface Props {
   sectionId: string;
   /** active builder breakpoint — drives responsive in-element previews (e.g. Form field stacking) */
   breakpoint?: Breakpoint;
+  /** preview-mode page navigation for internal-page link actions */
+  onPreviewNavigatePage?: (pageId: string) => void;
 }
 
 const SNAP = 8;
@@ -130,6 +133,7 @@ function computeGuides(
 export function CanvasElement({
   element: el, isSelected, isMultiSelected, onSelect, onUpdate, onCommit, snapshot, snapEnabled, onContextMenu,
   sectionElements, onGuides, previewMode, onDuplicate, onDelete, sectionId, breakpoint = 'desktop',
+  onPreviewNavigatePage,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLDivElement>(null);
@@ -317,7 +321,7 @@ export function CanvasElement({
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,
-    cursor: el.state.locked ? 'default' : previewMode ? 'default' : 'move',
+    cursor: el.state.locked ? 'default' : previewMode ? (hasPreviewAction(el) ? 'pointer' : 'default') : 'move',
     userSelect: 'none',
     boxSizing: 'border-box',
     transform: el.layout.rotation ? `rotate(${el.layout.rotation}deg)` : undefined,
@@ -334,6 +338,9 @@ export function CanvasElement({
       style={wrapperStyle}
       className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked'].filter(Boolean).join(' ')}
       onMouseDown={handleBodyMouseDown}
+      onClick={previewMode
+        ? (e => { if (runPreviewAction(el, { onNavigatePage: onPreviewNavigatePage })) e.preventDefault(); })
+        : undefined}
       onDoubleClick={previewMode ? undefined : handleDoubleClick}
       onContextMenu={previewMode ? undefined : handleContextMenu}
     >

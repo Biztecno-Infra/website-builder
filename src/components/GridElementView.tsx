@@ -6,6 +6,7 @@ import { ElementContent } from './CanvasElement';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
 import { ElementQuickBar } from './ElementQuickBar';
 import { useCanvasContext } from '../contexts/CanvasContext';
+import { runPreviewAction, hasPreviewAction } from '../utils/previewAction';
 
 
 // ── DND contract (imported by GridCellView) ────────────────────────────────
@@ -69,7 +70,7 @@ export function GridElementView({
   onDragHover,
   onDropAtChildIdx,
 }: Props) {
-  const { snapshot, onCommit, previewMode, breakpoint = 'desktop' } = useCanvasContext();
+  const { snapshot, onCommit, previewMode, breakpoint = 'desktop', onPreviewNavigatePage } = useCanvasContext();
   const el = applyBreakpoint(rawEl, breakpoint);
 
   const [editing, setEditing] = useState(false);
@@ -177,7 +178,12 @@ export function GridElementView({
     : undefined;
 
   const handleClick = (e: React.MouseEvent) => {
-    if (previewMode) return;
+    if (previewMode) {
+      // In preview, run the element's configured action (like the exported site)
+      // rather than selecting it for editing.
+      if (runPreviewAction(rawEl, { onNavigatePage: onPreviewNavigatePage })) e.preventDefault();
+      return;
+    }
     e.stopPropagation();
     onSelect();
   };
@@ -206,7 +212,7 @@ export function GridElementView({
         opacity: isDragging ? 0.35 : el.style.opacity,
         boxShadow: shadow,
         borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
-        cursor: previewMode ? 'default' : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
+        cursor: previewMode ? (hasPreviewAction(rawEl) ? 'pointer' : 'default') : editing ? 'text' : isDragging ? 'grabbing' : 'grab',
         userSelect: editing ? 'text' : 'none',
         ...(el.style.margin && {
           marginTop:    el.style.margin.top    ?? 0,

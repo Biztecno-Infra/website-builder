@@ -259,10 +259,15 @@ export function AccordionView({
             onMouseDown={e => e.stopPropagation()}
             onClick={e => { e.stopPropagation(); if (!previewMode) onSelectAccordion(); onToggleAccordionItem?.(accordion.id, item.id); }}
           >
-            <div style={{ flex: '1 1 auto', minWidth: 0 }} onClick={e => e.stopPropagation()}>
+            {/* In preview the whole header toggles the item (like the exported
+                <button> header), so the title/icon must not swallow the click.
+                In edit mode they stop propagation so the element can be selected. */}
+            <div style={{ flex: '1 1 auto', minWidth: 0, ...(previewMode ? { pointerEvents: 'none' } : {}) }}
+              onClick={previewMode ? undefined : (e => e.stopPropagation())}>
               {renderHeaderEl(item.titleElId, 'row')}
             </div>
-            <div style={{ flex: '0 0 auto', ...iconStyle }} onClick={e => e.stopPropagation()}>
+            <div style={{ flex: '0 0 auto', ...iconStyle, ...(previewMode ? { pointerEvents: 'none' } : {}) }}
+              onClick={previewMode ? undefined : (e => e.stopPropagation())}>
               {renderHeaderEl(item.iconElId, 'row')}
             </div>
           </div>

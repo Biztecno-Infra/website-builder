@@ -18,6 +18,10 @@ export interface CanvasContextValue {
   previewMode: boolean;
   snapEnabled: boolean;
 
+  // Preview navigation — switch the active page for internal-page link actions.
+  // Only used while previewMode is true.
+  onPreviewNavigatePage?: (pageId: string) => void;
+
   // Undo
   onCommit: (prev: BuilderState) => void;
 

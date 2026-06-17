@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GridCellView } from './GridCellView';
 import { canvasDragShared } from './CanvasElement';
 import { ElementQuickBar } from './ElementQuickBar';
@@ -105,6 +105,28 @@ export function CarouselView({
     .filter((c): c is GridCell => !!c && c.type === 'grid-cell');
 
   const props = carousel.props;
+
+  // ── Autoplay (preview only) ──────────────────────────────────────────────
+  // Mirrors the exported CAROUSEL_SCRIPT: advance one slide every interval,
+  // wrapping when `loop`, only while >1 slide. Re-arming on `activeSlide`
+  // change reproduces the export's "manual navigation restarts the timer"
+  // behaviour. Hovering pauses when `pauseOnHover` is on. Runs only in preview
+  // so the editor canvas stays static.
+  const slideCount = slides.length;
+  const curActive = Math.max(0, Math.min(slideCount - 1, carousel.activeSlide ?? 0));
+  useEffect(() => {
+    if (!previewMode) return;
+    if (!props.autoplay || slideCount <= 1) return;
+    if (props.pauseOnHover && hovered) return;
+    const intervalMs = Math.max(1, props.autoplayInterval) * 1000;
+    const timer = window.setInterval(() => {
+      const next = curActive + 1 >= slideCount ? (props.loop ? 0 : slideCount - 1) : curActive + 1;
+      onSetActiveSlide(carousel.id, next);
+    }, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [previewMode, props.autoplay, props.autoplayInterval, props.loop, props.pauseOnHover,
+      hovered, slideCount, curActive, carousel.id, onSetActiveSlide]);
+
   const height = carouselHeight(carousel, breakpoint);
   const lay = carousel.layout;
   // Effective geometry for the active breakpoint (cascades tablet/mobile overrides).
