@@ -185,38 +185,66 @@
    They occupy the same grid cells the real thumbnails will fill, so the
    layout doesn't shift when results arrive. */
 .pb-modal-img-skeleton {
+  position: relative;
   border-radius: 4px;
+  background: #e7ecef;
+  overflow: hidden;
+}
+/* A bright diagonal band that sweeps across the tile — the clearest
+   "loading" cue. Higher contrast than the base tile so it reads at a glance. */
+.pb-modal-img-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background: linear-gradient(
     100deg,
-    var(--pb-bg-muted) 30%,
-    var(--pb-bg-hover) 50%,
-    var(--pb-bg-muted) 70%
+    rgba(255, 255, 255, 0) 20%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 80%
   );
-  background-size: 200% 100%;
-  animation: pb-skeleton-shimmer 1.2s ease-in-out infinite;
+  transform: translateX(-100%);
+  animation: pb-skeleton-sweep 1.3s ease-in-out infinite;
 }
 .pb-modal-loading-text {
   grid-column: 1 / -1;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-size: 13px;
   color: var(--pb-text-muted);
   padding: 8px 0 4px;
   margin: 0;
 }
+/* Spinning ring next to the loading text. */
+.pb-modal-loading-text::before {
+  content: '';
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--pb-border-muted);
+  border-top-color: var(--pb-primary);
+  border-radius: 50%;
+  animation: pb-spin 0.7s linear infinite;
+}
 
-@keyframes pb-skeleton-shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
+@keyframes pb-skeleton-sweep {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(100%); }
+}
+@keyframes pb-spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pb-modal-img-skeleton {
+  .pb-modal-img-skeleton::after {
     animation: pb-skeleton-pulse 1.5s ease-in-out infinite;
-    background: var(--pb-bg-muted);
+    background: rgba(255, 255, 255, 0.5);
+    transform: none;
   }
+  .pb-modal-loading-text::before { animation-duration: 1.5s; }
   @keyframes pb-skeleton-pulse {
-    0%, 100% { opacity: 1; }
-    50%      { opacity: 0.55; }
+    0%, 100% { opacity: 0; }
+    50%      { opacity: 1; }
   }
 }
 
