@@ -101,9 +101,14 @@ export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Pr
         />
       </div>
 
-      <div className="pb-modal-grid" ref={gridRef}>
+      <div className="pb-modal-grid" ref={gridRef} aria-busy={isLoading}>
         {isLoading && (
-          <p className="pb-modal-empty">Searching…</p>
+          <>
+            {Array.from({ length: LIMIT }).map((_, i) => (
+              <div key={`skeleton-${i}`} className="pb-modal-img-skeleton" aria-hidden="true" />
+            ))}
+            <p className="pb-modal-loading-text" role="status">Searching images…</p>
+          </>
         )}
         {!isLoading && error && (
           <p className="pb-modal-empty pb-modal-error">{error}</p>
@@ -119,13 +124,17 @@ export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Pr
             onClick={() => { onSelect(item.fullUrl); onClose(); }}
           >
             {item.thumbUrl
-              ? <img src={item.thumbUrl} alt={item.name} />
+              ? <img src={item.thumbUrl} alt={item.name} loading="lazy" />
               : <span className="pb-modal-img-placeholder">{item.name}</span>
             }
           </div>
         ))}
         {isLoadingMore && (
-          <p className="pb-modal-empty" style={{ gridColumn: '1 / -1', padding: '12px 0' }}>Loading more…</p>
+          <>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={`skeleton-more-${i}`} className="pb-modal-img-skeleton" aria-hidden="true" />
+            ))}
+          </>
         )}
       </div>
     </ContentModal>

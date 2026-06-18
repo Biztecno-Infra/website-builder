@@ -181,6 +181,45 @@
 .pb-modal-empty { grid-column: 1 / -1; text-align: center; font-size: 13px; color: var(--pb-text-muted); padding: 24px 0; margin: 0; }
 .pb-modal-error { color: var(--pb-danger); }
 
+/* Loading skeleton — placeholder tiles shown while a search is in flight.
+   They occupy the same grid cells the real thumbnails will fill, so the
+   layout doesn't shift when results arrive. */
+.pb-modal-img-skeleton {
+  border-radius: 4px;
+  background: linear-gradient(
+    100deg,
+    var(--pb-bg-muted) 30%,
+    var(--pb-bg-hover) 50%,
+    var(--pb-bg-muted) 70%
+  );
+  background-size: 200% 100%;
+  animation: pb-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+.pb-modal-loading-text {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 13px;
+  color: var(--pb-text-muted);
+  padding: 8px 0 4px;
+  margin: 0;
+}
+
+@keyframes pb-skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-modal-img-skeleton {
+    animation: pb-skeleton-pulse 1.5s ease-in-out infinite;
+    background: var(--pb-bg-muted);
+  }
+  @keyframes pb-skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+  }
+}
+
 @keyframes pb-modal-fade {
   from { opacity: 0; }
   to { opacity: 1; }
