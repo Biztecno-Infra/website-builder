@@ -1,7 +1,7 @@
 import { createContext, useContext, type ReactNode } from 'react';
 import type {
   NodeMap, BuilderState, Breakpoint, BreakpointOverride, SectionUpdate,
-  CanvasElement, GridCell, ElementType, ContainerLayoutMode,
+  CanvasElement, GridCell, ElementType, ElementContent, ContainerLayoutMode,
   Container, CellLayoutMode,
 } from '../types';
 // All props that are shared across the canvas hierarchy and drilled through
@@ -37,7 +37,7 @@ export interface CanvasContextValue {
 
   // Section operations
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
-  onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
+  onDrop: (type: ElementType, x: number, y: number, sectionId: string, contentOverride?: Partial<ElementContent>) => void;
   onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
 
   // Grid cell operations

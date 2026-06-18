@@ -156,6 +156,10 @@
   padding: 10px 12px 10px;
   flex-shrink: 0;
 }
+.pb-uploads-upload {
+  padding: 0 12px 10px;
+  flex-shrink: 0;
+}
 .pb-blocks-search-inner {
   gap: 6px;
   height: 32px;

@@ -1,7 +1,7 @@
 import { useCallback, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import type {
   AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, CellLayoutMode,
-  ElementType, FreeSection, GridCell, Section,
+  ElementContent, ElementType, FreeSection, GridCell, Section,
 } from '../types';
 import { newId } from '../utils/ids';
 import {
@@ -75,12 +75,13 @@ export function useElementOps(
     setSelectedSectionId(sectionId);
   }, [push, addElementToCell]);
 
-  const addElementAt = useCallback((type: ElementType, x: number, y: number, sectionId: string) => {
+  const addElementAt = useCallback((type: ElementType, x: number, y: number, sectionId: string, contentOverride?: Partial<ElementContent>) => {
     const s = stateRef.current;
     const node = s.nodes[sectionId];
     if (!node || !isFreeSection(node)) return;
     const hasButton = type === 'button' && node.children.some(id => stateRef.current.nodes[id]?.type === 'button');
-    const el = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme, hasButton);
+    const base = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme, hasButton);
+    const el = contentOverride ? { ...base, content: { ...base.content, ...contentOverride } } : base;
     push(s);
     setState(prev => {
       const sec = prev.nodes[sectionId];

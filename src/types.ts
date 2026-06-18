@@ -98,6 +98,14 @@ export interface ElementContent {
   plain?: string;
   rich?: string;
   src?: string;
+  /** Widen DAM asset identifier for an uploaded image. */
+  assetId?: string;
+  /** Widen DAM asset (self) URL for an uploaded image. */
+  assetUrl?: string;
+  /** Resolved renderable image URL for an uploaded Widen asset. */
+  imageUrl?: string;
+  /** Widen asset metadata, when available. */
+  assetMetadata?: Record<string, unknown> | null;
   alt?: string;
   objectFit?: ObjectFit;
   objectPosition?: string;

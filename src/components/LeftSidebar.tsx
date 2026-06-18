@@ -17,6 +17,16 @@ export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
 export const CAROUSEL_DND_TYPE = 'CAROUSEL_ITEM';
 export const ACCORDION_DND_TYPE = 'ACCORDION_ITEM';
+export const UPLOAD_IMAGE_DND_TYPE = 'UPLOAD_IMAGE';
+
+/** Payload dragged from the Upload Panel onto the canvas to create an image element. */
+export interface UploadImageDragItem {
+  kind: 'upload-image';
+  src: string;
+  assetId?: string;
+  assetUrl?: string;
+  fileName?: string;
+}
 
 export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 

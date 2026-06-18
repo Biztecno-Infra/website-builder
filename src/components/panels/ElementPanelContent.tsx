@@ -15,6 +15,7 @@ import { ColorField, PxInput, ToggleGroup } from './PanelFields';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
 import { ImagePickerModal } from '../ImagePickerModal';
+import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbTextarea } from '../PbTextarea';
@@ -66,6 +67,21 @@ export function ElementPanelContent({
   const sidebarEditRef = useRef<HTMLDivElement>(null);
   const imgFileRef = useRef<HTMLInputElement>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const { upload, status: uploadStatus, error: uploadError, isUploading } = useWidenUpload();
+
+  const handleImageUpload = async (file: File) => {
+    const result = await upload(file);
+    if (!result) return;
+    onPushSnapshot(snapshot);
+    // src drives canvas rendering; the rest are stored in the builder JSON.
+    changeContent({
+      src: result.imageUrl,
+      imageUrl: result.imageUrl,
+      assetId: result.assetId,
+      assetUrl: result.assetUrl,
+      assetMetadata: result.metadata ?? null,
+    });
+  };
 
   // Sync sidebar rich text div when element changes (e.g. different element selected)
   useEffect(() => {
@@ -333,8 +349,12 @@ export function ElementPanelContent({
           </div>
           <div className={'pb-prop-row pb-full'}>
             <label>Image Upload</label>
-            <button className={'pb-img-action-btn pb-img-upload-btn'} onClick={() => imgFileRef.current?.click()}>
-              Upload
+            <button
+              className={'pb-img-action-btn pb-img-upload-btn'}
+              disabled={isUploading}
+              onClick={() => imgFileRef.current?.click()}
+            >
+              {uploadStatus ? UPLOAD_STAGE_LABEL[uploadStatus] : 'Upload'}
             </button>
             <input
               ref={imgFileRef}
@@ -343,13 +363,14 @@ export function ElementPanelContent({
               style={{ display: 'none' }}
               onChange={e => {
                 const file = e.target.files?.[0];
-                if (!file) return;
-                const url = URL.createObjectURL(file);
-                onPushSnapshot(snapshot);
-                changeContent({ src: url });
                 e.target.value = '';
+                if (!file) return;
+                void handleImageUpload(file);
               }}
             />
+            {uploadError && (
+              <div className={'pb-img-upload-error'} role="alert">{uploadError}</div>
+            )}
           </div>
           <div className={"pb-prop-row pb-full"}>
             <label>Image Url</label>

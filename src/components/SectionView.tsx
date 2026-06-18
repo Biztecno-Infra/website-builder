@@ -8,7 +8,8 @@ import { DragGuides } from './DragGuides';
 import { GridSectionView } from './GridSectionView';
 import { CarouselView } from './CarouselView';
 import { AccordionView } from './AccordionView';
-import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
+import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE, UPLOAD_IMAGE_DND_TYPE } from './LeftSidebar';
+import type { UploadImageDragItem } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
 import type { Accordion, Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, FlexSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
@@ -128,13 +129,27 @@ function FreeSectionView({
     .filter((n): n is Accordion => !!n && n.type === 'accordion');
 
   const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
-    accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE],
+    accept: [DND_TYPE, GRID_EL_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE, UPLOAD_IMAGE_DND_TYPE],
     drop: (item, monitor) => {
       if (monitor.didDrop()) return;
       const offset = monitor.getClientOffset();
       if (!offset || !surfaceRef.current) return;
       const rect = surfaceRef.current.getBoundingClientRect();
       const z = canvasDragShared.zoom;
+
+      // Image dragged from the Upload Panel — create an image element seeded
+      // with the uploaded asset's URL/metadata at the drop position.
+      if (item?.kind === 'upload-image') {
+        const up = item as UploadImageDragItem;
+        onDrop('image', (offset.x - rect.left) / z, (offset.y - rect.top) / z, section.id, {
+          src: up.src,
+          imageUrl: up.src,
+          assetId: up.assetId,
+          assetUrl: up.assetUrl,
+          alt: up.fileName,
+        });
+        return;
+      }
 
       if (item?.kind === 'carousel') {
         onAddCarousel?.(section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SectionView } from './SectionView';
 import { SectionDropZone } from './SectionDropZone';
 import { canvasDragShared } from './CanvasElement';
-import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
+import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, ElementContent, NodeMap } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { CanvasContextProvider } from '../contexts/CanvasContext';
 
@@ -29,7 +29,7 @@ interface Props {
   onUpdate: (id: string, updates: Partial<El>) => void;
   onCommit: (prevSnapshot: BuilderState) => void;
   snapshot: BuilderState;
-  onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
+  onDrop: (type: ElementType, x: number, y: number, sectionId: string, contentOverride?: Partial<ElementContent>) => void;
   onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSection: (afterId?: string, atStart?: boolean) => void;
   onDeleteSection: (id: string) => void;
