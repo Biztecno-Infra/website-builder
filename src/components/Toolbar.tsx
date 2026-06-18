@@ -30,6 +30,9 @@ interface Props {
   onImport: () => void;
   onLoadDemo: () => void;
   onClear: () => void;
+  // External integration — when provided, these replace / augment default behaviour
+  onSave?: () => void;
+  onPublish?: () => void;
 }
 
 export function Toolbar({
@@ -40,6 +43,7 @@ export function Toolbar({
   zoom, onZoomChange, onZoomReset,
   onPreview, onExportHTML, onExportJSON, onImport,
   onLoadDemo, onClear,
+  onSave, onPublish,
 }: Props) {
   const [pageDropOpen, setPageDropOpen] = useState(false);
   const [publishDropOpen, setPublishDropOpen] = useState(false);
@@ -170,7 +174,7 @@ export function Toolbar({
         </div>
       </div>
 
-      {/* ── Right: clear + preview + publish ── */}
+      {/* ── Right: clear + preview + save + publish ── */}
       <div className="pb-toolbar-right pb-flex-row">
         <button className="pb-toolbar-clear-btn" onClick={onClear} title="Clear canvas">
           <Icon id="trash" size={16} />
@@ -182,10 +186,17 @@ export function Toolbar({
           <span>Preview</span>
         </button>
 
+        {onSave && (
+          <button className="pb-toolbar-preview-btn" onClick={onSave} title="Save">
+            <Icon id="save" size={16} />
+            <span>Save</span>
+          </button>
+        )}
+
         {/* Publish dropdown */}
         <div className="pb-toolbar-dropdown-wrap" ref={publishDropRef}>
           <div className="pb-toolbar-publish-group">
-            <button className="pb-toolbar-publish-btn" onClick={onExportHTML} title="Publish / Export HTML">
+            <button className="pb-toolbar-publish-btn" onClick={onPublish ?? onExportHTML} title="Publish / Export HTML">
               <Icon id="publish" size={16} color="#ffffff" />
               <span>Publish</span>
             </button>

@@ -6,6 +6,6 @@ import { sparsifyNodes } from './sparse';
  * Strips default values from nodes so the file is small.
  * Import restores all defaults via hydrateNodes automatically.
  */
-export function serializeState(state: BuilderState): object {
-  return { ...state, nodes: sparsifyNodes(state.nodes) };
+export function serializeState(state: BuilderState): BuilderState {
+  return { ...state, nodes: sparsifyNodes(state.nodes) } as unknown as BuilderState;
 }

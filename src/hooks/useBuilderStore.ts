@@ -92,8 +92,10 @@ function getActivePage(state: BuilderState): Page {
   return state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
 }
 
-export function useBuilderStore() {
-  const [state, setState] = useState<BuilderState>(loadFromStorage);
+export function useBuilderStore(externalInitialState?: BuilderState) {
+  const [state, setState] = useState<BuilderState>(() =>
+    externalInitialState ? migrateState(externalInitialState) : loadFromStorage()
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedGridCellId, setSelectedGridCellId] = useState<string | null>(null);

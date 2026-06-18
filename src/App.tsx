@@ -13,9 +13,17 @@ import { migrateState } from './hooks/useBuilderStore';
 import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
 import { serializeState } from './utils/serializeState';
-import type { Breakpoint, Container, GridCell, CanvasElement } from './types';
+import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } from './types';
 
-export default function App() {
+export interface PageBuilderProps {
+  initialState?: BuilderState;
+  siteName?: string;
+  onSave?: (state: BuilderState) => void | Promise<void>;
+  onPublish?: (state: BuilderState) => void | Promise<void>;
+  onChange?: (state: BuilderState) => void;
+}
+
+export default function App({ initialState, siteName = 'Website Builder', onSave, onPublish, onChange }: PageBuilderProps = {}) {
   const {
     state,
     nodes,
@@ -99,7 +107,23 @@ export default function App() {
     duplicateAccordionItem,
     reorderAccordionItem,
     toggleAccordionItem,
-  } = useBuilderStore();
+  } = useBuilderStore(initialState);
+
+  // When initialState loads async (e.g. API fetch resolves after first render), sync it in.
+  const initialStateRef = useRef(initialState);
+  useEffect(() => {
+    if (initialState && initialState !== initialStateRef.current) {
+      initialStateRef.current = initialState;
+      importState(initialState);
+    }
+  }, [initialState, importState]);
+
+  // Notify parent of state changes (skip the initial render).
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    onChange?.(state);
+  }, [state, onChange]);
 
   // selectedContainerId now lives in useBuilderStore (and is cleared there on undo).
   const [selectedCarouselId, setSelectedCarouselId] = useState<string | null>(null);
@@ -550,7 +574,7 @@ export default function App() {
     <DndProvider backend={HTML5Backend}>
       <div className={'pb-app pb-flex-col'}>
         <Toolbar
-          siteName="Website Builder"
+          siteName={siteName}
           pages={pages}
           activePage={activePage}
           onSetActivePage={setActivePage}
@@ -575,6 +599,8 @@ export default function App() {
               importState(makeEmpty());
             }
           }}
+          onSave={onSave ? () => onSave(serializeState(state)) : undefined}
+          onPublish={onPublish ? () => onPublish(serializeState(state)) : undefined}
         />
         <input
           ref={importRef}
