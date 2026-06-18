@@ -479,7 +479,7 @@ export function ElementContent({
         <img
           src={el.content.src}
           alt={el.content.alt}
-          style={{ width: '100%', height: '100%', objectFit: el.content.objectFit, display: 'block' }}
+          style={{ width: '100%', height: '100%', objectFit: el.content.objectFit, objectPosition: el.content.objectPosition ?? 'center', display: 'block' }}
           draggable={false}
         />
       </div>

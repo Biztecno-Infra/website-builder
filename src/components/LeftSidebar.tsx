@@ -7,7 +7,9 @@ import { SECTION_TEMPLATES } from '../data/sectionTemplates';
 import { LayerPanel } from './LayerPanel';
 import { PagePanel } from './PagePanel';
 import { ThemePanel } from './ThemePanel';
+import { UploadsPanel } from './UploadsPanel';
 import { Icon } from './Icon';
+import { IconButton } from './IconButton';
 
 export const DND_TYPE = 'PALETTE_ITEM';
 export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
@@ -50,7 +52,7 @@ function LayoutItem({ label, columnSpans, onAdd }: { label: string; desc: string
   return (
     <button
       ref={dragRef as unknown as React.Ref<HTMLButtonElement>}
-      className={'pb-layout-item'}
+      className={'pb-layout-item pb-flex-col-center'}
       style={{ opacity: isDragging ? 0.4 : 1 }}
       title={`${label} — click to add or drag to position`}
       onClick={() => onAdd(columnSpans)}
@@ -153,7 +155,7 @@ function TemplateCard({ tpl, onAdd }: {
       onClick={() => onAdd(tpl.build)}
     >
       <span className={'pb-template-card-icon'}>{tpl.icon}</span>
-      <div className={'pb-template-card-info'}>
+      <div className={'pb-template-card-info pb-flex-col'}>
         <span className={'pb-template-card-label'}>{tpl.label}</span>
         <span className={'pb-template-card-desc'}>{tpl.desc}</span>
       </div>
@@ -232,7 +234,7 @@ export function LeftSidebar({
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
   theme, onUpdateTheme, onApplyTheme,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | null>('elements');
+  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | 'uploads' | null>('elements');
   const [isOpen, setIsOpen] = useState(true);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openRafRef = useRef<number | null>(null);
@@ -254,7 +256,7 @@ export function LeftSidebar({
     }, 260);
   }, []);
 
-  const handleTabClick = useCallback((tab: 'elements' | 'layers' | 'pages' | 'theme') => {
+  const handleTabClick = useCallback((tab: 'elements' | 'layers' | 'pages' | 'theme' | 'uploads') => {
     // same tab while open → toggle close
     if (activeTab === tab && isOpen) {
       handleClose();
@@ -319,19 +321,23 @@ export function LeftSidebar({
           onClick={() => handleTabClick('theme')} title="Theme">
           <Icon id="palette" size={20} />
         </button>
+        <button className={['pb-tab-btn pb-flex-center', activeTab === 'uploads' && 'pb-active'].filter(Boolean).join(' ')}
+          onClick={() => handleTabClick('uploads')} title="Uploads">
+          <Icon id="uploads" size={20} />
+        </button>
       </div>
 
-      <div className={'pb-left-panel-content'} style={{ width: isOpen && activeTab !== null ? panelWidth - 48 : 0 }}>
+      <div className={'pb-left-panel-content pb-flex-col'} style={{ width: isOpen && activeTab !== null ? panelWidth - 48 : 0 }}>
       {activeTab === 'elements' && (
         <aside className={'pb-left-sidebar pb-flex-col'}>
 
-          <div className={'pb-blocks-header'}>
+          <div className={'pb-blocks-header pb-flex-between'}>
             <span className={'pb-blocks-header-title'}>Add Elements</span>
-            <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={handleClose}>✕</button>
+            <IconButton variant="close" onClick={handleClose} title="Close">✕</IconButton>
           </div>
 
           <div className={'pb-blocks-search'}>
-            <div className={'pb-blocks-search-inner'}>
+            <div className={'pb-blocks-search-inner pb-flex-row'}>
               <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
               <input type="text" placeholder="Search layers..." />
             </div>
@@ -359,12 +365,12 @@ export function LeftSidebar({
             ))}
           </div>
 
-          <div className={'pb-section-type-list'}>
+          <div className={'pb-section-type-list pb-flex-col'}>
             <button className={'pb-section-type-btn pb-flex-row'} onClick={onAddFreeSection} title="Add a free-layout section">
               <span className={'pb-section-type-icon-box'}>
                 <Icon id="elAccordion" size={14} />
               </span>
-              <div className={'pb-section-type-info'}>
+              <div className={'pb-section-type-info pb-flex-col'}>
                 <span className={'pb-section-type-label'}>Free Section</span>
                 <span className={'pb-section-type-desc'}>Absolute positioning</span>
               </div>
@@ -443,6 +449,10 @@ export function LeftSidebar({
 
       {activeTab === 'theme' && (
         <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={handleClose} />
+      )}
+
+      {activeTab === 'uploads' && (
+        <UploadsPanel onClose={handleClose} />
       )}
       </div>
 

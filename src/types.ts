@@ -100,6 +100,7 @@ export interface ElementContent {
   src?: string;
   alt?: string;
   objectFit?: ObjectFit;
+  objectPosition?: string;
   linkUrl?: string;
   label?: string;
   videoUrl?: string;

@@ -80,7 +80,7 @@ export function SectionPanel({
   const sides = ['top', 'right', 'bottom', 'left'] as const;
 
   return (
-    <aside className={'pb-right-sidebar'}>
+    <aside className={'pb-right-sidebar pb-flex-col'}>
       <PanelHeader title="Layout" />
 
       {/* ── Layout ── */}
@@ -294,7 +294,7 @@ export function SectionPanel({
       {/* ── Columns (grid/flex only) ── */}
       {hasGrid && (
         <CollapsibleSection sectionKey="columns" label="Columns" isOpen={sec('columns')} onToggle={toggle}>
-          <div className={'pb-grid-col-manager-list'}>
+          <div className={'pb-grid-col-manager-list pb-flex-col'}>
             {section.children.map((cellId, idx) => {
               const cell = nodes[cellId] as GridCell | undefined;
               if (!cell) return null;

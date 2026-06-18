@@ -26,8 +26,6 @@
   width: 18rem;
   flex-shrink: 0;
   background: var(--pb-white);
-  display: flex;
-  flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
   border-left: 1px solid var(--pb-border);
@@ -48,42 +46,33 @@
   overflow-x: hidden;
 }
 
-/* ─── Close button (always top-right of sidebar) ─── */
-.pb-right-sidebar-close {
+/* ─── Panel section label (carousel / accordion sub-panels) ─── */
+.pb-panel-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pb-text-muted);
+  margin-bottom: 8px;
+}
+
+/* ─── Panel row (label + control pair) ─── */
+.pb-panel-row { margin-bottom: 10px; gap: 8px; }
+
+/* ─── Close button (top-right of sidebar) ─── */
+.pb-sidebar-close-btn {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 10;
-  width: 22px;
-  height: 22px;
-  border: none;
-  background: transparent;
-  color: var(--pb-text-muted);
-  font-size: 13px;
-  line-height: 1;
-  border-radius: var(--pb-radius-sm);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--pb-transition);
-}
-.pb-right-sidebar-close:hover {
-  background: var(--pb-bg-hover);
-  color: var(--pb-text-strong);
 }
 
 /* ─── Idle / no-selection state ─── */
 .pb-right-sidebar-idle {
   flex: 1;
-  display: flex;
-  flex-direction: column;
 }
 .pb-right-sidebar-idle-body {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
   gap: 12px;
   padding: 32px 24px;
@@ -283,8 +272,6 @@
 
 /* ─── Font Pairings ─── */
 .pb-font-pairing-row {
-  display: flex;
-  flex-direction: column;
   gap: 4px;
   margin-bottom: 10px;
 }
@@ -356,4 +343,38 @@
   background: var(--pb-primary);
   color: var(--pb-white);
   border-color: var(--pb-primary);
+}
+
+/* ─── Image section action buttons (Search / Upload) ─── */
+.pb-img-action-btn {
+  width: 100%;
+  height: 30px;
+  border-radius: var(--pb-radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--pb-transition);
+  border: 1px solid var(--pb-border);
+}
+
+.pb-img-search-btn {
+  background: var(--pb-white);
+  color: var(--pb-text-dark);
+}
+
+.pb-img-search-btn:hover {
+  border-color: var(--pb-primary);
+  color: var(--pb-primary);
+  background: var(--pb-bg-tint);
+}
+
+.pb-img-upload-btn {
+  background: var(--pb-primary);
+  color: var(--pb-white);
+  border-color: var(--pb-primary);
+}
+
+.pb-img-upload-btn:hover {
+  background: var(--pb-primary-hover);
+  border-color: var(--pb-primary-hover);
 }

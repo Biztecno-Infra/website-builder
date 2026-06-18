@@ -1,4 +1,6 @@
 export { default as PageBuilder } from './App';
+export { configureAssetApi } from './api';
+export { IconButton } from './components/IconButton';
 
 export type {
   BuilderState,

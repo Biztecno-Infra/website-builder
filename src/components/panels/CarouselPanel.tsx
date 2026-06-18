@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { Breakpoint, BuilderState, Carousel, GridCell, NodeMap } from '../../types';
+import { IconButton } from '../IconButton';
 
 interface Props {
   carousel: Carousel;
@@ -18,12 +19,9 @@ interface Props {
   onPushSnapshot: (snapshot: BuilderState) => void;
 }
 
-const LABEL_STYLE: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' };
-const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 };
-
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label style={{ ...ROW, cursor: 'pointer' }}>
+    <label className="pb-flex-between pb-panel-row pb-interactive">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
     </label>
@@ -35,7 +33,7 @@ function NumberField({ label, value, min, max, step = 1, suffix, onCommitStart, 
   onCommitStart: () => void; onChange: (v: number) => void;
 }) {
   return (
-    <div style={ROW}>
+    <div className="pb-flex-between pb-panel-row">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <input
@@ -54,7 +52,7 @@ function ColorField({ label, value, onCommitStart, onChange }: {
   label: string; value: string; onCommitStart: () => void; onChange: (v: string) => void;
 }) {
   return (
-    <div style={ROW}>
+    <div className="pb-flex-between pb-panel-row">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <input
@@ -107,14 +105,14 @@ export function CarouselPanel({
     (breakpoint === 'mobile' && r.mobile?.height !== undefined);
 
   return (
-    <aside className={'pb-right-sidebar'} onBlur={flushFocus}>
+    <aside className={'pb-right-sidebar pb-flex-col'} onBlur={flushFocus}>
       <div className={'pb-panel-header'}>
         <span className={'pb-panel-header-title'}>Carousel</span>
       </div>
 
       {/* ── General ── */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>General</div>
+        <div className="pb-panel-label">General</div>
         <Toggle label="Autoplay" checked={p.autoplay} onChange={v => setProps({ autoplay: v })} />
         {p.autoplay && (
           <NumberField
@@ -144,7 +142,7 @@ export function CarouselPanel({
 
       {/* ── Layout ── */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+        <div className="pb-panel-label pb-flex-between">
           <span>Layout{breakpoint !== 'desktop' ? ` · ${breakpoint}` : ''}</span>
           {heightOverridden && (
             <button
@@ -156,7 +154,7 @@ export function CarouselPanel({
             >reset</button>
           )}
         </div>
-        <div style={{ ...ROW, marginBottom: 6 }}>
+        <div className="pb-flex-between pb-panel-row" style={{ marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: '#334' }}>Width</span>
           <span style={{ fontSize: 11, color: '#94a3b8' }}>Follows parent</span>
         </div>
@@ -176,7 +174,7 @@ export function CarouselPanel({
 
       {/* ── Slides ── */}
       <div style={{ padding: '8px 12px' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="pb-panel-label pb-flex-between">
           <span>Slides ({slides.length})</span>
           <button
             onClick={() => onAddSlide(carousel.id)}
@@ -201,18 +199,14 @@ export function CarouselPanel({
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#334', flex: 1 }}>
                   Slide {i + 1}{isActive ? ' ·' : ''}
                 </span>
-                <button title="Move up" disabled={i === 0}
-                  onClick={e => { e.stopPropagation(); onReorderSlide(carousel.id, i, i - 1); }}
-                  style={{ ...iconBtn, opacity: i === 0 ? 0.3 : 1 }}>↑</button>
-                <button title="Move down" disabled={i === slides.length - 1}
-                  onClick={e => { e.stopPropagation(); onReorderSlide(carousel.id, i, i + 1); }}
-                  style={{ ...iconBtn, opacity: i === slides.length - 1 ? 0.3 : 1 }}>↓</button>
-                <button title="Duplicate slide"
-                  onClick={e => { e.stopPropagation(); onDuplicateSlide(slide.id); }}
-                  style={iconBtn}>⧉</button>
-                <button title="Delete slide" disabled={slides.length <= 1}
-                  onClick={e => { e.stopPropagation(); onDeleteSlide(slide.id); }}
-                  style={{ ...iconBtn, color: '#e74c3c', opacity: slides.length <= 1 ? 0.3 : 1 }}>✕</button>
+                <IconButton variant="ghost" title="Move up" disabled={i === 0}
+                  onClick={e => { e.stopPropagation(); onReorderSlide(carousel.id, i, i - 1); }}>↑</IconButton>
+                <IconButton variant="ghost" title="Move down" disabled={i === slides.length - 1}
+                  onClick={e => { e.stopPropagation(); onReorderSlide(carousel.id, i, i + 1); }}>↓</IconButton>
+                <IconButton variant="ghost" title="Duplicate slide"
+                  onClick={e => { e.stopPropagation(); onDuplicateSlide(slide.id); }}>⧉</IconButton>
+                <IconButton variant="danger" title="Delete slide" disabled={slides.length <= 1}
+                  onClick={e => { e.stopPropagation(); onDeleteSlide(slide.id); }}>✕</IconButton>
               </div>
             );
           })}
@@ -221,8 +215,3 @@ export function CarouselPanel({
     </aside>
   );
 }
-
-const iconBtn: React.CSSProperties = {
-  background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#64748b',
-  padding: '2px 4px', borderRadius: 3, lineHeight: 1,
-};

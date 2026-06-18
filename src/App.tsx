@@ -473,7 +473,7 @@ export default function App() {
     const previewBp: Breakpoint = previewDevice === 'mobile' ? 'mobile' : previewDevice === 'tablet' ? 'tablet' : 'desktop';
     return (
       <DndProvider backend={HTML5Backend}>
-        <div className={"pb-app pb-preview-app"}>
+        <div className={"pb-app pb-preview-app pb-flex-col"}>
           <header className={"pb-toolbar pb-flex-row pb-preview-toolbar"}>
             <div className={'pb-toolbar-left pb-flex-row'} style={{ gap: 10 }}>
               <span className={'pb-preview-badge'}>Preview</span>
@@ -548,7 +548,7 @@ export default function App() {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className={'pb-app'}>
+      <div className={'pb-app pb-flex-col'}>
         <Toolbar
           siteName="Website Builder"
           pages={pages}
@@ -626,8 +626,8 @@ export default function App() {
           onApplyTheme={handleApplyTheme}
         />
 
-        <div className={'pb-middle-container'}>
-          <div className={'pb-content-wrapper'} style={{ position: 'relative' }} ref={canvasWrapperRef}>
+        <div className={'pb-middle-container pb-flex-col'}>
+          <div className={'pb-content-wrapper pb-flex-col'} style={{ position: 'relative' }} ref={canvasWrapperRef}>
             {selectedIds.length >= 2 && (
               <AlignmentToolbar
                 selectedIds={selectedIds}

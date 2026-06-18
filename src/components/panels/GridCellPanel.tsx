@@ -104,41 +104,9 @@ export function GridCellPanel({
   const resetJustifyOverride = () => clearCellProp('justifyContent');
   const resetAlignOverride   = () => clearCellProp('alignItems');
 
-  // Card mode: cell has a visible border and non-transparent background
-  const isCard = (gc.style.border?.width ?? 0) > 0 && gc.style.border?.style !== 'none';
-
-  const toggleCard = () => {
-    onPushSnapshot(snapshot);
-    if (isCard) {
-      // Remove card style
-      onUpdateGridCell(gc.id, {
-        style: {
-          ...gc.style,
-          background: { ...gc.style.background, color: 'transparent' },
-          border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
-        },
-      });
-    } else {
-      // Apply card style using theme colors
-      onUpdateGridCell(gc.id, {
-        style: {
-          ...gc.style,
-          background: { ...gc.style.background, color: theme.colors.background },
-          border: { radius: 8, width: 1, color: theme.colors.light, style: 'solid' },
-        },
-      });
-    }
-  };
-
   return (
-    <aside className={'pb-right-sidebar'}>
-      <PanelHeader title="Grid Column">
-        <button
-          className={['pb-toolbar-btn pb-quick-btn', isCard && 'pb-active'].filter(Boolean).join(' ')}
-          title={isCard ? 'Remove card style' : 'Apply card style (background + border)'}
-          onClick={toggleCard}
-        >{isCard ? '▪ Card' : '□ Card'}</button>
-      </PanelHeader>
+    <aside className={'pb-right-sidebar pb-flex-col'}>
+      <PanelHeader title="Grid Column" />
 
       {breakpoint !== 'desktop' && (
         <div className={`pb-bp-banner pb-bp-banner-${breakpoint}`}>

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import type { Breakpoint, GridCell } from '../types';
+import { IconButton } from './IconButton';
 
 function getCellSpan(cell: GridCell, bp: Breakpoint): number {
   if (bp === 'mobile') return cell.responsive.mobile?.columnSpan ?? cell.responsive.tablet?.columnSpan ?? cell.columnSpan;
@@ -52,22 +53,22 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
       {children}
       {isSelected && !previewMode && (onMoveLeft || onMoveRight || onCopyCell || onPasteIntoCell || onDeleteCell) && (
         <div className={'pb-cell-action-bar'} onMouseDown={e => e.stopPropagation()}>
-          <button className={'pb-cell-action-btn pb-flex-center'} title="Move left" disabled={!onMoveLeft}
-            onClick={e => { e.stopPropagation(); onMoveLeft?.(); }}>←</button>
-          <button className={'pb-cell-action-btn pb-flex-center'} title="Move right" disabled={!onMoveRight}
-            onClick={e => { e.stopPropagation(); onMoveRight?.(); }}>→</button>
+          <IconButton variant="ghost" title="Move left" disabled={!onMoveLeft}
+            onClick={e => { e.stopPropagation(); onMoveLeft?.(); }}>←</IconButton>
+          <IconButton variant="ghost" title="Move right" disabled={!onMoveRight}
+            onClick={e => { e.stopPropagation(); onMoveRight?.(); }}>→</IconButton>
           <div className={'pb-cell-action-divider'} />
-          <button className={'pb-cell-action-btn pb-flex-center'} title="Copy column"
-            onClick={e => { e.stopPropagation(); onCopyCell?.(); }}>⧉</button>
+          <IconButton variant="ghost" title="Copy column"
+            onClick={e => { e.stopPropagation(); onCopyCell?.(); }}>⧉</IconButton>
           {onPasteIntoCell && (
-            <button className={'pb-cell-action-btn pb-flex-center'} title="Paste into this column"
-              onClick={e => { e.stopPropagation(); onPasteIntoCell(); }}>⊘</button>
+            <IconButton variant="ghost" title="Paste into this column"
+              onClick={e => { e.stopPropagation(); onPasteIntoCell(); }}>⊘</IconButton>
           )}
           {onDeleteCell && (
             <>
               <div className={'pb-cell-action-divider'} />
-              <button className={'pb-cell-action-btn pb-flex-center pb-danger'} title="Delete column"
-                onClick={e => { e.stopPropagation(); onDeleteCell(); }}>✕</button>
+              <IconButton variant="danger" title="Delete column"
+                onClick={e => { e.stopPropagation(); onDeleteCell(); }}>✕</IconButton>
             </>
           )}
         </div>

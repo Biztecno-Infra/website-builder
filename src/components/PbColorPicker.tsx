@@ -82,7 +82,7 @@ export function PbColorPicker({ value, onChange, alpha = true, swatches, classNa
   const solidCurrent = hsvaToHex(hsva.h, hsva.s, hsva.v, 1);
 
   return (
-    <div className={['pb-cp', className].filter(Boolean).join(' ')}>
+    <div className={['pb-cp pb-flex-col', className].filter(Boolean).join(' ')}>
       {/* SV gradient */}
       <div
         ref={gradRef}
@@ -104,7 +104,7 @@ export function PbColorPicker({ value, onChange, alpha = true, swatches, classNa
       </div>
 
       {/* Hue + alpha sliders */}
-      <div className="pb-cp-sliders">
+      <div className="pb-cp-sliders pb-flex-col">
         <div className="pb-cp-hue-track">
           <input
             type="range" className="pb-cp-range"

@@ -1,7 +1,5 @@
 ﻿/* ─── Preview mode ─── */
 .pb-preview-app {
-  display: flex;
-  flex-direction: column;
   height: 100vh;
   background: var(--pb-bg-muted);
 }

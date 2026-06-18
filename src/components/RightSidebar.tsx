@@ -2,6 +2,7 @@ import type {
   Accordion, AccordionBpOverride, Breakpoint, CanvasElement, BuilderState, Carousel, Container, Section, SectionUpdate, GridCell,
   BreakpointOverride, NodeMap, Page, SiteTheme,
 } from '../types';
+import { IconButton } from './IconButton';
 import { GridCellPanel } from './panels/GridCellPanel';
 import { SectionPanel } from './panels/SectionPanel';
 import { ElementPanel } from './panels/ElementPanel';
@@ -75,11 +76,11 @@ export function RightSidebar({
   const hasSelection = !!(element || showAccordionPanel || showCarouselPanel || (container && onUpdateContainer) || (gridCell && onUpdateGridCell) || section);
 
   return (
-    <aside className={['pb-right-sidebar', !isOpen && 'pb-right-sidebar--hidden'].filter(Boolean).join(' ')}>
+    <aside className={['pb-right-sidebar pb-flex-col', !isOpen && 'pb-right-sidebar--hidden'].filter(Boolean).join(' ')}>
       {!hasSelection && (
-        <div className="pb-right-sidebar-idle">
-          <button className="pb-right-sidebar-close" onClick={onClose} title="Close panel">✕</button>
-          <div className="pb-right-sidebar-idle-body">
+        <div className="pb-right-sidebar-idle pb-flex-col">
+          <IconButton variant="close" size="sm" onClick={onClose} title="Close panel" className="pb-sidebar-close-btn">✕</IconButton>
+          <div className="pb-right-sidebar-idle-body pb-flex-col-center">
             <div className="pb-right-sidebar-idle-icon">↖</div>
             <p className="pb-right-sidebar-idle-text">Select an element, section, or layer to edit its properties</p>
           </div>
@@ -87,7 +88,7 @@ export function RightSidebar({
       )}
       {hasSelection && (
         <>
-          <button className="pb-right-sidebar-close" onClick={onClose} title="Close panel">✕</button>
+          <IconButton variant="close" size="sm" onClick={onClose} title="Close panel" className="pb-sidebar-close-btn">✕</IconButton>
           {showAccordionPanel && accordion && (
             <AccordionPanel
               accordion={accordion}

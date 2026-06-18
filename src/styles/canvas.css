@@ -1,7 +1,5 @@
 ﻿/* ─── Content wrapper (canvas area) ─── */
 .pb-content-wrapper {
-  display: flex;
-  flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
@@ -147,34 +145,13 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
 
-.pb-section-action-btn {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  font-size: 13px;
-  border: none;
-  border-radius: 5px;
-  background: transparent;
-  color: var(--pb-text-muted);
-  cursor: pointer;
-  transition: var(--pb-transition);
-}
-
-.pb-section-action-btn:hover {
-  background: var(--pb-bg-hover);
-  color: var(--pb-primary);
-}
+.pb-section-add-col { width: auto; padding: 0 8px; font-size: 11px; }
 
 .pb-section-action-divider {
   width: 1px;
   height: 18px;
   background: var(--pb-border-base);
   margin: 0 2px;
-}
-
-.pb-section-action-btn.pb-danger:hover {
-  background: var(--pb-danger-bg);
-  color: var(--pb-danger);
 }
 
 .pb-cell-action-bar {
@@ -192,22 +169,6 @@
   border-radius: var(--pb-radius-md);
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
 }
-
-.pb-cell-action-btn {
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  font-size: 13px;
-  border: none;
-  border-radius: var(--pb-radius-sm);
-  background: transparent;
-  color: var(--pb-text-muted);
-  cursor: pointer;
-  transition: var(--pb-transition);
-}
-
-.pb-cell-action-btn:hover:not(:disabled) { background: var(--pb-bg-hover); color: var(--pb-primary); }
-.pb-cell-action-btn:disabled { opacity: 0.3; cursor: default; }
 
 .pb-cell-action-divider {
   width: 1px;
@@ -339,8 +300,6 @@
 
 /* ─── Theme color grid ─── */
 .pb-tc-grid {
-  display: flex;
-  flex-direction: column;
   gap: 0;
   padding: 4px 0 8px;
 }

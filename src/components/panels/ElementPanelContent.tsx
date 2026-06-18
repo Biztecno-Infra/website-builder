@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type {
   Breakpoint, BuilderState, CanvasElement, ElementAction,
   ElementContent, ElementLayout, BreakpointOverride,
@@ -14,6 +14,7 @@ import { CollapsibleSection } from './CollapsibleSection';
 import { ColorField, PxInput, ToggleGroup } from './PanelFields';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
+import { ImagePickerModal } from '../ImagePickerModal';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbTextarea } from '../PbTextarea';
@@ -23,6 +24,7 @@ import {
   TEXT_TRANSFORM_OPTIONS,
   DIVIDER_ORIENTATION_OPTIONS,
   OBJECT_FIT_OPTIONS,
+  IMAGE_POSITION_OPTIONS,
 } from '../../utils/selectOptions';
 
 interface Props {
@@ -62,6 +64,8 @@ export function ElementPanelContent({
   swatches, nodes, pages, isInGridCell, minSize,
 }: Props) {
   const sidebarEditRef = useRef<HTMLDivElement>(null);
+  const imgFileRef = useRef<HTMLInputElement>(null);
+  const [showPicker, setShowPicker] = useState(false);
 
   // Sync sidebar rich text div when element changes (e.g. different element selected)
   useEffect(() => {
@@ -321,9 +325,35 @@ export function ElementPanelContent({
       {/* ── Image ── */}
       {element.type === 'image' && (
         <CollapsibleSection sectionKey="image" label="Image" isOpen={sec('image')} onToggle={toggleSection}>
+          <div className={'pb-prop-row pb-full'}>
+            <label>Image Search</label>
+            <button className={'pb-img-action-btn pb-img-search-btn'} onClick={() => setShowPicker(true)}>
+              Search Image
+            </button>
+          </div>
+          <div className={'pb-prop-row pb-full'}>
+            <label>Image Upload</label>
+            <button className={'pb-img-action-btn pb-img-upload-btn'} onClick={() => imgFileRef.current?.click()}>
+              Upload
+            </button>
+            <input
+              ref={imgFileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const url = URL.createObjectURL(file);
+                onPushSnapshot(snapshot);
+                changeContent({ src: url });
+                e.target.value = '';
+              }}
+            />
+          </div>
           <div className={"pb-prop-row pb-full"}>
-            <label>Image path</label>
-            <PbInput type="text" variant="plain" value={element.content.src} placeholder="https://..."
+            <label>Image Url</label>
+            <PbInput type="text" variant="plain" value={element.content.src ?? ''} placeholder="https://..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ src: e.target.value })} />
           </div>
@@ -340,11 +370,22 @@ export function ElementPanelContent({
               onChange={e => changeContent({ alt: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
+            <label>Image Position</label>
+            <PbSelect value={element.content.objectPosition ?? 'center'}
+              options={IMAGE_POSITION_OPTIONS}
+              onChange={v => commitChange({ content: { ...element.content, objectPosition: v } })} />
+          </div>
+          <div className={'pb-prop-row'}>
             <label>Image Fit</label>
             <PbSelect value={element.content.objectFit ?? 'cover'}
               options={OBJECT_FIT_OPTIONS}
               onChange={v => commitChange({ content: { ...element.content, objectFit: v as ObjectFit } })} />
           </div>
+          <ImagePickerModal
+            isOpen={showPicker}
+            onClose={() => setShowPicker(false)}
+            onSelect={url => { onPushSnapshot(snapshot); changeContent({ src: url }); }}
+          />
         </CollapsibleSection>
       )}
 

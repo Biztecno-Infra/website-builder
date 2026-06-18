@@ -2,6 +2,7 @@ import type { ActionType, ElementAction, NodeMap, Page, Section } from '../../ty
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbTextarea } from '../PbTextarea';
+import { CheckboxField } from './PanelFields';
 import {
   API_METHOD_OPTIONS,
   LINK_TARGET_OPTIONS,
@@ -189,11 +190,8 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
               options={[{ value: '', label: '— pick section —' }, ...allSections.map(s => ({ value: s.id, label: s.label }))]}
               onChange={v => onChange({ targetSectionId: v })} />
           </div>
-          <div className={'pb-prop-row'}>
-            <label>Smooth</label>
-            <input type="checkbox" checked={action.smoothScroll !== false}
-              onChange={e => onChange({ smoothScroll: e.target.checked })} />
-          </div>
+          <CheckboxField label="Smooth" checked={action.smoothScroll !== false}
+            onChange={v => onChange({ smoothScroll: v })} />
         </>
       )}
 

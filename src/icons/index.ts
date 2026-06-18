@@ -25,6 +25,8 @@ export { default as elForm }      from './el-form';
 export { default as elAccordion } from './el-accordion';
 
 // UI icons
+export { default as upload }      from './upload';
+export { default as uploads }     from './uploads';
 export { default as search }      from './search';
 export { default as trash }       from './delete';
 export { default as colorPicker } from './color-picker';

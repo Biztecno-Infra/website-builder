@@ -91,7 +91,7 @@ export function ElementPanel({
   const minSize = element.type === 'divider' ? 1 : 20;
 
   return (
-    <aside className={'pb-right-sidebar'}>
+    <aside className={'pb-right-sidebar pb-flex-col'}>
       <PanelHeader title={elementLabel} />
 
       {breakpoint !== 'desktop' && (

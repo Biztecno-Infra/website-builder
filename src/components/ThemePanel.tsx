@@ -5,6 +5,7 @@ import { PbButton } from './PbButton';
 import { PbColorPicker } from './PbColorPicker';
 import { injectGoogleFont } from '../utils/fonts';
 import { FONT_FAMILY_OPTIONS } from '../utils/selectOptions';
+import { IconButton } from './IconButton';
 
 const COLOR_FIELDS: Array<{
   key: keyof ThemeColors;
@@ -89,7 +90,7 @@ function FontSelect({
   label: string; value: string; onChange: (v: string) => void;
 }) {
   return (
-    <div className={'pb-font-pairing-row'}>
+    <div className={'pb-font-pairing-row pb-flex-col'}>
       <span className={'pb-font-pairing-label'}>{label}</span>
       <PbSelect value={value} options={FONT_FAMILY_OPTIONS} onChange={onChange} size="md" />
     </div>
@@ -114,16 +115,16 @@ export function ThemePanel({ theme, onUpdate, onApplyTheme, onClose }: Props) {
 
   return (
     <aside className={'pb-left-sidebar pb-flex-col'}>
-      <div className={'pb-blocks-header'}>
+      <div className={'pb-blocks-header pb-flex-between'}>
         <span className={'pb-blocks-header-title'}>Site Theme</span>
-        <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={onClose}>✕</button>
+        <IconButton variant="close" onClick={onClose} title="Close">✕</IconButton>
       </div>
 
       {/* ── Color palette ── */}
       <div className={'pb-prop-section'}>
         <div className={'pb-section-header'}>Color palette</div>
         <div className={'pb-section-content pb-section-content--flush'}>
-          <div className={'pb-tc-grid'}>
+          <div className={'pb-tc-grid pb-flex-col'}>
             {COLOR_FIELDS.map(({ key, label }) => (
               <ColorCard
                 key={key}

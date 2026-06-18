@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { IconButton } from './IconButton';
 
 interface Props {
   anchorRef: React.RefObject<HTMLElement | null>;
@@ -60,12 +61,12 @@ export function ElementQuickBar({ anchorRef, onDuplicate, onDelete }: Props) {
       onMouseDown={e => e.stopPropagation()}
     >
       {onDuplicate && (
-        <button className={'pb-el-quick-btn'} title="Duplicate"
-          onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</button>
+        <IconButton variant="dark" title="Duplicate"
+          onClick={e => { e.stopPropagation(); onDuplicate(); }}>⧉</IconButton>
       )}
       {onDelete && (
-        <button className={'pb-el-quick-btn pb-danger'} title="Delete"
-          onClick={e => { e.stopPropagation(); onDelete(); }}>✕</button>
+        <IconButton variant="dark" className="pb-danger" title="Delete"
+          onClick={e => { e.stopPropagation(); onDelete(); }}>✕</IconButton>
       )}
     </div>,
     document.body,

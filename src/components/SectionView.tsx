@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { IconButton } from './IconButton';
 import type React from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasElement, canvasDragShared } from './CanvasElement';
@@ -395,15 +396,15 @@ function FreeSectionView({
 
           {!previewMode && isSelected && !hasActiveChild && (
             <div className={'pb-section-action-bar'} onMouseDown={e => e.stopPropagation()}>
-              <button className={'pb-section-action-btn pb-flex-center'} title="Move up"
-                onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</button>
-              <button className={'pb-section-action-btn pb-flex-center'} title="Move down"
-                onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</button>
-              <button className={'pb-section-action-btn pb-flex-center'} title="Duplicate section"
-                onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</button>
+              <IconButton variant="ghost" size="lg" title="Move up"
+                onClick={e => { e.stopPropagation(); onMoveSectionUp?.(); }}>↑</IconButton>
+              <IconButton variant="ghost" size="lg" title="Move down"
+                onClick={e => { e.stopPropagation(); onMoveSectionDown?.(); }}>↓</IconButton>
+              <IconButton variant="ghost" size="lg" title="Duplicate section"
+                onClick={e => { e.stopPropagation(); onDuplicateSection?.(); }}>⧉</IconButton>
               <div className={'pb-section-action-divider'} />
-              <button className={"pb-section-action-btn pb-flex-center pb-danger"} title="Delete section"
-                onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</button>
+              <IconButton variant="danger" size="lg" title="Delete section"
+                onClick={e => { e.stopPropagation(); onDeleteSection?.(); }}>✕</IconButton>
             </div>
           )}
 

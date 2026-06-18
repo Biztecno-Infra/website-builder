@@ -98,8 +98,6 @@
 
 /* Element rows */
 .pb-layer-element-list {
-  display: flex;
-  flex-direction: column;
 }
 
 .pb-layer-empty-row {

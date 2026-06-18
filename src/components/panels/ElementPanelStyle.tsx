@@ -5,7 +5,7 @@ import type {
 } from '../../types';
 
 import { CollapsibleSection } from './CollapsibleSection';
-import { ColorField, PxInput, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor } from './PanelFields';
+import { CheckboxField, ColorField, PxInput, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor } from './PanelFields';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { BG_TYPE_OPTIONS, IMAGE_POSITION_OPTIONS } from '../../utils/selectOptions';
@@ -65,11 +65,8 @@ export function ElementPanelStyle({
                   <ColorField value={bgColor} onChange={v => changeBg({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
                 </div>
               )}
-              <div className={'pb-prop-row pb-vis-row'}>
-                <label>Transparent</label>
-                <input type="checkbox" checked={elBg.color === 'transparent'}
-                  onChange={e => commitChange({ style: { ...element.style, background: { ...elBg, color: e.target.checked ? 'transparent' : '#ffffff' } } })} />
-              </div>
+              <CheckboxField label="Transparent" checked={elBg.color === 'transparent'} className="pb-vis-row"
+                onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, color: v ? 'transparent' : '#ffffff' } } })} />
             </>
           )}
           {(elBg.type === 'linear-gradient' || elBg.type === 'radial-gradient') && (
@@ -113,11 +110,8 @@ export function ElementPanelStyle({
       {element.type === 'button' && (
         <CollapsibleSection sectionKey="hover" label={<>Hover {allBpBadge}</>}
           isOpen={sec('hover')} onToggle={toggleSection}>
-          <div className={'pb-prop-row pb-vis-row'}>
-            <label>Enable Hover Effect</label>
-            <input type="checkbox" checked={hover.enabled}
-              onChange={e => commitChange({ style: { ...element.style, hover: { ...hover, enabled: e.target.checked } } })} />
-          </div>
+          <CheckboxField label="Enable Hover Effect" checked={hover.enabled} className="pb-vis-row"
+            onChange={v => commitChange({ style: { ...element.style, hover: { ...hover, enabled: v } } })} />
           {hover.enabled && (
             <>
               <div className={'pb-prop-row'}>

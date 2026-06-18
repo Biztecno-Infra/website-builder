@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import type { Accordion, AccordionBpOverride, Breakpoint, BuilderState, NodeMap } from '../../types';
+import { IconButton } from '../IconButton';
 
 interface Props {
   accordion: Accordion;
@@ -18,12 +19,9 @@ interface Props {
   onPushSnapshot: (snapshot: BuilderState) => void;
 }
 
-const LABEL_STYLE: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' };
-const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, gap: 8 };
-
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label style={{ ...ROW, cursor: 'pointer' }}>
+    <label className="pb-flex-between pb-panel-row pb-interactive">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
     </label>
@@ -35,7 +33,7 @@ function NumberField({ label, value, min, max, step = 1, suffix, onCommitStart, 
   onCommitStart: () => void; onChange: (v: number) => void;
 }) {
   return (
-    <div style={ROW}>
+    <div className="pb-flex-between pb-panel-row">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         <input
@@ -54,7 +52,7 @@ function SelectField<T extends string>({ label, value, options, onChange }: {
   label: string; value: T; options: { value: T; label: string }[]; onChange: (v: T) => void;
 }) {
   return (
-    <div style={ROW}>
+    <div className="pb-flex-between pb-panel-row">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <select
         value={value}
@@ -71,7 +69,7 @@ function ColorField({ label, value, onCommitStart, onChange }: {
   label: string; value: string; onCommitStart: () => void; onChange: (v: string) => void;
 }) {
   return (
-    <div style={ROW}>
+    <div className="pb-flex-between pb-panel-row">
       <span style={{ fontSize: 12, color: '#334' }}>{label}</span>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
         <input
@@ -122,14 +120,14 @@ export function AccordionPanel({
     (breakpoint === 'mobile' && r.mobile?.width !== undefined);
 
   return (
-    <aside className={'pb-right-sidebar'} onBlur={flushFocus}>
+    <aside className={'pb-right-sidebar pb-flex-col'} onBlur={flushFocus}>
       <div className={'pb-panel-header'}>
         <span className={'pb-panel-header-title'}>Accordion</span>
       </div>
 
       {/* ── Behaviour ── */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>Behaviour</div>
+        <div className="pb-panel-label">Behaviour</div>
         <Toggle label="Allow multiple open" checked={p.allowMultiple} onChange={v => setProps({ allowMultiple: v })} />
         <SelectField
           label="Default open"
@@ -152,7 +150,7 @@ export function AccordionPanel({
 
       {/* ── Layout ── */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8, display: 'flex', justifyContent: 'space-between' }}>
+        <div className="pb-panel-label pb-flex-between">
           <span>Layout{breakpoint !== 'desktop' ? ` · ${breakpoint}` : ''}</span>
           {widthOverridden && (
             <button
@@ -180,7 +178,7 @@ export function AccordionPanel({
 
       {/* ── Border ── */}
       <div style={{ padding: '8px 12px', borderBottom: '1px solid #e9eef4' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>Border</div>
+        <div className="pb-panel-label">Border</div>
         <Toggle label="Outer box" checked={p.containerBorder ?? true} onChange={v => setProps({ containerBorder: v })} />
         <Toggle label="Dividers between items" checked={p.itemDivider ?? true} onChange={v => setProps({ itemDivider: v })} />
         {((p.containerBorder ?? true) || (p.itemDivider ?? true)) && (
@@ -214,7 +212,7 @@ export function AccordionPanel({
 
       {/* ── Items ── */}
       <div style={{ padding: '8px 12px' }}>
-        <div style={{ ...LABEL_STYLE, marginBottom: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="pb-panel-label pb-flex-between">
           <span>Items ({items.length})</span>
           <button
             onClick={() => onAddItem(accordion.id)}
@@ -237,21 +235,16 @@ export function AccordionPanel({
                 onClick={() => onSelectItemCell(item.contentCellId)}
               >
                 <span style={{ fontSize: 12, fontWeight: 600, color: '#334', flex: 1 }}>Item {i + 1}</span>
-                <button title={isOpen ? 'Collapse' : 'Expand'}
-                  onClick={e => { e.stopPropagation(); onToggleItem(accordion.id, item.id); }}
-                  style={iconBtn}>{isOpen ? '▾' : '▸'}</button>
-                <button title="Move up" disabled={i === 0}
-                  onClick={e => { e.stopPropagation(); onReorderItem(accordion.id, i, i - 1); }}
-                  style={{ ...iconBtn, opacity: i === 0 ? 0.3 : 1 }}>↑</button>
-                <button title="Move down" disabled={i === items.length - 1}
-                  onClick={e => { e.stopPropagation(); onReorderItem(accordion.id, i, i + 1); }}
-                  style={{ ...iconBtn, opacity: i === items.length - 1 ? 0.3 : 1 }}>↓</button>
-                <button title="Duplicate item"
-                  onClick={e => { e.stopPropagation(); onDuplicateItem(accordion.id, item.id); }}
-                  style={iconBtn}>⧉</button>
-                <button title="Delete item" disabled={items.length <= 1}
-                  onClick={e => { e.stopPropagation(); onDeleteItem(accordion.id, item.id); }}
-                  style={{ ...iconBtn, color: '#e74c3c', opacity: items.length <= 1 ? 0.3 : 1 }}>✕</button>
+                <IconButton variant="ghost" title={isOpen ? 'Collapse' : 'Expand'}
+                  onClick={e => { e.stopPropagation(); onToggleItem(accordion.id, item.id); }}>{isOpen ? '▾' : '▸'}</IconButton>
+                <IconButton variant="ghost" title="Move up" disabled={i === 0}
+                  onClick={e => { e.stopPropagation(); onReorderItem(accordion.id, i, i - 1); }}>↑</IconButton>
+                <IconButton variant="ghost" title="Move down" disabled={i === items.length - 1}
+                  onClick={e => { e.stopPropagation(); onReorderItem(accordion.id, i, i + 1); }}>↓</IconButton>
+                <IconButton variant="ghost" title="Duplicate item"
+                  onClick={e => { e.stopPropagation(); onDuplicateItem(accordion.id, item.id); }}>⧉</IconButton>
+                <IconButton variant="danger" title="Delete item" disabled={items.length <= 1}
+                  onClick={e => { e.stopPropagation(); onDeleteItem(accordion.id, item.id); }}>✕</IconButton>
               </div>
             );
           })}
@@ -263,8 +256,3 @@ export function AccordionPanel({
     </aside>
   );
 }
-
-const iconBtn: React.CSSProperties = {
-  background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, color: '#64748b',
-  padding: '2px 4px', borderRadius: 3, lineHeight: 1,
-};

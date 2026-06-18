@@ -245,6 +245,22 @@ export function BorderEditor({ border, onChange, onFocus, onBlur, swatches }: {
   );
 }
 
+// ── CheckboxField — label on left, checkbox on right ─────────────────────────
+
+export function CheckboxField({ label, checked, onChange, className = '' }: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  className?: string;
+}) {
+  return (
+    <div className={['pb-prop-row', className].filter(Boolean).join(' ')}>
+      <label>{label}</label>
+      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+    </div>
+  );
+}
+
 // ── Visibility editor — "Hide on tab" / "Hide on mobile", checkbox on right ──
 
 export function VisibilityEditor({ hideOnTablet, hideOnMobile, onTabletChange, onMobileChange }: {
@@ -255,14 +271,8 @@ export function VisibilityEditor({ hideOnTablet, hideOnMobile, onTabletChange, o
 }) {
   return (
     <>
-      <div className="pb-prop-row pb-vis-row">
-        <label>Hide on tab</label>
-        <input type="checkbox" checked={hideOnTablet} onChange={e => onTabletChange(e.target.checked)} />
-      </div>
-      <div className="pb-prop-row pb-vis-row">
-        <label>Hide on mobile</label>
-        <input type="checkbox" checked={hideOnMobile} onChange={e => onMobileChange(e.target.checked)} />
-      </div>
+      <CheckboxField label="Hide on tab" checked={hideOnTablet} onChange={onTabletChange} className="pb-vis-row" />
+      <CheckboxField label="Hide on mobile" checked={hideOnMobile} onChange={onMobileChange} className="pb-vis-row" />
     </>
   );
 }

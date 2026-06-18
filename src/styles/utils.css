@@ -1,9 +1,82 @@
 /* ─── Utility Classes ─── */
 
 /* Flex layouts */
-.pb-flex-row    { display: flex; align-items: center; }
-.pb-flex-col    { display: flex; flex-direction: column; }
-.pb-flex-center { display: flex; align-items: center; justify-content: center; }
+.pb-flex-row        { display: flex; align-items: center; }
+.pb-flex-col        { display: flex; flex-direction: column; }
+.pb-flex-col-center { display: flex; flex-direction: column; align-items: center; }
+.pb-flex-center     { display: flex; align-items: center; justify-content: center; }
+.pb-flex-between    { display: flex; align-items: center; justify-content: space-between; }
+
+/* Button reset — strips browser defaults; combine with other classes for style */
+.pb-btn-reset {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+/* Clickable / draggable items */
+.pb-interactive {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Absolute fill — covers its positioned parent */
+.pb-abs-fill {
+  position: absolute;
+  inset: 0;
+}
+
+/* Micro uppercase label (badges, section headers, tooltips) */
+.pb-label-caps {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
 /* Text truncation */
-.pb-truncate    { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pb-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ─── IconButton ─── */
+.pb-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  border-radius: var(--pb-radius-sm);
+  transition: var(--pb-transition-all);
+  font-size: 13px;
+}
+.pb-icon-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* sizes */
+.pb-icon-btn--sm { width: 22px; height: 22px; }
+.pb-icon-btn--md { width: 24px; height: 24px; }
+.pb-icon-btn--lg { width: 28px; height: 28px; font-size: 15px; }
+
+/* ghost — muted → primary on hover (action buttons) */
+.pb-icon-btn--ghost       { color: var(--pb-text-muted); }
+.pb-icon-btn--ghost:hover:not(:disabled) { background: var(--pb-bg-hover); color: var(--pb-primary); }
+
+/* close — muted → strong on hover (X close buttons) */
+.pb-icon-btn--close       { color: var(--pb-text-muted); }
+.pb-icon-btn--close:hover:not(:disabled) { background: var(--pb-bg-hover); color: var(--pb-text-strong); }
+
+/* danger — always red, darker on hover */
+.pb-icon-btn--danger       { color: var(--pb-danger); }
+.pb-icon-btn--danger:hover:not(:disabled) { background: var(--pb-danger-bg); color: var(--pb-danger); }
+
+/* dark — light-on-dark (element toolbar, dark backgrounds) */
+.pb-icon-btn--dark       { color: #cbd5e1; }
+.pb-icon-btn--dark:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #f1f5f9; }
+.pb-icon-btn--dark.pb-danger,
+.pb-icon-btn--dark[data-danger] { color: #fca5a5; }
+.pb-icon-btn--dark.pb-danger:hover:not(:disabled),
+.pb-icon-btn--dark[data-danger]:hover:not(:disabled) { background: rgba(239,68,68,0.2); color: #f87171; }

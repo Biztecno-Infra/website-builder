@@ -3,6 +3,8 @@ import type { FormField, FormFieldType, FormFieldOption, ValidationPreset } from
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
 import { PbButton } from '../PbButton';
+import { IconButton } from '../IconButton';
+import { CheckboxField } from './PanelFields';
 import {
   FORM_FIELD_WIDTH_OPTIONS,
   VALIDATION_PRESET_OPTIONS,
@@ -118,18 +120,17 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                   onClick={() => move(idx, 1)}
                   className={'pb-field-move-btn'}>▼</button>
                 <button onClick={() => { setExpandedId(open ? null : f.id); if (focusedFieldId && focusedFieldId !== f.id) onFocusField?.(null); }}
-                  className={'pb-field-label-btn'}>
+                  className={'pb-field-label-btn pb-flex-col'}>
                   <span className={'pb-field-label-text'}>
                     {f.label || '(no label)'}{f.required && <span className={'pb-field-required'}> *</span>}
                   </span>
                   <span className={'pb-field-type-label'}>{TYPE_LABEL[f.type]}</span>
                 </button>
-                <button title="Delete field" onClick={() => removeField(f.id)}
-                  className={'pb-field-delete-btn'}>✕</button>
+                <IconButton variant="danger" title="Delete field" onClick={() => removeField(f.id)}>✕</IconButton>
               </div>
 
               {open && (
-                <div className={'pb-field-body'}>
+                <div className={'pb-field-body pb-flex-col'}>
                   <div className={'pb-prop-row'}>
                     <label>Type</label>
                     <PbSelect value={f.type}
@@ -162,11 +163,8 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => update(f.id, { helpText: e.target.value }, false)} />
                   </div>
-                  <div className={'pb-prop-row'}>
-                    <label>Required</label>
-                    <input type="checkbox" checked={f.required}
-                      onChange={e => update(f.id, { required: e.target.checked })} />
-                  </div>
+                  <CheckboxField label="Required" checked={f.required}
+                    onChange={v => update(f.id, { required: v })} />
                   <div className={'pb-prop-row'}>
                     <label>Width</label>
                     <PbSelect value={f.width}
@@ -277,8 +275,7 @@ function OptionsEditor({ field, onChange, onFocus, onBlur }: {
             style={{ flex: 1, minWidth: 0 }}
             onFocus={onFocus} onBlur={onBlur}
             onChange={e => set(opts.map((x, j) => j === i ? { label: e.target.value, value: slugify(e.target.value) } : x), false)} />
-          <button title="Remove" onClick={() => set(opts.filter((_, j) => j !== i), true)}
-            className={'pb-field-delete-btn'}>✕</button>
+          <IconButton variant="danger" title="Remove" onClick={() => set(opts.filter((_, j) => j !== i), true)}>✕</IconButton>
         </div>
       ))}
       <button onClick={() => set([...opts, { label: `Option ${opts.length + 1}`, value: `option_${opts.length + 1}` }], true)}

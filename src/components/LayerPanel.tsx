@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
 import { Icon } from './Icon';
+import { IconButton } from './IconButton';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
 function inferColumnIndex(el: CanvasElement, cols: SectionColumns): number {
@@ -308,7 +309,7 @@ function SectionGroup({
         </div>
 
         {!collapsed && (
-          <div className={'pb-layer-element-list'}>
+          <div className={'pb-layer-element-list pb-flex-col'}>
             {cells.length === 0 && <div className={'pb-layer-empty-row'}>No columns yet</div>}
             {cells.map((cell, cellIdx) => <CellLayerRow key={cell.id} cell={cell} cellIdx={cellIdx} cellDepth={depth + 1} />)}
           </div>
@@ -549,7 +550,7 @@ function SectionGroup({
 
       {!collapsed && (
         <div
-          className={'pb-layer-element-list'}
+          className={'pb-layer-element-list pb-flex-col'}
           onDragOver={e => { if (_layerDrag) { e.preventDefault(); e.stopPropagation(); } }}
           onDrop={e => {
             if (!_layerDrag) return;
@@ -657,13 +658,13 @@ export function LayerPanel({
   return (
     <aside className={'pb-left-sidebar pb-flex-col pb-layer-panel'}>
 
-      <div className={'pb-blocks-header'}>
+      <div className={'pb-blocks-header pb-flex-between'}>
         <span className={'pb-blocks-header-title'}>Layers</span>
-        <button className={'pb-blocks-close-btn pb-flex-center'} title="Close" onClick={onClose}>✕</button>
+        <IconButton variant="close" onClick={onClose} title="Close">✕</IconButton>
       </div>
 
       <div className={'pb-blocks-search'}>
-        <div className={'pb-blocks-search-inner'}>
+        <div className={'pb-blocks-search-inner pb-flex-row'}>
           <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
           <input
             type="text"

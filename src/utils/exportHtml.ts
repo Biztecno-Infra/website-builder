@@ -474,7 +474,7 @@ function renderElementInner(
     }
     case 'image': {
       if (!el.content.src) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
-      return `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};display:block" /></div>`;
+      return `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};object-position:${el.content.objectPosition ?? 'center'};display:block" /></div>`;
     }
     case 'divider': {
       if (el.content.orientation === 'vertical') {
