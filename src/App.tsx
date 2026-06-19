@@ -9,10 +9,9 @@ import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
-import { migrateState } from './hooks/useBuilderStore';
 import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
-import { serializeState } from './utils/serializeState';
+import { sparsifyNodes } from './utils/sparse';
 import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } from './types';
 
 export interface PageBuilderProps {
@@ -340,7 +339,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
 
   // Export JSON
   const handleExportJSON = () => {
-    const json = JSON.stringify(serializeState(state), null, 2);
+    const json = JSON.stringify({ ...state, nodes: sparsifyNodes(state.nodes) }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -377,9 +376,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
 
         if (!window.confirm(`Import "${file.name}"?\n\nThis will replace your current canvas. You can undo with Ctrl+Z.`)) return;
 
-        // migrateState + importState handles all defaults, hydration, and undo
-        const migrated = migrateState(raw);
-        importState(migrated);
+        importState(raw);
 
       } catch (err) {
         alert('Something went wrong importing the file. Please try again.');
@@ -599,8 +596,8 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               importState(makeEmpty());
             }
           }}
-          onSave={onSave ? () => onSave(serializeState(state)) : undefined}
-          onPublish={onPublish ? () => onPublish(serializeState(state)) : undefined}
+          onSave={onSave ? () => onSave({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
+          onPublish={onPublish ? () => onPublish({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
         />
         <input
           ref={importRef}

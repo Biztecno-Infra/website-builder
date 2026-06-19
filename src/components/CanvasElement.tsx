@@ -16,6 +16,8 @@ export interface ActiveCanvasDrag {
   fromSectionId: string;
   grabOffsetX: number;
   grabOffsetY: number;
+  elWidth: number;
+  elHeight: number;
 }
 export const canvasDragShared = {
   active: null as ActiveCanvasDrag | null,
@@ -161,6 +163,8 @@ export function CanvasElement({
       fromSectionId: sectionId,
       grabOffsetX: e.clientX - (elRect?.left ?? 0),
       grabOffsetY: e.clientY - (elRect?.top ?? 0),
+      elWidth: el.layout.width,
+      elHeight: el.layout.height,
     };
 
     const onMove = (ev: MouseEvent) => {

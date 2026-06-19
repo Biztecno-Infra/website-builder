@@ -145,7 +145,15 @@ export function Canvas({
 
     const onMove = (e: MouseEvent) => {
       if (previewRef.current || !canvasDragShared.active) return;
-      const target = document.elementFromPoint(e.clientX, e.clientY);
+      const drag = canvasDragShared.active;
+
+      // Use the element's center point (not cursor) to decide which section it belongs to.
+      // This prevents elements from visually straddling two sections — the element
+      // follows the cursor into a new section only when its center crosses the boundary.
+      const elCenterX = e.clientX - drag.grabOffsetX + (drag.elWidth  * scaleRef.current * zoomRef.current) / 2;
+      const elCenterY = e.clientY - drag.grabOffsetY + (drag.elHeight * scaleRef.current * zoomRef.current) / 2;
+
+      const target = document.elementFromPoint(elCenterX, elCenterY);
       const cellSurface = target?.closest('[data-grid-cell-id]') as HTMLElement | null;
       const sectionSurface = target?.closest('[data-section-id]') as HTMLElement | null;
       const cellId = cellSurface?.dataset.gridCellId ?? null;

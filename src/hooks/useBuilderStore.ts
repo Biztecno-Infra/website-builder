@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
-  Accordion, AccordionBpOverride, AccordionItem, AccordionProps,
-  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
-  ColumnStyle, Container, ContainerLayoutMode, ElementLayout, ElementType, FreeSection, GridCell,
-  GridSection, NodeMap, Page, Section, SectionRole,
-  SectionUpdate, SiteTheme, TextAlign, TextTransform,
+  Accordion, AccordionBpOverride, AccordionItem,
+   Breakpoint,  BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
+   Container,    GridCell,
+  NodeMap, Page, Section,
+  SiteTheme,
 } from '../types';
 import { useUndoRedo } from './useUndoRedo';
 import { usePageOps } from './usePageOps';
@@ -31,10 +31,9 @@ import { migrateState, makeEmpty } from '../utils/migration';
 export { DEFAULT_THEME } from '../utils/builderDefaults';
 export { CANVAS_W } from '../utils/elementDefaults';
 export { equalWidths } from '../utils/nodeHelpers';
-export { migrateState, makeEmpty } from '../utils/migration';
+export { makeEmpty } from '../utils/migration';
 
 const STORAGE_KEY = 'microsite-builder-v5';
-const LEGACY_KEYS = ['page-builder-v3', 'page-builder-v2', 'page-builder-v1'];
 
 // ── applyBreakpoint ────────────────────────────────────────────────────
 
@@ -76,7 +75,6 @@ function loadFromStorage(): BuilderState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrateState(JSON.parse(raw));
-    for (const key of LEGACY_KEYS) { const old = localStorage.getItem(key); if (old) return migrateState(JSON.parse(old)); }
     return makeEmpty();
   } catch { return makeEmpty(); }
 }
