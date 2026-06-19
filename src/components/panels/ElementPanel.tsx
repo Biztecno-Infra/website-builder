@@ -115,16 +115,23 @@ export function ElementPanel({
         {!isInGridCell && (
           <>
             <div className={'pb-prop-row'}>
-              <label>X</label>
-              <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+              <label>Full W</label>
+              <input type="checkbox" checked={!!element.layout.fullWidth}
+                onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
             </div>
+            {!element.layout.fullWidth && (
+              <div className={'pb-prop-row'}>
+                <label>X</label>
+                <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+              </div>
+            )}
             <div className={'pb-prop-row'}>
               <label>Y</label>
               <PbInput type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
-            {element.type !== 'divider' && (
+            {element.type !== 'divider' && !element.layout.fullWidth && (
               <div className={'pb-prop-row'}>
                 <label>W</label>
                 <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}

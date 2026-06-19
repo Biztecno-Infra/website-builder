@@ -1339,9 +1339,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       // Desktop base class — position, size, z-index, opacity, transform, shadow, anim vars
       const base: string[] = [
         'position:absolute',
-        `left:${el.layout.x}px`,
+        el.layout.fullWidth ? 'left:0' : `left:${el.layout.x}px`,
         `top:${el.layout.y}px`,
-        `width:${el.layout.width}px`,
+        el.layout.fullWidth ? 'width:100%' : `width:${el.layout.width}px`,
         `height:${el.layout.height}px`,
         `z-index:${el.layout.zIndex}`,
         `opacity:${el.style.opacity}`,
@@ -1371,11 +1371,15 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       } else {
         // Dividers are thin lines, so they bypass the usual 20px scaled-width floor.
         const minW = el.type === 'divider' ? 1 : 20;
-        const tx = to?.layout?.x ?? Math.round(el.layout.x * tScale);
         const ty = to?.layout?.y ?? Math.round(el.layout.y * tScale);
-        const tw = to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale));
         const th = to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * tScale));
-        tabletRules.push(`.el-${el.id}{left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
+        if (el.layout.fullWidth) {
+          tabletRules.push(`.el-${el.id}{left:0;top:${ty}px;width:100%;height:${th}px}`);
+        } else {
+          const tx = to?.layout?.x ?? Math.round(el.layout.x * tScale);
+          const tw = to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale));
+          tabletRules.push(`.el-${el.id}{left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
+        }
         const tTypo = to?.style?.typography;
         if (tTypo) {
           const parts: string[] = [];
@@ -1395,11 +1399,15 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       } else {
         // Cascade tablet explicit overrides as intermediate fallback before auto-scaling
         const minMW = el.type === 'divider' ? 1 : 20;
-        const mx = mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale);
         const my = mo?.layout?.y ?? to?.layout?.y ?? Math.round(el.layout.y * mScale);
-        const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale));
         const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * mScale));
-        mobileRules.push(`.el-${el.id}{left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
+        if (el.layout.fullWidth) {
+          mobileRules.push(`.el-${el.id}{left:0;top:${my}px;width:100%;height:${mh}px}`);
+        } else {
+          const mx = mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale);
+          const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale));
+          mobileRules.push(`.el-${el.id}{left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
+        }
         // Only emit mobile typography rules for properties with an explicit mobile override
         // (tablet typography already cascades via CSS max-width:768px covering mobile)
         const mTypo = mo?.style?.typography;

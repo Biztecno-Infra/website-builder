@@ -70,6 +70,7 @@ export interface ElementLayout {
   height: number;
   zIndex: number;
   rotation: number;
+  fullWidth?: boolean;
 }
 
 // Phase 1 button hover: a single enabled toggle + optional hover colors + the

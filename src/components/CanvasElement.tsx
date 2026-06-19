@@ -319,9 +319,9 @@ export function CanvasElement({
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
-    left: el.layout.x,
+    left: el.layout.fullWidth ? 0 : el.layout.x,
     top: el.layout.y,
-    width: el.layout.width,
+    width: el.layout.fullWidth ? '100%' : el.layout.width,
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,
@@ -360,7 +360,7 @@ export function CanvasElement({
 
           <div className={'pb-rotate-handle'} onMouseDown={handleRotateMouseDown} title="Rotate" />
 
-          {HANDLE_DIRS.map(dir => (
+          {HANDLE_DIRS.filter(dir => !el.layout.fullWidth || dir === 'n' || dir === 's').map(dir => (
             <div
               key={dir}
               className={'pb-resize-handle'}
