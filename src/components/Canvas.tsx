@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SectionView } from './SectionView';
 import { canvasDragShared } from './CanvasElement';
-import type { Breakpoint, BreakpointOverride, Section, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
+import type { Breakpoint, BreakpointOverride, GridCell, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType, NodeMap } from '../types';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
 export { CANVAS_W };
@@ -19,14 +19,16 @@ interface Props {
   selectedId: string | null;
   selectedIds: string[];
   selectedSectionId: string | null;
+  selectedGridCellId?: string | null;
   onSelectSection: (id: string) => void;
   onSelectElement: (id: string, shift: boolean) => void;
+  onSelectGridCell?: (id: string | null) => void;
   onDeselect: () => void;
   onUpdate: (id: string, updates: Partial<El>) => void;
   onCommit: (prevSnapshot: BuilderState) => void;
   snapshot: BuilderState;
   onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
-  onUpdateSection: (id: string, updates: Partial<Section>) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSection: (afterId?: string, atStart?: boolean) => void;
   onDeleteSection: (id: string) => void;
   onDuplicateSection: (id: string) => void;
@@ -42,34 +44,46 @@ interface Props {
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
   onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
+  onMoveElementToGridCell?: (id: string, toCellId: string, insertIndex: number) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
+  onDeleteGridCell?: (id: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
+  onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
   zoom?: number;
 }
 
 export function Canvas({
   header, sections, footer, nodes,
-  selectedId, selectedIds, selectedSectionId,
-  onSelectSection, onSelectElement, onDeselect,
+  selectedId, selectedIds, selectedSectionId, selectedGridCellId = null,
+  onSelectSection, onSelectElement, onSelectGridCell, onDeselect,
   onUpdate, onCommit, snapshot,
   onDrop, onUpdateSection, onAddSection, onDeleteSection,
   onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
   snapEnabled, onContextMenu, onMultiSelect, previewMode, previewWidth,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
-  onMoveElementToSection,
+  onMoveElementToSection, onMoveElementToGridCell,
+  onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
+  onMoveGridElement, onReorderGridCell,
   zoom = 1,
 }: Props) {
   const canvasWidth = previewWidth ?? BREAKPOINT_WIDTHS[breakpoint];
   const [dragOverSectionId, setDragOverSectionId] = useState<string | null>(null);
+  const [dragOverGridCellId, setDragOverGridCellId] = useState<string | null>(null);
 
   canvasDragShared.zoom = previewMode ? 1 : zoom;
 
-  const dragOverRef = useRef<string | null>(null);
+  const dragOverRef = useRef<{ id: string; type: 'section' | 'grid-cell' } | null>(null);
   const onMoveRef = useRef(onMoveElementToSection);
+  const onMoveToGridCellRef = useRef(onMoveElementToGridCell);
   const scaleRef = useRef(canvasWidth / CANVAS_W);
   const zoomRef = useRef(zoom);
   const snapRef = useRef(snapEnabled);
   const previewRef = useRef(previewMode);
   onMoveRef.current = onMoveElementToSection;
+  onMoveToGridCellRef.current = onMoveElementToGridCell;
   scaleRef.current = canvasWidth / CANVAS_W;
   zoomRef.current = zoom;
   snapRef.current = snapEnabled;
@@ -83,19 +97,30 @@ export function Canvas({
     const onMove = (e: MouseEvent) => {
       if (previewRef.current || !canvasDragShared.active) return;
       const target = document.elementFromPoint(e.clientX, e.clientY);
-      const surface = target?.closest('[data-section-id]') as HTMLElement | null;
-      const targetId = surface?.dataset.sectionId ?? null;
+      const cellSurface = target?.closest('[data-grid-cell-id]') as HTMLElement | null;
+      const sectionSurface = target?.closest('[data-section-id]') as HTMLElement | null;
+      const cellId = cellSurface?.dataset.gridCellId ?? null;
+      const sectionId = sectionSurface?.dataset.sectionId ?? null;
 
-      if (targetId && targetId !== canvasDragShared.active.fromSectionId) {
+      if (cellId) {
         canvasDragShared.isCrossSection = true;
-        if (dragOverRef.current !== targetId) {
-          dragOverRef.current = targetId;
-          setDragOverSectionId(targetId);
+        if (!dragOverRef.current || dragOverRef.current.id !== cellId || dragOverRef.current.type !== 'grid-cell') {
+          dragOverRef.current = { id: cellId, type: 'grid-cell' };
+          setDragOverSectionId(null);
+          setDragOverGridCellId(cellId);
+        }
+      } else if (sectionId && sectionId !== canvasDragShared.active.fromSectionId) {
+        canvasDragShared.isCrossSection = true;
+        if (!dragOverRef.current || dragOverRef.current.id !== sectionId || dragOverRef.current.type !== 'section') {
+          dragOverRef.current = { id: sectionId, type: 'section' };
+          setDragOverGridCellId(null);
+          setDragOverSectionId(sectionId);
         }
       } else {
         canvasDragShared.isCrossSection = false;
         if (dragOverRef.current !== null) {
           dragOverRef.current = null;
+          setDragOverGridCellId(null);
           setDragOverSectionId(null);
         }
       }
@@ -103,15 +128,21 @@ export function Canvas({
 
     const onUp = (e: MouseEvent) => {
       const drag = canvasDragShared.active;
-      const targetId = dragOverRef.current;
+      const target = dragOverRef.current;
       canvasDragShared.isCrossSection = false;
       dragOverRef.current = null;
+      setDragOverGridCellId(null);
       setDragOverSectionId(null);
 
-      if (!drag || !targetId) return;
+      if (!drag || !target) return;
+
+      if (target.type === 'grid-cell') {
+        onMoveToGridCellRef.current?.(drag.id, target.id, 999);
+        return;
+      }
 
       const surface = document.querySelector(
-        `[data-section-id="${targetId}"]`
+        `[data-section-id="${target.id}"]`
       ) as HTMLElement | null;
       if (!surface) return;
 
@@ -120,7 +151,7 @@ export function Canvas({
       const newX = snapVal((e.clientX - surfaceRect.left - drag.grabOffsetX) / scale);
       const newY = snapVal((e.clientY - surfaceRect.top - drag.grabOffsetY) / scale);
 
-      onMoveRef.current?.(drag.id, targetId, Math.max(0, newX), Math.max(0, newY));
+      onMoveRef.current?.(drag.id, target.id, Math.max(0, newX), Math.max(0, newY));
     };
 
     document.addEventListener('mousemove', onMove);
@@ -133,12 +164,14 @@ export function Canvas({
 
   const commonProps = {
     nodes,
-    selectedId, selectedIds, canvasWidth,
-    onSelectElement, onUpdateElement: onUpdate,
+    selectedId, selectedIds, selectedGridCellId, canvasWidth,
+    onSelectElement, onSelectGridCell, onUpdateElement: onUpdate,
     onCommit, snapshot, snapEnabled, onContextMenu,
-    onDrop, onUpdateSection, previewMode,
+    onDrop, onUpdateSection, onMoveElementToSection, previewMode,
     breakpoint, onUpdateResponsive,
     onDuplicateElement, onDeleteElement,
+    onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
+    onMoveGridElement, onReorderGridCell,
   };
 
   const bpClass = breakpoint !== 'desktop' ? ` bp-${breakpoint}` : '';
@@ -163,6 +196,7 @@ export function Canvas({
           onSelectSection={() => onSelectSection(header.id)}
           onMarqueeSelect={ids => onMultiSelect(ids, header.id)}
           isDragOverTarget={dragOverSectionId === header.id}
+          dragOverGridCellId={dragOverGridCellId}
         />
 
         {sections.map((sec, i) => (
@@ -181,6 +215,7 @@ export function Canvas({
             onMoveSectionDown={i < sections.length - 1 ? () => onMoveSectionDown(i) : undefined}
             onMarqueeSelect={ids => onMultiSelect(ids, sec.id)}
             isDragOverTarget={dragOverSectionId === sec.id}
+            dragOverGridCellId={dragOverGridCellId}
           />
         ))}
 
@@ -192,6 +227,7 @@ export function Canvas({
           onSelectSection={() => onSelectSection(footer.id)}
           onMarqueeSelect={ids => onMultiSelect(ids, footer.id)}
           isDragOverTarget={dragOverSectionId === footer.id}
+          dragOverGridCellId={dragOverGridCellId}
         />
 
       </div>

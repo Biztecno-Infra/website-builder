@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type React from 'react';
 import { useDrag } from 'react-dnd';
 import type { CanvasElement, ElementType, NodeMap, Page, Section, SiteTheme } from '../types';
+import type { TemplateIds, TemplateResult } from '../data/sectionTemplates';
+import { SECTION_TEMPLATES } from '../data/sectionTemplates';
 import { LayerPanel } from './LayerPanel';
 import { PagePanel } from './PagePanel';
 import { ThemePanel } from './ThemePanel';
@@ -50,9 +52,14 @@ const PALETTE: Array<{ type: ElementType; icon: string; label: string }> = [
 
 interface Props {
   onAdd: (type: ElementType) => void;
+  onAddFreeSection: () => void;
+  onAddGridSection: () => void;
+  onAddSectionFromTemplate: (buildFn: (ids: TemplateIds) => TemplateResult) => void;
   selectedIds: string[];
   selectedSectionId: string | null;
+  selectedGridCellId: string | null;
   onSelect: (id: string) => void;
+  onSelectGridCell: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
@@ -73,15 +80,20 @@ interface Props {
   // Theme props
   theme: SiteTheme;
   onUpdateTheme: (updates: Partial<SiteTheme>) => void;
+  onApplyTheme: () => void;
 }
 
 export function LeftSidebar({
-  onAdd, selectedIds, selectedSectionId, onSelect, onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
+  onAdd, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate,
+  selectedIds, selectedSectionId, selectedGridCellId,
+  onSelect, onSelectGridCell,
+  onReorderSection, onReorderElement, onMoveElementToSection, onUpdate,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
-  theme, onUpdateTheme,
+  theme, onUpdateTheme, onApplyTheme,
 }: Props) {
   const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme'>('elements');
+  const [templatesOpen, setTemplatesOpen] = useState(true);
 
   return (
     <div className="left-panel">
@@ -110,7 +122,52 @@ export function LeftSidebar({
 
       {activeTab === 'elements' && (
         <aside className="left-sidebar">
-          <div className="sidebar-section-title">Elements</div>
+          <div className="sidebar-section-title">Sections</div>
+          <div className="section-type-list">
+            <button className="section-type-btn" onClick={onAddFreeSection} title="Add a free-layout section">
+              <span className="section-type-icon">⬜</span>
+              <div className="section-type-info">
+                <span className="section-type-label">Free Section</span>
+                <span className="section-type-desc">Absolute positioning</span>
+              </div>
+            </button>
+            <button className="section-type-btn" onClick={onAddGridSection} title="Add a 12-column grid section">
+              <span className="section-type-icon">⊞</span>
+              <div className="section-type-info">
+                <span className="section-type-label">Grid Section</span>
+                <span className="section-type-desc">12-column flex grid</span>
+              </div>
+            </button>
+          </div>
+{/* 
+          <button
+            className="sidebar-collapsible-header"
+            onClick={() => setTemplatesOpen(o => !o)}
+          >
+            <span className="sidebar-collapsible-icon">{templatesOpen ? '▾' : '▸'}</span>
+            <span>Templates</span>
+            <span className="sidebar-collapsible-count">{SECTION_TEMPLATES.length}</span>
+          </button>
+          {templatesOpen && (
+            <div className="template-card-list">
+              {SECTION_TEMPLATES.map(tpl => (
+                <button
+                  key={tpl.key}
+                  className="template-card"
+                  title={tpl.desc}
+                  onClick={() => onAddSectionFromTemplate(tpl.build)}
+                >
+                  <span className="template-card-icon">{tpl.icon}</span>
+                  <div className="template-card-info">
+                    <span className="template-card-label">{tpl.label}</span>
+                    <span className="template-card-desc">{tpl.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )} */}
+
+          <div className="sidebar-section-title" style={{ marginTop: 8 }}>Elements</div>
           <div className="palette-list">
             {PALETTE.map(item => (
               <PaletteItem key={item.type} type={item.type} icon={item.icon} label={item.label} onAdd={onAdd} />
@@ -127,8 +184,10 @@ export function LeftSidebar({
           footer={footer}
           selectedIds={selectedIds}
           selectedSectionId={selectedSectionId}
+          selectedGridCellId={selectedGridCellId}
           onSelectElement={onSelect}
           onSelectSection={onSelectSection}
+          onSelectGridCell={onSelectGridCell}
           onReorderSection={onReorderSection}
           onReorderElement={onReorderElement}
           onMoveElementToSection={onMoveElementToSection}
@@ -148,7 +207,7 @@ export function LeftSidebar({
       )}
 
       {activeTab === 'theme' && (
-        <ThemePanel theme={theme} onUpdate={onUpdateTheme} />
+        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} />
       )}
     </div>
   );

@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import type { CanvasElement, NodeMap, Section, SectionColumns } from '../types';
+import React, { useRef, useState } from 'react';
+import type { CanvasElement, GridCell, NodeMap, Section, SectionColumns } from '../types';
 
 const CANVAS_W = 1280;
 
@@ -21,8 +21,10 @@ interface Props {
   nodes: NodeMap;
   selectedIds: string[];
   selectedSectionId: string | null;
+  selectedGridCellId: string | null;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
+  onSelectGridCell: (id: string) => void;
   onReorderSection: (fromIndex: number, toIndex: number) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
@@ -62,10 +64,12 @@ interface SectionGroupProps {
   index: number;
   isSectionSelected: boolean;
   selectedIds: string[];
+  selectedGridCellId: string | null;
   isDragOver: boolean;
   isDragging: boolean;
   onSelectElement: (id: string) => void;
   onSelectSection: (id: string) => void;
+  onSelectGridCell: (id: string) => void;
   onUpdateElement: (id: string, updates: Partial<CanvasElement>) => void;
   onReorderElement: (id: string, newIndex: number) => void;
   onMoveElementToSection: (id: string, toSectionId: string, atIndex: number) => void;
@@ -76,14 +80,153 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, isSectionSelected, selectedIds, isDragOver, isDragging,
-  onSelectElement, onSelectSection, onUpdateElement, onReorderElement, onMoveElementToSection,
+  section, nodes, role, index, isSectionSelected, selectedIds, selectedGridCellId, isDragOver, isDragging,
+  onSelectElement, onSelectSection, onSelectGridCell, onUpdateElement, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [dragOverElIdx, setDragOverElIdx] = useState<number | null>(null);
 
   const draggable = role === 'section';
+  const isGrid = section.layoutMode === 'grid';
+
+  // ── Grid layout rendering ─────────────────────────────────────────────────
+  if (isGrid) {
+    const cells = section.children
+      .map(id => nodes[id] as GridCell | undefined)
+      .filter((c): c is GridCell => !!c);
+
+    function countCellElements(cell: GridCell): number {
+      if (cell.nestedGrid) {
+        return cell.children.reduce((sum, id) => {
+          const sub = nodes[id] as GridCell | undefined;
+          return sum + (sub ? countCellElements(sub) : 0);
+        }, 0);
+      }
+      return cell.children.length;
+    }
+
+    const totalElements = cells.reduce((sum, c) => sum + countCellElements(c), 0);
+
+    const renderGridElementRow = (el: CanvasElement) => {
+      const isSelected = selectedIds.includes(el.id);
+      const hidden = el.state.hidden;
+      const locked = el.state.locked;
+      return (
+        <div
+          key={el.id}
+          className={`layer-row layer-row--grid-el${isSelected ? ' selected' : ''}${hidden ? ' layer-hidden' : ''}`}
+          onClick={() => onSelectElement(el.id)}
+        >
+          <span className="layer-el-drag-handle" style={{ visibility: 'hidden' }}>⠿</span>
+          <span className="layer-type-icon">{TYPE_ICON[el.type] ?? '□'}</span>
+          <span className="layer-name" title={elementLabel(el)}>{elementLabel(el)}</span>
+          <span className="layer-actions">
+            <button
+              className={`layer-btn${hidden ? ' active' : ''}`}
+              title={hidden ? 'Show' : 'Hide'}
+              onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, hidden: !hidden } }); }}
+            >{hidden ? '🙈' : '👁'}</button>
+            <button
+              className={`layer-btn${locked ? ' active' : ''}`}
+              title={locked ? 'Unlock' : 'Lock'}
+              onClick={e => { e.stopPropagation(); onUpdateElement(el.id, { state: { ...el.state, locked: !locked } }); }}
+            >{locked ? '🔒' : '🔓'}</button>
+          </span>
+        </div>
+      );
+    };
+
+    function renderCellLayer(cell: GridCell, cellIdx: number, depth: number): React.ReactNode {
+      const isCellSelected = selectedGridCellId === cell.id;
+      const indent = depth * 12;
+
+      if (cell.nestedGrid) {
+        const subCells = cell.children
+          .map(id => nodes[id] as GridCell | undefined)
+          .filter((c): c is GridCell => !!c);
+        return (
+          <div key={cell.id} className="layer-grid-cell-group">
+            <div
+              className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
+              style={{ paddingLeft: 8 + indent }}
+              onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+            >
+              <span className="layer-column-icon">⊞</span>
+              <span className="layer-column-label">Col {cellIdx + 1} (nested)</span>
+              <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
+              <span className="layer-section-count">{countCellElements(cell)}</span>
+            </div>
+            {subCells.length === 0 && (
+              <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty nested grid</div>
+            )}
+            {subCells.map((sub, si) => renderCellLayer(sub, si, depth + 1))}
+          </div>
+        );
+      }
+
+      const cellElements = cell.children
+        .map(id => nodes[id] as CanvasElement | undefined)
+        .filter((el): el is CanvasElement => !!el);
+
+      return (
+        <div key={cell.id} className="layer-grid-cell-group">
+          <div
+            className={`layer-grid-cell-header${isCellSelected ? ' selected' : ''}`}
+            style={{ paddingLeft: 8 + indent }}
+            onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+          >
+            <span className="layer-column-icon">⊟</span>
+            <span className="layer-column-label">Col {cellIdx + 1}</span>
+            <span className="layer-grid-cell-span">span {cell.columnSpan}</span>
+            <span className="layer-section-count">{cellElements.length}</span>
+          </div>
+          {cellElements.length === 0 && (
+            <div className="layer-empty-section" style={{ paddingLeft: 20 + indent }}>Empty</div>
+          )}
+          {cellElements.map(el => renderGridElementRow(el))}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={`layer-section-group${isDragOver ? ' drag-over' : ''}${isDragging ? ' dragging' : ''}`}
+        onDragOver={e => { e.preventDefault(); if (draggable) onSectionDragOver(index); }}
+        onDrop={e => { e.preventDefault(); onSectionDrop(); }}
+      >
+        <div
+          className={`layer-section-header${isSectionSelected ? ' selected' : ''}`}
+          draggable={draggable}
+          onDragStart={() => draggable && onSectionDragStart(index)}
+          onDragEnd={() => draggable && onSectionDragEnd()}
+          onClick={() => onSelectSection(section.id)}
+        >
+          {draggable && <span className="layer-drag-handle" title="Drag to reorder">⠿</span>}
+          <button
+            className="layer-collapse-btn"
+            onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}
+          >
+            {collapsed ? '▶' : '▼'}
+          </button>
+          <span className="layer-section-icon">⊞</span>
+          <span className="layer-section-name">{section.label}</span>
+          <span className="layer-section-count">{totalElements}</span>
+        </div>
+
+        {!collapsed && (
+          <div className="layer-element-list">
+            {cells.length === 0 && (
+              <div className="layer-empty-section">No columns yet</div>
+            )}
+            {cells.map((cell, cellIdx) => renderCellLayer(cell, cellIdx, 0))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── Free layout rendering ─────────────────────────────────────────────────
   const elementItems = section.children.slice().reverse()
     .map((id, panelIdx) => {
       const el = nodes[id] as CanvasElement | undefined;
@@ -271,16 +414,34 @@ function SectionGroup({
 
 export function LayerPanel({
   header, sections, footer, nodes,
-  selectedIds, selectedSectionId,
-  onSelectElement, onSelectSection, onReorderSection, onReorderElement,
+  selectedIds, selectedSectionId, selectedGridCellId,
+  onSelectElement, onSelectSection, onSelectGridCell,
+  onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement,
 }: Props) {
   const sectionDragFromIndex = useRef<number | null>(null);
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
 
-  const totalElements = [header, ...sections, footer]
-    .reduce((sum, s) => sum + s.children.length, 0);
+  function countCellElementsDeep(cell: GridCell): number {
+    if (cell.nestedGrid) {
+      return cell.children.reduce((sum, id) => {
+        const sub = nodes[id] as GridCell | undefined;
+        return sum + (sub ? countCellElementsDeep(sub) : 0);
+      }, 0);
+    }
+    return cell.children.length;
+  }
+
+  const totalElements = [header, ...sections, footer].reduce((sum, s) => {
+    if (s.layoutMode === 'grid') {
+      return sum + s.children.reduce((cSum, cellId) => {
+        const cell = nodes[cellId] as GridCell | undefined;
+        return cSum + (cell ? countCellElementsDeep(cell) : 0);
+      }, 0);
+    }
+    return sum + s.children.length;
+  }, 0);
 
   const handleSectionDrop = () => {
     if (sectionDragFromIndex.current !== null && sectionDragOverIndex !== null && sectionDragFromIndex.current !== sectionDragOverIndex) {
@@ -300,8 +461,10 @@ export function LayerPanel({
   const commonSectionProps = {
     nodes,
     selectedIds,
+    selectedGridCellId,
     onSelectElement,
     onSelectSection,
+    onSelectGridCell,
     onUpdateElement,
     onReorderElement,
     onMoveElementToSection,

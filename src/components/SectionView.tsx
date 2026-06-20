@@ -3,8 +3,10 @@ import type React from 'react';
 import { useDrop } from 'react-dnd';
 import { CanvasElement, canvasDragShared } from './CanvasElement';
 import type { GuideLine } from './CanvasElement';
+import { GridSectionView } from './GridSectionView';
 import { DND_TYPE } from './LeftSidebar';
-import type { Breakpoint, BreakpointOverride, NodeMap, Section, CanvasElement as El, BuilderState, ElementType } from '../types';
+import { GRID_EL_DND_TYPE } from './GridElementView';
+import type { Breakpoint, BreakpointOverride, GridCell, GridSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
 
 interface Props {
@@ -14,16 +16,23 @@ interface Props {
   isSelected: boolean;
   selectedId: string | null;
   selectedIds: string[];
+  selectedGridCellId?: string | null;
   canvasWidth: number;
   onSelectSection: () => void;
   onSelectElement: (id: string, shift: boolean) => void;
+  onSelectGridCell?: (id: string | null) => void;
   onUpdateElement: (id: string, updates: Partial<El>) => void;
+  onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
+  onAddGridCell?: (sectionId: string, columnSpan?: number) => void;
+  onDeleteGridCell?: (id: string) => void;
+  onAddElementToCell?: (type: ElementType, cellId: string) => void;
   onCommit: (prev: BuilderState) => void;
   snapshot: BuilderState;
   snapEnabled: boolean;
   onContextMenu: (id: string, x: number, y: number) => void;
   onDrop: (type: ElementType, x: number, y: number, sectionId: string) => void;
-  onUpdateSection: (id: string, updates: Partial<Section>) => void;
+  onMoveElementToSection?: (id: string, toSectionId: string, x: number, y: number) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate) => void;
   onAddSectionBefore?: () => void;
   onAddSectionAfter?: () => void;
   onDeleteSection?: () => void;
@@ -36,19 +45,43 @@ interface Props {
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
   onDuplicateElement?: (id: string) => void;
   onDeleteElement?: (id: string) => void;
+  onMoveGridElement?: (elementId: string, sourceCellId: string, targetCellId: string, insertIndex: number) => void;
   isDragOverTarget?: boolean;
+  dragOverGridCellId?: string | null;
+  onReorderGridCell?: (sectionId: string, fromIndex: number, toIndex: number) => void;
 }
 
-export function SectionView({
+// Pure dispatcher — no hooks here, so React hook count never changes between renders.
+export function SectionView(props: Props) {
+  if (props.section.layoutMode === 'grid') {
+    const { section, onSelectGridCell, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell, ...rest } = props;
+    return (
+      <GridSectionView
+        section={section as GridSection}
+        onSelectGridCell={onSelectGridCell ?? (() => {})}
+        onUpdateGridCell={onUpdateGridCell ?? (() => {})}
+        onAddGridCell={onAddGridCell ?? (() => {})}
+        onDeleteGridCell={onDeleteGridCell ?? (() => {})}
+        onAddElementToCell={onAddElementToCell ?? (() => {})}
+        {...rest}
+      />
+    );
+  }
+  return <FreeSectionView {...props} />;
+}
+
+function FreeSectionView({
   section, nodes, role, isSelected,
-  selectedId, selectedIds, canvasWidth,
-  onSelectSection, onSelectElement, onUpdateElement,
+  selectedId, selectedIds, selectedGridCellId = null, canvasWidth,
+  onSelectSection, onSelectElement, onSelectGridCell,
+  onUpdateElement, onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
   onCommit, snapshot, snapEnabled, onContextMenu,
-  onDrop, onUpdateSection,
+  onDrop, onUpdateSection, onMoveElementToSection,
   onAddSectionBefore, onAddSectionAfter, onDeleteSection, onDuplicateSection, onMoveSectionUp, onMoveSectionDown,
   onMarqueeSelect, previewMode,
   breakpoint = 'desktop', onUpdateResponsive,
   onDuplicateElement, onDeleteElement,
+  onMoveGridElement,
   isDragOverTarget = false,
 }: Props) {
   const bgRef = useRef<HTMLDivElement>(null);
@@ -60,15 +93,23 @@ export function SectionView({
   const bg = section.style.background;
   const cols = section.style.columns;
   const sectionHeight = section.layout.height;
+  const scale = canvasWidth / CANVAS_W;
+  const displayHeight = breakpoint !== 'desktop' ? Math.round(sectionHeight * scale) : sectionHeight;
   const sectionElements = section.children.map(id => nodes[id] as El | undefined).filter((el): el is El => !!el);
 
-  const [{ isOver }, dropRef] = useDrop<{ type: ElementType }, void, { isOver: boolean }>({
-    accept: DND_TYPE,
+  const [{ isOver }, dropRef] = useDrop<any, void, { isOver: boolean }>({
+    accept: [DND_TYPE, GRID_EL_DND_TYPE],
     drop: (item, monitor) => {
       const offset = monitor.getClientOffset();
       if (!offset || !surfaceRef.current) return;
       const rect = surfaceRef.current.getBoundingClientRect();
       const z = canvasDragShared.zoom;
+
+      if ('elementId' in item) {
+        onMoveElementToSection?.(item.elementId, section.id, (offset.x - rect.left) / z, (offset.y - rect.top) / z);
+        return;
+      }
+
       onDrop(item.type, (offset.x - rect.left) / z, (offset.y - rect.top) / z, section.id);
     },
     collect: m => ({ isOver: m.isOver() }),
@@ -126,7 +167,7 @@ export function SectionView({
   const sectionBgStyle: React.CSSProperties = {
     position: 'relative',
     width: '100%',
-    height: sectionHeight,
+    height: displayHeight,
     backgroundColor: bg.type === 'solid' ? (bg.color || '#ffffff') : undefined,
     backgroundImage: secBgImage,
     backgroundSize: 'cover',

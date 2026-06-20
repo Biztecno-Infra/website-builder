@@ -15,6 +15,10 @@ export const canvasDragShared = {
   zoom: 1,
 };
 
+export const dragState = {
+  context: null as 'palette' | 'grid-element' | null,
+};
+
 interface Props {
   element: El;
   isSelected: boolean;
@@ -150,6 +154,8 @@ export function CanvasElement({
     const originY = el.layout.y;
     const prevSnapshot = snapshot;
     let moved = false;
+    const prevPointerEvents = wrapperRef.current?.style.pointerEvents;
+    if (wrapperRef.current) wrapperRef.current.style.pointerEvents = 'none';
 
     const elRect = wrapperRef.current?.getBoundingClientRect();
     canvasDragShared.active = {
@@ -177,6 +183,7 @@ export function CanvasElement({
     };
 
     const onUp = () => {
+      if (wrapperRef.current) wrapperRef.current.style.pointerEvents = prevPointerEvents ?? '';
       document.removeEventListener('mousemove', onMove);
       document.removeEventListener('mouseup', onUp);
       onGuides?.([]);
@@ -376,7 +383,7 @@ export function CanvasElement({
   );
 }
 
-function ElementContent({
+export function ElementContent({
   el, editing, editRef, onBlur, onKeyDown,
 }: {
   el: El;
@@ -442,6 +449,8 @@ function ElementContent({
             color: typography.color,
             textAlign: typography.align,
             lineHeight: typography.lineHeight,
+            letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+            textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
             wordBreak: 'break-word',
             outline: '2px solid #006e75',
             cursor: 'text',
@@ -453,6 +462,8 @@ function ElementContent({
       ...base, padding: padStr,
       fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
       color: typography.color, textAlign: typography.align, lineHeight: typography.lineHeight,
+      letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+      textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
       whiteSpace: 'pre-wrap', wordBreak: 'break-word',
     };
     if (el.content.rich) {
@@ -497,7 +508,9 @@ function ElementContent({
             ...base,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-            color: typography.color, letterSpacing: '0.02em', padding: padStr,
+            color: typography.color, padding: padStr,
+            letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+            textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
             outline: '2px solid #006e75', cursor: 'text',
           }}
         >
@@ -510,7 +523,9 @@ function ElementContent({
         ...base,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-        color: typography.color, letterSpacing: '0.02em', padding: padStr,
+        color: typography.color, padding: padStr,
+        letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+        textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
       }}>
         {el.content.label}
       </div>

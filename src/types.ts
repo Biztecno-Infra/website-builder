@@ -7,6 +7,9 @@ export type AnimationType = 'none' | 'fade-in' | 'slide-up' | 'slide-left' | 'zo
 export type AnimationTrigger = 'load' | 'scroll';
 export type Breakpoint = 'desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
+export type SectionLayoutMode = 'free' | 'grid';
+export type CellLayoutMode = 'column' | 'row' | 'wrap';
+export type FlexWidthMode = 'fill' | 'auto' | 'fixed' | 'percent';
 
 // ── Style primitives ───────────────────────────────────────────────────
 
@@ -47,6 +50,8 @@ export interface Shadow {
   color: string;
 }
 
+export type TextTransform = 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+
 export interface Typography {
   family: string;
   size: number;
@@ -54,6 +59,8 @@ export interface Typography {
   color: string;
   align: TextAlign;
   lineHeight: number;
+  letterSpacing?: number;
+  textTransform?: TextTransform;
 }
 
 // ── Element sub-structures ─────────────────────────────────────────────
@@ -113,13 +120,14 @@ export interface ResponsiveLayout {
 }
 
 export interface ResponsiveStyle {
-  typography?: Partial<Pick<Typography, 'size' | 'weight' | 'align'>>;
+  typography?: Partial<Pick<Typography, 'size' | 'weight' | 'align' | 'letterSpacing' | 'textTransform'>>;
 }
 
 export interface BreakpointOverride {
   layout?: ResponsiveLayout;
   style?: ResponsiveStyle;
   state?: Partial<ElementState>;
+  flexLayout?: Partial<FlexItemLayout>;
 }
 
 export interface ElementResponsive {
@@ -140,6 +148,7 @@ export interface CanvasElement {
   animation: ElementAnimation;
   state: ElementState;
   responsive: ElementResponsive;
+  flexLayout: FlexItemLayout;
 }
 
 // ── Section column ─────────────────────────────────────────────────────
@@ -157,27 +166,100 @@ export interface SectionColumns {
 export interface SectionStyle {
   background: SectionBackground;
   columns: SectionColumns;
+  padding: Padding;
 }
 
 export interface SectionLayout {
   height: number;
 }
 
-// ── Section node ───────────────────────────────────────────────────────
+export interface GridConfig {
+  gap: number;
+  rowGap: number;
+}
 
-export interface Section {
+// ── Section node — discriminated union ────────────────────────────────
+
+interface SectionBase {
   id: string;
   type: 'section';
   role: SectionRole;
   label: string;
   layout: SectionLayout;
   style: SectionStyle;
+}
+
+export interface FreeSection extends SectionBase {
+  layoutMode: 'free';
+  children: string[];  // CanvasElement IDs
+}
+
+export interface GridSection extends SectionBase {
+  layoutMode: 'grid';
+  children: string[];  // GridCell IDs
+  grid: GridConfig;
+}
+
+export type Section = FreeSection | GridSection;
+
+// Used in all update-operation signatures — covers fields from both variants.
+export type SectionUpdate = {
+  role?: SectionRole;
+  label?: string;
+  layout?: SectionLayout;
+  style?: SectionStyle;
+  layoutMode?: SectionLayoutMode;
+  children?: string[];
+  grid?: GridConfig;
+};
+
+export interface FlexItemLayout {
+  widthMode: FlexWidthMode;
+  widthValue: number;
+  flexGrow: number;
+  alignSelf: 'auto' | 'flex-start' | 'center' | 'flex-end' | 'stretch';
+}
+
+export interface GridCellStyle {
+  layoutMode: CellLayoutMode;
+  gap: number;
+  padding: Padding;
+  background: SectionBackground;
+  border?: Border;
+  minHeight?: number;
+  alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  justifyContent: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+}
+
+export interface GridCellBpOverride {
+  columnSpan?: number;
+  hidden?: boolean;
+  layoutMode?: CellLayoutMode;
+  minHeight?: number;
+  alignItems?: GridCellStyle['alignItems'];
+  justifyContent?: GridCellStyle['justifyContent'];
+}
+
+export interface GridCellResponsive {
+  tablet?: GridCellBpOverride;
+  mobile?: GridCellBpOverride;
+}
+
+export interface GridCell {
+  id: string;
+  type: 'grid-cell';
+  parent: string;
+  columnSpan: number;
+  rowSpan: number;
+  style: GridCellStyle;
   children: string[];
+  responsive: GridCellResponsive;
+  nestedGrid?: { gap: number; rowGap: number };
 }
 
 // ── Nodes flat map ─────────────────────────────────────────────────────
 
-export type AnyNode = Section | CanvasElement;
+export type AnyNode = Section | GridCell | CanvasElement;
 export type NodeMap = Record<string, AnyNode>;
 
 // ── Page ───────────────────────────────────────────────────────────────
