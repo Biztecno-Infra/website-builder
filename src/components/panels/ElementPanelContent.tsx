@@ -250,6 +250,7 @@ export function ElementPanelContent({
             <label>Font</label>
             <PbSelect value={element.style.typography.family}
               options={FONT_FAMILY_OPTIONS}
+              searchable
               onChange={v => { injectGoogleFont(v); commitChange({ style: { ...element.style, typography: { ...element.style.typography, family: v } } }); }} />
           </div>
           <div className={'pb-prop-row'}>
@@ -279,7 +280,7 @@ export function ElementPanelContent({
               onChange={e => changeTypo({ lineHeight: Number(e.target.value) })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Spacing</label>
+            <label>Letter Sp.</label>
             <PxInput value={element.style.typography.letterSpacing ?? 0} step={0.5}
               onFocus={onFocus} onBlur={onBlur}
               onChange={v => changeTypo({ letterSpacing: v })} />

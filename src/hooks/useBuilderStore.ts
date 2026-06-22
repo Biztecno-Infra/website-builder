@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
-  Accordion, AccordionBpOverride, AccordionItem, AccordionProps,
-  AnyNode, Breakpoint, BreakpointOverride, BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
-  ColumnStyle, Container, ContainerLayoutMode, ElementLayout, ElementType, FreeSection, GridCell,
-  GridSection, NodeMap, Page, Section, SectionRole,
-  SectionUpdate, SiteTheme, TextAlign, TextTransform,
+  Accordion, AccordionBpOverride, AccordionItem,
+   Breakpoint,  BuilderState, CanvasElement, Carousel, CarouselBpOverride, CarouselProps, CellLayoutMode,
+   Container,    GridCell,
+  NodeMap, Page, Section,
+  SiteTheme,
 } from '../types';
 import { useUndoRedo } from './useUndoRedo';
 import { usePageOps } from './usePageOps';
@@ -31,15 +31,14 @@ import { migrateState, makeEmpty } from '../utils/migration';
 export { DEFAULT_THEME } from '../utils/builderDefaults';
 export { CANVAS_W } from '../utils/elementDefaults';
 export { equalWidths } from '../utils/nodeHelpers';
-export { migrateState, makeEmpty } from '../utils/migration';
+export { makeEmpty } from '../utils/migration';
 
 const STORAGE_KEY = 'microsite-builder-v5';
-const LEGACY_KEYS = ['page-builder-v3', 'page-builder-v2', 'page-builder-v1'];
 
 // ── applyBreakpoint ────────────────────────────────────────────────────
 
 export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): CanvasElement {
-  const baseState = el.state ?? { hidden: false, locked: false };
+  const baseState = el.state ?? { hidden: false };
   const baseResponsive = el.responsive ?? {};
   if (bp === 'desktop') return el.state && el.responsive ? el : { ...el, state: baseState, responsive: baseResponsive };
   const tOvr = baseResponsive.tablet;
@@ -76,7 +75,6 @@ function loadFromStorage(): BuilderState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrateState(JSON.parse(raw));
-    for (const key of LEGACY_KEYS) { const old = localStorage.getItem(key); if (old) return migrateState(JSON.parse(old)); }
     return makeEmpty();
   } catch { return makeEmpty(); }
 }
@@ -92,8 +90,10 @@ function getActivePage(state: BuilderState): Page {
   return state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
 }
 
-export function useBuilderStore() {
-  const [state, setState] = useState<BuilderState>(loadFromStorage);
+export function useBuilderStore(externalInitialState?: BuilderState) {
+  const [state, setState] = useState<BuilderState>(() =>
+    externalInitialState ? migrateState(externalInitialState) : loadFromStorage()
+  );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedGridCellId, setSelectedGridCellId] = useState<string | null>(null);
@@ -112,6 +112,34 @@ export function useBuilderStore() {
   useEffect(() => {
     if (selectedContainerId && !state.nodes[selectedContainerId]) setSelectedContainerId(null);
   }, [state.nodes, selectedContainerId]);
+
+  // Auto-expand free sections so no element ever overflows below the section's bottom edge.
+  // This prevents canvas-wrapper (overflow:auto) from clipping elements and eliminates
+  // hover-outline clipping at the footer boundary.
+  useEffect(() => {
+    setState(prev => {
+      let changed = false;
+      const nodes = { ...prev.nodes };
+      for (const page of prev.pages) {
+        for (const secId of page.sections) {
+          const sec = nodes[secId];
+          if (!sec || !isFreeSection(sec)) continue;
+          const maxBottom = sec.children.reduce((max, childId) => {
+            const child = nodes[childId];
+            if (!child || isSection(child) || isGridCell(child) || isContainer(child) || isAccordion(child)) return max;
+            const el = child as CanvasElement | Carousel;
+            return Math.max(max, el.layout.y + el.layout.height);
+          }, 0);
+          const needed = maxBottom + 24;
+          if (needed > sec.layout.height) {
+            changed = true;
+            nodes[secId] = { ...sec, layout: { ...sec.layout, height: needed } };
+          }
+        }
+      }
+      return changed ? { ...prev, nodes } : prev;
+    });
+  }, [state.nodes]);
 
   const allElements = useMemo(() => {
     const map: Record<string, CanvasElement> = {};

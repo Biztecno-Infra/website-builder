@@ -92,7 +92,7 @@ function FontSelect({
   return (
     <div className={'pb-font-pairing-row pb-flex-col'}>
       <span className={'pb-font-pairing-label'}>{label}</span>
-      <PbSelect value={value} options={FONT_FAMILY_OPTIONS} onChange={onChange} size="md" />
+      <PbSelect value={value} options={FONT_FAMILY_OPTIONS} onChange={onChange} size="md" searchable />
     </div>
   );
 }

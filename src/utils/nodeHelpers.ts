@@ -23,19 +23,6 @@ export function isAccordion(node: AnyNode): node is Accordion {
 }
 
 // True if the node lives inside a Carousel (its parent chain reaches a carousel
-// before reaching a Section). Used to keep carousel slide content from being
-// dragged out of the carousel and detached.
-export function isInsideCarousel(nodes: NodeMap, node: AnyNode | undefined): boolean {
-  let cur = node;
-  while (cur && 'parent' in cur) {
-    const parent = nodes[(cur as { parent: string }).parent];
-    if (!parent) return false;
-    if (isCarousel(parent)) return true;
-    if (isSection(parent)) return false;
-    cur = parent;
-  }
-  return false;
-}
 
 export function isSection(node: AnyNode): node is Section {
   return (node as Section).type === 'section';

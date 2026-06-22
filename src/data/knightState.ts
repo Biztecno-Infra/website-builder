@@ -35,7 +35,7 @@ const bdr = (radius = 0, width = 0, color = K.border, style: Border['style'] = '
   ({ radius, width, color, style });
 const shad = (on = false, y = 8, blur = 24): Shadow =>
   ({ enabled: on, x: 0, y, blur, spread: -4, color: 'rgba(0,0,0,0.4)' });
-const nostate = () => ({ hidden: false, locked: false });
+const nostate = () => ({ hidden: false });
 const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 const typo = (sz: number, w: string, color: string, align: 'left'|'center'|'right' = 'left', lh = 1.5) =>
   ({ family: 'Inter, sans-serif', size: sz, weight: w, color, align, lineHeight: lh, letterSpacing: 0, textTransform: 'none' as TextTransform });

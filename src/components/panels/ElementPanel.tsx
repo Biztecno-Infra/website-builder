@@ -13,7 +13,7 @@ import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 import { PanelHeader } from './PanelHeader';
 import { PbInput } from '../PbInput';
 import { PbSelect } from '../PbSelect';
-import { FLEX_WIDTH_MODE_WITH_SAME_OPTIONS } from '../../utils/selectOptions';
+import { FLEX_WIDTH_MODE_WITH_SAME_OPTIONS, ALIGN_SELF_OPTIONS } from '../../utils/selectOptions';
 import { ElementPanelContent } from './ElementPanelContent';
 import { ElementPanelStyle } from './ElementPanelStyle';
 
@@ -115,16 +115,23 @@ export function ElementPanel({
         {!isInGridCell && (
           <>
             <div className={'pb-prop-row'}>
-              <label>X</label>
-              <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+              <label>Full W</label>
+              <input type="checkbox" checked={!!element.layout.fullWidth}
+                onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
             </div>
+            {!element.layout.fullWidth && (
+              <div className={'pb-prop-row'}>
+                <label>X</label>
+                <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+              </div>
+            )}
             <div className={'pb-prop-row'}>
               <label>Y</label>
               <PbInput type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
-            {element.type !== 'divider' && (
+            {element.type !== 'divider' && !element.layout.fullWidth && (
               <div className={'pb-prop-row'}>
                 <label>W</label>
                 <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
@@ -168,9 +175,9 @@ export function ElementPanel({
         )}
         {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
           <div className={'pb-prop-row'}>
-            <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
-            <PbInput type="number" value={eff.layout.height} min={minSize} onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
+            <label>{!isInGridCell ? 'Height' : (element.type === 'image' || element.type === 'video') ? 'Height' : 'Min H'}</label>
+            <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
           </div>
         )}
         {element.type !== 'spacer' && (
@@ -219,6 +226,12 @@ Spacing should be renamed as Space
                 </div>
               </div>
             )}
+            <div className={'pb-prop-row'}>
+              <label>Align</label>
+              <PbSelect size="sm" value={element.flexLayout.alignSelf}
+                options={ALIGN_SELF_OPTIONS}
+                onChange={v => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, alignSelf: v as typeof element.flexLayout.alignSelf } }); }} />
+            </div>
             {breakpoint !== 'desktop' && onUpdateResponsive && (
               <>
                 <div style={{ fontSize: 10, color: 'var(--pb-text-subtle)', padding: '4px 0 2px' }}>

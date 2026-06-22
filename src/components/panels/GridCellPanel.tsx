@@ -7,7 +7,7 @@ import type {
 
 import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, SpacingEditor, themeToSwatches } from './PanelFields';
+import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, SpacingEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -228,17 +228,14 @@ export function GridCellPanel({
           </div>
         )}
         <div className={'pb-prop-row'}>
-          <label>Elem. Gap</label>
+          <label>Element Gap</label>
           <PxInput value={style.gap}
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={v => onUpdateGridCell(gc.id, { style: { ...style, gap: v } })} />
         </div>
       </CollapsibleSection>
 
-      {/* ── Spacing ──
-           Padding only (grid cells have no margin). Responsive-aware: on tablet/mobile,
-           writes to the breakpoint override. Grouped in its own accordion for consistency
-           with other elements. */}
+      {/* ── Space ── Padding only; responsive-aware */}
       <CollapsibleSection sectionKey="spacing" label="Space" isOpen={sec('spacing')} onToggle={toggle}>
         {(() => {
           const bpPadOverride =
@@ -299,6 +296,12 @@ export function GridCellPanel({
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
+        <div className={'pb-prop-row'}>
+          <label>Opacity</label>
+          <PbInput type="number" value={style.opacity ?? 1} min={0} max={1} step={0.05}
+            onFocus={gcFocus} onBlur={gcBlur}
+            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, opacity: Math.max(0, Math.min(1, Number(e.target.value))) } })} />
+        </div>
         <BackgroundEditor
           bg={style.background}
           onChange={updates => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, ...updates } } })}

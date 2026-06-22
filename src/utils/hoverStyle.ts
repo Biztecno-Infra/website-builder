@@ -13,14 +13,6 @@ import type { CanvasElement, ElementHover } from '../types';
 
 export const DEFAULT_TRANSITION_MS = 200;
 
-// True only when hover is enabled AND at least one hover color is configured.
-// If no color is set there is nothing to override, so we emit nothing (the
-// element simply keeps its default styles — matching the "fall back" rule).
-export function hasActiveHover(el: CanvasElement): boolean {
-  const h = el.style.hover;
-  return !!(h && h.enabled && (h.backgroundColor || h.textColor));
-}
-
 // Builds the hover CSS for one element scoped to `selector` (e.g. `.ec-abc123`).
 // Returns '' when there's nothing to emit, so callers can concatenate freely.
 //   selector            -> base transition (smooth state change)

@@ -137,9 +137,10 @@ export const DEFAULT_GRID_CELL_STYLE: GridCellStyle = {
   layoutMode: 'column',
   gap: 8,
   padding: { top: 12, right: 12, bottom: 12, left: 12 } as Padding,
-  background: { ...DEFAULT_BG, overlay: 0 },
+  background: { ...DEFAULT_SECTION_BG, type: 'transparent', overlay: 0 },
   border: { radius: 0, width: 0, color: '#cccccc', style: 'none' },
   minHeight: undefined,
+  opacity: 1,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
 };

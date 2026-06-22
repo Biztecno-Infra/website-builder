@@ -24,7 +24,7 @@ export function createDefaultElement(
     style: { ...DEFAULT_STYLE, background: { ...DEFAULT_BG }, padding: { top: 0, right: 0, bottom: 0, left: 0 }, border: { radius: 0, width: 0, color: '#cccccc', style: 'solid' }, shadow: { enabled: false, x: 4, y: 4, blur: 12, spread: 0, color: 'rgba(0,0,0,0.2)' }, typography: { ...DEFAULT_STYLE.typography, family: tf, color: tc.text } },
     content: { ...DEFAULT_CONTENT },
     interaction: { ...DEFAULT_INTERACTION },
-    state: { hidden: false, locked: false },
+    state: { hidden: false },
     responsive: {},
     flexLayout: { ...DEFAULT_FLEX_LAYOUT },
   };

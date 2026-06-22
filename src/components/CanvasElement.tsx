@@ -16,6 +16,8 @@ export interface ActiveCanvasDrag {
   fromSectionId: string;
   grabOffsetX: number;
   grabOffsetY: number;
+  elWidth: number;
+  elHeight: number;
 }
 export const canvasDragShared = {
   active: null as ActiveCanvasDrag | null,
@@ -142,8 +144,6 @@ export function CanvasElement({
     if (previewMode) return;
     if (e.button !== 0) return;
     e.stopPropagation();
-    if (el.state.locked) { onSelect(e.shiftKey); return; }
-
     onSelect(e.shiftKey);
 
     const startX = e.clientX;
@@ -161,6 +161,8 @@ export function CanvasElement({
       fromSectionId: sectionId,
       grabOffsetX: e.clientX - (elRect?.left ?? 0),
       grabOffsetY: e.clientY - (elRect?.top ?? 0),
+      elWidth: el.layout.width,
+      elHeight: el.layout.height,
     };
 
     const onMove = (ev: MouseEvent) => {
@@ -254,8 +256,6 @@ export function CanvasElement({
   const handleResizeMouseDown = (dir: Dir) => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (el.state.locked) return;
-
     const startX = e.clientX;
     const startY = e.clientY;
     const { x: ox, y: oy, width: ow, height: oh } = el.layout;
@@ -315,13 +315,13 @@ export function CanvasElement({
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
-    left: el.layout.x,
+    left: el.layout.fullWidth ? 0 : el.layout.x,
     top: el.layout.y,
-    width: el.layout.width,
+    width: el.layout.fullWidth ? '100%' : el.layout.width,
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,
-    cursor: el.state.locked ? 'default' : previewMode ? (hasPreviewAction(el) ? 'pointer' : 'default') : 'move',
+    cursor: previewMode ? (hasPreviewAction(el) ? 'pointer' : 'default') : 'move',
     userSelect: 'none',
     boxSizing: 'border-box',
     transform: el.layout.rotation ? `rotate(${el.layout.rotation}deg)` : undefined,
@@ -336,7 +336,7 @@ export function CanvasElement({
       ref={wrapperRef}
       data-el-id={el.id}
       style={wrapperStyle}
-      className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked'].filter(Boolean).join(' ')}
+      className={['pb-canvas-el', selected && !previewMode && 'pb-selected'].filter(Boolean).join(' ')}
       onMouseDown={handleBodyMouseDown}
       onClick={previewMode
         ? (e => { if (runPreviewAction(el, { onNavigatePage: onPreviewNavigatePage })) e.preventDefault(); })
@@ -356,7 +356,7 @@ export function CanvasElement({
 
           <div className={'pb-rotate-handle'} onMouseDown={handleRotateMouseDown} title="Rotate" />
 
-          {HANDLE_DIRS.map(dir => (
+          {HANDLE_DIRS.filter(dir => !el.layout.fullWidth || dir === 'n' || dir === 's').map(dir => (
             <div
               key={dir}
               className={'pb-resize-handle'}
@@ -365,7 +365,6 @@ export function CanvasElement({
             />
           ))}
 
-          {el.state.locked && <div className={'pb-lock-indicator'}>Locked</div>}
         </>
       )}
     </div>

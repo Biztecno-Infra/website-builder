@@ -100,7 +100,21 @@ export function useElementOps(
       if (!el || isSection(el) || isGridCell(el) || isContainer(el)) return s;
       const merged = { ...el, ...updates } as CanvasElement;
       if (updates.content) merged.content = { ...(el as CanvasElement).content, ...updates.content };
-      return { ...s, nodes: { ...s.nodes, [id]: merged } };
+      const newNodes = { ...s.nodes, [id]: merged };
+
+      if (updates.layout) {
+        const parentId = (el as CanvasElement).parent;
+        const parent = newNodes[parentId];
+        if (parent && isFreeSection(parent)) {
+          const sec = parent as FreeSection;
+          const elementBottom = merged.layout.y + merged.layout.height;
+          if (elementBottom + 40 > sec.layout.height) {
+            newNodes[parentId] = { ...sec, layout: { ...sec.layout, height: elementBottom + 40 } };
+          }
+        }
+      }
+
+      return { ...s, nodes: newNodes };
     });
   }, []);
 
@@ -279,7 +293,10 @@ export function useElementOps(
       };
       const toChildren = [...toSec.children];
       toChildren.splice(Math.max(0, Math.min(toChildren.length, atIndex)), 0, id);
-      nodes[toSectionId] = { ...toSec, children: toChildren };
+      const placedEl = nodes[id] as CanvasElement;
+      const elBottom = placedEl.layout.y + placedEl.layout.height;
+      const newHeight = elBottom + 40 > toSec.layout.height ? elBottom + 40 : toSec.layout.height;
+      nodes[toSectionId] = { ...toSec, children: toChildren, layout: { ...toSec.layout, height: newHeight } };
       return { ...prev, nodes };
     });
   }, [push]);

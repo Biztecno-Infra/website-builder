@@ -80,7 +80,7 @@ export function GridElementView({
   const [{ isDragging }, dragRef] = useDrag<GridElDragItem, void, { isDragging: boolean }>({
     type: GRID_EL_DND_TYPE,
     item: { kind: 'element', elementId: rawEl.id, sourceCellId: cellId, fromChildIdx: childIdx, sourceCellMode: cellMode },
-    canDrag: !previewMode && !editing && !disableDrag && !rawEl.state.locked,
+    canDrag: !previewMode && !editing && !disableDrag,
     collect: m => ({ isDragging: m.isDragging() }),
   });
 
@@ -210,6 +210,7 @@ export function GridElementView({
           ? {}
           : { height: el.layout.height }),
         opacity: isDragging ? 0.35 : el.style.opacity,
+        transform: el.layout.rotation ? `rotate(${el.layout.rotation}deg)` : undefined,
         boxShadow: shadow,
         borderRadius: el.style.border.radius > 0 ? el.style.border.radius : undefined,
         cursor: previewMode ? (hasPreviewAction(rawEl) ? 'pointer' : 'default') : editing ? 'text' : isDragging ? 'grabbing' : 'grab',

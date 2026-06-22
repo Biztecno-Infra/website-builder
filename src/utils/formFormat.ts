@@ -4,7 +4,7 @@ import type { FormField } from '../types';
 // own Help Text. Only fields where a format is meaningful return a note;
 // everything else returns ''. Shared by the canvas preview and the HTML export
 // so both show the same guidance.
-export function defaultFormatNote(f: FormField): string {
+function defaultFormatNote(f: FormField): string {
   const preset = f.validation?.preset;
   // A URL preset can sit on any text-ish field, so check it first.
   if (preset === 'url') return 'Format: https://example.com';
