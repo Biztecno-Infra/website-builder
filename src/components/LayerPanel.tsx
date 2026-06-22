@@ -106,6 +106,9 @@ interface SectionGroupProps {
   onSectionDragOver: (index: number) => void;
   onSectionDrop: () => void;
   onSectionDragEnd: () => void;
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onExpandSection: () => void;
 }
 
 function SectionGroup({
@@ -114,10 +117,14 @@ function SectionGroup({
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion,
   onScrollToElement, onUpdateElement, onDeleteElement, onDeleteSection, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
+  collapsed, onToggleCollapsed, onExpandSection,
 }: SectionGroupProps) {
-  const [collapsed, setCollapsed] = useState(false);
   const [colCollapsed, setColCollapsed] = useState<boolean[]>([]);
   const [dragOverElIdx, setDragOverElIdx] = useState<number | null>(null);
+  const [collapsedCellMap, setCollapsedCellMap] = useState<Record<string, boolean>>({});
+  const [collapsedContainerMap, setCollapsedContainerMap] = useState<Record<string, boolean>>({});
+  const toggleCell = (id: string) => setCollapsedCellMap(p => ({ ...p, [id]: !p[id] }));
+  const toggleContainer = (id: string) => setCollapsedContainerMap(p => ({ ...p, [id]: !p[id] }));
 
   const draggable = role === 'section';
   const isGrid = section.layoutMode === 'grid';
@@ -133,7 +140,7 @@ function SectionGroup({
       }
       return selectedIds.includes(nodeId);
     }
-    if (section.children.some(dfs)) setCollapsed(false);
+    if (section.children.some(dfs)) onExpandSection();
   }, [selectedIds]);
 
   // ── Grid layout rendering ─────────────────────────────────────────────────
@@ -170,22 +177,47 @@ function SectionGroup({
       );
     };
 
-    function CellLayerRow({ cell, cellIdx, cellDepth }: { cell: GridCell; cellIdx: number; cellDepth: number }): React.ReactElement {
-      const [cellCollapsed, setCellCollapsed] = useState(false);
+    const renderContainerLayerRow = (block: Container, cellIndent: number, subCells: GridCell[]): React.ReactElement => {
+      const containerCollapsed = collapsedContainerMap[block.id] ?? false;
+      const isContainerSelected = selectedContainerId === block.id;
+      const hasChildren = subCells.length > 0;
+      return (
+        <div key={block.id}>
+          <div
+            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isContainerSelected && 'pb-selected'].filter(Boolean).join(' ')}
+            style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
+            onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); if (hasChildren) toggleContainer(block.id); }}
+          >
+            {hasChildren ? (
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleContainer(block.id); }}>
+                <CollapseArrow collapsed={containerCollapsed} />
+              </button>
+            ) : (
+              <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
+            )}
+            <span className={'pb-layer-section-icon'}>⊞</span>
+            <span className={'pb-layer-name pb-truncate'}>Container</span>
+          </div>
+          {!containerCollapsed && subCells.map((sub, si) => renderCellLayerRow(sub, si, 3))}
+        </div>
+      );
+    };
+
+    const renderCellLayerRow = (cell: GridCell, cellIdx: number, cellDepth: number): React.ReactElement => {
+      const cellCollapsed = collapsedCellMap[cell.id] ?? false;
       const isCellSelected = selectedGridCellId === cell.id;
       const cellIndent = cellDepth * 16;
       const cellChildren = cell.children.map(id => nodes[id]).filter(Boolean);
       const hasChildren = cellChildren.length > 0;
-
       return (
         <div key={cell.id}>
           <div
             className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
             style={{ paddingLeft: 8 + cellIndent }}
-            onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
+            onClick={() => { onSelectGridCell(cell.id); if (hasChildren) toggleCell(cell.id); }}
           >
             {hasChildren ? (
-              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCellCollapsed(c => !c); }}>
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleCell(cell.id); }}>
                 <CollapseArrow collapsed={cellCollapsed} />
               </button>
             ) : (
@@ -199,9 +231,7 @@ function SectionGroup({
             if (child.type === 'container') {
               const block = child as Container;
               const subCells = block.children.map((id: string) => nodes[id] as GridCell | undefined).filter((c: GridCell | undefined): c is GridCell => !!c);
-              return (
-                <ContainerLayerRow key={block.id} block={block} cellIndent={cellIndent} subCells={subCells} />
-              );
+              return renderContainerLayerRow(block, cellIndent, subCells);
             }
             if (child.type === 'carousel') {
               const carousel = child as Carousel;
@@ -218,9 +248,7 @@ function SectionGroup({
                     <span className={'pb-layer-section-icon'}>▦</span>
                     <span className={'pb-layer-name pb-truncate'}>Carousel</span>
                   </div>
-                  {slides.map((slide, si) => (
-                    <CellLayerRow key={slide.id} cell={slide} cellIdx={si} cellDepth={cellDepth + 1} />
-                  ))}
+                  {slides.map((slide, si) => renderCellLayerRow(slide, si, cellDepth + 1))}
                 </div>
               );
             }
@@ -239,10 +267,8 @@ function SectionGroup({
                     <span className={'pb-layer-name pb-truncate'}>Accordion</span>
                   </div>
                   {acc.items.map((it, ii) => {
-                    const cell = nodes[it.contentCellId] as GridCell | undefined;
-                    return cell ? (
-                      <CellLayerRow key={cell.id} cell={cell} cellIdx={ii} cellDepth={cellDepth + 1} />
-                    ) : null;
+                    const accCell = nodes[it.contentCellId] as GridCell | undefined;
+                    return accCell ? renderCellLayerRow(accCell, ii, cellDepth + 1) : null;
                   })}
                 </div>
               );
@@ -251,36 +277,7 @@ function SectionGroup({
           })}
         </div>
       );
-    }
-
-    function ContainerLayerRow({ block, cellIndent, subCells }: { block: Container; cellIndent: number; subCells: GridCell[] }): React.ReactElement {
-      const [containerCollapsed, setContainerCollapsed] = useState(false);
-      const isContainerSelected = selectedContainerId === block.id;
-      const hasChildren = subCells.length > 0;
-
-      return (
-        <div>
-          <div
-            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isContainerSelected && 'pb-selected'].filter(Boolean).join(' ')}
-            style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
-            onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); }}
-          >
-            {hasChildren ? (
-              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setContainerCollapsed(c => !c); }}>
-                <CollapseArrow collapsed={containerCollapsed} />
-              </button>
-            ) : (
-              <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
-            )}
-            <span className={'pb-layer-section-icon'}>⊞</span>
-            <span className={'pb-layer-name pb-truncate'}>Container</span>
-          </div>
-          {!containerCollapsed && subCells.map((sub, si) => (
-            <CellLayerRow key={sub.id} cell={sub} cellIdx={si} cellDepth={3} />
-          ))}
-        </div>
-      );
-    }
+    };
 
     return (
       <div
@@ -294,11 +291,11 @@ function SectionGroup({
           draggable={draggable}
           onDragStart={() => draggable && onSectionDragStart(index)}
           onDragEnd={() => draggable && onSectionDragEnd()}
-          onClick={() => onSelectSection(section.id)}
+          onClick={() => { onSelectSection(section.id); onToggleCollapsed(); }}
         >
-          <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}>
+          <span className={'pb-layer-collapse-btn'}>
             <CollapseArrow collapsed={collapsed} />
-          </button>
+          </span>
           <span className={'pb-layer-section-icon'}>⊞</span>
           <span className={'pb-layer-section-name pb-truncate'}>{section.label}</span>
           {draggable && onDeleteSection && (
@@ -312,7 +309,7 @@ function SectionGroup({
         {!collapsed && (
           <div className={'pb-layer-element-list pb-flex-col'}>
             {cells.length === 0 && <div className={'pb-layer-empty-row'}>No columns yet</div>}
-            {cells.map((cell, cellIdx) => <CellLayerRow key={cell.id} cell={cell} cellIdx={cellIdx} cellDepth={depth + 1} />)}
+            {cells.map((cell, cellIdx) => renderCellLayerRow(cell, cellIdx, depth + 1))}
           </div>
         )}
       </div>
@@ -530,11 +527,11 @@ function SectionGroup({
         draggable={draggable}
         onDragStart={() => draggable && onSectionDragStart(index)}
         onDragEnd={() => draggable && onSectionDragEnd()}
-        onClick={() => onSelectSection(section.id)}
+        onClick={() => { onSelectSection(section.id); onToggleCollapsed(); }}
       >
-        <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setCollapsed(c => !c); }}>
+        <span className={'pb-layer-collapse-btn'}>
           <CollapseArrow collapsed={collapsed} />
-        </button>
+        </span>
         <span className={'pb-layer-section-icon'}>
           {role === 'header' ? '⬆' : role === 'footer' ? '⬇' : '▭'}
         </span>
@@ -612,6 +609,9 @@ export function LayerPanel({
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
   const [draggingSectionIndex, setDraggingSectionIndex] = useState<number | null>(null);
   const [pageCollapsed, setPageCollapsed] = useState(false);
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const toggleSectionCollapsed = (id: string) => setCollapsedSections(p => ({ ...p, [id]: !p[id] }));
+  const expandSectionById = (id: string) => setCollapsedSections(p => ({ ...p, [id]: false }));
   const [search, setSearch] = useState('');
   const layerListRef = useRef<HTMLDivElement>(null);
 
@@ -709,6 +709,9 @@ export function LayerPanel({
               isSectionSelected={selectedSectionId === header.id}
               isDragOver={false} isDragging={false}
               onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
+              collapsed={collapsedSections[header.id] ?? false}
+              onToggleCollapsed={() => toggleSectionCollapsed(header.id)}
+              onExpandSection={() => expandSectionById(header.id)}
             />
 
             {sections.map((sec, i) => (
@@ -726,6 +729,9 @@ export function LayerPanel({
                 }}
                 onSectionDragOver={setSectionDragOverIndex}
                 onSectionDrop={handleSectionDrop}
+                collapsed={collapsedSections[sec.id] ?? false}
+                onToggleCollapsed={() => toggleSectionCollapsed(sec.id)}
+                onExpandSection={() => expandSectionById(sec.id)}
               />
             ))}
 
@@ -736,6 +742,9 @@ export function LayerPanel({
                 isSectionSelected={selectedSectionId === footer.id}
                 isDragOver={false} isDragging={false}
                 onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
+                collapsed={collapsedSections[footer.id] ?? false}
+                onToggleCollapsed={() => toggleSectionCollapsed(footer.id)}
+                onExpandSection={() => expandSectionById(footer.id)}
               />
             )}
           </>

@@ -30,7 +30,6 @@ interface Props {
   onImport: () => void;
   onLoadDemo: () => void;
   onClear: () => void;
-  // External integration — when provided, these replace / augment default behaviour
   onSave?: () => void;
   onPublish?: () => void;
 }

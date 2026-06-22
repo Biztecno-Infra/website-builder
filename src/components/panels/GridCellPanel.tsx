@@ -7,7 +7,7 @@ import type {
 
 import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, SpacingEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -226,12 +226,6 @@ export function GridCellPanel({
             {alignIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
           </div>
         )}
-        <div className={'pb-prop-row'}>
-          <label>Element Gap</label>
-          <PxInput value={style.gap}
-            onFocus={gcFocus} onBlur={gcBlur}
-            onChange={v => onUpdateGridCell(gc.id, { style: { ...style, gap: v } })} />
-        </div>
         {/* Padding — responsive-aware. On tablet/mobile, writes to responsive override. */}
         {(() => {
           const bpPadOverride =
@@ -263,14 +257,11 @@ export function GridCellPanel({
 
           return (
             <>
-              {(['top','right','bottom','left'] as const).map(side => (
-                <div key={side} className={['pb-prop-row', padIsOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-                  <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
-                  <PbInput type="number" value={effPad[side]} min={0}
-                    onFocus={gcFocus} onBlur={gcBlur}
-                    onChange={e => updatePad(side, Number(e.target.value))} />
-                </div>
-              ))}
+              <SpacingEditor
+                padding={effPad}
+                onPaddingChange={(k, v) => updatePad(k, v)}
+                onFocus={gcFocus} onBlur={gcBlur}
+              />
               {!isDesktop && padIsOverridden && (
                 <div className={'pb-resp-ref-row'}>
                   <span className={'pb-resp-ref-label'}>Desktop: {style.padding.top}/{style.padding.right}/{style.padding.bottom}/{style.padding.left}</span>
@@ -295,6 +286,12 @@ export function GridCellPanel({
 
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
+        <div className={'pb-prop-row'}>
+          <label>Opacity</label>
+          <PbInput type="number" value={style.opacity ?? 1} min={0} max={1} step={0.05}
+            onFocus={gcFocus} onBlur={gcBlur}
+            onChange={e => onUpdateGridCell(gc.id, { style: { ...style, opacity: Math.max(0, Math.min(1, Number(e.target.value))) } })} />
+        </div>
         <BackgroundEditor
           bg={style.background}
           onChange={updates => onUpdateGridCell(gc.id, { style: { ...style, background: { ...style.background, ...updates } } })}

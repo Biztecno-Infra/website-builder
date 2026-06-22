@@ -117,7 +117,6 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     }
   }, [initialState, importState]);
 
-  // Notify parent of state changes (skip the initial render).
   const isFirstRender = useRef(true);
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return; }

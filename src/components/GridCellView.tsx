@@ -282,6 +282,7 @@ export function GridCellView({
     height: '100%',
     borderRadius, borderWidth, borderColor, borderStyle,
     position: 'relative', boxSizing: 'border-box',
+    opacity: cell.style.opacity !== undefined && cell.style.opacity !== 1 ? cell.style.opacity : undefined,
   };
 
   // ── Min-height resize drag ────────────────────────────────────────────────
@@ -340,6 +341,7 @@ export function GridCellView({
         isRow && 'pb-grid-cell--flex-row',
         (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
         (isCarouselOver || isAccordionOver) && 'pb-grid-cell--drop-over',
+        cellIsEmpty && !previewMode && 'pb-grid-cell--empty',
       ].filter(Boolean).join(' ')}
       style={{
         ...sharedCellStyle,
