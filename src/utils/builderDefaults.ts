@@ -114,7 +114,7 @@ export const DEFAULT_ACCORDION_ICON_SVG =
 
 export const DEFAULT_ACCORDION_PROPS: AccordionProps = {
   allowMultiple: false,
-  defaultOpen: 'first',
+  defaultOpen: 'none',
   iconPosition: 'right',
   expandedIconRotation: 180,
   contentGap: 0,

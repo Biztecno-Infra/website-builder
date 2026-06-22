@@ -38,7 +38,7 @@ const STORAGE_KEY = 'microsite-builder-v5';
 // ── applyBreakpoint ────────────────────────────────────────────────────
 
 export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): CanvasElement {
-  const baseState = el.state ?? { hidden: false, locked: false };
+  const baseState = el.state ?? { hidden: false };
   const baseResponsive = el.responsive ?? {};
   if (bp === 'desktop') return el.state && el.responsive ? el : { ...el, state: baseState, responsive: baseResponsive };
   const tOvr = baseResponsive.tablet;

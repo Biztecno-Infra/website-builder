@@ -144,8 +144,6 @@ export function CanvasElement({
     if (previewMode) return;
     if (e.button !== 0) return;
     e.stopPropagation();
-    if (el.state.locked) { onSelect(e.shiftKey); return; }
-
     onSelect(e.shiftKey);
 
     const startX = e.clientX;
@@ -258,8 +256,6 @@ export function CanvasElement({
   const handleResizeMouseDown = (dir: Dir) => (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
-    if (el.state.locked) return;
-
     const startX = e.clientX;
     const startY = e.clientY;
     const { x: ox, y: oy, width: ow, height: oh } = el.layout;
@@ -325,7 +321,7 @@ export function CanvasElement({
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,
-    cursor: el.state.locked ? 'default' : previewMode ? (hasPreviewAction(el) ? 'pointer' : 'default') : 'move',
+    cursor: previewMode ? (hasPreviewAction(el) ? 'pointer' : 'default') : 'move',
     userSelect: 'none',
     boxSizing: 'border-box',
     transform: el.layout.rotation ? `rotate(${el.layout.rotation}deg)` : undefined,
@@ -340,7 +336,7 @@ export function CanvasElement({
       ref={wrapperRef}
       data-el-id={el.id}
       style={wrapperStyle}
-      className={['pb-canvas-el', selected && !previewMode && 'pb-selected', el.state.locked && 'pb-locked'].filter(Boolean).join(' ')}
+      className={['pb-canvas-el', selected && !previewMode && 'pb-selected'].filter(Boolean).join(' ')}
       onMouseDown={handleBodyMouseDown}
       onClick={previewMode
         ? (e => { if (runPreviewAction(el, { onNavigatePage: onPreviewNavigatePage })) e.preventDefault(); })
@@ -369,7 +365,6 @@ export function CanvasElement({
             />
           ))}
 
-          {el.state.locked && <div className={'pb-lock-indicator'}>Locked</div>}
         </>
       )}
     </div>

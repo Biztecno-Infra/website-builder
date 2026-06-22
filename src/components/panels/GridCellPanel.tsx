@@ -227,7 +227,7 @@ export function GridCellPanel({
           </div>
         )}
         <div className={'pb-prop-row'}>
-          <label>Elem. Gap</label>
+          <label>Element Gap</label>
           <PxInput value={style.gap}
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={v => onUpdateGridCell(gc.id, { style: { ...style, gap: v } })} />

@@ -153,7 +153,7 @@ export function ElementPanelStyle({
         const showSection = element.type !== 'spacer' && (inGridFlow || showPad);
         if (!showSection) return null;
         return (
-          <CollapsibleSection sectionKey="spacing" label={<>Spacing {allBpBadge}</>}
+          <CollapsibleSection sectionKey="spacing" label={<>Space {allBpBadge}</>}
             isOpen={sec('spacing')} onToggle={toggleSection}>
             <SpacingEditor
               margin={inGridFlow ? (element.style.margin ?? {}) : undefined}
@@ -183,15 +183,6 @@ export function ElementPanelStyle({
             <PxInput value={element.layout.rotation} unit="°"
               onFocus={onFocus} onBlur={onBlur}
               onChange={v => changeLayout({ rotation: v })} />
-          </div>
-          <div className={'pb-prop-row'}>
-            <label>Lock</label>
-            <button
-              className={['pb-toolbar-btn', element.state.locked && 'pb-active'].filter(Boolean).join(' ')}
-              style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
-              title={element.state.locked ? 'Unlock element — allow drag/resize' : 'Lock element — prevent drag/resize'}
-              onClick={() => { onPushSnapshot(snapshot); commitChange({ state: { ...element.state, locked: !element.state.locked } }); }}
-            >{element.state.locked ? 'Locked' : 'Unlocked'}</button>
           </div>
         </CollapsibleSection>
       )}

@@ -1,5 +1,5 @@
 ﻿/* ─── Element hover outline ─── */
-.pb-canvas-el:not(.pb-selected):not(.pb-locked):hover {
+.pb-canvas-el:not(.pb-selected):hover {
   outline: 1px dashed var(--pb-primary-hover);
   outline-offset: 1px;
 }

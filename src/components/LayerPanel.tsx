@@ -116,6 +116,7 @@ function SectionGroup({
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
 }: SectionGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const [colCollapsed, setColCollapsed] = useState<boolean[]>([]);
   const [dragOverElIdx, setDragOverElIdx] = useState<number | null>(null);
 
   const draggable = role === 'section';
@@ -567,17 +568,27 @@ function SectionGroup({
           )}
 
           {hasColumns ? (
-            columnGroups.map((group, colIdx) => (
-              <div key={colIdx}>
-                <div className={'pb-layer-row pb-flex-row pb-layer-row--cell'} style={{ paddingLeft: 8 + (depth + 1) * 16 }}>
-                  <span className={'pb-layer-arrow pb-flex-center pb-layer-arrow--leaf'} />
-                  <span className={'pb-layer-section-icon'}>⊟</span>
-                  <span className={'pb-layer-name pb-truncate'}>Column {colIdx + 1}</span>
+            columnGroups.map((group, colIdx) => {
+              const isColCollapsed = colCollapsed[colIdx] ?? false;
+              const toggleCol = () => setColCollapsed(prev => { const next = [...prev]; next[colIdx] = !next[colIdx]; return next; });
+              return (
+                <div key={colIdx}>
+                  <div
+                    className={'pb-layer-row pb-flex-row pb-layer-row--cell'}
+                    style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
+                    onClick={toggleCol}
+                  >
+                    <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleCol(); }}>
+                      <CollapseArrow collapsed={isColCollapsed} />
+                    </button>
+                    <span className={'pb-layer-section-icon'}>⊟</span>
+                    <span className={'pb-layer-name pb-truncate'}>Column {colIdx + 1}</span>
+                  </div>
+                  {!isColCollapsed && group.length === 0 && <div className={'pb-layer-empty-row'} style={{ paddingLeft: 8 + (depth + 2) * 16 }}>Empty</div>}
+                  {!isColCollapsed && group.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
                 </div>
-                {group.length === 0 && <div className={'pb-layer-empty-row'} style={{ paddingLeft: 8 + (depth + 2) * 16 }}>Empty</div>}
-                {group.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
-              </div>
-            ))
+              );
+            })
           ) : (
             elementItems.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))
           )}
@@ -608,11 +619,15 @@ export function LayerPanel({
     const t = setTimeout(() => {
       const list = layerListRef.current;
       if (!list) return;
-      const selected = list.querySelector<HTMLElement>('.pb-selected');
+      // Prefer the deepest element row (.pb-layer-row) over section headers
+      const rows = Array.from(list.querySelectorAll<HTMLElement>('.pb-layer-row.pb-selected'));
+      const selected = rows[rows.length - 1] ?? list.querySelector<HTMLElement>('.pb-selected');
       if (!selected) return;
-      const listTop = list.getBoundingClientRect().top;
-      const elTop = selected.getBoundingClientRect().top;
-      const relativeTop = elTop - listTop + list.scrollTop;
+      const listRect = list.getBoundingClientRect();
+      const elRect = selected.getBoundingClientRect();
+      // Only scroll if the item is outside the visible area
+      if (elRect.top >= listRect.top && elRect.bottom <= listRect.bottom) return;
+      const relativeTop = elRect.top - listRect.top + list.scrollTop;
       list.scrollTo({ top: relativeTop - list.clientHeight / 2 + selected.offsetHeight / 2 });
     }, 60);
     return () => clearTimeout(t);

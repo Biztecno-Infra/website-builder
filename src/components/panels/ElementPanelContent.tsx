@@ -263,7 +263,7 @@ export function ElementPanelContent({
               onChange={e => changeTypo({ lineHeight: Number(e.target.value) })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Spacing</label>
+            <label>Letter Sp.</label>
             <PxInput value={element.style.typography.letterSpacing ?? 0} step={0.5}
               onFocus={onFocus} onBlur={onBlur}
               onChange={v => changeTypo({ letterSpacing: v })} />

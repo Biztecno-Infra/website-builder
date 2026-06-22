@@ -220,7 +220,6 @@ export interface ElementInteraction {
 
 export interface ElementState {
   hidden: boolean;
-  locked: boolean;
 }
 
 export interface ResponsiveStyle {

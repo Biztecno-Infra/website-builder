@@ -175,9 +175,9 @@ export function ElementPanel({
         )}
         {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
           <div className={'pb-prop-row'}>
-            <label>{!isInGridCell ? 'H' : (element.type === 'image' || element.type === 'video') ? 'H' : 'Min H'}</label>
-            <PbInput type="number" value={eff.layout.height} min={minSize} onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeResp({ layout: { height: Math.max(minSize, Number(e.target.value)) } })} />
+            <label>{!isInGridCell ? 'Height' : (element.type === 'image' || element.type === 'video') ? 'Height' : 'Min H'}</label>
+            <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
+              onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
           </div>
         )}
         {element.type !== 'spacer' && (
@@ -206,7 +206,7 @@ export function ElementPanel({
           if (val === 'fixed') change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed', flexGrow: 0, alignSelf: 'auto' } });
         };
         return (
-          <CollapsibleSection sectionKey="sizing" label="Sizing" isOpen={sec('sizing')} onToggle={toggleSection}>
+          <CollapsibleSection sectionKey="sizing" label="Size" isOpen={sec('sizing')} onToggle={toggleSection}>
             <div className={'pb-prop-row'}>
               <label>Width</label>
               <PbSelect size="sm" value={sizingValue} options={sizingOptions} onChange={applySizing} />

@@ -454,10 +454,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
         e.preventDefault(); duplicateElement(selectedId); return;
       }
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        const ids = selectedIds.filter(id => {
-          const el = elements[id];
-          return el && !el.state.locked;
-        });
+        const ids = selectedIds.filter(id => !!elements[id]);
         if (!ids.length) return;
         e.preventDefault();
         const step = e.shiftKey ? 10 : 1;
@@ -739,13 +736,6 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               <button onClick={() => { duplicateElement(contextMenu.id); setContextMenu(null); }}>Duplicate</button>
               <button onClick={() => { bringToFront(contextMenu.id); setContextMenu(null); }}>Bring to Front</button>
               <button onClick={() => { sendToBack(contextMenu.id); setContextMenu(null); }}>Send to Back</button>
-              <button onClick={() => {
-                const el = elements[contextMenu.id];
-                if (el) updateElement(contextMenu.id, { state: { ...el.state, locked: !el.state.locked } });
-                setContextMenu(null);
-              }}>
-                {elements[contextMenu.id]?.state?.locked ? 'Unlock' : 'Lock'}
-              </button>
               <div className={'pb-context-menu-divider'} />
               <button className={'pb-context-menu-danger'}
                 onClick={() => { deleteElement(contextMenu.id); setContextMenu(null); }}>

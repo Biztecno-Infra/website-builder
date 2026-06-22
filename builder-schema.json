@@ -1,0 +1,689 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "builder-schema",
+  "title": "BuilderState",
+  "description": "Complete serialised state of the page builder. Backend rule: store the whole object verbatim; return it verbatim on load — no transformation needed. Fields marked 'Editor-only' can be stored as-is but carry no meaning for the backend; fields marked 'Deprecated' should be preserved for round-trip compatibility but ignored in new logic.",
+  "type": "object",
+  "required": ["schema", "site", "theme", "pages", "activePageId", "nodes"],
+  "properties": {
+
+    "schema": {
+      "type": "string",
+      "description": "Schema version string, e.g. '1.0'. Increment when breaking changes are made.",
+      "example": "1.0"
+    },
+
+    "activePageId": {
+      "type": "string",
+      "description": "Editor-only. Which page is open in the editor. Must match one of pages[].id. Store it; the backend does not need to act on it."
+    },
+
+    "site": {
+      "type": "object",
+      "description": "Global site metadata.",
+      "required": ["name", "favicon", "language"],
+      "properties": {
+        "name":     { "type": "string", "description": "Site / brand name." },
+        "favicon":  { "type": "string", "description": "URL or base64 data-URI of the favicon." },
+        "language": { "type": "string", "description": "BCP-47 language tag, e.g. 'en'." }
+      }
+    },
+
+    "theme": {
+      "type": "object",
+      "description": "Design tokens applied site-wide.",
+      "required": ["colors", "fonts"],
+      "properties": {
+        "colors": {
+          "type": "object",
+          "required": ["primary", "text", "background", "light", "accent", "sectionBg"],
+          "properties": {
+            "primary":    { "type": "string", "description": "Brand primary color (hex). Used for buttons, icons." },
+            "text":       { "type": "string", "description": "Default text color (hex)." },
+            "background": { "type": "string", "description": "Page/body background color (hex)." },
+            "light":      { "type": "string", "description": "Light fill color for boxes, dividers (hex)." },
+            "accent":     { "type": "string", "description": "Accent color (hex)." },
+            "sectionBg":  { "type": "string", "description": "Default new-section background color (hex)." },
+            "secondary":  { "type": "string", "description": "Legacy field, kept for back-compat." }
+          }
+        },
+        "fonts": {
+          "type": "object",
+          "required": ["body"],
+          "properties": {
+            "body":    { "type": "string", "description": "Body font family name, e.g. 'Inter'." },
+            "heading": { "type": "string", "description": "Optional heading font family. Falls back to body." }
+          }
+        }
+      }
+    },
+
+    "pages": {
+      "type": "array",
+      "description": "All pages in the site. Minimum one page.",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "slug", "seo", "sections"],
+        "properties": {
+          "id":      { "type": "string", "description": "Unique page ID." },
+          "name":    { "type": "string", "description": "Human-readable page name shown in the editor." },
+          "slug":    { "type": "string", "description": "URL path segment, e.g. 'about'. Root page is typically '/'." },
+          "seo": {
+            "type": "object",
+            "required": ["title", "description", "ogImage"],
+            "properties": {
+              "title":       { "type": "string" },
+              "description": { "type": "string" },
+              "ogImage":     { "type": "string", "description": "Open Graph image URL." }
+            }
+          },
+          "sections": {
+            "type": "array",
+            "description": "Ordered list of Section node IDs that make up this page.",
+            "items": { "type": "string" }
+          },
+          "layoutWidth": {
+            "type": "string",
+            "enum": ["fixed", "fluid"],
+            "description": "Whether the page uses a fixed max-width container or stretches full-width. Default: 'fixed'."
+          },
+          "maxWidth": {
+            "type": "number",
+            "description": "Max content width in px when layoutWidth is 'fixed'. Default: 1280."
+          }
+        }
+      }
+    },
+
+    "nodes": {
+      "type": "object",
+      "description": "Flat map of every node in the builder. Keys are node IDs. Values are discriminated by the 'type' field: 'section' | 'grid-cell' | 'container' | 'carousel' | 'accordion' | (element types). The page tree is assembled by following ID references starting from pages[].sections.",
+      "additionalProperties": {
+        "oneOf": [
+          { "$ref": "#/definitions/Section" },
+          { "$ref": "#/definitions/GridCell" },
+          { "$ref": "#/definitions/Container" },
+          { "$ref": "#/definitions/Carousel" },
+          { "$ref": "#/definitions/Accordion" },
+          { "$ref": "#/definitions/CanvasElement" }
+        ]
+      }
+    }
+  },
+
+  "definitions": {
+
+    "Section": {
+      "type": "object",
+      "description": "A full-width horizontal band on the page. Discriminated by layoutMode: 'free' = absolutely-positioned children, 'grid' = column grid, 'flex' = flex row/column.",
+      "required": ["id", "type", "role", "label", "layoutMode", "layout", "style", "children"],
+      "properties": {
+        "id":     { "type": "string" },
+        "type":   { "type": "string", "enum": ["section"] },
+        "role":   { "type": "string", "enum": ["header", "footer", "section"], "description": "Semantic role. 'header' and 'footer' render outside the main content flow." },
+        "label":  { "type": "string", "description": "Editor-only. Display name shown in the Layers panel. Has no effect on rendering or export." },
+        "layoutMode": { "type": "string", "enum": ["free", "grid", "flex"] },
+        "children": {
+          "type": "array",
+          "description": "For 'free': CanvasElement IDs. For 'grid'/'flex': GridCell IDs.",
+          "items": { "type": "string" }
+        },
+        "grid": {
+          "type": "object",
+          "description": "Required when layoutMode is 'grid' or 'flex'.",
+          "properties": {
+            "gap":          { "type": "number", "description": "Column gap in px." },
+            "rowGap":       { "type": "number", "description": "Row gap in px." },
+            "minHeight":    { "type": "number" },
+            "rowHeight":    { "type": "number" },
+            "contentWidth": { "type": "string", "enum": ["constrained", "full"] },
+            "maxWidth":     { "type": "number" }
+          }
+        },
+        "flex": {
+          "type": "object",
+          "description": "Required when layoutMode is 'flex'.",
+          "properties": {
+            "direction": { "type": "string", "enum": ["row", "column", "row-reverse", "column-reverse"] },
+            "justify":   { "type": "string", "enum": ["flex-start", "center", "flex-end", "space-between", "space-around"] },
+            "align":     { "type": "string", "enum": ["flex-start", "center", "flex-end", "stretch"] },
+            "wrap":      { "type": "boolean" }
+          }
+        },
+        "layout": {
+          "type": "object",
+          "required": ["height"],
+          "properties": {
+            "height": { "type": "number", "description": "Section height in px." }
+          }
+        },
+        "style":          { "$ref": "#/definitions/SectionStyle" },
+        "scrollBehavior": { "type": "string", "enum": ["normal", "sticky", "fixed"], "description": "Rendering detail. How the section behaves on scroll. Backend stores it; no backend logic required." },
+        "stickyOffset":   { "type": "number", "description": "Rendering detail. Top offset in px when scrollBehavior is 'sticky'. Backend stores it; no backend logic required." },
+        "cssPosition":    { "type": "string", "enum": ["relative", "absolute", "fixed", "sticky"], "description": "Rendering detail. CSS position override for the section. Backend stores it; no backend logic required." },
+        "hidden":         { "type": "boolean" },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "$ref": "#/definitions/SectionBpOverride" },
+            "mobile": { "$ref": "#/definitions/SectionBpOverride" }
+          }
+        }
+      }
+    },
+
+    "SectionBpOverride": {
+      "type": "object",
+      "properties": {
+        "height":  { "type": "number" },
+        "gap":     { "type": "number" },
+        "rowGap":  { "type": "number" },
+        "padding": { "$ref": "#/definitions/PartialPadding" },
+        "hidden":  { "type": "boolean" }
+      }
+    },
+
+    "GridCell": {
+      "type": "object",
+      "description": "A column cell inside a grid/flex Section or Container. Holds CanvasElements, Carousels, Accordions, or a nested Container.",
+      "required": ["id", "type", "parent", "columnSpan", "rowSpan", "style", "children"],
+      "properties": {
+        "id":         { "type": "string" },
+        "type":       { "type": "string", "enum": ["grid-cell"] },
+        "parent":     { "type": "string", "description": "Parent Section or Container ID." },
+        "columnSpan": { "type": "number", "description": "Number of columns this cell spans (1–12)." },
+        "rowSpan":    { "type": "number", "description": "Number of rows this cell spans." },
+        "children":   { "type": "array", "items": { "type": "string" }, "description": "CanvasElement / Carousel / Accordion / Container IDs." },
+        "style": {
+          "type": "object",
+          "required": ["layoutMode", "gap", "padding", "background", "alignItems", "justifyContent"],
+          "properties": {
+            "layoutMode":     { "type": "string", "enum": ["column", "row", "wrap"] },
+            "gap":            { "type": "number" },
+            "padding":        { "$ref": "#/definitions/Padding" },
+            "background":     { "$ref": "#/definitions/SectionBackground" },
+            "border":         { "$ref": "#/definitions/Border" },
+            "minHeight":      { "type": "number" },
+            "alignItems":     { "type": "string", "enum": ["flex-start", "center", "flex-end", "stretch"] },
+            "justifyContent": { "type": "string", "enum": ["flex-start", "center", "flex-end", "space-between", "space-around"] }
+          }
+        },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "$ref": "#/definitions/GridCellBpOverride" },
+            "mobile": { "$ref": "#/definitions/GridCellBpOverride" }
+          }
+        }
+      }
+    },
+
+    "GridCellBpOverride": {
+      "type": "object",
+      "properties": {
+        "columnSpan":     { "type": "number" },
+        "hidden":         { "type": "boolean" },
+        "layoutMode":     { "type": "string", "enum": ["column", "row", "wrap"] },
+        "minHeight":      { "type": "number" },
+        "alignItems":     { "type": "string", "enum": ["flex-start", "center", "flex-end", "stretch"] },
+        "justifyContent": { "type": "string", "enum": ["flex-start", "center", "flex-end", "space-between", "space-around"] },
+        "padding":        { "$ref": "#/definitions/PartialPadding" }
+      }
+    },
+
+    "Container": {
+      "type": "object",
+      "description": "A layout wrapper that lives inside a GridCell and holds nested GridCells.",
+      "required": ["id", "type", "parent", "children", "layoutMode", "gap", "rowGap"],
+      "properties": {
+        "id":         { "type": "string" },
+        "type":       { "type": "string", "enum": ["container"] },
+        "parent":     { "type": "string", "description": "Parent GridCell ID." },
+        "children":   { "type": "array", "items": { "type": "string" }, "description": "GridCell IDs." },
+        "layoutMode": { "type": "string", "enum": ["grid", "flex-col", "flex-row"] },
+        "gap":        { "type": "number" },
+        "rowGap":     { "type": "number" },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "type": "object", "properties": { "layoutMode": { "type": "string", "enum": ["grid", "flex-col", "flex-row"] } } },
+            "mobile": { "type": "object", "properties": { "layoutMode": { "type": "string", "enum": ["grid", "flex-col", "flex-row"] } } }
+          }
+        }
+      }
+    },
+
+    "Carousel": {
+      "type": "object",
+      "description": "A slideshow component. Lives in a Section's children. Each child GridCell is one slide.",
+      "required": ["id", "type", "parent", "children", "props", "layout"],
+      "properties": {
+        "id":       { "type": "string" },
+        "type":     { "type": "string", "enum": ["carousel"] },
+        "parent":   { "type": "string", "description": "Parent Section ID." },
+        "children": { "type": "array", "items": { "type": "string" }, "description": "GridCell IDs — one per slide." },
+        "layout": {
+          "type": "object",
+          "required": ["x", "y", "width", "height"],
+          "properties": {
+            "x":         { "type": "number" },
+            "y":         { "type": "number" },
+            "width":     { "type": "number" },
+            "height":    { "type": "number" },
+            "zIndex":    { "type": "number" },
+            "minHeight": { "type": "number" }
+          }
+        },
+        "props": {
+          "type": "object",
+          "required": ["autoplay", "autoplayInterval", "loop", "showArrows", "showDots"],
+          "properties": {
+            "autoplay":           { "type": "boolean" },
+            "autoplayInterval":   { "type": "number", "description": "Seconds between slides when autoplay is on." },
+            "loop":               { "type": "boolean" },
+            "showArrows":         { "type": "boolean" },
+            "showDots":           { "type": "boolean" },
+            "transitionDuration": { "type": "number", "description": "Slide transition in ms." },
+            "pauseOnHover":       { "type": "boolean" },
+            "dotColor":           { "type": "string" }
+          }
+        },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "$ref": "#/definitions/CarouselBpOverride" },
+            "mobile": { "$ref": "#/definitions/CarouselBpOverride" }
+          }
+        },
+        "activeSlide": { "type": "number", "description": "Editor-only. Index of the slide shown on the canvas. Stripped before saving; if present, ignore it — do not reject." }
+      }
+    },
+
+    "CarouselBpOverride": {
+      "type": "object",
+      "properties": {
+        "x":         { "type": "number" },
+        "y":         { "type": "number" },
+        "width":     { "type": "number" },
+        "height":    { "type": "number" },
+        "minHeight": { "type": "number" },
+        "hidden":    { "type": "boolean" }
+      }
+    },
+
+    "Accordion": {
+      "type": "object",
+      "description": "A stacked collapsible component. Lives in a Section or GridCell's children.",
+      "required": ["id", "type", "parent", "children", "items", "props", "layout"],
+      "properties": {
+        "id":       { "type": "string" },
+        "type":     { "type": "string", "enum": ["accordion"] },
+        "parent":   { "type": "string", "description": "Parent Section or GridCell ID." },
+        "children": { "type": "array", "items": { "type": "string" }, "description": "Unused at node level — items hold the real child IDs." },
+        "items": {
+          "type": "array",
+          "description": "Ordered collapsible rows.",
+          "items": {
+            "type": "object",
+            "required": ["id", "titleElId", "iconElId", "contentCellId"],
+            "properties": {
+              "id":            { "type": "string" },
+              "titleElId":     { "type": "string", "description": "CanvasElement ID of the text heading." },
+              "iconElId":      { "type": "string", "description": "CanvasElement ID of the chevron icon." },
+              "contentCellId": { "type": "string", "description": "GridCell ID of the expandable content area." }
+            }
+          }
+        },
+        "layout": {
+          "type": "object",
+          "required": ["x", "y", "width"],
+          "properties": {
+            "x":      { "type": "number" },
+            "y":      { "type": "number" },
+            "width":  { "type": "number" },
+            "zIndex": { "type": "number" }
+          }
+        },
+        "props": {
+          "type": "object",
+          "required": ["allowMultiple", "defaultOpen", "iconPosition", "itemGap"],
+          "properties": {
+            "allowMultiple":        { "type": "boolean" },
+            "defaultOpen":          { "type": "string", "enum": ["first", "all", "none"] },
+            "iconPosition":         { "type": "string", "enum": ["right", "left"] },
+            "expandedIconRotation": { "type": "number" },
+            "contentGap":           { "type": "number" },
+            "itemGap":              { "type": "number" },
+            "containerBorder":      { "type": "boolean" },
+            "itemDivider":          { "type": "boolean" },
+            "separatorColor":       { "type": "string" },
+            "separatorWidth":       { "type": "number" },
+            "separatorStyle":       { "type": "string", "enum": ["solid", "dashed", "dotted"] },
+            "borderRadius":         { "type": "number" }
+          }
+        },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "$ref": "#/definitions/AccordionBpOverride" },
+            "mobile": { "$ref": "#/definitions/AccordionBpOverride" }
+          }
+        },
+        "activeItems": { "type": "array", "items": { "type": "string" }, "description": "Editor-only. IDs of currently expanded items on the canvas. Stripped before saving; if present, ignore it — do not reject." }
+      }
+    },
+
+    "AccordionBpOverride": {
+      "type": "object",
+      "properties": {
+        "x":      { "type": "number" },
+        "y":      { "type": "number" },
+        "width":  { "type": "number" },
+        "hidden": { "type": "boolean" }
+      }
+    },
+
+    "CanvasElement": {
+      "type": "object",
+      "description": "A renderable element on the canvas. type discriminates: 'text' | 'image' | 'button' | 'box' | 'divider' | 'video' | 'spacer' | 'icon' | 'form'.",
+      "required": ["id", "type", "parent", "layout", "style", "content", "state", "responsive", "flexLayout"],
+      "properties": {
+        "id":     { "type": "string" },
+        "type":   { "type": "string", "enum": ["text", "image", "button", "box", "divider", "video", "spacer", "icon", "form"] },
+        "parent": { "type": "string", "description": "Parent Section (free) or GridCell (grid) ID." },
+        "layout": {
+          "type": "object",
+          "required": ["x", "y", "width", "height", "zIndex", "rotation"],
+          "properties": {
+            "x":        { "type": "number", "description": "Left position in px (free sections only)." },
+            "y":        { "type": "number", "description": "Top position in px (free sections only)." },
+            "width":    { "type": "number", "description": "Width in px." },
+            "height":   { "type": "number", "description": "Height in px." },
+            "zIndex":   { "type": "number" },
+            "rotation": { "type": "number", "description": "Rotation in degrees." }
+          }
+        },
+        "flexLayout": {
+          "type": "object",
+          "required": ["widthMode", "widthValue", "flexGrow", "alignSelf"],
+          "description": "Controls width behaviour when element lives in a grid cell.",
+          "properties": {
+            "widthMode":  { "type": "string", "enum": ["fill", "auto", "fixed", "percent"], "description": "'fill' = 100% cell width, 'fixed' = layout.width, 'percent' = widthValue%." },
+            "widthValue": { "type": "number" },
+            "flexGrow":   { "type": "number" },
+            "alignSelf":  { "type": "string", "enum": ["auto", "flex-start", "center", "flex-end", "stretch"] }
+          }
+        },
+        "style":   { "$ref": "#/definitions/ElementStyle" },
+        "content": { "$ref": "#/definitions/ElementContent" },
+        "action":  { "$ref": "#/definitions/ElementAction" },
+        "interaction": {
+          "type": "object",
+          "description": "Deprecated. Legacy click model superseded by 'action'. Preserve on round-trip for back-compat; ignore in all new logic. Will be absent in schema 2.0 saves.",
+          "properties": {
+            "type":            { "type": "string", "enum": ["link", "scroll-to-section", "scroll-to-top"] },
+            "linkUrl":         { "type": "string" },
+            "linkTarget":      { "type": "string", "enum": ["_self", "_blank"] },
+            "targetSectionId": { "type": "string" },
+            "smoothScroll":    { "type": "boolean" }
+          }
+        },
+        "state": {
+          "type": "object",
+          "required": ["hidden", "locked"],
+          "properties": {
+            "hidden": { "type": "boolean", "description": "Hides the element in preview and export. Backend should preserve this value." },
+            "locked": { "type": "boolean", "description": "Editor-only. Prevents the element from being moved/resized in the editor. Has no effect on rendering or export." }
+          }
+        },
+        "responsive": {
+          "type": "object",
+          "properties": {
+            "tablet": { "$ref": "#/definitions/BreakpointOverride" },
+            "mobile": { "$ref": "#/definitions/BreakpointOverride" }
+          }
+        },
+        "overlayInCell": { "type": "boolean", "description": "Rendering detail. When true, element is absolutely positioned inside its grid cell instead of following flex flow. Backend stores it; no backend logic required." },
+        "cssPosition":   { "type": "string", "enum": ["relative", "absolute", "fixed", "sticky"], "description": "Rendering detail. CSS position override for the element. Backend stores it; no backend logic required." }
+      }
+    },
+
+    "ElementContent": {
+      "type": "object",
+      "description": "Type-specific content. Only the relevant fields are populated per element type.",
+      "properties": {
+        "plain":          { "type": "string", "description": "text: plain-text content." },
+        "rich":           { "type": "string", "description": "text: HTML rich-text content." },
+        "src":            { "type": "string", "description": "image: image URL." },
+        "alt":            { "type": "string", "description": "image: alt text." },
+        "objectFit":      { "type": "string", "enum": ["cover", "contain", "fill"], "description": "image." },
+        "objectPosition": { "type": "string", "description": "image: CSS object-position value." },
+        "linkUrl":        { "type": "string", "description": "image: optional click-through URL." },
+        "label":          { "type": "string", "description": "button: button label text." },
+        "videoUrl":       { "type": "string", "description": "video: embed URL (YouTube / Vimeo / direct)." },
+        "thumbnailUrl":   { "type": "string", "description": "video: poster/thumbnail URL." },
+        "iconName":       { "type": "string", "description": "icon: icon identifier." },
+        "iconSize":       { "type": "number", "description": "icon: size in px." },
+        "iconSvg":        { "type": "string", "description": "icon: raw SVG string." },
+        "orientation":    { "type": "string", "enum": ["horizontal", "vertical"], "description": "divider." },
+        "formFields":     { "type": "array", "items": { "$ref": "#/definitions/FormField" }, "description": "form: ordered list of fields." },
+        "fieldGap":       { "type": "number", "description": "form: gap in px between fields." },
+        "submitLabel":    { "type": "string", "description": "form: submit button label." }
+      }
+    },
+
+    "ElementAction": {
+      "type": "object",
+      "description": "Click / submit behavior. type discriminates which fields are used.",
+      "required": ["type"],
+      "properties": {
+        "type":            { "type": "string", "enum": ["none", "submit-form", "submit-api", "external-url", "internal-page", "send-email", "make-call", "send-sms", "download-file", "open-popup", "scroll-to-section", "scroll-to-top"] },
+        "url":             { "type": "string", "description": "external-url / download-file." },
+        "target":          { "type": "string", "enum": ["_self", "_blank"], "description": "external-url." },
+        "pageId":          { "type": "string", "description": "internal-page." },
+        "email":           { "type": "string", "description": "send-email / submit-form recipient." },
+        "subject":         { "type": "string" },
+        "body":            { "type": "string", "description": "send-email body / send-sms message." },
+        "phone":           { "type": "string", "description": "make-call / send-sms." },
+        "popupId":         { "type": "string", "description": "open-popup." },
+        "targetSectionId": { "type": "string", "description": "scroll-to-section." },
+        "smoothScroll":    { "type": "boolean" },
+        "apiUrl":          { "type": "string", "description": "submit-api endpoint." },
+        "apiMethod":       { "type": "string", "enum": ["POST", "PUT", "PATCH"], "description": "submit-api HTTP method." },
+        "apiBody":         { "type": "string", "description": "submit-api optional static JSON body (standalone button only)." }
+      }
+    },
+
+    "FormField": {
+      "type": "object",
+      "required": ["id", "type", "label", "name", "required", "width", "validation"],
+      "properties": {
+        "id":           { "type": "string" },
+        "type":         { "type": "string", "enum": ["text", "email", "number", "textarea", "select", "checkbox", "radio", "date"] },
+        "label":        { "type": "string", "description": "Visible field label." },
+        "name":         { "type": "string", "description": "Submission key (HTML input name)." },
+        "placeholder":  { "type": "string" },
+        "helpText":     { "type": "string" },
+        "defaultValue": { "type": "string" },
+        "required":     { "type": "boolean" },
+        "width":        { "type": "string", "enum": ["full", "half"], "description": "Layout width within the form's flex row." },
+        "validation": {
+          "type": "object",
+          "properties": {
+            "preset":       { "type": "string", "enum": ["none", "email", "url", "number"] },
+            "minLength":    { "type": "number" },
+            "maxLength":    { "type": "number" },
+            "min":          { "description": "number fields: numeric min; date fields: ISO date string." },
+            "max":          { "description": "number fields: numeric max; date fields: ISO date string." },
+            "pattern":      { "type": "string", "description": "Raw regex source without slashes." },
+            "errorMessage": { "type": "string" }
+          }
+        },
+        "options": {
+          "type": "array",
+          "description": "Choices for select / radio / checkbox fields.",
+          "items": {
+            "type": "object",
+            "required": ["label", "value"],
+            "properties": {
+              "label": { "type": "string" },
+              "value": { "type": "string" }
+            }
+          }
+        },
+        "rows": { "type": "number", "description": "textarea row count." }
+      }
+    },
+
+    "ElementStyle": {
+      "type": "object",
+      "required": ["opacity", "background", "padding", "border", "shadow", "typography"],
+      "properties": {
+        "opacity":    { "type": "number", "minimum": 0, "maximum": 1 },
+        "background": { "$ref": "#/definitions/ElementBackground" },
+        "padding":    { "$ref": "#/definitions/Padding" },
+        "margin":     { "$ref": "#/definitions/PartialPadding" },
+        "border":     { "$ref": "#/definitions/Border" },
+        "shadow":     { "$ref": "#/definitions/Shadow" },
+        "typography": { "$ref": "#/definitions/Typography" },
+        "hover": {
+          "type": "object",
+          "description": "Button hover effect (Phase 1 — buttons only).",
+          "required": ["enabled", "transitionDuration"],
+          "properties": {
+            "enabled":             { "type": "boolean" },
+            "backgroundColor":     { "type": "string" },
+            "textColor":           { "type": "string" },
+            "transitionDuration":  { "type": "number", "description": "ms." }
+          }
+        }
+      }
+    },
+
+    "ElementBackground": {
+      "type": "object",
+      "required": ["type", "color", "image", "position", "from", "to", "angle"],
+      "properties": {
+        "type":     { "type": "string", "enum": ["solid", "linear-gradient", "radial-gradient", "transparent"] },
+        "color":    { "type": "string", "description": "Hex color or 'transparent'." },
+        "image":    { "type": "string", "description": "Background image URL." },
+        "position": { "type": "string", "description": "CSS background-position." },
+        "from":     { "type": "string", "description": "Gradient start color (hex)." },
+        "to":       { "type": "string", "description": "Gradient end color (hex)." },
+        "angle":    { "type": "number", "description": "Linear gradient angle in degrees." }
+      }
+    },
+
+    "SectionBackground": {
+      "allOf": [
+        { "$ref": "#/definitions/ElementBackground" },
+        {
+          "type": "object",
+          "properties": {
+            "overlay": { "type": "number", "minimum": 0, "maximum": 1, "description": "Dark overlay opacity over background image." }
+          }
+        }
+      ]
+    },
+
+    "SectionStyle": {
+      "type": "object",
+      "required": ["background", "columns", "padding"],
+      "properties": {
+        "background": { "$ref": "#/definitions/SectionBackground" },
+        "columns": {
+          "type": "object",
+          "required": ["count", "widths", "styles"],
+          "properties": {
+            "count":  { "type": "number", "description": "Editor-only. Number of guide columns shown as visual overlays in the editor. Does not affect layout or export." },
+            "widths": { "type": "array", "items": { "type": "number" }, "description": "Editor-only. Custom guide column widths as percentages. Does not affect layout or export." },
+            "styles": { "type": "object", "description": "Editor-only. Per-column background overrides for guide columns. Key = column index as string. Does not affect layout or export.", "additionalProperties": { "$ref": "#/definitions/ColumnStyle" } }
+          }
+        },
+        "padding": { "$ref": "#/definitions/Padding" },
+        "margin":  { "$ref": "#/definitions/Padding" },
+        "border":  { "$ref": "#/definitions/Border" },
+        "shadow":  { "$ref": "#/definitions/Shadow" }
+      }
+    },
+
+    "ColumnStyle": {
+      "type": "object",
+      "properties": {
+        "background": { "$ref": "#/definitions/SectionBackground" }
+      }
+    },
+
+    "BreakpointOverride": {
+      "type": "object",
+      "description": "Per-breakpoint overrides for a CanvasElement. Only set fields override; unset fields inherit from desktop.",
+      "properties": {
+        "layout":     { "type": "object", "properties": { "x": { "type": "number" }, "y": { "type": "number" }, "width": { "type": "number" }, "height": { "type": "number" }, "zIndex": { "type": "number" }, "rotation": { "type": "number" } } },
+        "style":      { "type": "object", "properties": { "typography": { "type": "object", "properties": { "size": { "type": "number" }, "weight": { "type": "string" }, "align": { "type": "string" }, "letterSpacing": { "type": "number" }, "textTransform": { "type": "string" } } } } },
+        "state":      { "type": "object", "properties": { "hidden": { "type": "boolean" }, "locked": { "type": "boolean" } } },
+        "flexLayout": { "type": "object", "properties": { "widthMode": { "type": "string" }, "widthValue": { "type": "number" }, "flexGrow": { "type": "number" }, "alignSelf": { "type": "string" } } }
+      }
+    },
+
+    "Padding": {
+      "type": "object",
+      "required": ["top", "right", "bottom", "left"],
+      "properties": {
+        "top":    { "type": "number" },
+        "right":  { "type": "number" },
+        "bottom": { "type": "number" },
+        "left":   { "type": "number" }
+      }
+    },
+
+    "PartialPadding": {
+      "type": "object",
+      "properties": {
+        "top":    { "type": "number" },
+        "right":  { "type": "number" },
+        "bottom": { "type": "number" },
+        "left":   { "type": "number" }
+      }
+    },
+
+    "Border": {
+      "type": "object",
+      "required": ["radius", "width", "color", "style"],
+      "properties": {
+        "radius": { "type": "number", "description": "px." },
+        "width":  { "type": "number", "description": "px." },
+        "color":  { "type": "string" },
+        "style":  { "type": "string", "enum": ["none", "solid", "dashed", "dotted"] }
+      }
+    },
+
+    "Shadow": {
+      "type": "object",
+      "required": ["enabled", "x", "y", "blur", "spread", "color"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "x":       { "type": "number" },
+        "y":       { "type": "number" },
+        "blur":    { "type": "number" },
+        "spread":  { "type": "number" },
+        "color":   { "type": "string" }
+      }
+    },
+
+    "Typography": {
+      "type": "object",
+      "required": ["family", "size", "weight", "color", "align", "lineHeight"],
+      "properties": {
+        "family":        { "type": "string" },
+        "size":          { "type": "number", "description": "px." },
+        "weight":        { "type": "string", "description": "CSS font-weight, e.g. '400', '700'." },
+        "color":         { "type": "string" },
+        "align":         { "type": "string", "enum": ["left", "center", "right"] },
+        "lineHeight":    { "type": "number" },
+        "letterSpacing": { "type": "number", "description": "em." },
+        "textTransform": { "type": "string", "enum": ["none", "uppercase", "lowercase", "capitalize"] }
+      }
+    }
+  }
+}

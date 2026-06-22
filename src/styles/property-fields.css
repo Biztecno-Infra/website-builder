@@ -566,13 +566,6 @@
   line-height: 1;
 }
 
-.pb-lock-indicator {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  font-size: 10px;
-  pointer-events: none;
-}
 
 /* ─── Inline format toolbar ─── */
 .pb-format-toolbar {
