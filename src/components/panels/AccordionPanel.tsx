@@ -103,7 +103,18 @@ export function AccordionPanel({
   const commit = () => onPushSnapshot(snapshot);
   const setProps = (updates: Partial<typeof p>, withSnapshot = true) => {
     if (withSnapshot) commit();
-    onUpdateAccordion(accordion.id, { props: { ...p, ...updates } });
+    const nextProps = { ...p, ...updates };
+    // Changing defaultOpen re-syncs the editor open-state so Preview immediately
+    // matches what the exported page will render (which is derived from defaultOpen).
+    const extra: Partial<Omit<Accordion, 'id' | 'type' | 'parent' | 'children' | 'items'>> = {};
+    if (updates.defaultOpen !== undefined && updates.defaultOpen !== p.defaultOpen) {
+      const its = accordion.items;
+      extra.activeItems =
+        nextProps.defaultOpen === 'all' ? its.map(it => it.id)
+        : nextProps.defaultOpen === 'first' ? (its.length ? [its[0].id] : [])
+        : [];
+    }
+    onUpdateAccordion(accordion.id, { props: nextProps, ...extra });
   };
 
   const items = accordion.items;

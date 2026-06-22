@@ -99,6 +99,7 @@ export default function App() {
     duplicateAccordionItem,
     reorderAccordionItem,
     toggleAccordionItem,
+    resetAccordionRuntime,
   } = useBuilderStore();
 
   // selectedContainerId now lives in useBuilderStore (and is cleared there on undo).
@@ -398,7 +399,7 @@ export default function App() {
 
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
         e.preventDefault();
-        if (!previewMode) capturePreviewScroll();
+        if (!previewMode) { capturePreviewScroll(); resetAccordionRuntime(); }
         setPreviewMode(p => !p);
         return;
       }
@@ -455,7 +456,7 @@ export default function App() {
   }, [handleUndo, handleRedo, deleteSelected, selectedId, selectedIds, copyElement, pasteElement,
       duplicateElement, updateElements, pushSnapshot, setSelectedIds, setSelectedSectionId,
       stateRef, elements, previewMode, changeZoom, setZoom,
-      capturePreviewScroll]);
+      capturePreviewScroll, resetAccordionRuntime]);
 
   const handleAddElement = useCallback((type: import('./types').ElementType) => {
     if (selectedContainerId) {
@@ -565,7 +566,7 @@ export default function App() {
           zoom={zoom}
           onZoomChange={changeZoom}
           onZoomReset={() => setZoom(1)}
-          onPreview={() => { capturePreviewScroll(); setPreviewMode(true); }}
+          onPreview={() => { capturePreviewScroll(); resetAccordionRuntime(); setPreviewMode(true); }}
           onExportHTML={handleExportHTML}
           onExportJSON={handleExportJSON}
           onImport={() => importRef.current?.click()}

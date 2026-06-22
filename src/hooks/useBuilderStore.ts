@@ -399,7 +399,11 @@ export function useBuilderStore() {
     }
     const accordion = makeAccordion(accordionId, parentId, dropX, dropY);
     accordion.items = items;
-    accordion.activeItems = items.length ? [items[0].id] : [];  // first open by default in editor
+    // Editor open-state mirrors defaultOpen, so Preview matches the exported page.
+    accordion.activeItems =
+      accordion.props.defaultOpen === 'all' ? items.map(it => it.id)
+      : accordion.props.defaultOpen === 'first' ? (items.length ? [items[0].id] : [])
+      : [];
     newNodes[accordionId] = accordion;
 
     push(s);
@@ -547,6 +551,31 @@ export function useBuilderStore() {
     });
   }, []);
 
+  // Re-derive every accordion's open-state from its defaultOpen prop, discarding
+  // any editor-session toggles. Called on entering Preview so it mirrors a fresh
+  // exported-page load (which always starts from defaultOpen). Transient UI state
+  // only — not pushed to undo.
+  const resetAccordionRuntime = useCallback(() => {
+    setState(s => {
+      let changed = false;
+      const nodes = { ...s.nodes };
+      for (const id in nodes) {
+        const a = nodes[id];
+        if (!a || !isAccordion(a)) continue;
+        const baseline =
+          a.props.defaultOpen === 'all' ? a.items.map(it => it.id)
+          : a.props.defaultOpen === 'first' ? (a.items.length ? [a.items[0].id] : [])
+          : [];
+        const cur = a.activeItems ?? [];
+        const same = cur.length === baseline.length && cur.every((x, i) => x === baseline[i]);
+        if (same) continue;
+        nodes[id] = { ...a, activeItems: baseline };
+        changed = true;
+      }
+      return changed ? { ...s, nodes } : s;
+    });
+  }, []);
+
 
   // ── Undo / Redo ────────────────────────────────────────────────────────
 
@@ -612,7 +641,7 @@ export function useBuilderStore() {
     addSubCell: containerOps.addContainerColumn,
     // Carousel & Accordion actions (live in this hook — not split into sub-hooks)
     addCarousel, updateCarousel, updateCarouselResponsive, addSlide, deleteSlide, duplicateSlide, reorderSlide, setActiveSlide,
-    addAccordion, updateAccordion, updateAccordionResponsive, addAccordionItem, deleteAccordionItem, duplicateAccordionItem, reorderAccordionItem, toggleAccordionItem,
+    addAccordion, updateAccordion, updateAccordionResponsive, addAccordionItem, deleteAccordionItem, duplicateAccordionItem, reorderAccordionItem, toggleAccordionItem, resetAccordionRuntime,
     handleUndo, handleRedo, canUndo, canRedo,
     updateTheme, importState,
     stateRef,
