@@ -153,7 +153,7 @@ export function ElementPanelStyle({
         const showSection = element.type !== 'spacer' && (inGridFlow || showPad);
         if (!showSection) return null;
         return (
-          <CollapsibleSection sectionKey="spacing" label={<>Spacing {allBpBadge}</>}
+          <CollapsibleSection sectionKey="spacing" label={<>Space {allBpBadge}</>}
             isOpen={sec('spacing')} onToggle={toggleSection}>
             <SpacingEditor
               margin={inGridFlow ? (element.style.margin ?? {}) : undefined}

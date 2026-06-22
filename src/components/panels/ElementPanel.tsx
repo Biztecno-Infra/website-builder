@@ -199,7 +199,7 @@ export function ElementPanel({
           if (val === 'fixed') change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed', flexGrow: 0, alignSelf: 'auto' } });
         };
         return (
-          <CollapsibleSection sectionKey="sizing" label="Sizing" isOpen={sec('sizing')} onToggle={toggleSection}>
+          <CollapsibleSection sectionKey="sizing" label="Size" isOpen={sec('sizing')} onToggle={toggleSection}>
             <div className={'pb-prop-row'}>
               <label>Width</label>
               <PbSelect size="sm" value={sizingValue} options={sizingOptions} onChange={applySizing} />

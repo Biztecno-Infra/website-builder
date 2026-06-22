@@ -83,6 +83,8 @@ interface SectionGroupProps {
   index: number;
   depth: number;
   isSectionSelected: boolean;
+  /** True while the most recent selection originated from a click inside the Layers panel. */
+  selectionFromPanelRef: React.RefObject<boolean>;
   selectedIds: string[];
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
@@ -109,7 +111,7 @@ interface SectionGroupProps {
 }
 
 function SectionGroup({
-  section, nodes, role, index, depth, isSectionSelected, selectedIds,
+  section, nodes, role, index, depth, isSectionSelected, selectionFromPanelRef, selectedIds,
   selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId, isDragOver, isDragging,
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion,
   onScrollToElement, onUpdateElement, onDeleteElement, onDeleteSection, onReorderElement, onMoveElementToSection,
@@ -124,6 +126,9 @@ function SectionGroup({
 
   useEffect(() => {
     if (!selectedIds.length) return;
+    // Only auto-expand when the selection came from the canvas. Selecting from
+    // within the Layers panel must not expand/collapse or shift the hierarchy.
+    if (selectionFromPanelRef.current) return;
     function dfs(nodeId: string): boolean {
       const node = nodes[nodeId];
       if (!node) return false;
@@ -603,8 +608,19 @@ export function LayerPanel({
   const [pageCollapsed, setPageCollapsed] = useState(false);
   const [search, setSearch] = useState('');
   const layerListRef = useRef<HTMLDivElement>(null);
+  // True while the most recent selection originated from a click inside this
+  // panel. Used to suppress the auto-scroll/auto-expand sync that should only
+  // run for canvas-originated selections.
+  const selectionFromPanelRef = useRef(false);
 
   useEffect(() => {
+    // Selection came from a click inside the Layers panel — keep the panel's
+    // scroll position; only the canvas should react. Reset the flag so the
+    // next (canvas-originated) selection scrolls the panel as expected.
+    if (selectionFromPanelRef.current) {
+      selectionFromPanelRef.current = false;
+      return;
+    }
     const t = setTimeout(() => {
       const list = layerListRef.current;
       if (!list) return;
@@ -633,19 +649,26 @@ export function LayerPanel({
     setDraggingSectionIndex(null);
   };
 
+  // Flag panel-originated selections so the auto-scroll/auto-expand sync is
+  // suppressed for them. The canvas should still scroll into view via
+  // onScrollToElement (left untouched below).
+  const markPanelSelection = <A extends unknown[]>(fn?: (...args: A) => void) =>
+    (...args: A) => { selectionFromPanelRef.current = true; fn?.(...args); };
+
   const commonSectionProps = {
     nodes,
+    selectionFromPanelRef,
     selectedIds,
     selectedGridCellId,
     selectedContainerId,
     selectedCarouselId,
     selectedAccordionId,
-    onSelectElement,
-    onSelectSection,
-    onSelectGridCell,
-    onSelectContainer,
-    onSelectCarousel,
-    onSelectAccordion,
+    onSelectElement: markPanelSelection(onSelectElement),
+    onSelectSection: markPanelSelection(onSelectSection),
+    onSelectGridCell: markPanelSelection(onSelectGridCell),
+    onSelectContainer: markPanelSelection(onSelectContainer),
+    onSelectCarousel: markPanelSelection(onSelectCarousel),
+    onSelectAccordion: markPanelSelection(onSelectAccordion),
     onScrollToElement,
     onUpdateElement,
     onDeleteElement,

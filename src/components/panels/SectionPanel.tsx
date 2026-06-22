@@ -416,7 +416,7 @@ export function SectionPanel({
       </CollapsibleSection>
 
       {/* ── Spacing ── */}
-      <CollapsibleSection sectionKey="spacing" label="Spacing" isOpen={sec('spacing')} onToggle={toggle}>
+      <CollapsibleSection sectionKey="spacing" label="Space" isOpen={sec('spacing')} onToggle={toggle}>
         <div className={'pb-trbl-col-labels'}>
           {(['Top', 'Right', 'Bottom', 'Left'] as const).map(s => <span key={s}>{s}</span>)}
           <span className={'pb-trbl-px-spacer'} />
