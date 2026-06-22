@@ -37,7 +37,7 @@ export function Modal({
   }, [onCancel, onConfirm, confirmDisabled]);
 
   return createPortal(
-    <div className={'pb-modal-overlay'} onMouseDown={onCancel}>
+    <div className={'pb-app pb-modal-overlay'} onMouseDown={onCancel}>
       <div className={'pb-modal'} role="dialog" aria-modal="true" aria-label={title}
         onMouseDown={e => e.stopPropagation()}>
         <div className={'pb-modal-header'}>

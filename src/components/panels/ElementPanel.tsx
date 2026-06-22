@@ -13,7 +13,7 @@ import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 import { PanelHeader } from './PanelHeader';
 import { PbInput } from '../PbInput';
 import { PbSelect } from '../PbSelect';
-import { FLEX_WIDTH_MODE_WITH_SAME_OPTIONS } from '../../utils/selectOptions';
+import { FLEX_WIDTH_MODE_WITH_SAME_OPTIONS, ALIGN_SELF_OPTIONS } from '../../utils/selectOptions';
 import { ElementPanelContent } from './ElementPanelContent';
 import { ElementPanelStyle } from './ElementPanelStyle';
 
@@ -226,6 +226,12 @@ export function ElementPanel({
                 </div>
               </div>
             )}
+            <div className={'pb-prop-row'}>
+              <label>Align</label>
+              <PbSelect size="sm" value={element.flexLayout.alignSelf}
+                options={ALIGN_SELF_OPTIONS}
+                onChange={v => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, alignSelf: v as typeof element.flexLayout.alignSelf } }); }} />
+            </div>
             {breakpoint !== 'desktop' && onUpdateResponsive && (
               <>
                 <div style={{ fontSize: 10, color: 'var(--pb-text-subtle)', padding: '4px 0 2px' }}>

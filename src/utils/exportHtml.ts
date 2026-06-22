@@ -610,12 +610,14 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     : '';
 
   // Flex elements mode — align-items/justify-content live in the CSS class, not inline
+  const { opacity } = cell.style;
   const cellStyle = [
     'position:relative', bgCss,
     `gap:${gap}px`, `padding:${padStr}`,
     'box-sizing:border-box',
     minHeight ? `min-height:${minHeight}px` : '',
     borderCss, radiusCss,
+    opacity !== undefined && opacity !== 1 ? `opacity:${opacity}` : '',
   ].filter(Boolean).join(';');
 
   const childrenHtml = cell.children.map(id => {

@@ -380,6 +380,7 @@ export interface GridCellStyle {
   background: SectionBackground;
   border?: Border;
   minHeight?: number;
+  opacity?: number;
   alignItems: 'flex-start' | 'center' | 'flex-end' | 'stretch';
   justifyContent: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
 }

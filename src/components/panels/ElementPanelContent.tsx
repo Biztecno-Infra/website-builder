@@ -234,6 +234,7 @@ export function ElementPanelContent({
             <label>Font</label>
             <PbSelect value={element.style.typography.family}
               options={FONT_FAMILY_OPTIONS}
+              searchable
               onChange={v => { injectGoogleFont(v); commitChange({ style: { ...element.style, typography: { ...element.style.typography, family: v } } }); }} />
           </div>
           <div className={'pb-prop-row'}>
