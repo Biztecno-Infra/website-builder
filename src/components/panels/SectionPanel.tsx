@@ -339,7 +339,7 @@ export function SectionPanel({
             options={BG_TYPE_WITH_TRANSPARENT_OPTIONS}
             onChange={v => { onPushSnapshot(snapshot); updateBg({ type: v as BgType }); }} />
         </div>
-        {bg.type === 'solid' && bg.color !== 'transparent' && (
+        {bg.type === 'solid' && (
           <>
             <div className={'pb-prop-row'}>
               <label>Color</label>

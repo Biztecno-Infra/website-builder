@@ -298,7 +298,7 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
           onChange={v => { onPushSnapshot(); onChange({ type: v as BgType }); }} />
       </div>
 
-      {bg.type === 'solid' && bg.color !== 'transparent' && (
+      {bg.type === 'solid' && (
         <div className="pb-prop-row">
           <label>Color</label>
           <ColorField value={safeColor} onChange={v => onChange({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
