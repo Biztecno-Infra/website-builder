@@ -115,7 +115,7 @@ export function ElementPanel({
         {!isInGridCell && (
           <>
             <div className={'pb-prop-row'}>
-              <label>Full W</label>
+              <label>Full Width</label>
               <input type="checkbox" checked={!!element.layout.fullWidth}
                 onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
             </div>
@@ -133,7 +133,7 @@ export function ElementPanel({
             </div>
             {element.type !== 'divider' && !element.layout.fullWidth && (
               <div className={'pb-prop-row'}>
-                <label>W</label>
+                <label>Width</label>
                 <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                   onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
               </div>
@@ -167,15 +167,15 @@ export function ElementPanel({
                 onChange={e => changeLayout({ y: Number(e.target.value) })} />
             </div>
             <div className={'pb-prop-row'}>
-              <label>W</label>
+              <label>Width</label>
               <PbInput type="number" value={element.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeLayout({ width: Math.max(minSize, Number(e.target.value)) })} />
             </div>
           </>
         )}
-        {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && (
+        {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && !(isInGridCell && !element.overlayInCell && element.type === 'image') && (
           <div className={'pb-prop-row'}>
-            <label>{!isInGridCell ? 'Height' : (element.type === 'image' || element.type === 'video') ? 'Height' : 'Min H'}</label>
+            <label>{!isInGridCell ? 'Height' : element.type === 'video' ? 'Height' : 'Min Height'}</label>
             <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
           </div>
@@ -223,6 +223,13 @@ export function ElementPanel({
                   <button className={['pb-toggle-btn', widthMode === 'percent' && 'pb-active'].filter(Boolean).join(' ')}
                     onClick={() => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, widthMode: 'percent' } }); }}>%</button>
                 </div>
+              </div>
+            )}
+            {element.type === 'image' && (
+              <div className={'pb-prop-row'}>
+                <label>Height</label>
+                <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
               </div>
             )}
             <div className={'pb-prop-row'}>

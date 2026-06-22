@@ -274,13 +274,13 @@ export function ElementPanelContent({
             />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Line H</label>
+            <label>Line Height</label>
             <PbInput type="number" value={element.style.typography.lineHeight} min={0.5} max={5} step={0.1}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeTypo({ lineHeight: Number(e.target.value) })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Letter Sp.</label>
+            <label>Letter Spacing</label>
             <PxInput value={element.style.typography.letterSpacing ?? 0} step={0.5}
               onFocus={onFocus} onBlur={onBlur}
               onChange={v => changeTypo({ letterSpacing: v })} />
@@ -386,7 +386,7 @@ export function ElementPanelContent({
               onChange={e => changeContent({ linkUrl: e.target.value })} />
           </div>
           <div className={'pb-prop-row'}>
-            <label>Alt text</label>
+            <label>Alt Text</label>
             <PbInput type="text" variant="plain" value={element.content.alt}
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ alt: e.target.value })} />

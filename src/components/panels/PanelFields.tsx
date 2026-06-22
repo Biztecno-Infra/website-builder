@@ -326,7 +326,7 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
       )}
 
       <div className="pb-prop-row pb-full">
-        <label>Image url</label>
+        <label>Image URL</label>
         <PbInput type="text" variant="plain" value={bg.image || ''} placeholder="https://..."
           onFocus={onFocus} onBlur={onBlur}
           onChange={e => onChange({ image: e.target.value })} />

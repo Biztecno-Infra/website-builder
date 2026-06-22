@@ -113,33 +113,6 @@ export function useBuilderStore(externalInitialState?: BuilderState) {
     if (selectedContainerId && !state.nodes[selectedContainerId]) setSelectedContainerId(null);
   }, [state.nodes, selectedContainerId]);
 
-  // Auto-expand free sections so no element ever overflows below the section's bottom edge.
-  // This prevents canvas-wrapper (overflow:auto) from clipping elements and eliminates
-  // hover-outline clipping at the footer boundary.
-  useEffect(() => {
-    setState(prev => {
-      let changed = false;
-      const nodes = { ...prev.nodes };
-      for (const page of prev.pages) {
-        for (const secId of page.sections) {
-          const sec = nodes[secId];
-          if (!sec || !isFreeSection(sec)) continue;
-          const maxBottom = sec.children.reduce((max, childId) => {
-            const child = nodes[childId];
-            if (!child || isSection(child) || isGridCell(child) || isContainer(child) || isAccordion(child)) return max;
-            const el = child as CanvasElement | Carousel;
-            return Math.max(max, el.layout.y + el.layout.height);
-          }, 0);
-          const needed = maxBottom + 24;
-          if (needed > sec.layout.height) {
-            changed = true;
-            nodes[secId] = { ...sec, layout: { ...sec.layout, height: needed } };
-          }
-        }
-      }
-      return changed ? { ...prev, nodes } : prev;
-    });
-  }, [state.nodes]);
 
   const allElements = useMemo(() => {
     const map: Record<string, CanvasElement> = {};

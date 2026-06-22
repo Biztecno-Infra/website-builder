@@ -286,7 +286,7 @@ export function GridCellPanel({
       {/* ── Height ── */}
       <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
           <div className={'pb-prop-row'}>
-            <label>Min H</label>
+            <label>Min Height</label>
             <PxInput value={style.minHeight ?? ''}
               placeholder={renderedHeight !== null ? String(renderedHeight) : 'auto'}
               onFocus={gcFocus} onBlur={gcBlur}

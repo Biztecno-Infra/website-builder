@@ -185,7 +185,7 @@ export function SectionPanel({
               )}
             </div>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-              <label>Col Gap</label>
+              <label>Column Gap</label>
               <PxInput value={gridCfg.gap}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, gap: v } })} />

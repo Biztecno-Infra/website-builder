@@ -198,13 +198,13 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                           onChange={v => updateValidation(f.id, { preset: v as ValidationPreset })} />
                       </div>
                       <div className={'pb-prop-row'}>
-                        <label>Min Len</label>
+                        <label>Min Length</label>
                         <PbInput type="number" min={0} value={f.validation?.minLength ?? ''}
                           onFocus={onFocus} onBlur={onBlur}
                           onChange={e => updateValidation(f.id, { minLength: e.target.value === '' ? undefined : Number(e.target.value) })} />
                       </div>
                       <div className={'pb-prop-row'}>
-                        <label>Max Len</label>
+                        <label>Max Length</label>
                         <PbInput type="number" min={0} value={f.validation?.maxLength ?? ''}
                           onFocus={onFocus} onBlur={onBlur}
                           onChange={e => updateValidation(f.id, { maxLength: e.target.value === '' ? undefined : Number(e.target.value) })} />
@@ -234,7 +234,7 @@ export function FormFieldsEditor({ fields, onChange, onChangeNoCommit, onFocus, 
                       onChange={e => updateValidation(f.id, { pattern: e.target.value || undefined }, false)} />
                   </div>
                   <div className={'pb-prop-row pb-full'}>
-                    <label>Error Msg</label>
+                    <label>Error Message</label>
                     <PbInput type="text" value={f.validation?.errorMessage ?? ''} placeholder="(optional)"
                       onFocus={onFocus} onBlur={onBlur}
                       onChange={e => updateValidation(f.id, { errorMessage: e.target.value || undefined }, false)} />
