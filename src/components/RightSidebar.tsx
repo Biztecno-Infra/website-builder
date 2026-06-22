@@ -18,7 +18,7 @@ interface Props {
   nodes: NodeMap;
   snapshot: BuilderState;
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
-  onUpdateSection: (id: string, updates: SectionUpdate) => void;
+  onUpdateSection: (id: string, updates: SectionUpdate, opts?: { preserveContent?: boolean }) => void;
   onUpdateGridCell?: (id: string, updates: Partial<GridCell>) => void;
   onDeleteGridCell?: (id: string) => void;
   onAddGridCell?: (sectionId: string) => void;

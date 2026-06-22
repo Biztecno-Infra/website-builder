@@ -12,22 +12,29 @@ interface PbSelectProps {
   onChange: (value: string) => void;
   size?: 'sm' | 'md';
   className?: string;
+  searchable?: boolean;
 }
 
-export function PbSelect({ value, options, onChange, size = 'sm', className }: PbSelectProps) {
+export function PbSelect({ value, options, onChange, size = 'sm', className, searchable }: PbSelectProps) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) { setQuery(''); return; }
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
+    if (searchable) setTimeout(() => inputRef.current?.focus(), 0);
     return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  }, [open, searchable]);
 
   const selected = options.find(o => o.value === value);
+  const filtered = searchable && query
+    ? options.filter(o => o.label.toLowerCase().includes(query.toLowerCase()))
+    : options;
 
   return (
     <div
@@ -40,7 +47,20 @@ export function PbSelect({ value, options, onChange, size = 'sm', className }: P
       </button>
       {open && (
         <div className={'pb-select-menu'}>
-          {options.map(opt => (
+          {searchable && (
+            <div className="pb-select-search">
+              <input
+                ref={inputRef}
+                type="text"
+                className="pb-select-search-input"
+                placeholder="Search fonts…"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                onMouseDown={e => e.stopPropagation()}
+              />
+            </div>
+          )}
+          {filtered.map(opt => (
             <button
               key={opt.value}
               type="button"
@@ -50,6 +70,9 @@ export function PbSelect({ value, options, onChange, size = 'sm', className }: P
               {opt.label}
             </button>
           ))}
+          {filtered.length === 0 && (
+            <div className="pb-select-no-results">No results</div>
+          )}
         </div>
       )}
     </div>

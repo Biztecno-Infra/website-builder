@@ -45,7 +45,7 @@ const bdr = (radius = 0, width = 0, color = '#cccccc', style: Border['style'] = 
   ({ radius, width, color, style });
 const shad = (on = false, x = 0, y = 8, blur = 24, spread = -4, color = 'rgba(0,0,0,0.08)'): Shadow =>
   ({ enabled: on, x, y, blur, spread, color });
-const nostate = () => ({ hidden: false, locked: false });
+const nostate = () => ({ hidden: false });
 const nolink = () => ({ type: 'link' as const, linkUrl: '', linkTarget: '_self' as const, smoothScroll: false });
 type A3 = 'left' | 'center' | 'right';
 const typo = (sz: number, w: string, color: string, align: A3 = 'left', lh = 1.5, ls = 0, tt: TextTransform = 'none') =>

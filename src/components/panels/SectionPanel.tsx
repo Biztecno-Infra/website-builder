@@ -9,7 +9,8 @@ import { equalWidths } from '../../hooks/useBuilderStore';
 
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal';
-import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { Modal } from '../Modal';
+import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -54,6 +55,7 @@ export function SectionPanel({
 }: Props) {
   const [selectedColIdx, setSelectedColIdx] = useState(0);
   const [showLayoutModal, setShowLayoutModal] = useState(false);
+  const [showToFreeModal, setShowToFreeModal] = useState(false);
   const { sec, toggle } = usePanelSections(SECTION_PANEL_DEFAULTS, 'builder-sidebar-sec');
   const { onFocus: onNumberFocus, onBlur: onNumberBlur } = useFocusSnapshot(snapshot, onPushSnapshot);
 
@@ -77,7 +79,21 @@ export function SectionPanel({
   const updateSecMargin = (m: Partial<typeof secMargin>) =>
     onUpdateSection(section.id, { style: { ...section.style, margin: { ...secMargin, ...m } } });
 
-  const sides = ['top', 'right', 'bottom', 'left'] as const;
+  const bpPadOverride =
+    breakpoint === 'mobile' ? section.responsive?.mobile?.padding
+    : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
+    : undefined;
+  const effPad = { ...secPad, ...bpPadOverride };
+
+  const updateBpPad = (key: keyof typeof secPad, val: number) => {
+    if (breakpoint === 'desktop') {
+      updateSecPad({ [key]: val });
+    } else if (breakpoint === 'tablet') {
+      onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...section.responsive?.tablet?.padding, [key]: val } } } });
+    } else {
+      onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...section.responsive?.mobile?.padding, [key]: val } } } });
+    }
+  };
 
   return (
     <aside className={'pb-right-sidebar pb-flex-col'}>
@@ -99,19 +115,11 @@ export function SectionPanel({
             onChange={m => {
               if (m === section.layoutMode) return;
               if (m === 'free') {
-                onPushSnapshot(snapshot);
-                onUpdateSection(section.id, { layoutMode: 'free' });
+                setShowToFreeModal(true);
                 return;
               }
-              // free → grid: if the section already holds elements, ask the user
-              // how to handle them before converting (modal handles the change).
-              if (section.layoutMode === 'free' && section.children.length > 0) {
-                setShowLayoutModal(true);
-                return;
-              }
-              // Empty section (or already grid-config) — convert directly.
-              onPushSnapshot(snapshot);
-              onUpdateSection(section.id, { layoutMode: 'grid', grid: hasGrid ? gridCfg : { gap: 24, rowGap: 24 } });
+              // free → grid: always ask (preserve content or start empty)
+              setShowLayoutModal(true);
             }} />
         </div>
 
@@ -415,52 +423,16 @@ export function SectionPanel({
         />
       </CollapsibleSection>
 
-      {/* ── Spacing ── */}
+      {/* ── Space ── */}
       <CollapsibleSection sectionKey="spacing" label="Space" isOpen={sec('spacing')} onToggle={toggle}>
-        <div className={'pb-trbl-col-labels'}>
-          {(['Top', 'Right', 'Bottom', 'Left'] as const).map(s => <span key={s}>{s}</span>)}
-          <span className={'pb-trbl-px-spacer'} />
-        </div>
-        <div className={'pb-trbl-row-label'}>Margin</div>
-        <div className={'pb-trbl-inputs'}>
-          {sides.map(s => (
-            <PbInput key={s} type="number" className={'pb-trbl-input'} value={secMargin[s]}
-              onFocus={onNumberFocus} onBlur={onNumberBlur}
-              onChange={e => updateSecMargin({ [s]: Number(e.target.value) })} />
-          ))}
-          <span className={'pb-trbl-px-cell'}>px</span>
-        </div>
-        {(() => {
-          const bpPadOverride =
-            breakpoint === 'mobile' ? section.responsive?.mobile?.padding
-            : breakpoint === 'tablet' ? section.responsive?.tablet?.padding
-            : undefined;
-          const effPad = { ...secPad, ...bpPadOverride };
-
-          const updateBpPad = (key: keyof typeof secPad, val: number) => {
-            if (breakpoint === 'desktop') {
-              updateSecPad({ [key]: val });
-            } else if (breakpoint === 'tablet') {
-              onUpdateSection(section.id, { responsive: { ...section.responsive, tablet: { ...section.responsive?.tablet, padding: { ...section.responsive?.tablet?.padding, [key]: val } } } });
-            } else {
-              onUpdateSection(section.id, { responsive: { ...section.responsive, mobile: { ...section.responsive?.mobile, padding: { ...section.responsive?.mobile?.padding, [key]: val } } } });
-            }
-          };
-
-          return (
-            <>
-              <div className={'pb-trbl-row-label'}>Padding</div>
-              <div className={'pb-trbl-inputs'}>
-                {sides.map(s => (
-                  <PbInput key={s} type="number" className={'pb-trbl-input'} value={effPad[s]}
-                    onFocus={onNumberFocus} onBlur={onNumberBlur}
-                    onChange={e => updateBpPad(s, Number(e.target.value))} />
-                ))}
-                <span className={'pb-trbl-px-cell'}>px</span>
-              </div>
-            </>
-          );
-        })()}
+        <SpacingEditor
+          margin={secMargin}
+          onMarginChange={(k, v) => updateSecMargin({ [k]: v })}
+          padding={effPad}
+          onPaddingChange={(k, v) => updateBpPad(k, v)}
+          onFocus={onNumberFocus}
+          onBlur={onNumberBlur}
+        />
       </CollapsibleSection>
 
       {/* ── Visibility ── */}
@@ -570,6 +542,23 @@ export function SectionPanel({
             );
           }}
         />
+      )}
+
+      {showToFreeModal && (
+        <Modal
+          title="Switch to Free layout?"
+          confirmLabel="Convert"
+          onConfirm={() => {
+            setShowToFreeModal(false);
+            onPushSnapshot(snapshot);
+            onUpdateSection(section.id, { layoutMode: 'free' });
+          }}
+          onCancel={() => setShowToFreeModal(false)}
+        >
+          <p className="pb-modal-message">
+            All grid cells and their content will be removed. This cannot be undone.
+          </p>
+        </Modal>
       )}
     </aside>
   );

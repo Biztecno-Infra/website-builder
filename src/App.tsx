@@ -9,13 +9,20 @@ import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
-import { migrateState } from './hooks/useBuilderStore';
 import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
-import { serializeState } from './utils/serializeState';
-import type { Breakpoint, Container, GridCell, CanvasElement } from './types';
+import { sparsifyNodes } from './utils/sparse';
+import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } from './types';
 
-export default function App() {
+export interface PageBuilderProps {
+  initialState?: BuilderState;
+  siteName?: string;
+  onSave?: (state: BuilderState) => void | Promise<void>;
+  onPublish?: (state: BuilderState) => void | Promise<void>;
+  onChange?: (state: BuilderState) => void;
+}
+
+export default function App({ initialState, siteName = 'Website Builder', onSave, onPublish, onChange }: PageBuilderProps = {}) {
   const {
     state,
     nodes,
@@ -99,7 +106,22 @@ export default function App() {
     duplicateAccordionItem,
     reorderAccordionItem,
     toggleAccordionItem,
-  } = useBuilderStore();
+  } = useBuilderStore(initialState);
+
+  // When initialState loads async (e.g. API fetch resolves after first render), sync it in.
+  const initialStateRef = useRef(initialState);
+  useEffect(() => {
+    if (initialState && initialState !== initialStateRef.current) {
+      initialStateRef.current = initialState;
+      importState(initialState);
+    }
+  }, [initialState, importState]);
+
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    onChange?.(state);
+  }, [state, onChange]);
 
   // selectedContainerId now lives in useBuilderStore (and is cleared there on undo).
   const [selectedCarouselId, setSelectedCarouselId] = useState<string | null>(null);
@@ -316,7 +338,7 @@ export default function App() {
 
   // Export JSON
   const handleExportJSON = () => {
-    const json = JSON.stringify(serializeState(state), null, 2);
+    const json = JSON.stringify({ ...state, nodes: sparsifyNodes(state.nodes) }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -353,9 +375,7 @@ export default function App() {
 
         if (!window.confirm(`Import "${file.name}"?\n\nThis will replace your current canvas. You can undo with Ctrl+Z.`)) return;
 
-        // migrateState + importState handles all defaults, hydration, and undo
-        const migrated = migrateState(raw);
-        importState(migrated);
+        importState(raw);
 
       } catch (err) {
         alert('Something went wrong importing the file. Please try again.');
@@ -433,10 +453,7 @@ export default function App() {
         e.preventDefault(); duplicateElement(selectedId); return;
       }
       if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        const ids = selectedIds.filter(id => {
-          const el = elements[id];
-          return el && !el.state.locked;
-        });
+        const ids = selectedIds.filter(id => !!elements[id]);
         if (!ids.length) return;
         e.preventDefault();
         const step = e.shiftKey ? 10 : 1;
@@ -550,7 +567,7 @@ export default function App() {
     <DndProvider backend={HTML5Backend}>
       <div className={'pb-app pb-flex-col'}>
         <Toolbar
-          siteName="Website Builder"
+          siteName={siteName}
           pages={pages}
           activePage={activePage}
           onSetActivePage={setActivePage}
@@ -575,6 +592,8 @@ export default function App() {
               importState(makeEmpty());
             }
           }}
+          onSave={onSave ? () => onSave({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
+          onPublish={onPublish ? () => onPublish({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
         />
         <input
           ref={importRef}
@@ -716,13 +735,6 @@ export default function App() {
               <button onClick={() => { duplicateElement(contextMenu.id); setContextMenu(null); }}>Duplicate</button>
               <button onClick={() => { bringToFront(contextMenu.id); setContextMenu(null); }}>Bring to Front</button>
               <button onClick={() => { sendToBack(contextMenu.id); setContextMenu(null); }}>Send to Back</button>
-              <button onClick={() => {
-                const el = elements[contextMenu.id];
-                if (el) updateElement(contextMenu.id, { state: { ...el.state, locked: !el.state.locked } });
-                setContextMenu(null);
-              }}>
-                {elements[contextMenu.id]?.state?.locked ? 'Unlock' : 'Lock'}
-              </button>
               <div className={'pb-context-menu-divider'} />
               <button className={'pb-context-menu-danger'}
                 onClick={() => { deleteElement(contextMenu.id); setContextMenu(null); }}>

@@ -282,12 +282,12 @@ export function hydrateNode(raw: Obj): AnyNode {
 
 // ── NodeMap-level helpers ──────────────────────────────────────────────────
 
-export function sparsifyNodes(nodes: NodeMap): Record<string, Obj> {
+export function sparsifyNodes(nodes: NodeMap): NodeMap {
   const out: Record<string, Obj> = {};
   for (const [id, node] of Object.entries(nodes)) {
     out[id] = sparsifyNode(node);
   }
-  return out;
+  return out as unknown as NodeMap;
 }
 
 export function hydrateNodes(raw: Record<string, unknown>): NodeMap {

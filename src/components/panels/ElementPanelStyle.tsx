@@ -184,15 +184,6 @@ export function ElementPanelStyle({
               onFocus={onFocus} onBlur={onBlur}
               onChange={v => changeLayout({ rotation: v })} />
           </div>
-          <div className={'pb-prop-row'}>
-            <label>Lock</label>
-            <button
-              className={['pb-toolbar-btn', element.state.locked && 'pb-active'].filter(Boolean).join(' ')}
-              style={{ fontSize: 11, padding: '2px 8px', height: 24 }}
-              title={element.state.locked ? 'Unlock element — allow drag/resize' : 'Lock element — prevent drag/resize'}
-              onClick={() => { onPushSnapshot(snapshot); commitChange({ state: { ...element.state, locked: !element.state.locked } }); }}
-            >{element.state.locked ? 'Locked' : 'Unlocked'}</button>
-          </div>
         </CollapsibleSection>
       )}
 

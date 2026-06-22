@@ -127,7 +127,7 @@ export function ToggleGroup({ options, value, onChange }: {
 
 // ── TRBL Spacing editor (Margin + optional Padding) ──────────────────────────
 
-const SIDES = ['top', 'right', 'bottom', 'left'] as const;
+const SIDES = ['left', 'top', 'right', 'bottom'] as const;
 
 export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange, onFocus, onBlur }: {
   margin?: Partial<Padding>;
@@ -140,7 +140,7 @@ export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange
   return (
     <>
       <div className="pb-trbl-col-labels">
-        {(['Top', 'Right', 'Bottom', 'Left'] as const).map(s => <span key={s}>{s}</span>)}
+        {(['Left', 'Top', 'Right', 'Bottom'] as const).map(s => <span key={s}>{s}</span>)}
         <span className="pb-trbl-px-spacer" />
       </div>
       {margin && onMarginChange && (

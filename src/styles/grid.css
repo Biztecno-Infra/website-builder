@@ -1,5 +1,5 @@
 ﻿/* ─── Element hover outline ─── */
-.pb-canvas-el:not(.pb-selected):not(.pb-locked):hover {
+.pb-canvas-el:not(.pb-selected):hover {
   outline: 1px dashed var(--pb-primary-hover);
   outline-offset: 1px;
 }
@@ -155,6 +155,13 @@
 
 
 /* ─── Empty cell ─── */
+
+/* Give the cell itself a visible height when empty in editor mode */
+.pb-grid-cell--empty {
+  min-height: 80px;
+  position: relative;
+}
+
 .pb-grid-cell-empty {
   flex-direction: column;
   gap: 6px;
