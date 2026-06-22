@@ -7,7 +7,7 @@ import type {
 
 import { Icon } from '../Icon';
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
-import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, themeToSwatches } from './PanelFields';
+import { BackgroundEditor, PxInput, ToggleGroup, BorderEditor, VisibilityEditor, SpacingEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -20,6 +20,7 @@ import { resolveResponsive, isBreakpointOverridden } from '../../utils/responsiv
 const CELL_PANEL_DEFAULTS: Record<string, boolean> = {
   columnSpan: true,
   layout: true,
+  spacing: true,
   minHeight: true,
   background: true,
   border: true,
@@ -232,7 +233,13 @@ export function GridCellPanel({
             onFocus={gcFocus} onBlur={gcBlur}
             onChange={v => onUpdateGridCell(gc.id, { style: { ...style, gap: v } })} />
         </div>
-        {/* Padding — responsive-aware. On tablet/mobile, writes to responsive override. */}
+      </CollapsibleSection>
+
+      {/* ── Spacing ──
+           Padding only (grid cells have no margin). Responsive-aware: on tablet/mobile,
+           writes to the breakpoint override. Grouped in its own accordion for consistency
+           with other elements. */}
+      <CollapsibleSection sectionKey="spacing" label="Space" isOpen={sec('spacing')} onToggle={toggle}>
         {(() => {
           const bpPadOverride =
             breakpoint === 'mobile' ? responsive.mobile?.padding
@@ -262,22 +269,19 @@ export function GridCellPanel({
           };
 
           return (
-            <>
-              {(['top','right','bottom','left'] as const).map(side => (
-                <div key={side} className={['pb-prop-row', padIsOverridden && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
-                  <label>Pad {side.charAt(0).toUpperCase() + side.slice(1)}</label>
-                  <PbInput type="number" value={effPad[side]} min={0}
-                    onFocus={gcFocus} onBlur={gcBlur}
-                    onChange={e => updatePad(side, Number(e.target.value))} />
-                </div>
-              ))}
+            <div className={padIsOverridden ? 'pb-resp-row--active' : undefined}>
+              <SpacingEditor
+                padding={effPad}
+                onPaddingChange={updatePad}
+                onFocus={gcFocus} onBlur={gcBlur}
+              />
               {!isDesktop && padIsOverridden && (
                 <div className={'pb-resp-ref-row'}>
                   <span className={'pb-resp-ref-label'}>Desktop: {style.padding.top}/{style.padding.right}/{style.padding.bottom}/{style.padding.left}</span>
                   <button className={'pb-resp-clear-btn'} onClick={clearPadOverride}>↺ Reset</button>
                 </div>
               )}
-            </>
+            </div>
           );
         })()}
       </CollapsibleSection>
