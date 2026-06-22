@@ -189,7 +189,6 @@ export function ElementPanel({
           </div>
         )}
       </CollapsibleSection>
-Spacing should be renamed as Space
       {/* ── Sizing (grid elements only, not overlay) ── */}
       {isInGridCell && !element.overlayInCell && element.type !== 'divider' && (() => {
         const { widthMode, widthValue } = element.flexLayout;
