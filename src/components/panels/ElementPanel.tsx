@@ -131,11 +131,12 @@ export function ElementPanel({
                     <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
                       onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
                   )}
-                  <button className={'pb-unit-toggle'} title="Toggle px / %"
-                    onClick={() => xMode === 'percent'
-                      ? commitChange({ layout: { ...element.layout, xPercent: undefined, x: Math.round(element.layout.xPercent! / 100 * CANVAS_W) } })
-                      : commitChange({ layout: { ...element.layout, xPercent: +(element.layout.x / CANVAS_W * 100).toFixed(1) } })
-                    }>{xMode === 'percent' ? '%' : 'px'}</button>
+                  <div className={'pb-unit-tabs'}>
+                    <button className={['pb-unit-tab', xMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                      onClick={() => xMode === 'percent' && commitChange({ layout: { ...element.layout, xPercent: undefined, x: Math.round(element.layout.xPercent! / 100 * CANVAS_W) } })}>px</button>
+                    <button className={['pb-unit-tab', xMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                      onClick={() => xMode === 'px' && commitChange({ layout: { ...element.layout, xPercent: +(element.layout.x / CANVAS_W * 100).toFixed(1) } })}>%</button>
+                  </div>
                 </div>
               );
             })()}
@@ -156,11 +157,12 @@ export function ElementPanel({
                     <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                       onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
                   )}
-                  <button className={'pb-unit-toggle'} title="Toggle px / %"
-                    onClick={() => wMode === 'percent'
-                      ? commitChange({ layout: { ...element.layout, widthPercent: undefined, width: Math.round(element.layout.widthPercent! / 100 * CANVAS_W) } })
-                      : commitChange({ layout: { ...element.layout, widthPercent: +(element.layout.width / CANVAS_W * 100).toFixed(1) } })
-                    }>{wMode === 'percent' ? '%' : 'px'}</button>
+                  <div className={'pb-unit-tabs'}>
+                    <button className={['pb-unit-tab', wMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                      onClick={() => wMode === 'percent' && commitChange({ layout: { ...element.layout, widthPercent: undefined, width: Math.round(element.layout.widthPercent! / 100 * CANVAS_W) } })}>px</button>
+                    <button className={['pb-unit-tab', wMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                      onClick={() => wMode === 'px' && commitChange({ layout: { ...element.layout, widthPercent: +(element.layout.width / CANVAS_W * 100).toFixed(1) } })}>%</button>
+                  </div>
                 </div>
               );
             })()}

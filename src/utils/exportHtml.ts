@@ -930,9 +930,10 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   const freeShadowCss = freeShadow?.enabled
     ? `;box-shadow:${freeShadow.x}px ${freeShadow.y}px ${freeShadow.blur}px ${freeShadow.spread}px ${freeShadow.color}`
     : '';
+  const freeInnerWidth = `max-width:${pageMaxWidth}px;margin:0 auto`;
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}${freeMarginCss}${freeShadowCss}">
     ${overlay}
-    <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="min-height:${sec.layout.height}px${freePadCss}">
+    <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerWidth};min-height:${sec.layout.height}px${freePadCss}">
       ${columnBgs}
       ${elements}
     </div>
