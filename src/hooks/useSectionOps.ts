@@ -221,7 +221,7 @@ export function useSectionOps(
     const sec = makeSection(secId, 'section', {
       label: `Grid Section ${page.sections.length + 1}`,
       layoutMode: 'grid',
-      grid: { gap: 16, rowGap: 0, contentWidth: 'constrained', maxWidth: 1280 },
+      grid: { gap: 16, rowGap: 0, maxWidth: 1280 },
       children: cellIds,
     }, stateRef.current.theme.colors.sectionBg);
     setState(s => {
