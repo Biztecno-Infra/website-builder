@@ -311,15 +311,6 @@
   color: var(--pb-primary-hover);
 }
 
-.pb-cell-layout-item--disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.pb-cell-layout-icon {
-  font-size: 18px;
-  line-height: 1;
-}
 
 .pb-template-card-list {
   display: flex;

@@ -113,18 +113,6 @@
   color: var(--pb-text-strong);
 }
 
-.pb-modal-option-points {
-  margin: 0;
-  padding-left: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.pb-modal-option-points li {
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--pb-text-muted);
-}
 
 .pb-modal-footer {
   display: flex;

@@ -783,8 +783,6 @@
 .pb-hint-inline { font-size: 11px; color: #888; }
 
 /* ─── GridCellPanel extras ─── */
-.pb-range-input { flex: 1; }
-.pb-range-value { font-size: 11px; color: #888; min-width: 28px; }
 .pb-danger-btn {
   font-size: 11px;
   color: var(--pb-danger);
@@ -809,13 +807,6 @@
   margin: 2px 0 6px;
 }
 
-/* ─── Left sidebar hint text ─── */
-.pb-sidebar-hint {
-  padding-left: 12px;
-  padding-bottom: 4px;
-  font-size: 10px;
-  color: #94a3b8;
-}
 
 /* ─── Layout button row (SectionPanel) ─── */
 .pb-layout-btn-row { display: flex; gap: 8px; }
