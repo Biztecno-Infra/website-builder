@@ -226,7 +226,7 @@ export function Toolbar({
                   className={['pb-toolbar-drop-item', layoutWidth === mode && 'pb-active'].filter(Boolean).join(' ')}
                   onClick={() => { onSetLayoutWidth(mode); setPublishDropOpen(false); }}
                 >
-                  {mode === 'fixed' ? 'Fixed width' : 'Fluid width'}
+                  {mode === 'fixed' ? 'Fixed width' : 'Full width'}
                   {layoutWidth === mode && <span className="pb-toolbar-drop-check">✓</span>}
                 </button>
               ))}
