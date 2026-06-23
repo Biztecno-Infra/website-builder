@@ -1340,9 +1340,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       // Desktop base class — position, size, z-index, opacity, transform, shadow, anim vars
       const base: string[] = [
         'position:absolute',
-        el.layout.fullWidth ? 'left:0' : (el.layout.xPercent != null ? `left:${el.layout.xPercent}%` : `left:${el.layout.x}px`),
+        el.layout.fullWidth ? 'left:calc((100% - 100vw) / 2)' : (el.layout.xPercent != null ? `left:${el.layout.xPercent}%` : `left:${el.layout.x}px`),
         `top:${el.layout.y}px`,
-        el.layout.fullWidth ? 'width:100%' : (el.layout.widthPercent != null ? `width:${el.layout.widthPercent}%` : `width:${el.layout.width}px`),
+        el.layout.fullWidth ? 'width:100vw' : (el.layout.widthPercent != null ? `width:${el.layout.widthPercent}%` : `width:${el.layout.width}px`),
         `height:${el.layout.height}px`,
         `z-index:${el.layout.zIndex}`,
         `opacity:${el.style.opacity}`,
@@ -1375,7 +1375,7 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const ty = to?.layout?.y ?? Math.round(el.layout.y * tScale);
         const th = to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * tScale));
         if (el.layout.fullWidth) {
-          tabletRules.push(`.el-${el.id}{left:0;top:${ty}px;width:100%;height:${th}px}`);
+          tabletRules.push(`.el-${el.id}{left:calc((100% - 100vw) / 2);top:${ty}px;width:100vw;height:${th}px}`);
         } else if (el.layout.xPercent != null || el.layout.widthPercent != null) {
           const tleft = el.layout.xPercent != null ? `${el.layout.xPercent}%` : `${to?.layout?.x ?? Math.round(el.layout.x * tScale)}px`;
           const twidth = el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : `${to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale))}px`;
@@ -1407,7 +1407,7 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const my = mo?.layout?.y ?? to?.layout?.y ?? Math.round(el.layout.y * mScale);
         const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * mScale));
         if (el.layout.fullWidth) {
-          mobileRules.push(`.el-${el.id}{left:0;top:${my}px;width:100%;height:${mh}px}`);
+          mobileRules.push(`.el-${el.id}{left:calc((100% - 100vw) / 2);top:${my}px;width:100vw;height:${mh}px}`);
         } else if (el.layout.xPercent != null || el.layout.widthPercent != null) {
           const mleft = el.layout.xPercent != null ? `${el.layout.xPercent}%` : `${mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale)}px`;
           const mwidth = el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : `${mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale))}px`;
