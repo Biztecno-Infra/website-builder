@@ -64,7 +64,8 @@ export function useElementOps(
       return;
     }
     const hasButton = type === 'button' && sec.children.some(id => stateRef.current.nodes[id]?.type === 'button');
-    const el = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme, hasButton);
+    const base = createDefaultElement(type, sec.children.length, sectionId, undefined, undefined, stateRef.current.theme, hasButton);
+    const el = { ...base, layout: { ...base.layout, xPercent: +(base.layout.x / CANVAS_W * 100).toFixed(1), widthPercent: +(base.layout.width / CANVAS_W * 100).toFixed(1) } };
     push(s);
     setState(prev => {
       const section = prev.nodes[sectionId] as Section | undefined;
@@ -81,7 +82,8 @@ export function useElementOps(
     if (!node || !isFreeSection(node)) return;
     const hasButton = type === 'button' && node.children.some(id => stateRef.current.nodes[id]?.type === 'button');
     const base = createDefaultElement(type, node.children.length, sectionId, Math.round(x), Math.round(y), stateRef.current.theme, hasButton);
-    const el = contentOverride ? { ...base, content: { ...base.content, ...contentOverride } } : base;
+    const withPct = { ...base, layout: { ...base.layout, xPercent: +(base.layout.x / CANVAS_W * 100).toFixed(1), widthPercent: +(base.layout.width / CANVAS_W * 100).toFixed(1) } };
+    const el = contentOverride ? { ...withPct, content: { ...withPct.content, ...contentOverride } } : withPct;
     push(s);
     setState(prev => {
       const sec = prev.nodes[sectionId];
@@ -271,9 +273,14 @@ export function useElementOps(
         else if (fl.widthMode === 'percent' && fl.widthValue) width = Math.round(fl.widthValue / 100 * CANVAS_W);
         else width = cel.layout.width || 200;
       }
+      const finalX = pos?.x ?? cel.layout.x;
       nodes[id] = {
         ...cel, parent: toSectionId,
-        layout: { ...cel.layout, x: pos?.x ?? cel.layout.x, y: pos?.y ?? 20, width },
+        layout: {
+          ...cel.layout, x: finalX, y: pos?.y ?? 20, width,
+          xPercent: cel.layout.xPercent ?? +(finalX / CANVAS_W * 100).toFixed(1),
+          widthPercent: cel.layout.widthPercent ?? +(width / CANVAS_W * 100).toFixed(1),
+        },
         flexLayout: fromGrid ? { ...cel.flexLayout, widthMode: 'auto', flexGrow: 0, alignSelf: 'auto' } : cel.flexLayout,
         responsive: fromGrid ? {
           tablet: cel.responsive.tablet ? { ...cel.responsive.tablet, flexLayout: undefined } : cel.responsive.tablet,
