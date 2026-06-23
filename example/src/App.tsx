@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { PageBuilder, sparsifyNodes, hydrateNodes } from 'page-builder';
-import type { BuilderState } from 'page-builder';
+import { useRef, useState } from 'react';
+import { PageBuilder, hydrateNodes } from 'page-builder';
+import type { BuilderState, PageBuilderRef } from 'page-builder';
 import 'page-builder/styles';
 
 const SITE_KEY = 'example-site';
@@ -15,33 +15,46 @@ function loadFromApi(): BuilderState | undefined {
   } catch { return undefined; }
 }
 
-// Simulate API save — sparsify nodes so only changed values are stored
-async function saveToApi(state: BuilderState) {
-  const payload = { ...state, nodes: sparsifyNodes(state.nodes) };
-  localStorage.setItem(SITE_KEY, JSON.stringify(payload));
-  // real app: await fetch('/api/sites/1', { method: 'PUT', body: JSON.stringify(payload) })
+// Simulate API save — the builder already sparsifies nodes in getWebsiteData()
+async function saveToApi(_websiteName: string, websiteJson: BuilderState) {
+  localStorage.setItem(SITE_KEY, JSON.stringify(websiteJson));
+  // real app: await fetch('/api/sites/1', { method: 'PUT', body: JSON.stringify({ websiteName, websiteJson }) })
 }
 
 export default function App() {
   // useState with lazy initializer — runs loadFromApi only once on mount
   const [initialState] = useState<BuilderState | undefined>(loadFromApi);
 
-  const handleSave = async (state: BuilderState) => {
-    await saveToApi(state);
-    console.log('saved ', state);
+  // Drive the builder imperatively via its ref — the host triggers Save/Publish.
+  const builderRef = useRef<PageBuilderRef>(null);
+
+  const handleSave = async () => {
+    const builder = builderRef.current;
+    if (!builder) return;
+
+    const { isValid, errors } = builder.validate();
+    if (!isValid) { alert(errors.join('\n')); return; }
+
+    const { websiteName, websiteJson } = builder.getWebsiteData();
+    await saveToApi(websiteName, websiteJson);
+    console.log('saved', websiteName, websiteJson);
   };
 
-  const handlePublish = async (state: BuilderState) => {
-    await saveToApi(state);
+  const handlePublish = async () => {
+    await handleSave();
     // real app: await fetch('/api/sites/1/publish', { method: 'POST' })
     alert('Published!');
   };
 
   return (
-    <PageBuilder
-      initialState={initialState}
-      onSave={handleSave}
-      onPublish={handlePublish}
-    />
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ display: 'flex', gap: 8, padding: 8, borderBottom: '1px solid #e2e8f0' }}>
+        <button onClick={handleSave}>Save</button>
+        <button onClick={handlePublish}>Publish</button>
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <PageBuilder ref={builderRef} initialState={initialState} />
+      </div>
+    </div>
   );
 }

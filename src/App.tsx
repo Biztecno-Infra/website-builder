@@ -1,5 +1,5 @@
 ﻿import './builder.css';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Canvas } from './components/Canvas';
@@ -8,7 +8,9 @@ import { RightSidebar } from './components/RightSidebar';
 import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
-import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
+import { makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
+import { PageBuilderProvider, usePageBuilder } from './context/PageBuilderContext';
+import type { PageBuilderRef } from './context/PageBuilderContext';
 import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
 import { sparsifyNodes } from './utils/sparse';
@@ -17,12 +19,32 @@ import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } fro
 export interface PageBuilderProps {
   initialState?: BuilderState;
   siteName?: string;
-  onSave?: (state: BuilderState) => void | Promise<void>;
   onPublish?: (state: BuilderState) => void | Promise<void>;
   onChange?: (state: BuilderState) => void;
 }
 
-export default function App({ initialState, siteName = 'Website Builder', onSave, onPublish, onChange }: PageBuilderProps = {}) {
+/**
+ * Thin entry component. Provides the builder store + shared UI state via
+ * {@link PageBuilderProvider} (which also binds the imperative {@link PageBuilderRef}
+ * to the forwarded ref), then renders the editor shell which consumes that context.
+ */
+const App = forwardRef<PageBuilderRef, PageBuilderProps>(function App(
+  { initialState, siteName = 'Website Builder', onPublish, onChange }: PageBuilderProps = {},
+  ref,
+) {
+  return (
+    <PageBuilderProvider initialState={initialState} onChange={onChange} apiRef={ref}>
+      <PageBuilderShell siteName={siteName} onPublish={onPublish} />
+    </PageBuilderProvider>
+  );
+});
+
+interface PageBuilderShellProps {
+  siteName: string;
+  onPublish?: (state: BuilderState) => void | Promise<void>;
+}
+
+function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
   const {
     state,
     nodes,
@@ -107,55 +129,19 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     reorderAccordionItem,
     toggleAccordionItem,
     resetAccordionRuntime,
-  } = useBuilderStore(initialState);
-
-  // When initialState loads async (e.g. API fetch resolves after first render), sync it in.
-  const initialStateRef = useRef(initialState);
-  useEffect(() => {
-    if (initialState && initialState !== initialStateRef.current) {
-      initialStateRef.current = initialState;
-      importState(initialState);
-    }
-  }, [initialState, importState]);
-
-  const isFirstRender = useRef(true);
-  useEffect(() => {
-    if (isFirstRender.current) { isFirstRender.current = false; return; }
-    onChange?.(state);
-  }, [state, onChange]);
-
-  // selectedContainerId now lives in useBuilderStore (and is cleared there on undo).
-  const [selectedCarouselId, setSelectedCarouselId] = useState<string | null>(null);
-  const [selectedAccordionId, setSelectedAccordionId] = useState<string | null>(null);
-
-  // Clear selectedCarouselId if the node was removed (e.g. after undo)
-  useEffect(() => {
-    if (selectedCarouselId && !nodes[selectedCarouselId]) {
-      setSelectedCarouselId(null);
-    }
-  }, [nodes, selectedCarouselId]);
-
-  // Clear selectedAccordionId if the node was removed (e.g. after undo)
-  useEffect(() => {
-    if (selectedAccordionId && !nodes[selectedAccordionId]) {
-      setSelectedAccordionId(null);
-    }
-  }, [nodes, selectedAccordionId]);
-
-  const [snapEnabled] = useState(true);
-  const [zoom, setZoom] = useState(1);
-  const [rightPanelOpen, setRightPanelOpen] = useState(false);
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string } | null>(null);
-  const [previewMode, setPreviewMode] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [breakpoint, setBreakpoint] = useState<Breakpoint>('desktop');
-  const previewScrollRef = useRef<number>(0);
-  const capturePreviewScroll = useCallback(() => {
-    previewScrollRef.current = document.querySelector('.pb-canvas-wrapper')?.scrollTop ?? 0;
-  }, []);
-
-  const changeZoom = useCallback((delta: number) =>
-    setZoom(z => Math.round(Math.min(200, Math.max(25, z * 100 + delta)) / 5) * 5 / 100), []);
+    // ── Shared UI state (provided by PageBuilderProvider) ──
+    websiteName,
+    selectedCarouselId, setSelectedCarouselId,
+    selectedAccordionId, setSelectedAccordionId,
+    snapEnabled,
+    zoom, setZoom, changeZoom,
+    breakpoint, setBreakpoint,
+    previewMode, setPreviewMode,
+    previewDevice, setPreviewDevice,
+    rightPanelOpen, setRightPanelOpen,
+    contextMenu, setContextMenu,
+    previewScrollRef, capturePreviewScroll,
+  } = usePageBuilder();
 
   const canvasWrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -568,7 +554,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     <DndProvider backend={HTML5Backend}>
       <div className={'pb-app pb-flex-col'}>
         <Toolbar
-          siteName={siteName}
+          siteName={websiteName || siteName}
           pages={pages}
           activePage={activePage}
           onSetActivePage={setActivePage}
@@ -593,7 +579,6 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               importState(makeEmpty());
             }
           }}
-          onSave={onSave ? () => onSave({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
           onPublish={onPublish ? () => onPublish({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
         />
         <input
@@ -791,3 +776,5 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     </DndProvider>
   );
 }
+
+export default App;
