@@ -653,9 +653,8 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
   const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
 
-  // Per-section override wins; fall back to page layout mode
-  const hasExplicitMode = sec.grid.contentWidth != null;
-  const contentMode = hasExplicitMode ? sec.grid.contentWidth! : (pageFixed ? 'constrained' : 'full');
+  // Page-level "Full width" always wins. Per-section contentWidth only applies on fixed pages.
+  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'constrained');
   const maxW = sec.grid.maxWidth ?? pageMaxWidth;
   const widthCss = contentMode === 'constrained'
     ? `width:100%;max-width:${maxW}px;margin:0 auto`
@@ -785,8 +784,7 @@ function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean,
   const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
 
-  const hasExplicitMode = sec.grid.contentWidth != null;
-  const contentMode = hasExplicitMode ? sec.grid.contentWidth! : (pageFixed ? 'constrained' : 'full');
+  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'constrained');
   const maxW = sec.grid.maxWidth ?? pageMaxWidth;
   const widthCss = contentMode === 'constrained'
     ? `width:100%;max-width:${maxW}px;margin:0 auto`
@@ -1341,9 +1339,9 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
       // Desktop base class — position, size, z-index, opacity, transform, shadow, anim vars
       const base: string[] = [
         'position:absolute',
-        el.layout.fullWidth ? 'left:0' : `left:${el.layout.x}px`,
+        el.layout.fullWidth ? 'left:0' : (el.layout.xPercent != null ? `left:${el.layout.xPercent}%` : `left:${el.layout.x}px`),
         `top:${el.layout.y}px`,
-        el.layout.fullWidth ? 'width:100%' : `width:${el.layout.width}px`,
+        el.layout.fullWidth ? 'width:100%' : (el.layout.widthPercent != null ? `width:${el.layout.widthPercent}%` : `width:${el.layout.width}px`),
         `height:${el.layout.height}px`,
         `z-index:${el.layout.zIndex}`,
         `opacity:${el.style.opacity}`,
@@ -1377,6 +1375,10 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const th = to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * tScale));
         if (el.layout.fullWidth) {
           tabletRules.push(`.el-${el.id}{left:0;top:${ty}px;width:100%;height:${th}px}`);
+        } else if (el.layout.xPercent != null || el.layout.widthPercent != null) {
+          const tleft = el.layout.xPercent != null ? `${el.layout.xPercent}%` : `${to?.layout?.x ?? Math.round(el.layout.x * tScale)}px`;
+          const twidth = el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : `${to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale))}px`;
+          tabletRules.push(`.el-${el.id}{left:${tleft};top:${ty}px;width:${twidth};height:${th}px}`);
         } else {
           const tx = to?.layout?.x ?? Math.round(el.layout.x * tScale);
           const tw = to?.layout?.width ?? Math.max(minW, Math.round(el.layout.width * tScale));
@@ -1405,6 +1407,10 @@ function generateElementCSS(sections: Section[], nodes: NodeMap): string {
         const mh = mo?.layout?.height ?? to?.layout?.height ?? Math.max(1, Math.round(el.layout.height * mScale));
         if (el.layout.fullWidth) {
           mobileRules.push(`.el-${el.id}{left:0;top:${my}px;width:100%;height:${mh}px}`);
+        } else if (el.layout.xPercent != null || el.layout.widthPercent != null) {
+          const mleft = el.layout.xPercent != null ? `${el.layout.xPercent}%` : `${mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale)}px`;
+          const mwidth = el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : `${mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale))}px`;
+          mobileRules.push(`.el-${el.id}{left:${mleft};top:${my}px;width:${mwidth};height:${mh}px}`);
         } else {
           const mx = mo?.layout?.x ?? to?.layout?.x ?? Math.round(el.layout.x * mScale);
           const mw = mo?.layout?.width ?? to?.layout?.width ?? Math.max(minMW, Math.round(el.layout.width * mScale));

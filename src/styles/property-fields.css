@@ -478,6 +478,29 @@
   align-self: stretch;
 }
 
+.pb-unit-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6px;
+  height: 28px;
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-sm);
+  background: var(--pb-bg-tint);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pb-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+.pb-unit-toggle:hover {
+  background: var(--pb-accent-light, #e8f4f4);
+  color: var(--pb-accent, #2a9d9d);
+  border-color: var(--pb-accent, #2a9d9d);
+}
+
 /* ─── Hide number input spinners everywhere in the builder ─── */
 .pb-app input[type='number']::-webkit-inner-spin-button,
 .pb-app input[type='number']::-webkit-outer-spin-button {

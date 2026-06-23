@@ -148,7 +148,9 @@ export function CanvasElement({
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const originX = el.layout.x;
+    const usingXPct = el.layout.xPercent != null && !el.layout.fullWidth;
+    const containerW = usingXPct ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
+    const originX = usingXPct ? (el.layout.xPercent! / 100 * containerW) : el.layout.x;
     const originY = el.layout.y;
     const prevSnapshot = snapshot;
     let moved = false;
@@ -174,7 +176,14 @@ export function CanvasElement({
 
       const z = canvasDragShared.zoom;
       const di: DragInfo = { x: 0, y: 0, width: el.layout.width, height: el.layout.height };
-      if (sectionElements && onGuides) {
+      if (usingXPct) {
+        const nx = snap(originX + dx / z, snapEnabled);
+        const ny = snap(originY + dy / z, snapEnabled);
+        const nxPct = +(nx / containerW * 100).toFixed(1);
+        di.x = nx; di.y = ny;
+        onGuides?.([], di);
+        onUpdate({ layout: { ...el.layout, xPercent: nxPct, y: ny } });
+      } else if (sectionElements && onGuides) {
         const { nx, ny, guides } = computeGuides(originX + dx / z, originY + dy / z, el, sectionElements, snapEnabled);
         di.x = nx; di.y = ny;
         onGuides(guides, di);
@@ -258,7 +267,12 @@ export function CanvasElement({
     e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
-    const { x: ox, y: oy, width: ow, height: oh } = el.layout;
+    const usingXPct = el.layout.xPercent != null && !el.layout.fullWidth;
+    const usingWPct = el.layout.widthPercent != null && !el.layout.fullWidth;
+    const resizeContainerW = (usingXPct || usingWPct) ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
+    const ox = usingXPct ? (el.layout.xPercent! / 100 * resizeContainerW) : el.layout.x;
+    const ow = usingWPct ? (el.layout.widthPercent! / 100 * resizeContainerW) : el.layout.width;
+    const { y: oy, height: oh } = el.layout;
     const prevSnapshot = snapshot;
 
     const onMove = (ev: MouseEvent) => {
@@ -275,7 +289,14 @@ export function CanvasElement({
       if (dir.includes('w')) { w = Math.max(minSize, ow - dx); x = ox + ow - w; }
       if (dir.includes('n')) { h = Math.max(minSize, oh - dy); y = oy + oh - h; }
 
-      onUpdate({ layout: { ...el.layout, x: snap(x, snapEnabled), y: snap(y, snapEnabled), width: snap(w, snapEnabled), height: snap(h, snapEnabled) } });
+      const newLayout = { ...el.layout };
+      if (usingXPct) newLayout.xPercent = +(snap(x, snapEnabled) / resizeContainerW * 100).toFixed(1);
+      else newLayout.x = snap(x, snapEnabled);
+      if (usingWPct) newLayout.widthPercent = +(snap(w, snapEnabled) / resizeContainerW * 100).toFixed(1);
+      else newLayout.width = snap(w, snapEnabled);
+      newLayout.y = snap(y, snapEnabled);
+      newLayout.height = snap(h, snapEnabled);
+      onUpdate({ layout: newLayout });
     };
 
     const onUp = () => {
@@ -315,9 +336,9 @@ export function CanvasElement({
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
-    left: el.layout.fullWidth ? 0 : el.layout.x,
+    left: el.layout.fullWidth ? 0 : (el.layout.xPercent != null ? `${el.layout.xPercent}%` : el.layout.x),
     top: el.layout.y,
-    width: el.layout.fullWidth ? '100%' : el.layout.width,
+    width: el.layout.fullWidth ? '100%' : (el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : el.layout.width),
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,

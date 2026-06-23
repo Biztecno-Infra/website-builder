@@ -119,25 +119,51 @@ export function ElementPanel({
               <input type="checkbox" checked={!!element.layout.fullWidth}
                 onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
             </div>
-            {!element.layout.fullWidth && (
-              <div className={'pb-prop-row'}>
-                <label>X</label>
-                <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
-                  onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
-              </div>
-            )}
+            {!element.layout.fullWidth && (() => {
+              const xMode = element.layout.xPercent != null ? 'percent' : 'px';
+              return (
+                <div className={'pb-prop-row'}>
+                  <label>X</label>
+                  {xMode === 'percent' ? (
+                    <PbInput type="number" value={element.layout.xPercent!} step={0.1} onFocus={onFocus} onBlur={onBlur}
+                      onChange={e => changeLayout({ xPercent: Number(e.target.value) })} />
+                  ) : (
+                    <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+                      onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
+                  )}
+                  <button className={'pb-unit-toggle'} title="Toggle px / %"
+                    onClick={() => xMode === 'percent'
+                      ? commitChange({ layout: { ...element.layout, xPercent: undefined, x: Math.round(element.layout.xPercent! / 100 * CANVAS_W) } })
+                      : commitChange({ layout: { ...element.layout, xPercent: +(element.layout.x / CANVAS_W * 100).toFixed(1) } })
+                    }>{xMode === 'percent' ? '%' : 'px'}</button>
+                </div>
+              );
+            })()}
             <div className={'pb-prop-row'}>
               <label>Y</label>
               <PbInput type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
-            {element.type !== 'divider' && !element.layout.fullWidth && (
-              <div className={'pb-prop-row'}>
-                <label>Width</label>
-                <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
-                  onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
-              </div>
-            )}
+            {element.type !== 'divider' && !element.layout.fullWidth && (() => {
+              const wMode = element.layout.widthPercent != null ? 'percent' : 'px';
+              return (
+                <div className={'pb-prop-row'}>
+                  <label>Width</label>
+                  {wMode === 'percent' ? (
+                    <PbInput type="number" value={element.layout.widthPercent!} step={0.1} onFocus={onFocus} onBlur={onBlur}
+                      onChange={e => changeLayout({ widthPercent: Number(e.target.value) })} />
+                  ) : (
+                    <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+                      onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
+                  )}
+                  <button className={'pb-unit-toggle'} title="Toggle px / %"
+                    onClick={() => wMode === 'percent'
+                      ? commitChange({ layout: { ...element.layout, widthPercent: undefined, width: Math.round(element.layout.widthPercent! / 100 * CANVAS_W) } })
+                      : commitChange({ layout: { ...element.layout, widthPercent: +(element.layout.width / CANVAS_W * 100).toFixed(1) } })
+                    }>{wMode === 'percent' ? '%' : 'px'}</button>
+                </div>
+              );
+            })()}
           </>
         )}
         {isInGridCell && (
