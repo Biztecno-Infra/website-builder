@@ -18,6 +18,12 @@
   min-width: 0;
 }
 
+/* ─── Center the canvas at tablet/mobile breakpoints ─── */
+.pb-canvas-wrapper.pb-bp-tablet,
+.pb-canvas-wrapper.pb-bp-mobile {
+  justify-content: center;
+}
+
 /* ─── Canvas column — width set by inline style (canvasWidth), never stretches ─── */
 .pb-canvas-column {
   flex-shrink: 0;

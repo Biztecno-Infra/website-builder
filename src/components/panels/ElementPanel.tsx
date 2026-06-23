@@ -7,6 +7,7 @@ import type {
   FlexWidthMode, NodeMap, SiteTheme, Page,
 } from '../../types';
 import { applyBreakpoint, CANVAS_W } from '../../hooks/useBuilderStore';
+import { isFreeSection } from '../../utils/nodeHelpers';
 import { themeToSwatches } from './PanelFields';
 
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
@@ -74,6 +75,8 @@ export function ElementPanel({
 
   const bpScale = BREAKPOINT_WIDTHS[breakpoint] / CANVAS_W;
   const eff = applyBreakpoint(element, breakpoint, bpScale);
+  const parentNode = nodes[element.parent];
+  const isInFreeSection = !isInGridCell && !!parentNode && isFreeSection(parentNode);
 
   const { onFocus, onBlur, isFocused } = useFocusSnapshot(snapshot, onPushSnapshot);
   const commitChange = (updates: Partial<CanvasElement>) => { onPushSnapshot(snapshot); change(updates); };
@@ -114,13 +117,15 @@ export function ElementPanel({
       >
         {!isInGridCell && (
           <>
-            <div className={'pb-prop-row'}>
-              <label>Full Width</label>
-              <input type="checkbox" checked={!!element.layout.fullWidth}
-                onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
-            </div>
+            {!isInFreeSection && (
+              <div className={'pb-prop-row'}>
+                <label>Full Width</label>
+                <input type="checkbox" checked={!!element.layout.fullWidth}
+                  onChange={e => commitChange({ layout: { ...element.layout, fullWidth: e.target.checked || undefined, x: 0 } })} />
+              </div>
+            )}
             {!element.layout.fullWidth && (() => {
-              const xMode = element.layout.xPercent != null ? 'percent' : 'px';
+              const xMode = (breakpoint === 'desktop' && element.layout.xPercent != null) ? 'percent' : 'px';
               return (
                 <div className={'pb-prop-row'}>
                   <label>X</label>
@@ -131,12 +136,14 @@ export function ElementPanel({
                     <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
                       onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
                   )}
-                  <div className={'pb-unit-tabs'}>
-                    <button className={['pb-unit-tab', xMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
-                      onClick={() => xMode === 'percent' && commitChange({ layout: { ...element.layout, xPercent: undefined, x: Math.round(element.layout.xPercent! / 100 * CANVAS_W) } })}>px</button>
-                    <button className={['pb-unit-tab', xMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
-                      onClick={() => xMode === 'px' && commitChange({ layout: { ...element.layout, xPercent: +(element.layout.x / CANVAS_W * 100).toFixed(1) } })}>%</button>
-                  </div>
+                  {breakpoint === 'desktop' && (
+                    <div className={'pb-unit-tabs'}>
+                      <button className={['pb-unit-tab', xMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                        onClick={() => xMode === 'percent' && commitChange({ layout: { ...element.layout, xPercent: undefined, x: Math.round(element.layout.xPercent! / 100 * CANVAS_W) } })}>px</button>
+                      <button className={['pb-unit-tab', xMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                        onClick={() => xMode === 'px' && commitChange({ layout: { ...element.layout, xPercent: +(element.layout.x / CANVAS_W * 100).toFixed(1) } })}>%</button>
+                    </div>
+                  )}
                 </div>
               );
             })()}
@@ -146,7 +153,7 @@ export function ElementPanel({
                 onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
             {element.type !== 'divider' && !element.layout.fullWidth && (() => {
-              const wMode = element.layout.widthPercent != null ? 'percent' : 'px';
+              const wMode = (breakpoint === 'desktop' && element.layout.widthPercent != null) ? 'percent' : 'px';
               return (
                 <div className={'pb-prop-row'}>
                   <label>Width</label>
@@ -157,12 +164,14 @@ export function ElementPanel({
                     <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
                       onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
                   )}
-                  <div className={'pb-unit-tabs'}>
-                    <button className={['pb-unit-tab', wMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
-                      onClick={() => wMode === 'percent' && commitChange({ layout: { ...element.layout, widthPercent: undefined, width: Math.round(element.layout.widthPercent! / 100 * CANVAS_W) } })}>px</button>
-                    <button className={['pb-unit-tab', wMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
-                      onClick={() => wMode === 'px' && commitChange({ layout: { ...element.layout, widthPercent: +(element.layout.width / CANVAS_W * 100).toFixed(1) } })}>%</button>
-                  </div>
+                  {breakpoint === 'desktop' && (
+                    <div className={'pb-unit-tabs'}>
+                      <button className={['pb-unit-tab', wMode === 'px' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                        onClick={() => wMode === 'percent' && commitChange({ layout: { ...element.layout, widthPercent: undefined, width: Math.round(element.layout.widthPercent! / 100 * CANVAS_W) } })}>px</button>
+                      <button className={['pb-unit-tab', wMode === 'percent' ? 'pb-unit-tab--active' : ''].filter(Boolean).join(' ')}
+                        onClick={() => wMode === 'px' && commitChange({ layout: { ...element.layout, widthPercent: +(element.layout.width / CANVAS_W * 100).toFixed(1) } })}>%</button>
+                    </div>
+                  )}
                 </div>
               );
             })()}

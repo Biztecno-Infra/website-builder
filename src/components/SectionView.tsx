@@ -251,14 +251,16 @@ function FreeSectionView({
   const isFixed  = scrollBehavior === 'fixed';
   const hasActiveChild = !!(selectedId && section.children.includes(selectedId));
 
+  const selectionShadow = (isSelected && !hasActiveChild) ? 'inset 0 0 0 2px #006e75'
+    : (isOver || isDragOverTarget) ? 'inset 0 0 0 2px #0b978e'
+    : undefined;
+
   const sectionContentStyle: React.CSSProperties = {
     position: 'relative',
     width: canvasWidth,
     height: '100%',
     margin: '0 auto',
     boxSizing: 'border-box',
-    outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : (isOver || isDragOverTarget) ? '2px dashed #0b978e' : undefined,
-    outlineOffset: -2,
     paddingTop: effPad.top || undefined,
     paddingRight: effPad.right || undefined,
     paddingBottom: effPad.bottom || undefined,
@@ -363,7 +365,7 @@ function FreeSectionView({
         }}
         id={`sec-${section.id}`}
         className={'pb-section-bg'}
-        style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
+        style={{ ...sectionBgStyle, boxShadow: isLayoutOver ? 'inset 0 -3px 0 0 #006e75' : selectionShadow }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
           e.stopPropagation();

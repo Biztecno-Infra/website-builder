@@ -930,10 +930,12 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   const freeShadowCss = freeShadow?.enabled
     ? `;box-shadow:${freeShadow.x}px ${freeShadow.y}px ${freeShadow.blur}px ${freeShadow.spread}px ${freeShadow.color}`
     : '';
-  const freeInnerWidth = `max-width:${pageMaxWidth}px;margin:0 auto`;
+  const freeInnerStyle = pageFixed
+    ? `max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`
+    : `width:100%;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`;
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}${freeMarginCss}${freeShadowCss}">
     ${overlay}
-    <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerWidth};min-height:${sec.layout.height}px${freePadCss}">
+    <div class="sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerStyle}">
       ${columnBgs}
       ${elements}
     </div>
@@ -1514,7 +1516,7 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   HAS_CAROUSEL = false;
   HAS_ACCORDION = false;
 
-  const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
+  const pageFixed = (page.layoutWidth ?? 'fluid') === 'fixed';
   const pageMaxWidth = page.maxWidth ?? 1280;
 
   const googleFonts = collectGoogleFonts(state, sections);

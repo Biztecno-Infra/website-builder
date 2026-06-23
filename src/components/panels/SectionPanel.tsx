@@ -46,12 +46,13 @@ interface Props {
   onPushSnapshot: (snapshot: BuilderState) => void;
   breakpoint?: Breakpoint;
   theme: SiteTheme;
+  pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 export function SectionPanel({
   section, nodes, snapshot,
   onUpdateSection, onAddGridCell, onUpdateGridCell, onPushSnapshot,
-  breakpoint = 'desktop', theme,
+  breakpoint = 'desktop', theme, pageLayoutWidth = 'fluid',
 }: Props) {
   const [selectedColIdx, setSelectedColIdx] = useState(0);
   const [showLayoutModal, setShowLayoutModal] = useState(false);
@@ -148,8 +149,8 @@ export function SectionPanel({
           </div>
         )}
 
-        {/* Width (grid/flex only) */}
-        {hasGrid && (
+        {/* Width (grid/flex only) — hidden on fluid pages since page-level full-width overrides it */}
+        {hasGrid && pageLayoutWidth !== 'fluid' && (
           <>
             <div className={'pb-prop-row'}>
               <label>Width</label>
@@ -158,31 +159,6 @@ export function SectionPanel({
                 options={CONTENT_WIDTH_OPTIONS}
                 onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: v as ContentWidthMode } })}
               />
-            </div>
-            {(gridCfg.contentWidth ?? 'constrained') === 'constrained' && (
-              <div className={'pb-prop-row'}>
-                <label>Max Width</label>
-                <PxInput value={gridCfg.maxWidth ?? 1280} min={320} max={3840} onFocus={onNumberFocus} onBlur={onNumberBlur}
-                  onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, maxWidth: Math.max(320, v) } })} />
-              </div>
-            )}
-            <div className={'pb-prop-row'}>
-              <label>Min Height</label>
-              <PxInput value={gridCfg.minHeight ?? ''} placeholder="Auto"
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, minHeight: v || undefined } })} />
-              {gridCfg.minHeight !== undefined && (
-                <button className={'pb-resp-clear-btn'} onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, minHeight: undefined } })}>↺</button>
-              )}
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Row Height</label>
-              <PxInput value={gridCfg.rowHeight ?? ''} placeholder="Auto"
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, rowHeight: v || undefined } })} />
-              {gridCfg.rowHeight !== undefined && (
-                <button className={'pb-resp-clear-btn'} onClick={() => onUpdateSection(section.id, { grid: { ...gridCfg, rowHeight: undefined } })}>↺</button>
-              )}
             </div>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Column Gap</label>

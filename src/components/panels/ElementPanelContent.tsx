@@ -379,12 +379,6 @@ export function ElementPanelContent({
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ src: e.target.value })} />
           </div>
-          <div className={"pb-prop-row pb-full"}>
-            <label>Link</label>
-            <PbInput type="text" variant="plain" value={element.content.linkUrl ?? ''} placeholder="https://..."
-              onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ linkUrl: e.target.value })} />
-          </div>
           <div className={'pb-prop-row'}>
             <label>Alt Text</label>
             <PbInput type="text" variant="plain" value={element.content.alt}
@@ -419,12 +413,6 @@ export function ElementPanelContent({
             <PbInput type="text" variant="plain" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=..."
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => changeContent({ videoUrl: e.target.value })} />
-          </div>
-          <div className={"pb-prop-row pb-full"}>
-            <label>Thumbnail path</label>
-            <PbInput type="text" variant="plain" value={element.content.thumbnailUrl ?? ''} placeholder="https://..."
-              onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ thumbnailUrl: e.target.value })} />
           </div>
         </CollapsibleSection>
       )}

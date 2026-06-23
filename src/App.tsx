@@ -5,7 +5,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Canvas } from './components/Canvas';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
-import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
 import { useBuilderStore, makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
@@ -107,6 +106,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     reorderAccordionItem,
     toggleAccordionItem,
     resetAccordionRuntime,
+    saveNow,
   } = useBuilderStore(initialState);
 
   // When initialState loads async (e.g. API fetch resolves after first render), sync it in.
@@ -144,6 +144,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
 
   const [snapEnabled] = useState(true);
   const [zoom, setZoom] = useState(1);
+  const [savedFlash, setSavedFlash] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; id: string } | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
@@ -170,6 +171,13 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, [changeZoom]);
+
+  const handleSave = useCallback(() => {
+    saveNow();
+    onSave?.({ ...state, nodes: sparsifyNodes(state.nodes) });
+    setSavedFlash(true);
+    setTimeout(() => setSavedFlash(false), 2000);
+  }, [saveNow, onSave, state]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -554,7 +562,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               previewWidth={previewWidth}
               onPreviewNavigatePage={setActivePage}
               breakpoint={previewBp}
-              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              layoutWidth={activePage.layoutWidth ?? 'fluid'}
               maxWidth={activePage.maxWidth ?? 1280}
               initialScrollTop={previewScrollRef.current}
             />
@@ -578,7 +586,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
           onRedo={handleRedo}
           breakpoint={breakpoint}
           onSetBreakpoint={setBreakpoint}
-          layoutWidth={activePage.layoutWidth ?? 'fixed'}
+          layoutWidth={activePage.layoutWidth ?? 'fluid'}
           onSetLayoutWidth={w => updatePageLayout(activePage.id, w)}
           zoom={zoom}
           onZoomChange={changeZoom}
@@ -593,7 +601,8 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               importState(makeEmpty());
             }
           }}
-          onSave={onSave ? () => onSave({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
+          onSave={handleSave}
+          savedFlash={savedFlash}
           onPublish={onPublish ? () => onPublish({ ...state, nodes: sparsifyNodes(state.nodes) }) : undefined}
         />
         <input
@@ -648,14 +657,6 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
 
         <div className={'pb-middle-container pb-flex-col'}>
           <div className={'pb-content-wrapper pb-flex-col'} style={{ position: 'relative' }} ref={canvasWrapperRef}>
-            {selectedIds.length >= 2 && (
-              <AlignmentToolbar
-                selectedIds={selectedIds}
-                elements={elements}
-                onUpdateElements={updates => { pushSnapshot(stateRef.current); updateElements(updates); }}
-              />
-            )}
-
             <Canvas
               nodes={nodes}
               sections={allSections}
@@ -721,7 +722,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
               onAddAccordionItem={addAccordionItem}
               zoom={zoom}
               canvasDisplayWidth={breakpoint === 'desktop' ? 1280 : undefined}
-              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              layoutWidth={activePage.layoutWidth ?? 'fluid'}
               maxWidth={activePage.maxWidth ?? 1280}
             />
 
@@ -785,6 +786,7 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
           pages={state.pages}
           isOpen={rightPanelOpen}
           onClose={() => setRightPanelOpen(false)}
+          pageLayoutWidth={activePage.layoutWidth ?? 'fluid'}
         />
         </div>
       </div>

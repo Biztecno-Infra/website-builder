@@ -24,7 +24,6 @@ const CELL_PANEL_DEFAULTS: Record<string, boolean> = {
   minHeight: true,
   background: true,
   border: true,
-  rowSpan: false,
   visibility: false,
 };
 
@@ -319,19 +318,6 @@ export function GridCellPanel({
           onFocus={gcFocus} onBlur={gcBlur}
           swatches={swatches}
         />
-      </CollapsibleSection>
-
-      {/* ── Row Span ── */}
-      <CollapsibleSection sectionKey="rowSpan" label="Row Span" isOpen={sec('rowSpan')} onToggle={toggle}>
-        <div className={'pb-prop-row'}>
-          <label>Rows</label>
-          <div className="pb-px-field">
-            <PbInput type="number" value={gc.rowSpan ?? 1} min={1} max={6}
-              onFocus={gcFocus} onBlur={gcBlur}
-              onChange={e => onUpdateGridCell(gc.id, { rowSpan: Math.max(1, Math.min(6, Number(e.target.value))) })} />
-            <span className="pb-px-unit">/6</span>
-          </div>
-        </div>
       </CollapsibleSection>
 
       {/* ── Visibility ── */}

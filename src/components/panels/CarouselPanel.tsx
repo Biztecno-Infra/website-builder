@@ -154,22 +154,11 @@ export function CarouselPanel({
             >reset</button>
           )}
         </div>
-        <div className="pb-flex-between pb-panel-row" style={{ marginBottom: 6 }}>
-          <span style={{ fontSize: 12, color: '#334' }}>Width</span>
-          <span style={{ fontSize: 11, color: '#94a3b8' }}>Follows parent</span>
-        </div>
         <NumberField
           label="Height" value={effHeight} min={80} max={2000} suffix="px"
           onCommitStart={onFocus}
           onChange={v => onUpdateCarouselResponsive(carousel.id, breakpoint, { height: Math.max(80, v) })}
         />
-        {breakpoint === 'desktop' && (
-          <NumberField
-            label="Min height" value={carousel.layout.minHeight ?? 0} min={0} max={2000} suffix="px"
-            onCommitStart={onFocus}
-            onChange={v => onUpdateCarousel(carousel.id, { layout: { ...carousel.layout, minHeight: v || undefined } })}
-          />
-        )}
       </div>
 
       {/* ── Slides ── */}

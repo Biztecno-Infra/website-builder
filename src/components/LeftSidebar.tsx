@@ -13,7 +13,6 @@ import { IconButton } from './IconButton';
 
 export const DND_TYPE = 'PALETTE_ITEM';
 export const LAYOUT_DND_TYPE = 'LAYOUT_ITEM';
-export const CELL_LAYOUT_DND_TYPE = 'CELL_LAYOUT_ITEM';
 export const TEMPLATE_DND_TYPE = 'TEMPLATE_SECTION';
 export const CAROUSEL_DND_TYPE = 'CAROUSEL_ITEM';
 export const ACCORDION_DND_TYPE = 'ACCORDION_ITEM';
@@ -31,7 +30,6 @@ export interface UploadImageDragItem {
 export interface TemplateDragItem { buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult }
 
 interface LayoutDragItem { columnSpans: number[] }
-export interface CellLayoutDragItem { mode: ContainerLayoutMode; columnSpans?: number[] }
 
 function ColumnPreviewIcon({ spans }: { spans: number[] }) {
   return (
@@ -244,7 +242,7 @@ export function LeftSidebar({
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
   theme, onUpdateTheme, onApplyTheme,
 }: Props) {
-  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'pages' | 'theme' | 'uploads' | null>('elements');
+  const [activeTab, setActiveTab] = useState<'elements' | 'layers' | 'theme' | 'uploads' | null>('elements');
   const [isOpen, setIsOpen] = useState(true);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const openRafRef = useRef<number | null>(null);
@@ -266,7 +264,7 @@ export function LeftSidebar({
     }, 260);
   }, []);
 
-  const handleTabClick = useCallback((tab: 'elements' | 'layers' | 'pages' | 'theme' | 'uploads') => {
+  const handleTabClick = useCallback((tab: 'elements' | 'layers' | 'theme' | 'uploads') => {
     // same tab while open → toggle close
     if (activeTab === tab && isOpen) {
       handleClose();
@@ -321,12 +319,6 @@ export function LeftSidebar({
           onClick={() => handleTabClick('layers')} title="Layers">
           <Icon id="layers" size={20} />
         </button>
-        {/* Pages tab — not in design yet
-        <button className={['pb-tab-btn pb-flex-center', activeTab === 'pages' && 'pb-active'].filter(Boolean).join(' ')}
-          onClick={() => handleTabClick('pages')} title="Pages">
-          <span>Pages</span>
-        </button>
-        */}
         <button className={['pb-tab-btn pb-flex-center', activeTab === 'theme' && 'pb-active'].filter(Boolean).join(' ')}
           onClick={() => handleTabClick('theme')} title="Theme">
           <Icon id="palette" size={20} />
@@ -344,13 +336,6 @@ export function LeftSidebar({
           <div className={'pb-blocks-header pb-flex-between'}>
             <span className={'pb-blocks-header-title'}>Add Elements</span>
             <IconButton variant="close" onClick={handleClose} title="Close">✕</IconButton>
-          </div>
-
-          <div className={'pb-blocks-search'}>
-            <div className={'pb-blocks-search-inner pb-flex-row'}>
-              <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
-              <input type="text" placeholder="Search layers..." />
-            </div>
           </div>
 
           <div className={'pb-sidebar-section-title'}>Basic</div>
@@ -386,26 +371,6 @@ export function LeftSidebar({
               </div>
             </button>
           </div>
-
-          {/* Cell Layouts — not in design yet, kept for future use
-          <div className={'pb-sidebar-section-title'} style={{ marginTop: 8 }}>Cell Layouts</div>
-          <div style={{ paddingLeft: 12, paddingBottom: 4, fontSize: 10, color: '#94a3b8' }}>
-            {selectedGridCellId ? 'Drop into cell or click to add' : 'Select a grid cell first'}
-          </div>
-          <div className={'pb-cell-layout-list'}>
-            {CELL_LAYOUT_PRESETS.map(preset => (
-              <CellLayoutItem
-                key={preset.label}
-                label={preset.label}
-                icon={preset.icon}
-                mode={preset.mode}
-                columnSpans={preset.columnSpans}
-                disabled={!selectedGridCellId}
-                onAdd={(mode, spans) => onAddContainer?.(mode, spans)}
-              />
-            ))}
-          </div>
-          */}
 
           <div className={'pb-sidebar-section-title'}>Template</div>
           <div className={'pb-template-card-list'}>

@@ -646,5 +646,6 @@ export function useBuilderStore(externalInitialState?: BuilderState) {
     handleUndo, handleRedo, canUndo, canRedo,
     updateTheme, importState,
     stateRef,
+    saveNow: () => saveToStorage(stateRef.current),
   };
 }

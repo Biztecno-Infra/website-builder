@@ -136,7 +136,7 @@ export function GridSectionView({
 
   const isFlex = section.layoutMode === 'flex';
   const flexCfg = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
-  const contentWidthMode = gridCfg.contentWidth ?? 'constrained';
+  const contentWidthMode = pageLayoutWidth === 'fluid' ? 'full' : (gridCfg.contentWidth ?? 'constrained');
   const maxW = gridCfg.maxWidth ?? 1280;
 
   const cells = section.children
@@ -164,9 +164,10 @@ export function GridSectionView({
 
   const secBorder = section.style.border;
   const secShadow = section.style.shadow;
+  const selectionShadow = (isSelected && !hasActiveChild) ? 'inset 0 0 0 2px #006e75' : undefined;
+
   const sectionContentStyle: React.CSSProperties = {
     position: 'relative', boxSizing: 'border-box', width: '100%',
-    outline: (isSelected && !hasActiveChild) ? '2px solid #006e75' : undefined, outlineOffset: -2,
     paddingTop: pad.top, paddingRight: pad.right, paddingBottom: pad.bottom, paddingLeft: pad.left,
     ...(secBorder?.radius ? { borderRadius: secBorder.radius } : {}),
     ...(secBorder?.width && secBorder.width > 0 ? { border: `${secBorder.width}px ${secBorder.style ?? 'solid'} ${secBorder.color}` } : {}),
@@ -215,7 +216,7 @@ export function GridSectionView({
           >+</button>
         </>
       )}
-      <div ref={bgRefCallback} id={`sec-${section.id}`} className={'pb-section-bg'} style={{ ...sectionBgStyle, ...(isLayoutOver ? { boxShadow: 'inset 0 -3px 0 0 #006e75' } : {}) }}
+      <div ref={bgRefCallback} id={`sec-${section.id}`} className={'pb-section-bg'} style={{ ...sectionBgStyle, boxShadow: isLayoutOver ? 'inset 0 -3px 0 0 #006e75' : selectionShadow }}
         onMouseDown={e => {
           if (e.target !== bgRef.current) return;
           e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);

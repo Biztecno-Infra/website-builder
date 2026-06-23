@@ -30,7 +30,8 @@ interface Props {
   onImport: () => void;
   onLoadDemo: () => void;
   onClear: () => void;
-  onSave?: () => void;
+  onSave: () => void;
+  savedFlash?: boolean;
   onPublish?: () => void;
 }
 
@@ -42,7 +43,7 @@ export function Toolbar({
   zoom, onZoomChange, onZoomReset,
   onPreview, onExportHTML, onExportJSON, onImport,
   onLoadDemo, onClear,
-  onSave, onPublish,
+  onSave, savedFlash, onPublish,
 }: Props) {
   const [pageDropOpen, setPageDropOpen] = useState(false);
   const [publishDropOpen, setPublishDropOpen] = useState(false);
@@ -185,12 +186,12 @@ export function Toolbar({
           <span>Preview</span>
         </button>
 
-        {onSave && (
-          <button className="pb-toolbar-preview-btn" onClick={onSave} title="Save">
-            <Icon id="save" size={16} />
-            <span>Save</span>
-          </button>
-        )}
+        <button className="pb-toolbar-preview-btn" onClick={onSave} title="Save">
+          <Icon id="save" size={16} />
+          <span style={{ transition: 'color 0.2s', color: savedFlash ? 'var(--pb-success, #16a34a)' : undefined }}>
+            {savedFlash ? 'Saved ✓' : 'Save'}
+          </span>
+        </button>
 
         {/* Publish dropdown */}
         <div className="pb-toolbar-dropdown-wrap" ref={publishDropRef}>
