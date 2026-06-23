@@ -75,7 +75,6 @@ const SECTION_DEFAULTS = {
   layout:     { height: 400 },
   style: {
     background: DEFAULT_SECTION_BG,
-    columns:    { count: 1, widths: [] as number[], styles: {} as Record<string, unknown> },
     padding:    { top: 0, right: 0, bottom: 0, left: 0 },
   },
   layoutMode: 'free',

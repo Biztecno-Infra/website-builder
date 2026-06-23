@@ -110,7 +110,6 @@ function FreeSectionView({
   const [marquee, setMarquee] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
 
   const bg = section.style.background;
-  const cols = section.style.columns;
   const basePad = section.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const bpPadOverride =
     breakpoint === 'mobile' ? section.responsive?.mobile?.padding
@@ -188,32 +187,6 @@ function FreeSectionView({
     collect: m => ({ isLayoutOver: m.isOver() }),
   });
 
-  const handleDividerMouseDown = (e: React.MouseEvent, dividerIndex: number) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!surfaceRef.current) return;
-    const rect = surfaceRef.current.getBoundingClientRect();
-    const startX = e.clientX;
-    const startWidths = [...cols.widths];
-    const totalPx = rect.width;
-
-    const onMove = (ev: MouseEvent) => {
-      const dx = (ev.clientX - startX) / canvasDragShared.zoom;
-      const dPct = (dx / totalPx) * 100;
-      const newWidths = [...startWidths];
-      const minPct = 5;
-      newWidths[dividerIndex] = Math.max(minPct, startWidths[dividerIndex] + dPct);
-      newWidths[dividerIndex + 1] = Math.max(minPct, startWidths[dividerIndex + 1] - dPct);
-      const sum = newWidths.reduce((a, b) => a + b, 0);
-      onUpdateSection(section.id, { style: { ...section.style, columns: { ...cols, widths: newWidths.map(w => (w / sum) * 100) } } });
-    };
-    const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-    };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
-  };
 
   const handleResizeMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -425,63 +398,6 @@ function FreeSectionView({
             </div>
           )}
 
-          {/* Column background fills */}
-          {cols.count > 1 && cols.widths.length > 0 && (
-            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0 }}>
-              {cols.widths.map((w, i) => {
-                const left = cols.widths.slice(0, i).reduce((a, b) => a + b, 0);
-                const cs = cols.styles[i];
-                if (!cs?.background) return null;
-                const csb = cs.background;
-
-                let colBg: string | undefined;
-                if (csb.type === 'linear-gradient' && csb.from && csb.to) {
-                  colBg = `linear-gradient(${csb.angle ?? 135}deg, ${csb.from}, ${csb.to})`;
-                } else if (csb.type === 'radial-gradient' && csb.from && csb.to) {
-                  colBg = `radial-gradient(circle, ${csb.from}, ${csb.to})`;
-                } else if (csb.image) {
-                  colBg = `url(${csb.image})`;
-                }
-
-                return (
-                  <div
-                    key={i}
-                    style={{
-                      position: 'absolute',
-                      left: `${left}%`,
-                      width: `${w}%`,
-                      height: '100%',
-                      backgroundColor: (!csb.type || csb.type === 'solid') ? csb.color : undefined,
-                      backgroundImage: colBg,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                    }}
-                  >
-                    {(csb.overlay ?? 0) > 0 && (
-                      <div style={{ position: 'absolute', inset: 0, background: `rgba(0,0,0,${csb.overlay})` }} />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Column guides — editor only */}
-          {!previewMode && cols.count > 1 && cols.widths.length > 0 && (
-            <div className={'pb-column-guides'}>
-              {cols.widths.slice(0, -1).map((_, i) => {
-                const left = cols.widths.slice(0, i + 1).reduce((a, b) => a + b, 0);
-                return (
-                  <div
-                    key={i}
-                    className={'pb-column-divider'}
-                    style={{ left: `${left}%` }}
-                    onMouseDown={ev => handleDividerMouseDown(ev, i)}
-                  />
-                );
-              })}
-            </div>
-          )}
 
           {!previewMode && guides.map((g, i) =>
             g.type === 'v'

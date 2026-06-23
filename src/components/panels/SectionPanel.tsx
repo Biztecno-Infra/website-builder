@@ -3,9 +3,8 @@ import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import type {
   Breakpoint, BgType, BuilderState, ContentWidthMode,
   Section, GridSection, GridCell,
-  NodeMap, SectionUpdate, ColumnStyle, SectionBackground, SiteTheme,
+  NodeMap, SectionUpdate, SectionBackground, SiteTheme,
 } from '../../types';
-import { equalWidths } from '../../hooks/useBuilderStore';
 
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal';
@@ -21,19 +20,16 @@ import {
   BG_TYPE_OPTIONS,
   BG_TYPE_WITH_TRANSPARENT_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
-  COLUMN_COUNT_OPTIONS,
   SECTION_LAYOUT_MODE_OPTIONS,
 } from '../../utils/selectOptions';
 
 const SECTION_PANEL_DEFAULTS: Record<string, boolean> = {
   layout: true,
-  columns: true,
   background: true,
   border: false,
   shadow: false,
   spacing: true,
   visibility: false,
-  columnStyles: false,
 };
 
 interface Props {
@@ -54,7 +50,6 @@ export function SectionPanel({
   onUpdateSection, onAddGridCell, onUpdateGridCell, onPushSnapshot,
   breakpoint = 'desktop', theme, pageLayoutWidth = 'fluid',
 }: Props) {
-  const [selectedColIdx, setSelectedColIdx] = useState(0);
   const [showLayoutModal, setShowLayoutModal] = useState(false);
   const [showToFreeModal, setShowToFreeModal] = useState(false);
   const { sec, toggle } = usePanelSections(SECTION_PANEL_DEFAULTS, 'builder-sidebar-sec');
@@ -62,7 +57,6 @@ export function SectionPanel({
 
   const swatches = themeToSwatches(theme);
   const bg = section.style.background;
-  const cols = section.style.columns;
   const isGrid = section.layoutMode === 'grid';
   const hasGrid = isGrid;
   const gridCfg = hasGrid ? (section as GridSection).grid : { gap: 24, rowGap: 24 };
@@ -73,8 +67,6 @@ export function SectionPanel({
 
   const updateBg = (b: Partial<SectionBackground>) =>
     onUpdateSection(section.id, { style: { ...section.style, background: { ...bg, ...b } } });
-  const updateCols = (c: Partial<typeof cols>) =>
-    onUpdateSection(section.id, { style: { ...section.style, columns: { ...cols, ...c } } });
   const updateSecPad = (p: Partial<typeof secPad>) =>
     onUpdateSection(section.id, { style: { ...section.style, padding: { ...secPad, ...p } } });
   const updateSecMargin = (m: Partial<typeof secMargin>) =>
@@ -256,20 +248,6 @@ export function SectionPanel({
                 }}>↺</button>
               )}
             </div>
-            <div className={'pb-prop-row'}>
-              <label>Columns</label>
-              <PbSelect value={String(cols.count)}
-                options={COLUMN_COUNT_OPTIONS}
-                onChange={v => {
-                  onPushSnapshot(snapshot);
-                  const n = Number(v);
-                  const newStyles: Record<string, ColumnStyle> = {};
-                  Object.entries(cols.styles).forEach(([idx, style]) => {
-                    if (Number(idx) < n) newStyles[idx] = style;
-                  });
-                  updateCols({ count: n, widths: n > 1 ? equalWidths(n) : [], styles: newStyles });
-                }} />
-            </div>
           </>
         )}
 
@@ -434,76 +412,6 @@ export function SectionPanel({
         </div>
       </CollapsibleSection>
 
-      {/* ── Column Styles (free sections with > 1 column) ── */}
-      {!isGrid && cols.count > 1 && (() => {
-        const colIdx = Math.min(selectedColIdx, cols.count - 1);
-        const cs: ColumnStyle = cols.styles[colIdx] ?? {};
-        const csb = cs.background ?? {};
-        const updateCol = (bgUpdates: Partial<SectionBackground>) =>
-          updateCols({
-            styles: { ...cols.styles, [colIdx]: { background: { ...csb, ...bgUpdates } as SectionBackground } },
-          });
-        const colBg = (csb.color || '#ffffff');
-
-        return (
-          <CollapsibleSection sectionKey="columnStyles" label="Column Styles" isOpen={sec('columnStyles')} onToggle={toggle}>
-            <div className={'pb-col-tabs'}>
-              {Array.from({ length: cols.count }, (_, i) => (
-                <button key={i} className={['pb-col-tab', colIdx === i && 'pb-active'].filter(Boolean).join(' ')}
-                  onClick={() => setSelectedColIdx(i)}>
-                  Col {i + 1}
-                </button>
-              ))}
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Type</label>
-              <PbSelect value={csb.type || 'solid'}
-                options={BG_TYPE_OPTIONS}
-                onChange={v => { onPushSnapshot(snapshot); updateCol({ type: v as BgType }); }} />
-            </div>
-            {(!csb.type || csb.type === 'solid') && (
-              <div className={'pb-prop-row'}>
-                <label>Color</label>
-                <ColorField value={colBg.startsWith('#') ? colBg : '#ffffff'}
-                  onChange={v => updateCol({ color: v, type: 'solid' })}
-                  onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
-              </div>
-            )}
-            {(csb.type === 'linear-gradient' || csb.type === 'radial-gradient') && (
-              <>
-                <div className={'pb-prop-row'}>
-                  <label>From</label>
-                  <ColorField value={csb.from || '#006e75'} onChange={v => updateCol({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
-                </div>
-                <div className={'pb-prop-row'}>
-                  <label>To</label>
-                  <ColorField value={csb.to || '#0b978e'} onChange={v => updateCol({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
-                </div>
-                {csb.type === 'linear-gradient' && (
-                  <div className={'pb-prop-row'}>
-                    <label>Angle</label>
-                    <PxInput value={csb.angle ?? 135} unit="°"
-                      onFocus={onNumberFocus} onBlur={onNumberBlur}
-                      onChange={v => updateCol({ angle: v })} />
-                  </div>
-                )}
-              </>
-            )}
-            <div className={'pb-prop-row pb-full'}>
-              <label>Image URL</label>
-              <PbInput type="text" value={csb.image || ''} placeholder="https://..."
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateCol({ image: e.target.value })} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>Overlay</label>
-              <PbInput type="number" value={csb.overlay ?? 0} min={0} max={1} step={0.05}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                onChange={e => updateCol({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
-            </div>
-          </CollapsibleSection>
-        );
-      })()}
 
       {showLayoutModal && (
         <LayoutChangeModal

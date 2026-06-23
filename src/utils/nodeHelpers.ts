@@ -47,7 +47,6 @@ export function makeSection(id: string, role: SectionRole, partial?: SectionUpda
     layout: { height: role === 'header' ? 80 : role === 'footer' ? 100 : 400 },
     style: {
       background: { ...DEFAULT_SECTION_BG, color: bgColor ?? (role === 'footer' ? '#f5f5f5' : '#ffffff') },
-      columns: { count: 1, widths: [], styles: {} },
       padding: { top: 0, right: 0, bottom: 0, left: 0 },
     },
     children: [],
@@ -125,14 +124,6 @@ export function appendToParent(nodes: NodeMap, parentId: string, childId: string
     const p = parent as { children: string[] };
     nodes[parentId] = { ...parent, children: [...p.children, childId] } as AnyNode;
   }
-}
-
-export function equalWidths(n: number): number[] {
-  if (n <= 1) return [];
-  const w = Math.floor(100 / n);
-  const widths = new Array<number>(n).fill(w);
-  widths[n - 1] = 100 - w * (n - 1);
-  return widths;
 }
 
 // ── Carousel factories ─────────────────────────────────────────────────

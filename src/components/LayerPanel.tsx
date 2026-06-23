@@ -1,19 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section, SectionColumns } from '../types';
+import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section } from '../types';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
 import { CANVAS_W } from '../hooks/useBuilderStore';
-
-function inferColumnIndex(el: CanvasElement, cols: SectionColumns): number {
-  if (cols.count <= 1 || !cols.widths.length) return 0;
-  const xPct = (el.layout.x / CANVAS_W) * 100;
-  let cumulative = 0;
-  for (let i = 0; i < cols.widths.length; i++) {
-    cumulative += cols.widths[i];
-    if (xPct < cumulative) return i;
-  }
-  return cols.widths.length - 1;
-}
 
 const TYPE_ICON_ID: Record<string, string> = {
   text: 'elText', image: 'elImage', button: 'elButton', box: 'elBox',
@@ -121,7 +110,6 @@ function SectionGroup({
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
   collapsed, onToggleCollapsed, onExpandSection,
 }: SectionGroupProps) {
-  const [colCollapsed, setColCollapsed] = useState<boolean[]>([]);
   const [dragOverElIdx, setDragOverElIdx] = useState<number | null>(null);
   const [collapsedCellMap, setCollapsedCellMap] = useState<Record<string, boolean>>({});
   const [collapsedContainerMap, setCollapsedContainerMap] = useState<Record<string, boolean>>({});
@@ -416,21 +404,6 @@ function SectionGroup({
     );
   };
 
-  const cols = section.style.columns;
-  const hasColumns = cols.count > 1 && cols.widths.length > 0;
-
-  const columnGroups: Array<Array<{ el: CanvasElement; panelIdx: number }>> = hasColumns
-    ? Array.from({ length: cols.count }, () => [])
-    : [];
-
-  if (hasColumns) {
-    for (const item of elementItems) {
-      const colIdx = Math.min(inferColumnIndex(item.el, cols), columnGroups.length - 1);
-      columnGroups[colIdx].push(item);
-    }
-    columnGroups.forEach(group => group.sort((a, b) => a.el.layout.y - b.el.layout.y));
-  }
-
   const handleElDragStart = (e: React.DragEvent, panelIdx: number, id: string) => {
     e.stopPropagation();
     _layerDrag = { sectionId: section.id, panelIdx, elId: id };
@@ -569,31 +542,7 @@ function SectionGroup({
             <div className={'pb-layer-empty-row'}>Drop element here</div>
           )}
 
-          {hasColumns ? (
-            columnGroups.map((group, colIdx) => {
-              const isColCollapsed = colCollapsed[colIdx] ?? false;
-              const toggleCol = () => setColCollapsed(prev => { const next = [...prev]; next[colIdx] = !next[colIdx]; return next; });
-              return (
-                <div key={colIdx}>
-                  <div
-                    className={'pb-layer-row pb-flex-row pb-layer-row--cell'}
-                    style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
-                    onClick={toggleCol}
-                  >
-                    <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleCol(); }}>
-                      <CollapseArrow collapsed={isColCollapsed} />
-                    </button>
-                    <span className={'pb-layer-section-icon'}>⊟</span>
-                    <span className={'pb-layer-name pb-truncate'}>Column {colIdx + 1}</span>
-                  </div>
-                  {!isColCollapsed && group.length === 0 && <div className={'pb-layer-empty-row'} style={{ paddingLeft: 8 + (depth + 2) * 16 }}>Empty</div>}
-                  {!isColCollapsed && group.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
-                </div>
-              );
-            })
-          ) : (
-            elementItems.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))
-          )}
+          {elementItems.map(({ el, panelIdx }) => renderElementRow(el, panelIdx))}
 
           {carousels.map(renderCarouselLayer)}
           {accordions.map(renderAccordionLayer)}
