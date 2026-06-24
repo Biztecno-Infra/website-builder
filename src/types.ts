@@ -268,21 +268,8 @@ export interface CanvasElement {
   cssPosition?: 'relative' | 'absolute' | 'fixed' | 'sticky';
 }
 
-// ── Section column ─────────────────────────────────────────────────────
-
-export interface ColumnStyle {
-  background?: Partial<SectionBackground>;
-}
-
-export interface SectionColumns {
-  count: number;
-  widths: number[];
-  styles: Record<string, ColumnStyle>;
-}
-
 export interface SectionStyle {
   background: SectionBackground;
-  columns: SectionColumns;
   padding: Padding;
   margin?: Padding;
   border?: Border;

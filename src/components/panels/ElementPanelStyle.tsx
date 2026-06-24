@@ -126,12 +126,6 @@ export function ElementPanelStyle({
                   onChange={v => changeHover({ textColor: v })}
                   onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
               </div>
-              <div className={'pb-prop-row'}>
-                <label>Transition Duration</label>
-                <PxInput value={hover.transitionDuration} unit="ms" min={0} step={50}
-                  onFocus={onFocus} onBlur={onBlur}
-                  onChange={v => changeHover({ transitionDuration: Math.max(0, v) })} />
-              </div>
             </>
           )}
         </CollapsibleSection>

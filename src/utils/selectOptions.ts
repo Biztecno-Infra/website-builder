@@ -140,15 +140,6 @@ export const DIVIDER_ORIENTATION_OPTIONS: SelectOption[] = [
   { value: 'vertical',   label: 'Vertical' },
 ];
 
-export const COLUMN_COUNT_OPTIONS: SelectOption[] = [
-  { value: '1', label: 'None' },
-  { value: '2', label: '2 Columns' },
-  { value: '3', label: '3 Columns' },
-  { value: '4', label: '4 Columns' },
-  { value: '5', label: '5 Columns' },
-  { value: '6', label: '6 Columns' },
-];
-
 export const FORM_FIELD_WIDTH_OPTIONS: SelectOption[] = [
   { value: 'full', label: 'Full' },
   { value: 'half', label: 'Half' },

@@ -30,7 +30,6 @@ import { migrateState, makeEmpty } from '../utils/migration';
 
 export { DEFAULT_THEME } from '../utils/builderDefaults';
 export { CANVAS_W } from '../utils/elementDefaults';
-export { equalWidths } from '../utils/nodeHelpers';
 export { makeEmpty } from '../utils/migration';
 
 const STORAGE_KEY = 'microsite-builder-v5';
@@ -646,5 +645,6 @@ export function useBuilderStore(externalInitialState?: BuilderState) {
     handleUndo, handleRedo, canUndo, canRedo,
     updateTheme, importState,
     stateRef,
+    saveNow: () => saveToStorage(stateRef.current),
   };
 }

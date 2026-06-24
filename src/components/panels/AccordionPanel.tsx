@@ -152,11 +152,6 @@ export function AccordionPanel({
           options={[{ value: 'right', label: 'Right' }, { value: 'left', label: 'Left' }]}
           onChange={v => setProps({ iconPosition: v })}
         />
-        <NumberField
-          label="Expanded icon rotation" value={p.expandedIconRotation ?? 180} min={0} max={360} suffix="°"
-          onCommitStart={onFocus}
-          onChange={v => setProps({ expandedIconRotation: v }, false)}
-        />
       </div>
 
       {/* ── Layout ── */}

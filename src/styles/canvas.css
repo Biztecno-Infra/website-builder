@@ -18,6 +18,12 @@
   min-width: 0;
 }
 
+/* ─── Center the canvas at tablet/mobile breakpoints ─── */
+.pb-canvas-wrapper.pb-bp-tablet,
+.pb-canvas-wrapper.pb-bp-mobile {
+  justify-content: center;
+}
+
 /* ─── Canvas column — width set by inline style (canvasWidth), never stretches ─── */
 .pb-canvas-column {
   flex-shrink: 0;
@@ -446,41 +452,6 @@
   background: rgba(0, 110, 117, 0.08);
   pointer-events: none;
   z-index: 9998;
-}
-
-/* ─── Column guides ─── */
-.pb-column-guides {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.pb-column-divider {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  transform: translateX(-3px);
-  cursor: col-resize;
-  pointer-events: all;
-  z-index: 2;
-}
-
-.pb-column-divider::before {
-  content: '';
-  position: absolute;
-  left: 2px;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--pb-primary)44;
-  transition: var(--pb-transition);
-}
-
-.pb-column-divider:hover::before,
-.pb-column-divider:active::before {
-  background: var(--pb-primary)cc;
 }
 
 

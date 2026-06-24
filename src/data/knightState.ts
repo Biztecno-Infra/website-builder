@@ -137,7 +137,7 @@ function section(
   const s: GridSection = {
     id: uid(), type: 'section', role: 'section', label,
     layout: { height: 400 },
-    style: { background: bg, columns: { count: 1, widths: [], styles: {} }, padding: p },
+    style: { background: bg, padding: p },
     layoutMode: 'grid',
     children: cells.map(c => c.id),
     grid: { gap, rowGap, maxWidth: 1280 },

@@ -108,7 +108,7 @@ export function Canvas({
   selectedCarouselId, onSelectCarousel, onSetActiveSlide, onAddSlide, onAddCarousel, onUpdateCarousel, onUpdateCarouselResponsive,
   selectedAccordionId, onSelectAccordion, onAddAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   zoom = 1,
-  layoutWidth = 'fixed',
+  layoutWidth = 'fluid',
   maxWidth = 1200,
   initialScrollTop,
 }: Props) {

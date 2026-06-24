@@ -81,7 +81,7 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
         </div>
 
         {breakpoint === 'desktop' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: effectiveMode === 'grid' ? '1fr 1fr' : '1fr', gap: 8 }}>
             <div>
               <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Gap</div>
               <PbInput type="number" min={0} max={80}
@@ -90,14 +90,16 @@ export function ContainerPanel({ container, snapshot, onUpdateContainer, onPushS
                 onChange={e => onUpdateContainer(container.id, { gap: Math.max(0, Number(e.target.value)) })}
               />
             </div>
-            <div>
-              <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Row Gap</div>
-              <PbInput type="number" min={0} max={80}
-                value={container.rowGap}
-                onFocus={onFocus} onBlur={onBlur}
-                onChange={e => onUpdateContainer(container.id, { rowGap: Math.max(0, Number(e.target.value)) })}
-              />
-            </div>
+            {effectiveMode === 'grid' && (
+              <div>
+                <div className={'pb-sublabel'} style={{ marginBottom: 4 }}>Row Gap</div>
+                <PbInput type="number" min={0} max={80}
+                  value={container.rowGap}
+                  onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => onUpdateContainer(container.id, { rowGap: Math.max(0, Number(e.target.value)) })}
+                />
+              </div>
+            )}
           </div>
         )}
       </div>

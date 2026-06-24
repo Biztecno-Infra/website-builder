@@ -1,4 +1,4 @@
-import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, ColumnStyle, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
+import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
 import { sectionBgCssStr } from './sectionStyle';
 import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
@@ -683,39 +683,6 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
   </div>`;
 }
 
-function colBgStyle(cs: ColumnStyle): string {
-  const csb = cs.background;
-  if (!csb) return '';
-  if (csb.type === 'linear-gradient' && csb.from && csb.to) {
-    return `background-image:linear-gradient(${csb.angle ?? 135}deg,${csb.from},${csb.to})`;
-  }
-  if (csb.type === 'radial-gradient' && csb.from && csb.to) {
-    return `background-image:radial-gradient(circle,${csb.from},${csb.to})`;
-  }
-  if (csb.image) {
-    return `background-image:url(${csb.image});background-size:cover;background-position:center`;
-  }
-  if (csb.color) return `background-color:${csb.color}`;
-  return '';
-}
-
-function renderColumnBgs(sec: Section): string {
-  const cols = sec.style.columns;
-  if (cols.count <= 1 || !cols.widths.length) return '';
-  const colDivs = cols.widths.map((w, i) => {
-    const cs = cols.styles[i];
-    if (!cs) return '';
-    const bgCss = colBgStyle(cs);
-    if (!bgCss) return '';
-    const left = cols.widths.slice(0, i).reduce((a, b) => a + b, 0);
-    const overlay = (cs.background?.overlay ?? 0) > 0
-      ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${cs.background!.overlay})"></div>`
-      : '';
-    return `<div style="position:absolute;left:${left}%;width:${w}%;height:100%;${bgCss};overflow:hidden">${overlay}</div>`;
-  }).filter(Boolean).join('');
-  return colDivs ? `<div style="position:absolute;inset:0;pointer-events:none">${colDivs}</div>` : '';
-}
-
 // Render a carousel as a track of slides (each slide is a GridCell). One slide is
 // visible at a time; the controller below handles arrows/dots/autoplay/loop.
 function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
@@ -902,8 +869,6 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
     : '';
 
-  const columnBgs = renderColumnBgs(sec);
-
   const elements = sec.children
     .map(id => nodes[id])
     .filter(Boolean)
@@ -930,11 +895,12 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   const freeShadowCss = freeShadow?.enabled
     ? `;box-shadow:${freeShadow.x}px ${freeShadow.y}px ${freeShadow.blur}px ${freeShadow.spread}px ${freeShadow.color}`
     : '';
-  const freeInnerWidth = `max-width:${pageMaxWidth}px;margin:0 auto`;
+  const freeInnerStyle = pageFixed
+    ? `max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`
+    : `width:100%;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`;
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}${freeMarginCss}${freeShadowCss}">
     ${overlay}
-    <div class="sc sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerWidth};min-height:${sec.layout.height}px${freePadCss}">
-      ${columnBgs}
+    <div class="sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerStyle}">
       ${elements}
     </div>
   </div>`;
@@ -1514,7 +1480,7 @@ export function exportHtml(state: BuilderState, pageName: string): string {
   HAS_CAROUSEL = false;
   HAS_ACCORDION = false;
 
-  const pageFixed = (page.layoutWidth ?? 'fixed') === 'fixed';
+  const pageFixed = (page.layoutWidth ?? 'fluid') === 'fixed';
   const pageMaxWidth = page.maxWidth ?? 1280;
 
   const googleFonts = collectGoogleFonts(state, sections);

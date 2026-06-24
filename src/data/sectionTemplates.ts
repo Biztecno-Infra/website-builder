@@ -111,7 +111,7 @@ function mkSec(id: string, children: string[], bg: SectionBackground, gap_ = 24,
   p: Padding = pad(0), label = 'Section'): GridSection {
   return { id, type: 'section', layoutMode: 'grid', role: 'section', label,
     layout: { height: 600 },
-    style: { background: bg, columns: { count: 1, widths: [100], styles: {} }, padding: p },
+    style: { background: bg, padding: p },
     children, grid: { gap: gap_, rowGap, maxWidth: 1280 } };
 }
 

@@ -1,11 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useDrop } from 'react-dnd';
 import type { Accordion, Breakpoint, CanvasElement as El, GridCell, ElementType, Container, Carousel } from '../types';
-import { DND_TYPE, LAYOUT_DND_TYPE, CELL_LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
+import { DND_TYPE, LAYOUT_DND_TYPE, CAROUSEL_DND_TYPE, ACCORDION_DND_TYPE } from './LeftSidebar';
 import { CarouselView } from './CarouselView';
 import { AccordionView } from './AccordionView';
 import { canvasDragShared } from './CanvasElement';
-import type { CellLayoutDragItem } from './LeftSidebar';
 import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
 import { ColumnsBlockView } from './ColumnsBlockView';
@@ -146,16 +145,6 @@ export function GridCellView({
     collect: m => ({ isLayoutOver: m.isOver({ shallow: true }) }),
   });
 
-  // ── Drop: cell layout presets from sidebar (creates container) ───────────
-  const [{ isCellLayoutOver }, cellLayoutDropRef] = useDrop<CellLayoutDragItem, void, { isCellLayoutOver: boolean }>({
-    accept: CELL_LAYOUT_DND_TYPE,
-    drop: (item, monitor) => {
-      if (monitor.didDrop()) return;
-      onAddContainer?.(cell.id, item.mode, item.columnSpans);
-    },
-    collect: m => ({ isCellLayoutOver: m.isOver({ shallow: true }) }),
-  });
-
   // ── Drop: carousel palette item → flow a carousel inside this cell ───────
   const [{ isCarouselOver }, carouselDropRef] = useDrop<{ kind: 'carousel' }, void, { isCarouselOver: boolean }>({
     accept: CAROUSEL_DND_TYPE,
@@ -182,11 +171,10 @@ export function GridCellView({
       (paletteDropRef     as (el: HTMLDivElement | null) => void)(node);
       (gridElDropRef      as (el: HTMLDivElement | null) => void)(node);
       (layoutDropRef      as (el: HTMLDivElement | null) => void)(node);
-      (cellLayoutDropRef  as (el: HTMLDivElement | null) => void)(node);
       (carouselDropRef    as (el: HTMLDivElement | null) => void)(node);
       (accordionDropRef   as (el: HTMLDivElement | null) => void)(node);
     },
-    [paletteDropRef, gridElDropRef, layoutDropRef, cellLayoutDropRef, carouselDropRef, accordionDropRef],
+    [paletteDropRef, gridElDropRef, layoutDropRef, carouselDropRef, accordionDropRef],
   );
 
   const handleDragHover = useCallback((afterIdx: number) => setInsertAfterIndex(afterIdx), []);
@@ -339,7 +327,7 @@ export function GridCellView({
         (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
         isGridElOver && 'pb-grid-cell--el-over',
         isRow && 'pb-grid-cell--flex-row',
-        (isLayoutOver || isCellLayoutOver) && 'pb-grid-cell--layout-hover',
+        isLayoutOver && 'pb-grid-cell--layout-hover',
         (isCarouselOver || isAccordionOver) && 'pb-grid-cell--drop-over',
         cellIsEmpty && !previewMode && 'pb-grid-cell--empty',
       ].filter(Boolean).join(' ')}

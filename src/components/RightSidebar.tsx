@@ -52,6 +52,7 @@ interface Props {
   pages: Page[];
   isOpen: boolean;
   onClose: () => void;
+  pageLayoutWidth?: 'fixed' | 'fluid';
 }
 
 export function RightSidebar({
@@ -67,7 +68,7 @@ export function RightSidebar({
   onAddAccordionItem, onDeleteAccordionItem, onDuplicateAccordionItem, onReorderAccordionItem, onToggleAccordionItem, onSelectAccordionItemCell,
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
-  isOpen, onClose,
+  isOpen, onClose, pageLayoutWidth = 'fluid',
 }: Props) {
   const showAccordionPanel = !!(!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
     && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell);
@@ -157,6 +158,7 @@ export function RightSidebar({
               onPushSnapshot={onPushSnapshot}
               breakpoint={breakpoint}
               theme={theme}
+              pageLayoutWidth={pageLayoutWidth}
             />
           )}
           {element && (

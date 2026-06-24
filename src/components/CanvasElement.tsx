@@ -140,6 +140,8 @@ export function CanvasElement({
   const [editing, setEditing] = useState(false);
   const editRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const isDesktop = breakpoint === 'desktop';
+
   const handleBodyMouseDown = (e: React.MouseEvent) => {
     if (previewMode) return;
     if (e.button !== 0) return;
@@ -148,7 +150,7 @@ export function CanvasElement({
 
     const startX = e.clientX;
     const startY = e.clientY;
-    const usingXPct = el.layout.xPercent != null && !el.layout.fullWidth;
+    const usingXPct = isDesktop && el.layout.xPercent != null && !el.layout.fullWidth;
     const containerW = usingXPct ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
     const originX = usingXPct ? (el.layout.xPercent! / 100 * containerW) : el.layout.x;
     const originY = el.layout.y;
@@ -267,8 +269,8 @@ export function CanvasElement({
     e.preventDefault();
     const startX = e.clientX;
     const startY = e.clientY;
-    const usingXPct = el.layout.xPercent != null && !el.layout.fullWidth;
-    const usingWPct = el.layout.widthPercent != null && !el.layout.fullWidth;
+    const usingXPct = isDesktop && el.layout.xPercent != null && !el.layout.fullWidth;
+    const usingWPct = isDesktop && el.layout.widthPercent != null && !el.layout.fullWidth;
     const resizeContainerW = (usingXPct || usingWPct) ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
     const ox = usingXPct ? (el.layout.xPercent! / 100 * resizeContainerW) : el.layout.x;
     const ow = usingWPct ? (el.layout.widthPercent! / 100 * resizeContainerW) : el.layout.width;
@@ -336,9 +338,9 @@ export function CanvasElement({
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
-    left: el.layout.fullWidth ? 0 : (el.layout.xPercent != null ? `${el.layout.xPercent}%` : el.layout.x),
+    left: el.layout.fullWidth ? 0 : (isDesktop && el.layout.xPercent != null ? `${el.layout.xPercent}%` : el.layout.x),
     top: el.layout.y,
-    width: el.layout.fullWidth ? '100%' : (el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : el.layout.width),
+    width: el.layout.fullWidth ? '100%' : (isDesktop && el.layout.widthPercent != null ? `${el.layout.widthPercent}%` : el.layout.width),
     height: el.layout.height,
     opacity: el.style.opacity,
     zIndex: (isSelected || isMultiSelected) ? el.layout.zIndex + 1000 : el.layout.zIndex,
