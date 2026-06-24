@@ -66,6 +66,12 @@ export interface PageBuilderRef {
    * rules) and returns a structured result.
    */
   validate: () => ValidationResult;
+  /**
+   * Clears the persisted local draft (the single `microsite-builder-v5` entry)
+   * and resets the canvas to an empty document. Call this when starting a new
+   * website so the builder begins blank and re-fills as the user builds.
+   */
+  clearDraft: () => void;
 }
 
 /**
@@ -180,7 +186,14 @@ export function PageBuilderProvider({ initialState, onChange, apiRef, children }
       // Future validation rules can append to `errors` here.
       return { isValid: errors.length === 0, errors };
     },
-  }), [apiRef, stateRef]);
+    clearDraft: () => {
+      // Remove the persisted draft, then reset the canvas to empty. The store's
+      // autosave effect re-persists the empty doc, so the single
+      // microsite-builder-v5 entry now reflects a fresh, blank website.
+      clearDraftStorage();
+      importState(makeEmpty());
+    },
+  }), [apiRef, stateRef, importState]);
 
   // Notify host of state changes (skip the first render).
   const isFirstRender = useRef(true);

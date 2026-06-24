@@ -46,9 +46,16 @@ export default function App() {
     alert('Published!');
   };
 
+  const handleCreateNew = () => {
+    // Clears the persisted microsite-builder-v5 draft and resets the canvas to
+    // empty, so the builder starts blank and re-fills as the user builds.
+    builderRef.current?.clearDraft();
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <div style={{ display: 'flex', gap: 8, padding: 8, borderBottom: '1px solid #e2e8f0' }}>
+        <button onClick={handleCreateNew}>Create New Website</button>
         <button onClick={handleSave}>Save</button>
         <button onClick={handlePublish}>Publish</button>
       </div>
