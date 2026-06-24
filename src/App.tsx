@@ -5,7 +5,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Canvas } from './components/Canvas';
 import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
-import { AlignmentToolbar } from './components/AlignmentToolbar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
 import { makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
@@ -633,14 +632,6 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
 
         <div className={'pb-middle-container pb-flex-col'}>
           <div className={'pb-content-wrapper pb-flex-col'} style={{ position: 'relative' }} ref={canvasWrapperRef}>
-            {selectedIds.length >= 2 && (
-              <AlignmentToolbar
-                selectedIds={selectedIds}
-                elements={elements}
-                onUpdateElements={updates => { pushSnapshot(stateRef.current); updateElements(updates); }}
-              />
-            )}
-
             <Canvas
               nodes={nodes}
               sections={allSections}
