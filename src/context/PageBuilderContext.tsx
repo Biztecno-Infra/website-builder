@@ -118,6 +118,12 @@ export function usePageBuilder(): PageBuilderContextValue {
 
 export interface PageBuilderProviderProps {
   initialState?: BuilderState;
+  /**
+   * Identity of the document being edited. Scopes the local draft autosave so
+   * switching between websites (or new → existing) never restores another site's
+   * draft. `undefined` means a new/unsaved document.
+   */
+  websiteId?: string;
   /** Notified after every state change (skips the initial render). */
   onChange?: (state: BuilderState) => void;
   /** Forwarded ref from `PageBuilder` — receives the imperative {@link PageBuilderRef}. */
@@ -131,8 +137,8 @@ export interface PageBuilderProviderProps {
  * {@link PageBuilderRef} to the forwarded `apiRef`, so the host's ref API and
  * the in-tree context read from one source of truth.
  */
-export function PageBuilderProvider({ initialState, onChange, apiRef, children }: PageBuilderProviderProps) {
-  const store = useBuilderStore(initialState);
+export function PageBuilderProvider({ initialState, websiteId, onChange, apiRef, children }: PageBuilderProviderProps) {
+  const store = useBuilderStore(initialState, websiteId);
   const { state, nodes, stateRef, importState } = store;
 
   // ── Carousel / accordion selection ──

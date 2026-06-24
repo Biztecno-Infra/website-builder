@@ -18,6 +18,14 @@ import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } fro
 export interface PageBuilderProps {
   initialState?: BuilderState;
   siteName?: string;
+  /**
+   * Identity of the document being edited. Scopes the builder's local draft
+   * autosave so switching between websites (or new → existing) never restores
+   * another site's draft. Pass the website id when editing; omit (undefined)
+   * for a new website. Pair with `key={websiteId ?? 'new'}` on the host to force
+   * a clean remount per document.
+   */
+  websiteId?: string;
   onPublish?: (state: BuilderState) => void | Promise<void>;
   onChange?: (state: BuilderState) => void;
 }
@@ -28,11 +36,11 @@ export interface PageBuilderProps {
  * to the forwarded ref), then renders the editor shell which consumes that context.
  */
 const App = forwardRef<PageBuilderRef, PageBuilderProps>(function App(
-  { initialState, siteName = 'Website Builder', onPublish, onChange }: PageBuilderProps = {},
+  { initialState, siteName = 'Website Builder', websiteId, onPublish, onChange }: PageBuilderProps = {},
   ref,
 ) {
   return (
-    <PageBuilderProvider initialState={initialState} onChange={onChange} apiRef={ref}>
+    <PageBuilderProvider initialState={initialState} websiteId={websiteId} onChange={onChange} apiRef={ref}>
       <PageBuilderShell siteName={siteName} onPublish={onPublish} />
     </PageBuilderProvider>
   );
