@@ -70,25 +70,25 @@ export function applyBreakpoint(el: CanvasElement, bp: Breakpoint, scale = 1): C
   return { ...el, layout, style, flexLayout, responsive: baseResponsive, state: hidden !== undefined ? { ...baseState, hidden } : baseState };
 }
 
-// Draft autosave is namespaced per website so switching between documents
-// (or new → existing) never restores another site's draft. `websiteId` undefined
-// means "new"/unscoped — it gets its own bucket distinct from any saved site.
-function storageKey(websiteId?: string): string {
-  return `${STORAGE_KEY}:${websiteId ?? 'new'}`;
-}
-
-function loadFromStorage(websiteId?: string): BuilderState {
+function loadFromStorage(): BuilderState {
   try {
-    const raw = localStorage.getItem(storageKey(websiteId));
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return migrateState(JSON.parse(raw));
     return makeEmpty();
   } catch { return makeEmpty(); }
 }
 
-function saveToStorage(s: BuilderState, websiteId?: string) {
+function saveToStorage(s: BuilderState) {
   try {
     const sparse = { ...s, nodes: sparsifyNodes(s.nodes) };
-    localStorage.setItem(storageKey(websiteId), JSON.stringify(sparse));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sparse));
+  } catch {}
+}
+
+/** Remove the persisted builder draft from localStorage (e.g. "Create new website"). */
+export function clearDraftStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
   } catch {}
 }
 
@@ -96,9 +96,9 @@ function getActivePage(state: BuilderState): Page {
   return state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
 }
 
-export function useBuilderStore(externalInitialState?: BuilderState, websiteId?: string) {
+export function useBuilderStore(externalInitialState?: BuilderState) {
   const [state, setState] = useState<BuilderState>(() =>
-    externalInitialState ? migrateState(externalInitialState) : loadFromStorage(websiteId)
+    externalInitialState ? migrateState(externalInitialState) : loadFromStorage()
   );
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -113,7 +113,7 @@ export function useBuilderStore(externalInitialState?: BuilderState, websiteId?:
   const selectedGridCellIdRef = useRef(selectedGridCellId);
   selectedGridCellIdRef.current = selectedGridCellId;
 
-  useEffect(() => { saveToStorage(state, websiteId); }, [state, websiteId]);
+  useEffect(() => { saveToStorage(state); }, [state]);
 
   useEffect(() => {
     if (selectedContainerId && !state.nodes[selectedContainerId]) setSelectedContainerId(null);
