@@ -1,5 +1,12 @@
 export { default as PageBuilder } from './App';
 export type { PageBuilderProps } from './App';
+export { PageBuilderProvider, usePageBuilder } from './context/PageBuilderContext';
+export type {
+  PageBuilderRef,
+  WebsiteData,
+  ValidationResult,
+  PageBuilderContextValue,
+} from './context/PageBuilderContext';
 export { configureAssetApi } from './api';
 export { IconButton } from './components/IconButton';
 

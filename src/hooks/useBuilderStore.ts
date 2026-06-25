@@ -85,6 +85,13 @@ function saveToStorage(s: BuilderState) {
   } catch {}
 }
 
+/** Remove the persisted builder draft from localStorage (e.g. "Create new website"). */
+export function clearDraftStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {}
+}
+
 function getActivePage(state: BuilderState): Page {
   return state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
 }
