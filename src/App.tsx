@@ -179,16 +179,6 @@ export default function App({ initialState, siteName = 'Website Builder', onSave
     setTimeout(() => setSavedFlash(false), 2000);
   }, [saveNow, onSave, state]);
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey)) return;
-      if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); handleUndo(); }
-      else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); handleRedo(); }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleUndo, handleRedo]);
-
   const importRef = useRef<HTMLInputElement>(null);
 
   // Tracks the theme colors from the last time Apply Theme was run.

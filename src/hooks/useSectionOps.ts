@@ -199,11 +199,12 @@ export function useSectionOps(
           return cell ? deepCopyCell(cell, newSecId) : '';
         }).filter(Boolean);
       } else {
-        newChildren = src.children.map(elId => {
-          const newElId = newId();
+        newChildren = src.children.flatMap(elId => {
           const el = nodes[elId] as CanvasElement | undefined;
-          if (el) nodes[newElId] = { ...el, id: newElId, parent: newSecId };
-          return newElId;
+          if (!el) return [];
+          const newElId = newId();
+          nodes[newElId] = { ...el, id: newElId, parent: newSecId };
+          return [newElId];
         });
       }
       nodes[newSecId] = { ...src, id: newSecId, label: `${src.label} Copy`, children: newChildren };
