@@ -6,6 +6,7 @@ import {
 import { useBuilderStore, makeEmpty, clearDraftStorage } from '../hooks/useBuilderStore';
 import { sparsifyNodes } from '../utils/sparse';
 import type { Breakpoint, BuilderState } from '../types';
+import type { UploadedImage, ImageSearchResult, ImageSearchResponse, UploadLibraryResponse } from '../api/hostCallbacks';
 
 /**
  * The serialized website payload returned by {@link PageBuilderRef.getWebsiteData}.
@@ -106,6 +107,9 @@ export type PageBuilderContextValue = ReturnType<typeof useBuilderStore> & {
   capturePreviewScroll: () => void;
   /** The live website name (state.site.name) — single source of truth. */
   websiteName: string;
+  onImageUpload?: (file: File) => Promise<UploadedImage>;
+  onImageSearch?: (query: string, offset: number, limit: number) => Promise<ImageSearchResponse>;
+  onFetchUploads?: (offset: number, limit: number) => Promise<UploadLibraryResponse>;
 };
 
 const PageBuilderContext = createContext<PageBuilderContextValue | null>(null);
@@ -129,6 +133,9 @@ export interface PageBuilderProviderProps {
   /** Forwarded ref from `PageBuilder` — receives the imperative {@link PageBuilderRef}. */
   apiRef?: ForwardedRef<PageBuilderRef>;
   children: ReactNode;
+  onImageUpload?: (file: File) => Promise<UploadedImage>;
+  onImageSearch?: (query: string, offset: number, limit: number) => Promise<ImageSearchResponse>;
+  onFetchUploads?: (offset: number, limit: number) => Promise<UploadLibraryResponse>;
 }
 
 /**
@@ -137,7 +144,7 @@ export interface PageBuilderProviderProps {
  * {@link PageBuilderRef} to the forwarded `apiRef`, so the host's ref API and
  * the in-tree context read from one source of truth.
  */
-export function PageBuilderProvider({ initialState, onChange, apiRef, children }: PageBuilderProviderProps) {
+export function PageBuilderProvider({ initialState, onChange, apiRef, children, onImageUpload, onImageSearch, onFetchUploads }: PageBuilderProviderProps) {
   const store = useBuilderStore(initialState);
   const { state, nodes, stateRef, importState } = store;
 
@@ -232,12 +239,14 @@ export function PageBuilderProvider({ initialState, onChange, apiRef, children }
     contextMenu, setContextMenu,
     previewScrollRef, capturePreviewScroll,
     websiteName,
+    onImageUpload, onImageSearch, onFetchUploads,
   }), [
     store,
     selectedCarouselId, selectedAccordionId,
     snapEnabled, zoom, changeZoom, breakpoint,
     previewMode, previewDevice, rightPanelOpen, contextMenu,
     capturePreviewScroll, websiteName,
+    onImageUpload, onImageSearch, onFetchUploads,
   ]);
 
   return <PageBuilderContext.Provider value={value}>{children}</PageBuilderContext.Provider>;

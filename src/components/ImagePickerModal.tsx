@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { ContentModal } from './ContentModal';
 import { SearchInput } from './SearchInput';
-import { searchAssets, getAssetThumbnailUrl, getAssetUrl, type AssetItem, type AssetSearchParams } from '../api';
+import { searchAssets, getAssetThumbnailUrl, getAssetUrl, type AssetSearchParams } from '../api';
 import { useDebounce } from '../hooks/useDebounce';
+import { usePageBuilder } from '../context/PageBuilderContext';
 
 interface Props {
   isOpen: boolean;
@@ -11,11 +12,19 @@ interface Props {
   searchParams?: Omit<AssetSearchParams, 'query'>;
 }
 
+interface DisplayItem {
+  id: string;
+  thumbUrl: string;
+  fullUrl: string;
+  name: string;
+}
+
 const LIMIT = 10;
 
 export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Props) {
+  const { onImageSearch } = usePageBuilder();
   const [search, setSearch] = useState('');
-  const [results, setResults] = useState<AssetItem[]>([]);
+  const [displayItems, setDisplayItems] = useState<DisplayItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +35,7 @@ export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Pr
   const debouncedSearch = useDebounce(search, 400);
 
   useEffect(() => {
-    if (!isOpen) { setSearch(''); setResults([]); setOffset(0); setTotalCount(0); }
+    if (!isOpen) { setSearch(''); setDisplayItems([]); setOffset(0); setTotalCount(0); }
   }, [isOpen]);
 
   // Initial fetch and on search change — replaces results
@@ -39,35 +48,78 @@ export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Pr
     setOffset(0);
     setTotalCount(0);
 
-    searchAssets({ ...searchParams, query: debouncedSearch, limit: LIMIT, offset: 0 })
-      .then(res => {
-        if (!cancelled) {
-          setResults(res.items);
-          setTotalCount(res.total_count);
-          setOffset(LIMIT);
-        }
-      })
-      .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : 'Search failed'); })
-      .finally(() => { if (!cancelled) setIsLoading(false); });
+    if (onImageSearch) {
+      onImageSearch(debouncedSearch, 0, LIMIT)
+        .then(res => {
+          if (!cancelled) {
+            setDisplayItems(res.items.map(r => ({
+              id: r.assetId ?? r.imageUrl,
+              thumbUrl: r.imageUrl,
+              fullUrl: r.imageUrl,
+              name: r.name ?? '',
+            })));
+            setTotalCount(res.totalCount);
+            setOffset(res.items.length);
+          }
+        })
+        .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : 'Search failed'); })
+        .finally(() => { if (!cancelled) setIsLoading(false); });
+    } else {
+      searchAssets({ ...searchParams, query: debouncedSearch, limit: LIMIT, offset: 0 })
+        .then(res => {
+          if (!cancelled) {
+            setDisplayItems(res.items.map(r => ({
+              id: r.id,
+              thumbUrl: getAssetThumbnailUrl(r),
+              fullUrl: getAssetUrl(r),
+              name: r.filename,
+            })));
+            setTotalCount(res.total_count);
+            setOffset(LIMIT);
+          }
+        })
+        .catch(err => { if (!cancelled) setError(err instanceof Error ? err.message : 'Search failed'); })
+        .finally(() => { if (!cancelled) setIsLoading(false); });
+    }
 
     return () => { cancelled = true; };
-  }, [isOpen, debouncedSearch]);
+  }, [isOpen, debouncedSearch, onImageSearch]);
 
-  const hasMore = results.length < totalCount;
+  const hasMore = displayItems.length < totalCount;
 
-  // Load next page using offset
+  // Load next page
   const loadMore = useCallback(() => {
     if (isLoadingMore || !hasMore) return;
     setIsLoadingMore(true);
 
-    searchAssets({ ...searchParams, query: debouncedSearch, limit: LIMIT, offset })
-      .then(res => {
-        setResults(prev => [...prev, ...res.items]);
-        setOffset(prev => prev + LIMIT);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoadingMore(false));
-  }, [isLoadingMore, hasMore, offset, debouncedSearch, searchParams]);
+    if (onImageSearch) {
+      onImageSearch(debouncedSearch, offset, LIMIT)
+        .then(res => {
+          setDisplayItems(prev => [...prev, ...res.items.map(r => ({
+            id: r.assetId ?? r.imageUrl,
+            thumbUrl: r.imageUrl,
+            fullUrl: r.imageUrl,
+            name: r.name ?? '',
+          }))]);
+          setOffset(prev => prev + res.items.length);
+        })
+        .catch(() => {})
+        .finally(() => setIsLoadingMore(false));
+    } else {
+      searchAssets({ ...searchParams, query: debouncedSearch, limit: LIMIT, offset })
+        .then(res => {
+          setDisplayItems(prev => [...prev, ...res.items.map(r => ({
+            id: r.id,
+            thumbUrl: getAssetThumbnailUrl(r),
+            fullUrl: getAssetUrl(r),
+            name: r.filename,
+          }))]);
+          setOffset(prev => prev + LIMIT);
+        })
+        .catch(() => {})
+        .finally(() => setIsLoadingMore(false));
+    }
+  }, [isLoadingMore, hasMore, offset, debouncedSearch, searchParams, onImageSearch]);
 
   // Infinite scroll — trigger loadMore when near bottom
   useEffect(() => {
@@ -81,13 +133,6 @@ export function ImagePickerModal({ isOpen, onClose, onSelect, searchParams }: Pr
     grid.addEventListener('scroll', onScroll);
     return () => grid.removeEventListener('scroll', onScroll);
   }, [loadMore]);
-
-  const displayItems = results.map(r => ({
-    id:       r.id,
-    thumbUrl: getAssetThumbnailUrl(r),
-    fullUrl:  getAssetUrl(r),
-    name:     r.filename,
-  }));
 
   return (
     <ContentModal isOpen={isOpen} onClose={onClose} title="Select image">

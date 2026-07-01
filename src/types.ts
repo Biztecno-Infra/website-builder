@@ -23,6 +23,7 @@ export interface ElementBackground {
 
 export interface SectionBackground extends ElementBackground {
   overlay: number;
+  overlayColor?: string;
 }
 
 export interface Padding {
@@ -185,7 +186,6 @@ export type ActionType =
   | 'make-call'
   | 'send-sms'
   | 'download-file'
-  | 'open-popup'
   | 'scroll-to-section'
   | 'scroll-to-top';
 
@@ -204,8 +204,6 @@ export interface ElementAction {
   body?: string;
   /** make-call / send-sms */
   phone?: string;
-  /** open-popup */
-  popupId?: string;
   /** scroll-to-section */
   targetSectionId?: string;
   /** scroll-to-section / scroll-to-top */

@@ -333,26 +333,44 @@ export function SectionPanel({
             )}
           </>
         )}
-        <div className={'pb-prop-row pb-full'}>
-          <label>Image URL</label>
-          <PbInput type="text" value={bg.image} placeholder="https://..."
-            onFocus={onNumberFocus} onBlur={onNumberBlur}
-            onChange={e => updateBg({ image: e.target.value })} />
-        </div>
-        {bg.image && (
-          <div className={'pb-prop-row'}>
-            <label>Image Position</label>
-            <PbSelect value={bg.position || 'center'}
-              options={BG_IMAGE_POSITION_OPTIONS}
-              onChange={v => updateBg({ position: v })} />
-          </div>
+        {bg.type !== 'transparent' && (
+          <>
+            <div className={'pb-prop-row pb-full'}>
+              <label>Image URL</label>
+              <PbInput type="text" value={bg.image} placeholder="https://..."
+                onFocus={onNumberFocus} onBlur={onNumberBlur}
+                onChange={e => updateBg({ image: e.target.value })} />
+            </div>
+            {bg.image && (
+              <div className={'pb-prop-row'}>
+                <label>Image Position</label>
+                <PbSelect value={bg.position || 'center'}
+                  options={BG_IMAGE_POSITION_OPTIONS}
+                  onChange={v => updateBg({ position: v })} />
+              </div>
+            )}
+            {bg.image && (
+              <div className={'pb-prop-row'}>
+                <label>Overlay</label>
+                <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
+                  onFocus={onNumberFocus} onBlur={onNumberBlur}
+                  onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
+              </div>
+            )}
+            {bg.image && bg.overlay > 0 && (
+              <div className={'pb-prop-row'}>
+                <label>Overlay Color</label>
+                <ColorField
+                  value={bg.overlayColor ?? '#000000'}
+                  onChange={v => updateBg({ overlayColor: v })}
+                  onFocus={onNumberFocus}
+                  onBlur={onNumberBlur}
+                  swatches={swatches}
+                />
+              </div>
+            )}
+          </>
         )}
-        <div className={'pb-prop-row'}>
-          <label>Overlay</label>
-          <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
-            onFocus={onNumberFocus} onBlur={onNumberBlur}
-            onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
-        </div>
       </CollapsibleSection>
 
       {/* ── Border ── */}

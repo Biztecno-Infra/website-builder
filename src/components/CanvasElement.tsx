@@ -368,7 +368,7 @@ export function CanvasElement({
       onContextMenu={previewMode ? undefined : handleContextMenu}
     >
       <ElementContent el={el} editing={editing} editRef={editRef}
-        onBlur={handleEditBlur} onKeyDown={handleEditKeyDown} breakpoint={breakpoint} />
+        onBlur={handleEditBlur} onKeyDown={handleEditKeyDown} breakpoint={breakpoint} previewMode={previewMode} />
 
       {selected && !editing && !previewMode && (
         <>
@@ -395,7 +395,7 @@ export function CanvasElement({
 }
 
 export function ElementContent({
-  el, editing, editRef, onBlur, onKeyDown, breakpoint = 'desktop',
+  el, editing, editRef, onBlur, onKeyDown, breakpoint = 'desktop', previewMode = false,
 }: {
   el: El;
   editing: boolean;
@@ -403,6 +403,7 @@ export function ElementContent({
   onBlur: () => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   breakpoint?: Breakpoint;
+  previewMode?: boolean;
 }) {
   const { padding, background, border, typography } = el.style;
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
@@ -480,7 +481,20 @@ export function ElementContent({
       whiteSpace: 'pre-wrap', wordBreak: 'break-word',
     };
     if (el.content.rich) {
-      return <div style={textStyle} dangerouslySetInnerHTML={{ __html: el.content.rich }} />;
+      return (
+        <div
+          style={textStyle}
+          dangerouslySetInnerHTML={{ __html: el.content.rich }}
+          onClick={previewMode ? (e => {
+            const anchor = (e.target as HTMLElement).closest('a');
+            if (!anchor) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const href = anchor.getAttribute('href');
+            if (href) window.open(href, '_blank', 'noopener,noreferrer');
+          }) : undefined}
+        />
+      );
     }
     return <div style={textStyle}>{el.content.plain}</div>;
   }
@@ -501,6 +515,7 @@ export function ElementContent({
         <img
           src={el.content.src}
           alt={el.content.alt}
+          title={el.content.alt}
           style={{ width: '100%', height: '100%', objectFit: el.content.objectFit, objectPosition: el.content.objectPosition ?? 'center', display: 'block' }}
           draggable={false}
         />

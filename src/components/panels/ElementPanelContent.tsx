@@ -6,12 +6,13 @@ import type {
 } from '../../types';
 import { DEFAULT_ACTION } from '../../utils/builderDefaults';
 import { richTextState } from '../../utils/richTextState';
-import { createCleanPasteHandler } from '../../utils/cleanPaste';
+import { createCleanPasteHandler, stripRichFonts } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
 
 import { Icon } from '../Icon';
 import { CollapsibleSection } from './CollapsibleSection';
 import { ColorField, PxInput, ToggleGroup } from './PanelFields';
+import { PbColorPicker } from '../PbColorPicker';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
 import { ImagePickerModal } from '../ImagePickerModal';
@@ -114,6 +115,26 @@ export function ElementPanelContent({
     richTextState.applyingFormat = false;
   };
 
+  const [textColorPickerOpen, setTextColorPickerOpen] = useState(false);
+  const [textColorPickerPos, setTextColorPickerPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  const textColorBtnRef = useRef<HTMLLabelElement>(null);
+  const PICKER_H = 380;
+
+  useEffect(() => {
+    if (!textColorPickerOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        textColorBtnRef.current && !textColorBtnRef.current.contains(e.target as Node) &&
+        !(e.target as Element).closest?.('.pb-cpf-popup')
+      ) {
+        setTextColorPickerOpen(false);
+        richTextState.applyingFormat = false;
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [textColorPickerOpen]);
+
   const currentAction: ElementAction = element.action ?? DEFAULT_ACTION;
   const changeAction = (updates: Partial<ElementAction>) => {
     if (!isFocused()) onPushSnapshot(snapshot);
@@ -151,19 +172,39 @@ export function ElementPanelContent({
                   ><Tag style={{ pointerEvents: 'none' }}>{label}</Tag></button>
                 ))}
                 <label
+                  ref={textColorBtnRef}
                   title="Text color"
                   className={'pb-format-color-label'}
                   onMouseDown={() => { richTextState.applyingFormat = true; }}
+                  onClick={() => {
+                    const rect = textColorBtnRef.current?.getBoundingClientRect();
+                    if (rect) {
+                      const spaceBelow = window.innerHeight - rect.bottom;
+                      const right = window.innerWidth - rect.right;
+                      setTextColorPickerPos(
+                        spaceBelow < PICKER_H && rect.top > PICKER_H
+                          ? { bottom: window.innerHeight - rect.top + 4, right }
+                          : { top: rect.bottom + 4, right }
+                      );
+                    }
+                    setTextColorPickerOpen(o => !o);
+                  }}
                 >
                   <span className={'pb-format-color-a'}>A</span>
-                  <input
-                    type="color"
-                    className={'pb-format-color-input'}
-                    tabIndex={-1}
-                    onChange={e => applyInlineFormat('foreColor', e.target.value)}
-                    onClick={e => e.stopPropagation()}
-                  />
                 </label>
+                {textColorPickerOpen && textColorPickerPos && (
+                  <div
+                    className={'pb-cpf-popup'}
+                    style={{ position: 'fixed', zIndex: 9999, top: textColorPickerPos.top, bottom: textColorPickerPos.bottom, right: textColorPickerPos.right }}
+                    onMouseDown={() => { richTextState.applyingFormat = true; }}
+                  >
+                    <PbColorPicker
+                      value={'#000000'}
+                      swatches={swatches}
+                      onChange={color => { applyInlineFormat('foreColor', color); setTextColorPickerOpen(false); }}
+                    />
+                  </div>
+                )}
                 <button
                   title="Clear all inline formatting"
                   onMouseDown={() => { richTextState.applyingFormat = true; }}
@@ -238,7 +279,11 @@ export function ElementPanelContent({
             <label>Size</label>
             <PbInput type="number" value={eff.style.typography.size} min={8} max={200}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeResp({ style: { typography: { size: Number(e.target.value) } } })} />
+              onChange={e => {
+                changeResp({ style: { typography: { size: Number(e.target.value) } } });
+                if (element.type === 'text' && element.content.rich)
+                  changeContent({ rich: stripRichFonts(element.content.rich) });
+              }} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Weight</label>
@@ -251,7 +296,13 @@ export function ElementPanelContent({
             <PbSelect value={element.style.typography.family}
               options={FONT_FAMILY_OPTIONS}
               searchable
-              onChange={v => { injectGoogleFont(v); commitChange({ style: { ...element.style, typography: { ...element.style.typography, family: v } } }); }} />
+              onChange={v => {
+                injectGoogleFont(v);
+                const update: Partial<import('../../types').CanvasElement> = { style: { ...element.style, typography: { ...element.style.typography, family: v } } };
+                if (element.type === 'text' && element.content.rich)
+                  update.content = { ...element.content, rich: stripRichFonts(element.content.rich) };
+                commitChange(update);
+              }} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Color</label>
@@ -320,8 +371,8 @@ export function ElementPanelContent({
         </CollapsibleSection>
       )}
 
-      {/* ── Action (Form submit + Button) ── */}
-      {(element.type === 'form' || element.type === 'button') && (
+      {/* ── Action (Form submit + Button + Text) ── */}
+      {(element.type === 'form' || element.type === 'button' || element.type === 'text') && (
         <CollapsibleSection
           sectionKey="action"
           label={element.type === 'form' ? 'Submit Action' : 'Action'}
@@ -449,8 +500,26 @@ export function ElementPanelContent({
                   .replace(/<script[\s\S]*?<\/script>/gi, '')
                   .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
                   .replace(/javascript:/gi, '');
-                clean = clean.replace(/(<svg\b[^>]*)\sfill\s*=\s*["'][^"']*["']/i, '$1')
-                              .replace(/(<svg\b)([^>]*>)/, '$1 fill="currentColor"$2');
+                // Normalize fill/stroke to currentColor on every element so the
+                // icon color panel control works regardless of what the pasted SVG contains.
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = clean;
+                const svgEl = wrapper.querySelector('svg');
+                if (svgEl) {
+                  [svgEl as Element, ...Array.from(svgEl.querySelectorAll('*'))].forEach(node => {
+                    const fill = node.getAttribute('fill');
+                    if (fill !== null && fill.toLowerCase() !== 'none') node.setAttribute('fill', 'currentColor');
+                    const stroke = node.getAttribute('stroke');
+                    if (stroke !== null && stroke.toLowerCase() !== 'none') node.setAttribute('stroke', 'currentColor');
+                    const s = (node as HTMLElement).style;
+                    if (s) {
+                      if (s.fill && s.fill.toLowerCase() !== 'none') s.fill = 'currentColor';
+                      if (s.stroke && s.stroke.toLowerCase() !== 'none') s.stroke = 'currentColor';
+                    }
+                  });
+                  if (!svgEl.hasAttribute('fill')) svgEl.setAttribute('fill', 'currentColor');
+                  clean = wrapper.innerHTML;
+                }
                 changeContent({ iconSvg: clean });
               }}
             />

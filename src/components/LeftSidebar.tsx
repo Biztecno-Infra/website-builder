@@ -5,7 +5,6 @@ import type { CanvasElement, ContainerLayoutMode, ElementType, NodeMap, Page, Se
 import type { SectionTemplate, TemplateIds, TemplateResult } from '../data/sectionTemplates';
 import { SECTION_TEMPLATES } from '../data/sectionTemplates';
 import { LayerPanel } from './LayerPanel';
-import { PagePanel } from './PagePanel';
 import { ThemePanel } from './ThemePanel';
 import { UploadsPanel } from './UploadsPanel';
 import { Icon } from './Icon';
@@ -408,17 +407,6 @@ export function LeftSidebar({
           onDeleteElement={onDeleteElement}
           onDeleteSection={onDeleteSection}
           onClose={handleClose}
-        />
-      )}
-
-      {activeTab === 'pages' && (
-        <PagePanel
-          pages={pages}
-          activePageId={activePageId}
-          onSetActivePage={onSetActivePage}
-          onAddPage={onAddPage}
-          onDeletePage={onDeletePage}
-          onRenamePage={onRenamePage}
         />
       )}
 

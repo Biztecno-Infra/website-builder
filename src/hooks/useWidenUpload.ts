@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { uploadImageToWiden, ApiError, type WidenUploadResult } from '../api';
 import { uploadStore } from '../utils/uploadStore';
+import { usePageBuilder } from '../context/PageBuilderContext';
+import type { UploadedImage } from '../api/hostCallbacks';
 
 export type UploadStage = '' | 'uploading' | 'fetching' | 'saving';
 
@@ -23,15 +25,28 @@ export const UPLOAD_STAGE_LABEL: Record<Exclude<UploadStage, ''>, string> = {
 export function useWidenUpload() {
   const [status, setStatus] = useState<UploadStage>('');
   const [error, setError]   = useState('');
+  const { onImageUpload } = usePageBuilder();
 
   const isUploading = status !== '';
 
   const upload = async (file: File): Promise<WidenUploadResult | null> => {
     setError('');
     try {
-      const result = await uploadImageToWiden(file, stage =>
-        setStatus(stage === 'uploading' ? 'uploading' : 'fetching'),
-      );
+      let result: WidenUploadResult;
+
+      if (onImageUpload) {
+        setStatus('uploading');
+        const hosted: UploadedImage = await onImageUpload(file);
+        result = {
+          assetId: hosted.assetId,
+          assetUrl: hosted.assetUrl ?? '',
+          imageUrl: hosted.imageUrl,
+        };
+      } else {
+        result = await uploadImageToWiden(file, stage =>
+          setStatus(stage === 'uploading' ? 'uploading' : 'fetching'),
+        );
+      }
 
       // Persist to the local asset library so it's reusable from the Upload Panel.
       setStatus('saving');

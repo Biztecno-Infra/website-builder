@@ -6,6 +6,14 @@ import { hoverCss } from './hoverStyle';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 
 const TABLET_W = 768;
+
+function overlayBg(color: string | undefined, opacity: number): string {
+  const hex = (color ?? '#000000').replace('#', '');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return `rgba(${r},${g},${b},${opacity})`;
+}
 const MOBILE_W = 375;
 const MOBILE_BREAK = TABLET_W - 1;
 
@@ -215,7 +223,6 @@ function resolveAction(a: ElementAction | null): { href: string; target: string;
       const onclick = `fetch(${JSON.stringify(a.apiUrl)},${init}).catch(function(e){console.error(e);});return false;`;
       return { href: '#', target: '_self', onclick };
     }
-    case 'open-popup':   // not yet functional in static export
     case 'submit-form':  // handled by the <form> element, not as a link
     case 'none':
     default:
@@ -474,7 +481,7 @@ function renderElementInner(
     }
     case 'image': {
       if (!el.content.src) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
-      return `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};object-position:${el.content.objectPosition ?? 'center'};display:block" /></div>`;
+      return `<div style="${cStyle}"><img src="${esc(el.content.src)}" alt="${esc(el.content.alt ?? '')}" title="${esc(el.content.alt ?? '')}" style="width:100%;height:100%;object-fit:${el.content.objectFit};object-position:${el.content.objectPosition ?? 'center'};display:block" /></div>`;
     }
     case 'divider': {
       if (el.content.orientation === 'vertical') {
@@ -606,7 +613,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
   const radiusCss = border?.radius ? `border-radius:${border.radius}px` : '';
 
   const cellOverlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;border-radius:inherit"></div>`
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;border-radius:inherit"></div>`
     : '';
 
   // Flex elements mode — align-items/justify-content live in the CSS class, not inline
@@ -642,7 +649,7 @@ function sectionPositionCss(sec: Section): string {
 function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
   const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
   const cells = sec.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -740,7 +747,7 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
 function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
   const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
   const cells = sec.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -866,7 +873,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
 
   const bg = sec.style.background;
   const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,${bg.overlay});pointer-events:none;z-index:0"></div>`
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
 
   const elements = sec.children

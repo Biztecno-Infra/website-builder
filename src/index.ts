@@ -1,5 +1,6 @@
 export { default as PageBuilder } from './App';
 export type { PageBuilderProps } from './App';
+export type { UploadedImage, ImageSearchResult, ImageSearchResponse, UploadLibraryResponse } from './api/hostCallbacks';
 export { PageBuilderProvider, usePageBuilder } from './context/PageBuilderContext';
 export type {
   PageBuilderRef,
@@ -7,7 +8,8 @@ export type {
   ValidationResult,
   PageBuilderContextValue,
 } from './context/PageBuilderContext';
-export { configureAssetApi } from './api';
+export { searchAssets, getAssetThumbnailUrl, getAssetUrl, uploadImageToWiden } from './api';
+export type { AssetItem, AssetSearchResponse, AssetSearchParams, AssetThumbnail, WidenUploadResult } from './api';
 export { IconButton } from './components/IconButton';
 
 export type {

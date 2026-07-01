@@ -6,6 +6,7 @@ import { uploadStore, type StoredFile } from '../utils/uploadStore';
 import { IconButton } from './IconButton';
 import { UPLOAD_IMAGE_DND_TYPE, type UploadImageDragItem } from './LeftSidebar';
 import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../hooks/useWidenUpload';
+import { usePageBuilder } from '../context/PageBuilderContext';
 
 type FilterTab = 'all' | 'images' | 'gif' | 'video';
 
@@ -16,23 +17,86 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: 'video',  label: 'Video'  },
 ];
 
+const FETCH_LIMIT = 20;
+
 interface Props {
   onClose: () => void;
 }
 
 export function UploadsPanel({ onClose }: Props) {
-  const [files, setFiles]   = useState<StoredFile[]>(() => uploadStore.getFiles());
+  const { onFetchUploads } = usePageBuilder();
+  // When the host provides onFetchUploads, backend is the source of truth — skip localStorage seed.
+  const [files, setFiles]   = useState<StoredFile[]>(() => onFetchUploads ? [] : uploadStore.getFiles());
   const [filter, setFilter] = useState<FilterTab>('all');
   const [search, setSearch] = useState('');
+  const [isFetching, setIsFetching] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [fetchOffset, setFetchOffset] = useState(0);
+  const [fetchTotal, setFetchTotal] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
-  // Same upload flow as the Image Properties panel — saving to the library
-  // (and the subscription below) keeps both entry points in sync.
+  const gridRef = useRef<HTMLDivElement>(null);
   const { upload, status: uploadStatus, error: uploadError, isUploading } = useWidenUpload();
 
+  // Subscribe to uploadStore for newly uploaded files this session
   useEffect(() => {
     const unsub = uploadStore.subscribe(() => setFiles(uploadStore.getFiles()));
     return unsub;
   }, []);
+
+  // On mount, seed the panel from the host's backend if callback is provided
+  useEffect(() => {
+    if (!onFetchUploads) return;
+    setIsFetching(true);
+    onFetchUploads(0, FETCH_LIMIT)
+      .then(res => {
+        const stored: StoredFile[] = res.items.map(r => ({
+          id: r.assetId ?? r.imageUrl,
+          name: r.name ?? '',
+          url: r.imageUrl,
+          kind: 'image' as const,
+          assetUrl: r.assetUrl,
+          fileName: r.name,
+        }));
+        uploadStore.addFiles(stored);
+        setFetchTotal(res.totalCount);
+        setFetchOffset(res.items.length);
+      })
+      .catch(() => {})
+      .finally(() => setIsFetching(false));
+  }, [onFetchUploads]);
+
+  const hasMore = onFetchUploads ? fetchOffset < fetchTotal : false;
+
+  const loadMore = () => {
+    if (!onFetchUploads || isFetchingMore || !hasMore) return;
+    setIsFetchingMore(true);
+    onFetchUploads(fetchOffset, FETCH_LIMIT)
+      .then(res => {
+        const stored: StoredFile[] = res.items.map(r => ({
+          id: r.assetId ?? r.imageUrl,
+          name: r.name ?? '',
+          url: r.imageUrl,
+          kind: 'image' as const,
+          assetUrl: r.assetUrl,
+          fileName: r.name,
+        }));
+        uploadStore.addFiles(stored);
+        setFetchOffset(prev => prev + res.items.length);
+      })
+      .catch(() => {})
+      .finally(() => setIsFetchingMore(false));
+  };
+
+  // Infinite scroll
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+    const onScroll = () => {
+      if (grid.scrollTop + grid.clientHeight >= grid.scrollHeight - 100) loadMore();
+    };
+    grid.addEventListener('scroll', onScroll);
+    return () => grid.removeEventListener('scroll', onScroll);
+  }, [loadMore]);
 
   const filtered = files.filter(f => {
     if (search && !f.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -69,7 +133,6 @@ export function UploadsPanel({ onClose }: Props) {
           onChange={e => {
             const file = e.target.files?.[0];
             e.target.value = '';
-            // Upload + save to library only — no auto-insert into the canvas.
             if (file) void upload(file);
           }}
         />
@@ -90,13 +153,18 @@ export function UploadsPanel({ onClose }: Props) {
         ))}
       </div>
 
-      <div className={'pb-uploads-grid'}>
-        {filtered.length === 0 ? (
+      <div className={'pb-uploads-grid'} ref={gridRef}>
+        {isFetching && (
+          <p className={'pb-uploads-empty'} role="status">Loading uploads…</p>
+        )}
+        {!isFetching && filtered.length === 0 && (
           <p className={'pb-uploads-empty'}>
             {files.length === 0 ? 'No uploads yet' : 'No files match your search'}
           </p>
-        ) : (
-          filtered.map(file => <UploadItem key={file.id} file={file} />)
+        )}
+        {!isFetching && filtered.map(file => <UploadItem key={file.id} file={file} />)}
+        {isFetchingMore && (
+          <p className={'pb-uploads-empty'} role="status">Loading more…</p>
         )}
       </div>
     </aside>
@@ -115,7 +183,6 @@ function UploadItem({ file }: { file: StoredFile }) {
       assetUrl: file.assetUrl,
       fileName: file.fileName ?? file.name,
     },
-    // Only images/gifs become canvas image elements; videos aren't draggable.
     canDrag: !isVideo,
     collect: m => ({ isDragging: m.isDragging() }),
   });

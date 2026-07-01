@@ -50,15 +50,8 @@ export function cleanPastedHTML(html: string): string {
     el.removeAttribute('class');
     el.removeAttribute('id');
 
-    // Remove ALL links — keep the text content
-    if (el.tagName === 'A') {
-      const parent = el.parentNode;
-      if (parent) {
-        while (el.firstChild) parent.insertBefore(el.firstChild, el);
-        parent.removeChild(el);
-      }
-      return;
-    }
+    // Keep links — preserve href and target, style/class/id already stripped above
+    if (el.tagName === 'A') return;
 
     // Unwrap styling-only wrapper elements (font, span, mark, etc.)
     const UNWRAP = new Set(['FONT','SPAN','MARK','S','DEL','INS','SUB','SUP','SMALL','BIG']);
@@ -73,6 +66,21 @@ export function cleanPastedHTML(html: string): string {
   while (div.firstChild?.nodeName === 'BR') div.firstChild.remove();
   while (div.lastChild?.nodeName === 'BR') div.lastChild.remove();
 
+  return div.innerHTML;
+}
+
+/**
+ * Strips font-size and font-family from all inline styles in an HTML string.
+ * Used when the panel changes typography so that pasted inline overrides don't win.
+ */
+export function stripRichFonts(html: string): string {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  div.querySelectorAll<HTMLElement>('[style]').forEach(node => {
+    node.style.removeProperty('font-size');
+    node.style.removeProperty('font-family');
+    if (!node.style.cssText.trim()) node.removeAttribute('style');
+  });
   return div.innerHTML;
 }
 
@@ -91,7 +99,17 @@ export function createCleanPasteHandler() {
       content = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
     }
 
-    // Insert at cursor using execCommand
+    // Capture before execCommand; React nullifies currentTarget after the handler returns.
+    const host = e.currentTarget as HTMLElement;
     document.execCommand('insertHTML', false, content);
+
+    // Chromium's insertHTML sometimes wraps inserted content in spans carrying the
+    // computed font-size / font-family of the cursor position. Strip those so the
+    // element's own typography settings always apply.
+    host.querySelectorAll<HTMLElement>('[style]').forEach(node => {
+      node.style.removeProperty('font-size');
+      node.style.removeProperty('font-family');
+      if (!node.style.cssText.trim()) node.removeAttribute('style');
+    });
   };
 }

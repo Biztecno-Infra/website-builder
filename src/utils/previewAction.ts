@@ -114,7 +114,6 @@ export function runPreviewAction(
       fetch(a.apiUrl, init).catch(e => console.error(e));
       return true;
     }
-    case 'open-popup':   // not yet functional (parity with export, which stubs it)
     case 'submit-form':  // handled by the form element, not a click action
     case 'none':
     default:

@@ -235,6 +235,7 @@ export function GridElementView({
         onBlur={handleEditBlur}
         onKeyDown={handleEditKeyDown}
         breakpoint={breakpoint}
+        previewMode={previewMode}
       />
 
       {isSelected && !previewMode && (

@@ -90,6 +90,8 @@
   outline: none !important;
   cursor: default;
 }
+/* Rich-text inline links must still look and act like links in preview */
+.pb-canvas-wrapper.pb-preview-mode a { cursor: pointer; }
 .pb-canvas-wrapper.pb-preview-mode .pb-container,
 .pb-canvas-wrapper.pb-preview-mode .pb-container--selected,
 .pb-canvas-wrapper.pb-preview-mode .pb-container--child-selected {

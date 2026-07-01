@@ -127,7 +127,7 @@ export function ToggleGroup({ options, value, onChange }: {
 
 // ── TRBL Spacing editor (Margin + optional Padding) ──────────────────────────
 
-const SIDES = ['left', 'top', 'right', 'bottom'] as const;
+const SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
 export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange, onFocus, onBlur }: {
   margin?: Partial<Padding>;
@@ -140,7 +140,7 @@ export function SpacingEditor({ margin, onMarginChange, padding, onPaddingChange
   return (
     <>
       <div className="pb-trbl-col-labels">
-        {(['Left', 'Top', 'Right', 'Bottom'] as const).map(s => <span key={s}>{s}</span>)}
+        {(['Top', 'Right', 'Bottom', 'Left'] as const).map(s => <span key={s}>{s}</span>)}
         <span className="pb-trbl-px-spacer" />
       </div>
       {margin && onMarginChange && (
@@ -346,6 +346,18 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
               onFocus={onFocus} onBlur={onBlur}
               onChange={e => onChange({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
           </div>
+          {(bg.overlay ?? 0) > 0 && (
+            <div className="pb-prop-row">
+              <label>Overlay Color</label>
+              <ColorField
+                value={bg.overlayColor ?? '#000000'}
+                onChange={v => onChange({ overlayColor: v })}
+                onFocus={onFocus}
+                onBlur={onBlur}
+                swatches={swatches}
+              />
+            </div>
+          )}
         </>
       )}
     </>

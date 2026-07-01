@@ -422,7 +422,7 @@ export function makeKnightState(): BuilderState {
     pages: [{
       id: pageId, name: 'Knight', slug: '/',
       seo: { title: 'Knight — Product Landing Page', description: '', ogImage: '' },
-      sections: sectionIds, layoutWidth: 'fixed', maxWidth: 1200,
+      sections: sectionIds, layoutWidth: 'fluid',
     }],
     nodes,
     site: { name: 'Knight', favicon: '', language: 'en' },

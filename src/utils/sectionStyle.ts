@@ -6,6 +6,9 @@ export function sectionBgProps(bg: SectionBackground): {
   backgroundSize?: string;
   backgroundPosition?: string;
 } {
+  if (bg.type === 'transparent') {
+    return { backgroundColor: 'transparent' };
+  }
   if (bg.type === 'linear-gradient') {
     return { backgroundImage: `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})` };
   }
@@ -13,9 +16,9 @@ export function sectionBgProps(bg: SectionBackground): {
     return { backgroundImage: `radial-gradient(circle, ${bg.from}, ${bg.to})` };
   }
   if (bg.image) {
-    return { backgroundImage: `url(${bg.image})`, backgroundSize: 'cover', backgroundPosition: 'center' };
+    return { backgroundImage: `url(${bg.image})`, backgroundSize: 'cover', backgroundPosition: bg.position || 'center' };
   }
-  return { backgroundColor: bg.color === 'transparent' ? 'transparent' : (bg.color || '#ffffff') };
+  return { backgroundColor: bg.color || '#ffffff' };
 }
 
 // Serializes sectionBgProps() to a CSS string — used by the HTML export.
@@ -27,5 +30,5 @@ export function sectionBgCssStr(bg: SectionBackground): string {
     if (p.backgroundPosition) parts.push(`background-position:${p.backgroundPosition}`);
     return parts.join(';');
   }
-  return `background-color:${p.backgroundColor === 'transparent' ? 'transparent' : (p.backgroundColor ?? '#ffffff')}`;
+  return `background-color:${p.backgroundColor ?? '#ffffff'}`;
 }

@@ -9,7 +9,7 @@ import {
   BASE_ACTION_OPTIONS,
 } from '../../utils/selectOptions';
 
-const INERT_ACTIONS = new Set<ActionType>(['internal-page', 'open-popup']);
+const INERT_ACTIONS = new Set<ActionType>(['internal-page']);
 
 interface Props {
   action: ElementAction;

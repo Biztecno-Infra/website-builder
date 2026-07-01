@@ -14,12 +14,16 @@ import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
 import { sparsifyNodes } from './utils/sparse';
 import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } from './types';
+import type { UploadedImage, ImageSearchResponse, UploadLibraryResponse } from './api/hostCallbacks';
 
 export interface PageBuilderProps {
   initialState?: BuilderState;
   siteName?: string;
   onPublish?: (state: BuilderState) => void | Promise<void>;
   onChange?: (state: BuilderState) => void;
+  onImageUpload?: (file: File) => Promise<UploadedImage>;
+  onImageSearch?: (query: string, offset: number, limit: number) => Promise<ImageSearchResponse>;
+  onFetchUploads?: (offset: number, limit: number) => Promise<UploadLibraryResponse>;
 }
 
 /**
@@ -28,11 +32,11 @@ export interface PageBuilderProps {
  * to the forwarded ref), then renders the editor shell which consumes that context.
  */
 const App = forwardRef<PageBuilderRef, PageBuilderProps>(function App(
-  { initialState, siteName = 'Website Builder', onPublish, onChange }: PageBuilderProps = {},
+  { initialState, siteName = 'Website Builder', onPublish, onChange, onImageUpload, onImageSearch, onFetchUploads }: PageBuilderProps = {},
   ref,
 ) {
   return (
-    <PageBuilderProvider initialState={initialState} onChange={onChange} apiRef={ref}>
+    <PageBuilderProvider initialState={initialState} onChange={onChange} apiRef={ref} onImageUpload={onImageUpload} onImageSearch={onImageSearch} onFetchUploads={onFetchUploads}>
       <PageBuilderShell siteName={siteName} onPublish={onPublish} />
     </PageBuilderProvider>
   );
@@ -155,13 +159,6 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => el.removeEventListener('wheel', onWheel);
   }, [changeZoom]);
-
-  const handleSave = useCallback(() => {
-    saveNow();
-    onSave?.({ ...state, nodes: sparsifyNodes(state.nodes) });
-    setSavedFlash(true);
-    setTimeout(() => setSavedFlash(false), 2000);
-  }, [saveNow, onSave, state]);
 
   const importRef = useRef<HTMLInputElement>(null);
 

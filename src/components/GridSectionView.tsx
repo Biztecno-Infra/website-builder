@@ -175,9 +175,10 @@ export function GridSectionView({
     ...(contentWidthMode === 'constrained' ? { maxWidth: maxW, margin: '0 auto' } : {}),
   };
 
+  const overlayBase = bg.overlayColor ?? '#000000';
   const overlayStyle: React.CSSProperties | undefined = bg.overlay > 0 ? {
     position: 'absolute', inset: 0,
-    backgroundColor: `rgba(0,0,0,${bg.overlay})`,
+    backgroundColor: `${overlayBase}${Math.round(bg.overlay * 255).toString(16).padStart(2, '0')}`,
     pointerEvents: 'none', zIndex: 0,
   } : undefined;
 

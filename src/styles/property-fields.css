@@ -652,13 +652,7 @@
   line-height: 1;
   padding-bottom: 1px;
 }
-.pb-format-color-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
+
 .pb-format-action-btn {
   padding: 0 8px;
   height: 26px;
