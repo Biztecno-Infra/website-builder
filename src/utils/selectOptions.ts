@@ -12,27 +12,50 @@ export const FONT_WEIGHT_OPTIONS: SelectOption[] = [
   { value: '900', label: 'Heavy (900)' },
 ];
 
-export const FONT_FAMILY_OPTIONS: SelectOption[] = [
-  { value: 'Inter, sans-serif', label: 'Inter' },
-  { value: 'Arial, sans-serif', label: 'Arial' },
-  { value: 'Helvetica, Arial, sans-serif', label: 'Helvetica' },
-  { value: 'Verdana, sans-serif', label: 'Verdana' },
-  { value: 'Tahoma, sans-serif', label: 'Tahoma' },
-  { value: "'Segoe UI', sans-serif", label: 'Segoe UI' },
-  { value: 'Roboto, sans-serif', label: 'Roboto' },
-  { value: "'Open Sans', sans-serif", label: 'Open Sans' },
-  { value: 'Lato, sans-serif', label: 'Lato' },
-  { value: 'Montserrat, sans-serif', label: 'Montserrat' },
-  { value: 'Poppins, sans-serif', label: 'Poppins' },
-  { value: "'Trebuchet MS', sans-serif", label: 'Trebuchet MS' },
-  { value: "'Lucida Sans', sans-serif", label: 'Lucida Sans' },
-  { value: 'sans-serif', label: 'System Sans-serif' },
-  { value: 'Georgia, serif', label: 'Georgia' },
-  { value: "'Times New Roman', serif", label: 'Times New Roman' },
-  { value: 'Merriweather, serif', label: 'Merriweather' },
-  { value: "'Palatino Linotype', Palatino, serif", label: 'Palatino' },
-  { value: "'Courier New', monospace", label: 'Courier New' },
-  { value: "'Comic Sans MS', cursive, sans-serif", label: 'Comic Sans MS' },
+export const FONT_FAMILY_OPTIONS = [
+  { label: "Modern Sans", value: "Modern Sans" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, Arial, sans-serif" },
+  { label: "Default Sans-serif", value: "sans-serif" },
+  { label: "Times New Roman", value: "Times New Roman, serif" },
+  { label: "Courier New", value: "'Courier New', monospace" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+  { label: "Tahoma", value: "Tahoma, sans-serif" },
+  { label: "Comic Sans MS", value: "Comic Sans MS, cursive, sans-serif" },
+  { label: "Lucida Sans", value: "Lucida Sans, sans-serif" },
+  {
+    label: "Palatino Linotype",
+    value: "Palatino Linotype, 'Book Antiqua', Palatino, serif",
+  },
+  { label: "Trebuchet MS", value: "'Trebuchet MS', sans-serif" },
+  {
+    label: "Noto Sans",
+    value:
+      "'Noto Sans KR', 'Noto Sans CJK KR', Kaigen Gothic, Apple SD Gothic Neo, Malgun Gothic, Trebuchet MS, sans-serif",
+  },
+
+  // Modern web fonts
+  { label: "Roboto", value: "Roboto, sans-serif" },
+  { label: "Open Sans", value: "'Open Sans', sans-serif" },
+  { label: "Segoe UI", value: "'Segoe UI', sans-serif" },
+  { label: "Lato", value: "Lato, sans-serif" },
+  { label: "Merriweather", value: "Merriweather, serif" },
+  { label: "Henderson", value: "'Henderson', Georgia, serif" },
+
+  // New client-requested fonts
+  { label: "Henderson BCG Sans", value: "'Henderson BCG Sans', sans-serif" },
+  { label: "Henderson BCG Serif", value: "'Henderson BCG Serif', Georgia, serif" },
+  { label: "DS Termina", value: "DS Termina, 'Helvetica Neue', Arial, sans-serif" },
+
+  // Extra popular choices
+  { label: "Montserrat", value: "Montserrat, sans-serif" },
+  { label: "Poppins", value: "Poppins, sans-serif" },
+  { label: "Inter", value: "Inter, sans-serif" },
+  { label: "Nunito", value: "Nunito, sans-serif" },
+  { label: "Raleway", value: "Raleway, sans-serif" },
+  { label: "Space Grotesk", value: "'Space Grotesk', sans-serif" },
+  { label: "DM Sans", value: "'DM Sans', sans-serif" },
 ];
 
 export const TEXT_TRANSFORM_OPTIONS: SelectOption[] = [
