@@ -127,6 +127,16 @@ export const BG_TYPE_WITH_TRANSPARENT_OPTIONS: SelectOption[] = [
   { value: 'transparent', label: 'Transparent' },
 ];
 
+// Section backgrounds add Image + Video on top of the color/gradient types.
+export const SECTION_BG_TYPE_OPTIONS: SelectOption[] = [
+  { value: 'solid', label: 'Solid' },
+  { value: 'linear-gradient', label: 'Linear Gradient' },
+  { value: 'radial-gradient', label: 'Radial Gradient' },
+  { value: 'transparent', label: 'Transparent' },
+  { value: 'image', label: 'Image' },
+  { value: 'video', label: 'Video' },
+];
+
 export const IMAGE_POSITION_OPTIONS: SelectOption[] = [
   { value: 'center', label: 'Center' },
   { value: 'top', label: 'Top' },

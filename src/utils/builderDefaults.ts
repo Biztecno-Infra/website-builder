@@ -10,7 +10,7 @@ export const DEFAULT_BG: ElementBackground = {
 };
 
 export const DEFAULT_SECTION_BG: SectionBackground = {
-  type: 'solid', color: '#ffffff', image: '', position: 'center',
+  type: 'solid', color: '#ffffff', image: '', video: '', position: 'center',
   from: '#006e75', to: '#0b978e', angle: 135, overlay: 0,
 };
 

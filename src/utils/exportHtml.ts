@@ -1,5 +1,5 @@
 import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
-import { sectionBgCssStr } from './sectionStyle';
+import { sectionBgCssStr, sectionVideoBgHtml } from './sectionStyle';
 import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
 import { hoverCss } from './hoverStyle';
@@ -648,6 +648,7 @@ function sectionPositionCss(sec: Section): string {
 
 function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -683,6 +684,7 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
     : '';
 
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}${marginCss}${shadowCssG}">
+    ${videoBg}
     ${overlay}
     <div class="sc-grid-${sec.id} sc-pad-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
@@ -746,6 +748,7 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
 
 function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -783,6 +786,7 @@ function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean,
     : '';
 
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}${marginCssF}${shadowCssF}">
+    ${videoBg}
     ${overlay}
     <div class="sc-flex-${sec.id} sc-pad-${sec.id}" style="${flexCss};${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
@@ -872,6 +876,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   if (sec.layoutMode === 'flex') return renderFlexSection(sec as FlexSection, nodes, pageFixed, pageMaxWidth);
 
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -906,6 +911,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     ? `max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`
     : `width:100%;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`;
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}${freeMarginCss}${freeShadowCss}">
+    ${videoBg}
     ${overlay}
     <div class="sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerStyle}">
       ${elements}
