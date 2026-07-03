@@ -2,6 +2,8 @@
 .pb-content-wrapper {
   flex: 1;
   overflow: hidden;
+  min-height: 0;
+  min-width: 0;
 }
 
 /* ─── Canvas wrapper ─── */
@@ -16,6 +18,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   min-width: 0;
+  min-height: 0;
 }
 
 /* ─── Center the canvas at tablet/mobile breakpoints ─── */

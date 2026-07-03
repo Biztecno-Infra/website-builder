@@ -38,6 +38,7 @@ interface Props {
   onMarqueeSelect?: (ids: string[]) => void;
   isDragOverTarget?: boolean;
   pageLayoutWidth?: 'fixed' | 'fluid';
+  pageMaxWidth?: number;
   // Carousel
   selectedCarouselId?: string | null;
   onSelectCarousel?: (id: string) => void;

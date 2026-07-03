@@ -9,6 +9,7 @@ import { ElementPanel } from './panels/ElementPanel';
 import { ContainerPanel } from './panels/ContainerPanel';
 import { CarouselPanel } from './panels/CarouselPanel';
 import { AccordionPanel } from './panels/AccordionPanel';
+import { PagePanel } from './panels/PagePanel';
 
 interface Props {
   element: CanvasElement | null;
@@ -53,6 +54,9 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   pageLayoutWidth?: 'fixed' | 'fluid';
+  isPageSelected?: boolean;
+  pageMaxWidth?: number;
+  onUpdatePageLayout?: (layoutWidth: 'fixed' | 'fluid', maxWidth?: number) => void;
 }
 
 export function RightSidebar({
@@ -69,12 +73,14 @@ export function RightSidebar({
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
   isOpen, onClose, pageLayoutWidth = 'fluid',
+  isPageSelected = false, pageMaxWidth = 1280, onUpdatePageLayout,
 }: Props) {
   const showAccordionPanel = !!(!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
     && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell);
   const showCarouselPanel = !!(!element && !accordion && carousel && onUpdateCarousel && onUpdateCarouselResponsive
     && onAddSlide && onDeleteSlide && onDuplicateSlide && onReorderSlide && onSetActiveSlide && onSelectSlide);
-  const hasSelection = !!(element || showAccordionPanel || showCarouselPanel || (container && onUpdateContainer) || (gridCell && onUpdateGridCell) || section);
+  const showPagePanel = !!(!element && !accordion && !carousel && !container && !gridCell && !section && isPageSelected && onUpdatePageLayout);
+  const hasSelection = !!(element || showAccordionPanel || showCarouselPanel || (container && onUpdateContainer) || (gridCell && onUpdateGridCell) || section || showPagePanel);
 
   return (
     <aside className={['pb-right-sidebar pb-flex-col', !isOpen && 'pb-right-sidebar--hidden'].filter(Boolean).join(' ')}>
@@ -145,6 +151,13 @@ export function RightSidebar({
               onPushSnapshot={onPushSnapshot}
               breakpoint={breakpoint}
               theme={theme}
+            />
+          )}
+          {showPagePanel && (
+            <PagePanel
+              layoutWidth={pageLayoutWidth}
+              maxWidth={pageMaxWidth}
+              onUpdate={onUpdatePageLayout!}
             />
           )}
           {!element && !accordion && !carousel && !container && !gridCell && section && (

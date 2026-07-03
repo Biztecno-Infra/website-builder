@@ -143,15 +143,19 @@ export function SectionPanel({
 
         {/* Width (grid/flex only) — hidden on fluid pages since page-level full-width overrides it */}
         {hasGrid && pageLayoutWidth !== 'fluid' && (
+          <div className={'pb-prop-row'}>
+            <label>Width</label>
+            <PbSelect
+              value={gridCfg.contentWidth ?? 'full'}
+              options={CONTENT_WIDTH_OPTIONS}
+              onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: v as ContentWidthMode } })}
+            />
+          </div>
+        )}
+
+        {/* Gap (grid/flex only) — always available regardless of page width mode */}
+        {hasGrid && (
           <>
-            <div className={'pb-prop-row'}>
-              <label>Width</label>
-              <PbSelect
-                value={gridCfg.contentWidth ?? 'constrained'}
-                options={CONTENT_WIDTH_OPTIONS}
-                onChange={v => onUpdateSection(section.id, { grid: { ...gridCfg, contentWidth: v as ContentWidthMode } })}
-              />
-            </div>
             <div className={['pb-prop-row', breakpoint === 'desktop' && 'pb-resp-row--active'].filter(Boolean).join(' ')}>
               <label>Column Gap</label>
               <PxInput value={gridCfg.gap}

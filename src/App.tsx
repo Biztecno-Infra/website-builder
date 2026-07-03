@@ -1,5 +1,5 @@
 ﻿import './builder.css';
-import { forwardRef, useCallback, useEffect, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Canvas } from './components/Canvas';
@@ -218,6 +218,25 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
     ? nodes[selectedElement.parent]?.type === 'grid-cell'
     : false;
   const selectedSection = allSections.find(s => s.id === selectedSectionId) ?? null;
+
+  const [isPageSelected, setIsPageSelected] = useState(false);
+  useEffect(() => {
+    if (selectedId || selectedSectionId || selectedGridCellId || selectedContainerId || selectedCarouselId || selectedAccordionId) {
+      setIsPageSelected(false);
+    }
+  }, [selectedId, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId]);
+
+  const handleSelectPage = useCallback(() => {
+    setSelectedId(null);
+    setSelectedIds([]);
+    setSelectedSectionId(null);
+    setSelectedGridCellId(null);
+    setSelectedContainerId(null);
+    setSelectedCarouselId(null);
+    setSelectedAccordionId(null);
+    setIsPageSelected(true);
+    setRightPanelOpen(true);
+  }, []);
 
   useEffect(() => {
     if (selectedId || selectedSectionId || selectedGridCellId || selectedContainerId) {
@@ -531,9 +550,12 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
               onToggleAccordionItem={toggleAccordionItem}
               previewMode
               previewWidth={previewWidth}
+              canvasDisplayWidth={!previewWidth
+                ? Math.max(1280, activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? 1280) : 1280)
+                : undefined}
               onPreviewNavigatePage={setActivePage}
               breakpoint={previewBp}
-              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              layoutWidth={activePage.layoutWidth ?? 'fluid'}
               maxWidth={activePage.maxWidth ?? 1280}
               initialScrollTop={previewScrollRef.current}
             />
@@ -557,7 +579,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           onRedo={handleRedo}
           breakpoint={breakpoint}
           onSetBreakpoint={setBreakpoint}
-          layoutWidth={activePage.layoutWidth ?? 'fixed'}
+          layoutWidth={activePage.layoutWidth ?? 'fluid'}
           onSetLayoutWidth={w => updatePageLayout(activePage.id, w)}
           zoom={zoom}
           onZoomChange={changeZoom}
@@ -613,6 +635,8 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           sections={sections}
           footer={footer}
           onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectPage={handleSelectPage}
+          isPageSelected={isPageSelected}
           pages={pages}
           activePageId={activePageId}
           onSetActivePage={setActivePage}
@@ -690,8 +714,10 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
               onToggleAccordionItem={toggleAccordionItem}
               onAddAccordionItem={addAccordionItem}
               zoom={zoom}
-              canvasDisplayWidth={breakpoint === 'desktop' ? 1280 : undefined}
-              layoutWidth={activePage.layoutWidth ?? 'fixed'}
+              canvasDisplayWidth={breakpoint === 'desktop'
+                ? Math.max(1280, activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? 1280) : 1280)
+                : undefined}
+              layoutWidth={activePage.layoutWidth ?? 'fluid'}
               maxWidth={activePage.maxWidth ?? 1280}
             />
 
@@ -755,6 +781,10 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           pages={state.pages}
           isOpen={rightPanelOpen}
           onClose={() => setRightPanelOpen(false)}
+          pageLayoutWidth={activePage.layoutWidth ?? 'fluid'}
+          isPageSelected={isPageSelected}
+          pageMaxWidth={activePage.maxWidth ?? 1280}
+          onUpdatePageLayout={(w, mw) => updatePageLayout(activePage.id, w, mw)}
         />
         </div>
       </div>

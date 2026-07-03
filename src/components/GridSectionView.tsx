@@ -41,6 +41,7 @@ interface Props {
   onMoveSectionDown?: () => void;
   onPromoteSection?: (role: 'header' | 'footer') => void;
   pageLayoutWidth?: 'fixed' | 'fluid'; // page-level layout; drives section default (fixed→constrained, fluid→full)
+  pageMaxWidth?: number; // page-level fixed width; used when a section doesn't set its own grid.maxWidth
   // Carousel-in-cell support (shared grid/container ops come from CanvasContext)
   selectedCarouselId?: string | null;
   onSelectCarousel?: (id: string) => void;
@@ -65,7 +66,7 @@ export function GridSectionView({
   onAddSectionBefore, onAddSectionAfter,
   onDeleteSection, onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
   onMoveSectionUp, onMoveSectionDown, onPromoteSection: _onPromoteSection,
-  pageLayoutWidth = 'fixed',
+  pageLayoutWidth = 'fixed', pageMaxWidth = 1280,
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell,
   selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem, onAddAccordionToCell,
 }: Props) {
@@ -136,8 +137,8 @@ export function GridSectionView({
 
   const isFlex = section.layoutMode === 'flex';
   const flexCfg = isFlex ? (section as FlexSection).flex ?? DEFAULT_FLEX_CONFIG : DEFAULT_FLEX_CONFIG;
-  const contentWidthMode = pageLayoutWidth === 'fluid' ? 'full' : (gridCfg.contentWidth ?? 'constrained');
-  const maxW = gridCfg.maxWidth ?? 1280;
+  const contentWidthMode = pageLayoutWidth === 'fluid' ? 'full' : (gridCfg.contentWidth ?? 'full');
+  const maxW = gridCfg.maxWidth ?? pageMaxWidth;
 
   const cells = section.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -238,7 +239,7 @@ export function GridSectionView({
             onClick={e => { e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null); }}
           >
             {role === 'header' ? 'Header' : role === 'footer' ? 'Footer' : section.label}
-            <span className={'pb-section-label-mode'}> · Grid</span>
+            <span className={'pb-section-label-mode'}> · {isFlex ? 'Flex' : 'Grid'}</span>
             {isSticky && <span className={'pb-section-label-mode'}> · Sticky</span>}
             {isFixed  && <span className={'pb-section-label-mode'}> · Fixed</span>}
             {cells.length > 0 && (
@@ -254,7 +255,7 @@ export function GridSectionView({
           data-section-id={section.id}
           style={sectionContentStyle}
           onMouseDown={e => {
-            if ((e.target as HTMLElement).closest('.grid-cell')) return;
+            if ((e.target as HTMLElement).closest('.pb-grid-cell')) return;
             e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);
           }}
         >
@@ -286,6 +287,9 @@ export function GridSectionView({
                 flexWrap: flexCfg.wrap ? 'wrap' : 'nowrap',
                 gap: `${rowGap}px ${gap}px`,
                 minHeight: gridCfg.minHeight || undefined,
+                // Row direction + no wrap: let an overflowing row of cells scroll
+                // horizontally instead of clipping/squishing past the section width.
+                overflowX: !flexCfg.wrap && (flexCfg.direction === 'row' || flexCfg.direction === 'row-reverse') ? 'auto' : undefined,
               } : {
                 display: 'grid',
                 gridTemplateColumns: 'repeat(12, 1fr)',
@@ -335,7 +339,7 @@ export function GridSectionView({
                   <GridCellView
                     cell={cell}
                     isSelected={selectedGridCellId === cell.id}
-                    onSelectCell={() => { onSelectGridCell?.(cell.id); onSelectSection(); }}
+                    onSelectCell={() => { onSelectSection(); onSelectGridCell?.(cell.id); }}
                     onSelectElement={elId => {
                       onSelectSection();
                       const el = nodes[elId];

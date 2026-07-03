@@ -252,8 +252,8 @@ export function Canvas({
               position: 'absolute',
               top: 0,
               bottom: 0,
-              left: (CANVAS_W - maxWidth) / 2,
-              right: (CANVAS_W - maxWidth) / 2,
+              left: (canvasWidth - maxWidth) / 2,
+              right: (canvasWidth - maxWidth) / 2,
               borderLeft: '1px dashed rgba(0,110,117,0.3)',
               borderRight: '1px dashed rgba(0,110,117,0.3)',
               pointerEvents: 'none',
@@ -283,6 +283,7 @@ export function Canvas({
           <React.Fragment key={sec.id}>
             <SectionView
               pageLayoutWidth={layoutWidth}
+              pageMaxWidth={maxWidth}
               section={sec}
               role={sec.role}
               isSelected={selectedSectionId === sec.id}

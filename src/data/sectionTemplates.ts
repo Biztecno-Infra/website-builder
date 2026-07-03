@@ -112,7 +112,7 @@ function mkSec(id: string, children: string[], bg: SectionBackground, gap_ = 24,
   return { id, type: 'section', layoutMode: 'grid', role: 'section', label,
     layout: { height: 600 },
     style: { background: bg, padding: p },
-    children, grid: { gap: gap_, rowGap, maxWidth: 1280 } };
+    children, grid: { gap: gap_, rowGap } };
 }
 
 function reg(nodes: Record<string, AnyNode>, ...items: AnyNode[]): void {

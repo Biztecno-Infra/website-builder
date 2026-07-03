@@ -661,7 +661,7 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
   const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
 
   // Page-level "Full width" always wins. Per-section contentWidth only applies on fixed pages.
-  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'constrained');
+  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'full');
   const maxW = sec.grid.maxWidth ?? pageMaxWidth;
   const widthCss = contentMode === 'constrained'
     ? `width:100%;max-width:${maxW}px;margin:0 auto`
@@ -758,7 +758,7 @@ function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean,
   const pad = sec.style.padding ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const padCss = `${pad.top}px ${pad.right}px ${pad.bottom}px ${pad.left}px`;
 
-  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'constrained');
+  const contentMode = !pageFixed ? 'full' : (sec.grid.contentWidth ?? 'full');
   const maxW = sec.grid.maxWidth ?? pageMaxWidth;
   const widthCss = contentMode === 'constrained'
     ? `width:100%;max-width:${maxW}px;margin:0 auto`

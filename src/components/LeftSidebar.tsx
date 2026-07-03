@@ -209,6 +209,8 @@ interface Props {
   onUpdate: (id: string, updates: Partial<CanvasElement>) => void;
   onDeleteElement?: (id: string) => void;
   onDeleteSection?: (id: string) => void;
+  onSelectPage?: () => void;
+  isPageSelected?: boolean;
   // Section data for layers panel
   nodes: NodeMap;
   header: Section;
@@ -237,6 +239,7 @@ export function LeftSidebar({
   selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
   onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement, onMoveElementToSection, onUpdate, onDeleteElement, onDeleteSection,
+  onSelectPage, isPageSelected,
   nodes, header, sections, footer, onSelectSection,
   pages, activePageId, onSetActivePage, onAddPage, onDeletePage, onRenamePage,
   theme, onUpdateTheme, onApplyTheme,
@@ -407,6 +410,8 @@ export function LeftSidebar({
           onDeleteElement={onDeleteElement}
           onDeleteSection={onDeleteSection}
           onClose={handleClose}
+          onSelectPage={onSelectPage}
+          isPageSelected={isPageSelected}
         />
       )}
 

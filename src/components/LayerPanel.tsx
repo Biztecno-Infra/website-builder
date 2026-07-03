@@ -63,6 +63,8 @@ interface Props {
   onDeleteElement?: (id: string) => void;
   onDeleteSection?: (id: string) => void;
   onClose?: () => void;
+  onSelectPage?: () => void;
+  isPageSelected?: boolean;
 }
 
 interface SectionGroupProps {
@@ -558,6 +560,7 @@ export function LayerPanel({
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement,
   onMoveElementToSection, onUpdateElement, onDeleteElement, onDeleteSection, onClose,
+  onSelectPage, isPageSelected = false,
 }: Props) {
   const sectionDragFromIndex = useRef<number | null>(null);
   const [sectionDragOverIndex, setSectionDragOverIndex] = useState<number | null>(null);
@@ -665,7 +668,10 @@ export function LayerPanel({
       <div className={'pb-layer-list pb-flex-col'} ref={layerListRef}>
 
         {/* Page virtual root */}
-        <div className={'pb-layer-page-row pb-flex-row'} onClick={() => setPageCollapsed(c => !c)}>
+        <div
+          className={['pb-layer-page-row pb-flex-row', isPageSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          onClick={() => { onSelectPage?.(); setPageCollapsed(c => !c); }}
+        >
           <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setPageCollapsed(c => !c); }}>
             <CollapseArrow collapsed={pageCollapsed} />
           </button>

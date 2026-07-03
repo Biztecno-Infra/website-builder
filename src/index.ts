@@ -8,7 +8,7 @@ export type {
   ValidationResult,
   PageBuilderContextValue,
 } from './context/PageBuilderContext';
-export { searchAssets, getAssetThumbnailUrl, getAssetUrl, uploadImageToWiden } from './api';
+export { configureAssetApi, searchAssets, getAssetThumbnailUrl, getAssetUrl, uploadImageToWiden } from './api';
 export type { AssetItem, AssetSearchResponse, AssetSearchParams, AssetThumbnail, WidenUploadResult } from './api';
 export { IconButton } from './components/IconButton';
 

@@ -42,21 +42,6 @@ export const TEXT_TRANSFORM_OPTIONS: SelectOption[] = [
   { value: 'capitalize', label: 'Capitalize' },
 ];
 
-export const FLEX_JUSTIFY_OPTIONS: SelectOption[] = [
-  { value: 'flex-start', label: 'Start' },
-  { value: 'center', label: 'Center' },
-  { value: 'flex-end', label: 'End' },
-  { value: 'space-between', label: 'Space Between' },
-  { value: 'space-around', label: 'Space Around' },
-];
-
-export const FLEX_ALIGN_OPTIONS: SelectOption[] = [
-  { value: 'flex-start', label: 'Start' },
-  { value: 'center', label: 'Center' },
-  { value: 'flex-end', label: 'End' },
-  { value: 'stretch', label: 'Stretch' },
-];
-
 export const ALIGN_SELF_OPTIONS: SelectOption[] = [
   { value: 'auto', label: 'Auto' },
   { value: 'flex-start', label: 'Start' },
@@ -166,6 +151,21 @@ export const LINK_TARGET_OPTIONS: SelectOption[] = [
 export const SECTION_LAYOUT_MODE_OPTIONS: SelectOption[] = [
   { value: 'free', label: 'Free' },
   { value: 'grid', label: 'Grid' },
+];
+
+export const FLEX_JUSTIFY_OPTIONS: SelectOption[] = [
+  { value: 'flex-start', label: 'Start' },
+  { value: 'center', label: 'Center' },
+  { value: 'flex-end', label: 'End' },
+  { value: 'space-between', label: 'Space Between' },
+  { value: 'space-around', label: 'Space Around' },
+];
+
+export const FLEX_ALIGN_OPTIONS: SelectOption[] = [
+  { value: 'flex-start', label: 'Start' },
+  { value: 'center', label: 'Center' },
+  { value: 'flex-end', label: 'End' },
+  { value: 'stretch', label: 'Stretch' },
 ];
 
 export const FORM_FIELD_TYPE_OPTIONS: SelectOption[] = [
