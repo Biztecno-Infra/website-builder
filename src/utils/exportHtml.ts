@@ -561,8 +561,8 @@ function renderGridElement(el: CanvasElement): string {
   const shadowCss = s.enabled ? `;box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : '';
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
   const wrapRadiusCss = el.style.border.radius > 0 ? `;border-radius:${el.style.border.radius}px` : '';
-  // text/button are content-sized in grid mode; all other types keep explicit height
-  const heightCss = (el.type === 'text' || el.type === 'button')
+  // text/button are content-sized in grid mode; every other type uses a fixed
+ const heightCss = (el.type === 'text' || el.type === 'button')
     ? ''
     : `${el.type === 'image' || el.type === 'video' ? 'height' : 'min-height'}:${el.layout.height}px;`;
   // Flex-sizing is class-based (ge-{id}); only non-flex properties here
@@ -618,10 +618,21 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
 
   // Flex elements mode — align-items/justify-content live in the CSS class, not inline
   const { opacity } = cell.style;
+  // Match the canvas (GridCellView): the cell clips its content with
+  // overflow:hidden unless it holds a container/carousel/accordion (those need
+  // overflow:visible). Without this, an overlayInCell element taller than the
+  // cell (e.g. an absolutely-positioned Box) is clipped in the editor preview
+  // but overflows past the cell in the export — bleeding into the next section.
+  const hasOverflowingChild = cell.children.some(id => {
+    const c = nodes[id];
+    return c && (c.type === 'container' || c.type === 'carousel' || c.type === 'accordion');
+  });
+  const overflowCss = hasOverflowingChild ? 'overflow:visible' : 'overflow:hidden';
   const cellStyle = [
     'position:relative', bgCss,
     `gap:${gap}px`, `padding:${padStr}`,
     'box-sizing:border-box',
+    overflowCss,
     minHeight ? `min-height:${minHeight}px` : '',
     borderCss, radiusCss,
     opacity !== undefined && opacity !== 1 ? `opacity:${opacity}` : '',
