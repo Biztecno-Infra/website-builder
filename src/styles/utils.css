@@ -73,3 +73,10 @@
 .pb-icon-btn--danger       { color: var(--pb-danger); }
 .pb-icon-btn--danger:hover:not(:disabled) { background: var(--pb-danger-bg); color: var(--pb-danger); }
 
+/* dark — light glyph on a dark toolbar (element quick bar) */
+.pb-icon-btn--dark       { color: #ffffff; }
+.pb-icon-btn--dark:hover:not(:disabled) { background: rgba(255,255,255,0.16); color: #ffffff; }
+/* delete button on the dark bar reads red, and turns bright red on hover */
+.pb-icon-btn--dark.pb-danger       { color: #fca5a5; }
+.pb-icon-btn--dark.pb-danger:hover:not(:disabled) { background: rgba(239,68,68,0.22); color: #fecaca; }
+

@@ -2,7 +2,7 @@ export type ElementType = 'text' | 'image' | 'button' | 'box' | 'divider' | 'vid
 export type TextAlign = 'left' | 'center' | 'right';
 export type ObjectFit = 'cover' | 'contain' | 'fill';
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
-export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient' | 'transparent';
+export type BgType = 'solid' | 'linear-gradient' | 'radial-gradient' | 'transparent' | 'image' | 'video';
 export type Breakpoint = 'desktop' | 'large-desktop' | 'tablet' | 'mobile';
 export type SectionRole = 'header' | 'footer' | 'section';
 export type SectionLayoutMode = 'free' | 'grid' | 'flex';
@@ -24,6 +24,8 @@ export interface ElementBackground {
 export interface SectionBackground extends ElementBackground {
   overlay: number;
   overlayColor?: string;
+  /** Direct video file URL (mp4/webm) for a background video (type === 'video'). */
+  video?: string;
 }
 
 export interface Padding {

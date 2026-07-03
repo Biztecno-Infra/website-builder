@@ -132,24 +132,30 @@ export function useBuilderStore(externalInitialState?: BuilderState) {
 
   const setSelectedId = useCallback((id: string | null) => {
     setSelectedIds(id ? [id] : []);
-    if (id) {
-      const node = stateRef.current.nodes[id];
-      if (node && !isSection(node) && !isGridCell(node)) {
-        const cel = node as CanvasElement;
-        const parent = stateRef.current.nodes[cel.parent];
-        if (parent && isGridCell(parent)) {
-          setSelectedGridCellId(parent.id);
-          // Walk up through GridCells, Containers, Carousels AND Accordions until we reach a Section
-          let ancestorId = parent.parent;
-          let ancestor = stateRef.current.nodes[ancestorId];
-          while (ancestor && (isGridCell(ancestor) || isContainer(ancestor) || isCarousel(ancestor) || isAccordion(ancestor))) {
-            ancestorId = (ancestor as GridCell | Container | Carousel | Accordion).parent;
-            ancestor = stateRef.current.nodes[ancestorId];
-          }
-          setSelectedSectionId(ancestorId);
-        } else {
-          setSelectedSectionId(cel.parent);
+    // Deselecting clears the parent-cell highlight too, so no stale column stays selected.
+    if (!id) {
+      setSelectedGridCellId(null);
+      return;
+    }
+    const node = stateRef.current.nodes[id];
+    if (node && !isSection(node) && !isGridCell(node)) {
+      const cel = node as CanvasElement;
+      const parent = stateRef.current.nodes[cel.parent];
+      if (parent && isGridCell(parent)) {
+        setSelectedGridCellId(parent.id);
+        // Walk up through GridCells, Containers, Carousels AND Accordions until we reach a Section
+        let ancestorId = parent.parent;
+        let ancestor = stateRef.current.nodes[ancestorId];
+        while (ancestor && (isGridCell(ancestor) || isContainer(ancestor) || isCarousel(ancestor) || isAccordion(ancestor))) {
+          ancestorId = (ancestor as GridCell | Container | Carousel | Accordion).parent;
+          ancestor = stateRef.current.nodes[ancestorId];
         }
+        setSelectedSectionId(ancestorId);
+      } else {
+        // Element is not inside a grid cell — clear any previously selected column
+        // so only the new element (and its actual section) stay selected.
+        setSelectedGridCellId(null);
+        setSelectedSectionId(cel.parent);
       }
     }
   }, []);

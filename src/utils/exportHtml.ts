@@ -1,5 +1,5 @@
 import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
-import { sectionBgCssStr } from './sectionStyle';
+import { sectionBgCssStr, sectionVideoBgHtml } from './sectionStyle';
 import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
 import { hoverCss } from './hoverStyle';
@@ -561,8 +561,8 @@ function renderGridElement(el: CanvasElement): string {
   const shadowCss = s.enabled ? `;box-shadow:${s.x}px ${s.y}px ${s.blur}px ${s.spread}px ${s.color}` : '';
   const rotateCss = el.layout.rotation ? `;transform:rotate(${el.layout.rotation}deg)` : '';
   const wrapRadiusCss = el.style.border.radius > 0 ? `;border-radius:${el.style.border.radius}px` : '';
-  // text/button are content-sized in grid mode; all other types keep explicit height
-  const heightCss = (el.type === 'text' || el.type === 'button')
+  // text/button are content-sized in grid mode; every other type uses a fixed
+ const heightCss = (el.type === 'text' || el.type === 'button')
     ? ''
     : `${el.type === 'image' || el.type === 'video' ? 'height' : 'min-height'}:${el.layout.height}px;`;
   // Flex-sizing is class-based (ge-{id}); only non-flex properties here
@@ -618,10 +618,21 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
 
   // Flex elements mode — align-items/justify-content live in the CSS class, not inline
   const { opacity } = cell.style;
+  // Match the canvas (GridCellView): the cell clips its content with
+  // overflow:hidden unless it holds a container/carousel/accordion (those need
+  // overflow:visible). Without this, an overlayInCell element taller than the
+  // cell (e.g. an absolutely-positioned Box) is clipped in the editor preview
+  // but overflows past the cell in the export — bleeding into the next section.
+  const hasOverflowingChild = cell.children.some(id => {
+    const c = nodes[id];
+    return c && (c.type === 'container' || c.type === 'carousel' || c.type === 'accordion');
+  });
+  const overflowCss = hasOverflowingChild ? 'overflow:visible' : 'overflow:hidden';
   const cellStyle = [
     'position:relative', bgCss,
     `gap:${gap}px`, `padding:${padStr}`,
     'box-sizing:border-box',
+    overflowCss,
     minHeight ? `min-height:${minHeight}px` : '',
     borderCss, radiusCss,
     opacity !== undefined && opacity !== 1 ? `opacity:${opacity}` : '',
@@ -648,6 +659,7 @@ function sectionPositionCss(sec: Section): string {
 
 function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -683,6 +695,7 @@ function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean,
     : '';
 
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}${marginCss}${shadowCssG}">
+    ${videoBg}
     ${overlay}
     <div class="sc-grid-${sec.id} sc-pad-${sec.id}" style="display:grid;grid-template-columns:repeat(12,1fr);${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
@@ -746,6 +759,7 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
 
 function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -783,6 +797,7 @@ function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean,
     : '';
 
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${borderCss}${marginCssF}${shadowCssF}">
+    ${videoBg}
     ${overlay}
     <div class="sc-flex-${sec.id} sc-pad-${sec.id}" style="${flexCss};${widthCss};padding:${padCss};box-sizing:border-box">
       ${cells}
@@ -872,6 +887,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
   if (sec.layoutMode === 'flex') return renderFlexSection(sec as FlexSection, nodes, pageFixed, pageMaxWidth);
 
   const bg = sec.style.background;
+  const videoBg = sectionVideoBgHtml(bg);
   const overlay = bg.overlay > 0
     ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
     : '';
@@ -906,6 +922,7 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
     ? `max-width:${pageMaxWidth}px;margin:0 auto;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`
     : `width:100%;position:relative;overflow:hidden;min-height:${sec.layout.height}px${freePadCss}`;
   return `  <div id="sec-${sec.id}" style="${sectionBgCssStr(sec.style.background)};${sectionPositionCss(sec)};width:100%${freeBorderCss}${freeMarginCss}${freeShadowCss}">
+    ${videoBg}
     ${overlay}
     <div class="sc-free-${sec.id} sc-pad-${sec.id}" style="${freeInnerStyle}">
       ${elements}

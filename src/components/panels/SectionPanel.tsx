@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import type {
   Breakpoint, BgType, BuilderState, ContentWidthMode,
@@ -9,6 +9,8 @@ import type {
 import { CollapsibleSection, usePanelSections } from './CollapsibleSection';
 import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal';
 import { Modal } from '../Modal';
+import { ImagePickerModal } from '../ImagePickerModal';
+import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
 import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
@@ -17,8 +19,7 @@ import { PbButton } from '../PbButton';
 import {
   SCROLL_BEHAVIOR_OPTIONS,
   CONTENT_WIDTH_OPTIONS,
-  BG_TYPE_OPTIONS,
-  BG_TYPE_WITH_TRANSPARENT_OPTIONS,
+  SECTION_BG_TYPE_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
   SECTION_LAYOUT_MODE_OPTIONS,
 } from '../../utils/selectOptions';
@@ -67,6 +68,26 @@ export function SectionPanel({
 
   const updateBg = (b: Partial<SectionBackground>) =>
     onUpdateSection(section.id, { style: { ...section.style, background: { ...bg, ...b } } });
+
+  // Background image search + upload (mirrors the Image element panel).
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const bgImgFileRef = useRef<HTMLInputElement>(null);
+  const bgVideoFileRef = useRef<HTMLInputElement>(null);
+  const { upload: uploadBgImage, status: bgImgStatus, error: bgImgError, isUploading: bgImgUploading } = useWidenUpload();
+  const { upload: uploadBgVideo, status: bgVideoStatus, error: bgVideoError, isUploading: bgVideoUploading } = useWidenUpload();
+
+  const handleBgImageUpload = async (file: File) => {
+    const result = await uploadBgImage(file);
+    if (!result) return;
+    onPushSnapshot(snapshot);
+    updateBg({ type: 'image', image: result.imageUrl });
+  };
+  const handleBgVideoUpload = async (file: File) => {
+    const result = await uploadBgVideo(file);
+    if (!result) return;
+    onPushSnapshot(snapshot);
+    updateBg({ type: 'video', video: result.imageUrl });
+  };
   const updateSecPad = (p: Partial<typeof secPad>) =>
     onUpdateSection(section.id, { style: { ...section.style, padding: { ...secPad, ...p } } });
   const updateSecMargin = (m: Partial<typeof secMargin>) =>
@@ -302,20 +323,18 @@ export function SectionPanel({
         <div className={'pb-prop-row'}>
           <label>Type</label>
           <PbSelect value={bg.type}
-            options={BG_TYPE_WITH_TRANSPARENT_OPTIONS}
+            options={SECTION_BG_TYPE_OPTIONS}
             onChange={v => { onPushSnapshot(snapshot); updateBg({ type: v as BgType }); }} />
         </div>
         {bg.type === 'solid' && (
-          <>
-            <div className={'pb-prop-row'}>
-              <label>Color</label>
-              <ColorField
-                value={bg.color.startsWith('#') ? bg.color : '#ffffff'}
-                onChange={v => updateBg({ color: v })}
-                onFocus={onNumberFocus} onBlur={onNumberBlur}
-                swatches={swatches} />
-            </div>
-          </>
+          <div className={'pb-prop-row'}>
+            <label>Color</label>
+            <ColorField
+              value={bg.color.startsWith('#') ? bg.color : '#ffffff'}
+              onChange={v => updateBg({ color: v })}
+              onFocus={onNumberFocus} onBlur={onNumberBlur}
+              swatches={swatches} />
+          </div>
         )}
         {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (
           <>
@@ -337,8 +356,40 @@ export function SectionPanel({
             )}
           </>
         )}
-        {bg.type !== 'transparent' && (
+
+        {/* ── Image background ── */}
+        {bg.type === 'image' && (
           <>
+            {bg.image && (
+              <div className={'pb-prop-row pb-full'}>
+                <div className={'pb-bg-media-preview'}>
+                  <img src={bg.image} alt="Section background" />
+                </div>
+              </div>
+            )}
+            <div className={'pb-prop-row pb-full'}>
+              <label>{bg.image ? 'Replace Image' : 'Image'}</label>
+              <div className={'pb-bg-media-actions'}>
+                <button className={'pb-img-action-btn pb-img-search-btn'} onClick={() => setShowImagePicker(true)}>
+                  Search
+                </button>
+                <button
+                  className={'pb-img-action-btn pb-img-upload-btn'}
+                  disabled={bgImgUploading}
+                  onClick={() => bgImgFileRef.current?.click()}
+                >
+                  {bgImgStatus ? UPLOAD_STAGE_LABEL[bgImgStatus] : 'Upload'}
+                </button>
+              </div>
+              <input
+                ref={bgImgFileRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void handleBgImageUpload(f); }}
+              />
+              {bgImgError && <div className={'pb-img-upload-error'} role="alert">{bgImgError}</div>}
+            </div>
             <div className={'pb-prop-row pb-full'}>
               <label>Image URL</label>
               <PbInput type="text" value={bg.image} placeholder="https://..."
@@ -347,21 +398,90 @@ export function SectionPanel({
             </div>
             {bg.image && (
               <div className={'pb-prop-row'}>
-                <label>Image Position</label>
+                <label>Position</label>
                 <PbSelect value={bg.position || 'center'}
                   options={BG_IMAGE_POSITION_OPTIONS}
                   onChange={v => updateBg({ position: v })} />
               </div>
             )}
             {bg.image && (
-              <div className={'pb-prop-row'}>
-                <label>Overlay</label>
-                <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
-                  onFocus={onNumberFocus} onBlur={onNumberBlur}
-                  onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
+              <div className={'pb-prop-row pb-full'}>
+                <PbButton variant="outline" onClick={() => { onPushSnapshot(snapshot); updateBg({ type: 'solid', image: '' }); }}>
+                  Remove image
+                </PbButton>
               </div>
             )}
-            {bg.image && bg.overlay > 0 && (
+          </>
+        )}
+
+        {/* ── Video background ── */}
+        {bg.type === 'video' && (
+          <>
+            {bg.video && (
+              <div className={'pb-prop-row pb-full'}>
+                <div className={'pb-bg-media-preview'}>
+                  <video src={bg.video} muted loop autoPlay playsInline />
+                </div>
+              </div>
+            )}
+            <div className={'pb-prop-row pb-full'}>
+              <label>{bg.video ? 'Replace Video' : 'Video'}</label>
+              <button
+                className={'pb-img-action-btn pb-img-upload-btn'}
+                disabled={bgVideoUploading}
+                onClick={() => bgVideoFileRef.current?.click()}
+              >
+                {bgVideoStatus ? UPLOAD_STAGE_LABEL[bgVideoStatus] : 'Upload'}
+              </button>
+              <input
+                ref={bgVideoFileRef}
+                type="file"
+                accept="video/*"
+                style={{ display: 'none' }}
+                onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void handleBgVideoUpload(f); }}
+              />
+              {bgVideoError && <div className={'pb-img-upload-error'} role="alert">{bgVideoError}</div>}
+            </div>
+            <div className={'pb-prop-row pb-full'}>
+              <label>Video URL</label>
+              <PbInput type="text" value={bg.video ?? ''} placeholder="https://....mp4"
+                onFocus={onNumberFocus} onBlur={onNumberBlur}
+                onChange={e => updateBg({ video: e.target.value })} />
+            </div>
+            <div className={'pb-prop-row'}>
+              <label>Position</label>
+              <PbSelect value={bg.position || 'center'}
+                options={BG_IMAGE_POSITION_OPTIONS}
+                onChange={v => updateBg({ position: v })} />
+            </div>
+            <div className={'pb-prop-row'}>
+              <label>Fallback</label>
+              <ColorField
+                value={bg.color.startsWith('#') ? bg.color : '#000000'}
+                onChange={v => updateBg({ color: v })}
+                onFocus={onNumberFocus} onBlur={onNumberBlur}
+                swatches={swatches} />
+            </div>
+            {bg.video && (
+              <div className={'pb-prop-row pb-full'}>
+                <PbButton variant="outline" onClick={() => { onPushSnapshot(snapshot); updateBg({ type: 'solid', video: '' }); }}>
+                  Remove video
+                </PbButton>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Overlay — available on image/video backgrounds */}
+        {(bg.type === 'image' || bg.type === 'video') && (bg.image || bg.video) && (
+          <>
+            <div className={'pb-prop-row'}>
+              <label>Overlay</label>
+              <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
+                onFocus={onNumberFocus} onBlur={onNumberBlur}
+                onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
+            </div>
+            {bg.overlay > 0 && (
               <div className={'pb-prop-row'}>
                 <label>Overlay Color</label>
                 <ColorField
@@ -434,6 +554,12 @@ export function SectionPanel({
         </div>
       </CollapsibleSection>
 
+
+      <ImagePickerModal
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onSelect={url => { onPushSnapshot(snapshot); updateBg({ type: 'image', image: url }); }}
+      />
 
       {showLayoutModal && (
         <LayoutChangeModal

@@ -13,7 +13,7 @@ import type { UploadImageDragItem } from './LeftSidebar';
 import { GRID_EL_DND_TYPE } from './GridElementView';
 import type { Accordion, Breakpoint, BreakpointOverride, Carousel, GridCell, GridSection, FlexSection, NodeMap, Section, SectionUpdate, CanvasElement as El, BuilderState, ElementType } from '../types';
 import { applyBreakpoint, CANVAS_W } from '../hooks/useBuilderStore';
-import { sectionBgProps } from '../utils/sectionStyle';
+import { sectionBgProps, sectionHasVideoBg } from '../utils/sectionStyle';
 import { resolveResponsive } from '../utils/responsive';
 import { useCanvasContext } from '../contexts/CanvasContext';
 
@@ -347,6 +347,17 @@ function FreeSectionView({
           onSelectSection();
         }}
       >
+        {sectionHasVideoBg(bg) && (
+          <video
+            key={bg.video}
+            src={bg.video}
+            autoPlay
+            muted
+            loop
+            playsInline
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: bg.position || 'center', zIndex: 0, pointerEvents: 'none' }}
+          />
+        )}
         {overlayStyle && <div style={overlayStyle} />}
 
         {breakpoint !== 'desktop' && !previewMode && (
