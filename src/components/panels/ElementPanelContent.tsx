@@ -332,15 +332,15 @@ export function ElementPanelContent({
           </div>
           <div className={'pb-prop-row'}>
             <label>Letter Spacing</label>
-            <PxInput value={element.style.typography.letterSpacing ?? 0} step={0.5}
+            <PxInput value={eff.style.typography.letterSpacing ?? 0} step={0.5}
               onFocus={onFocus} onBlur={onBlur}
-              onChange={v => changeTypo({ letterSpacing: v })} />
+              onChange={v => changeResp({ style: { typography: { letterSpacing: v } } })} />
           </div>
           <div className={'pb-prop-row'}>
             <label>Transform</label>
-            <PbSelect value={element.style.typography.textTransform ?? 'none'}
+            <PbSelect value={eff.style.typography.textTransform ?? 'none'}
               options={TEXT_TRANSFORM_OPTIONS}
-              onChange={v => commitChange({ style: { ...element.style, typography: { ...element.style.typography, textTransform: v as TextTransform } } })} />
+              onChange={v => commitResp({ style: { typography: { textTransform: v as TextTransform } } })} />
           </div>
         </CollapsibleSection>
       )}
@@ -555,14 +555,14 @@ export function ElementPanelContent({
         const isVertical = (element.content.orientation ?? 'horizontal') === 'vertical';
         const thickness = isVertical ? eff.layout.width : eff.layout.height;
         const inGrid = isInGridCell && !element.overlayInCell;
-        const isFill = inGrid && element.flexLayout.widthMode === 'fill';
+        const isFill = inGrid && eff.flexLayout.widthMode === 'fill';
 
         const setWidth = (v: number) => {
           const w = Math.max(minSize, v);
           if (inGrid && !isFill) {
-            change({
-              layout: { ...element.layout, width: w },
-              flexLayout: { ...element.flexLayout, widthMode: 'fixed', widthValue: w },
+            changeResp({
+              layout: { width: w },
+              flexLayout: { widthMode: 'fixed', widthValue: w },
             });
           } else {
             changeResp({ layout: { width: w } });
@@ -590,11 +590,10 @@ export function ElementPanelContent({
                 <label>Fill width</label>
                 <input type="checkbox" checked={isFill}
                   onChange={e => {
-                    onPushSnapshot(snapshot);
                     if (e.target.checked) {
-                      change({ flexLayout: { ...element.flexLayout, widthMode: 'fill' } });
+                      commitResp({ flexLayout: { widthMode: 'fill' } });
                     } else {
-                      change({ flexLayout: { ...element.flexLayout, widthMode: 'fixed', widthValue: eff.layout.width } });
+                      commitResp({ flexLayout: { widthMode: 'fixed', widthValue: eff.layout.width } });
                     }
                   }} />
                 <span className={'pb-hint-inline'}>Stretch to cell</span>

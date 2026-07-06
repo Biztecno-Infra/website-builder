@@ -67,6 +67,8 @@ export function ElementPanel({
     } else {
       if (updates.layout) change({ layout: { ...element.layout, ...updates.layout } });
       if (updates.style?.typography) changeTypo(updates.style.typography);
+      if (updates.flexLayout) change({ flexLayout: { ...element.flexLayout, ...updates.flexLayout } });
+      if (updates.state) change({ state: { ...element.state, ...updates.state } });
     }
   };
 
@@ -195,18 +197,18 @@ export function ElementPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>X</label>
-              <PbInput type="number" value={element.layout.x} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeLayout({ x: Number(e.target.value) })} />
+              <PbInput type="number" value={eff.layout.x} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { x: Number(e.target.value) } })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>Y</label>
-              <PbInput type="number" value={element.layout.y} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeLayout({ y: Number(e.target.value) })} />
+              <PbInput type="number" value={eff.layout.y} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { y: Number(e.target.value) } })} />
             </div>
             <div className={'pb-prop-row'}>
               <label>Width</label>
-              <PbInput type="number" value={element.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
-                onChange={e => changeLayout({ width: Math.max(minSize, Number(e.target.value)) })} />
+              <PbInput type="number" value={eff.layout.width} min={minSize} onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeResp({ layout: { width: Math.max(minSize, Number(e.target.value)) } })} />
             </div>
           </>
         )}
@@ -243,11 +245,13 @@ export function ElementPanel({
         };
         return (
           <CollapsibleSection sectionKey="sizing" label="Size" isOpen={sec('sizing')} onToggle={toggleSection}>
-            <div className={'pb-prop-row'}>
-              <label>Width</label>
-              <PbSelect size="sm" value={sizingValue} options={sizingOptions} onChange={applySizing} />
-            </div>
-            {(widthMode === 'fixed' || widthMode === 'percent') && (
+            {breakpoint === 'desktop' && (
+              <div className={'pb-prop-row'}>
+                <label>Width</label>
+                <PbSelect size="sm" value={sizingValue} options={sizingOptions} onChange={applySizing} />
+              </div>
+            )}
+            {breakpoint === 'desktop' && (widthMode === 'fixed' || widthMode === 'percent') && (
               <div className={'pb-prop-row'}>
                 <label>Value</label>
                 <PbInput type="number" value={widthValue} min={0}
@@ -271,9 +275,9 @@ export function ElementPanel({
             )}
             <div className={'pb-prop-row'}>
               <label>Align</label>
-              <PbSelect size="sm" value={element.flexLayout.alignSelf}
+              <PbSelect size="sm" value={eff.flexLayout.alignSelf}
                 options={ALIGN_SELF_OPTIONS}
-                onChange={v => { onPushSnapshot(snapshot); change({ flexLayout: { ...element.flexLayout, alignSelf: v as typeof element.flexLayout.alignSelf } }); }} />
+                onChange={v => commitResp({ flexLayout: { alignSelf: v as typeof element.flexLayout.alignSelf } })} />
             </div>
             {breakpoint !== 'desktop' && onUpdateResponsive && (
               <>

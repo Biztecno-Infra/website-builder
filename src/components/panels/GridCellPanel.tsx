@@ -92,17 +92,21 @@ export function GridCellPanel({
   const effMode    = resolveResponsive(breakpoint, style.layoutMode, responsive.tablet?.layoutMode, responsive.mobile?.layoutMode);
   const effJustify = resolveResponsive(breakpoint, style.justifyContent, responsive.tablet?.justifyContent, responsive.mobile?.justifyContent);
   const effAlign   = resolveResponsive(breakpoint, style.alignItems, responsive.tablet?.alignItems, responsive.mobile?.alignItems);
+  const effMinHeight = resolveResponsive(breakpoint, style.minHeight, responsive.tablet?.minHeight, responsive.mobile?.minHeight);
 
-  const modeIsOverridden    = isBreakpointOverridden(breakpoint, responsive.tablet?.layoutMode, responsive.mobile?.layoutMode);
-  const justifyIsOverridden = isBreakpointOverridden(breakpoint, responsive.tablet?.justifyContent, responsive.mobile?.justifyContent);
-  const alignIsOverridden   = isBreakpointOverridden(breakpoint, responsive.tablet?.alignItems, responsive.mobile?.alignItems);
+  const modeIsOverridden      = isBreakpointOverridden(breakpoint, responsive.tablet?.layoutMode, responsive.mobile?.layoutMode);
+  const justifyIsOverridden   = isBreakpointOverridden(breakpoint, responsive.tablet?.justifyContent, responsive.mobile?.justifyContent);
+  const alignIsOverridden     = isBreakpointOverridden(breakpoint, responsive.tablet?.alignItems, responsive.mobile?.alignItems);
+  const minHeightIsOverridden = isBreakpointOverridden(breakpoint, responsive.tablet?.minHeight, responsive.mobile?.minHeight);
 
   const setCurrentMode    = (v: CellLayoutMode) => writeCellProp('layoutMode', v);
   const setCurrentJustify = (v: JustifyVal) => writeCellProp('justifyContent', v);
   const setCurrentAlign   = (v: AlignVal) => writeCellProp('alignItems', v);
+  const setCurrentMinHeight = (v: number | undefined) => writeCellProp('minHeight', v);
   const resetModeOverride    = () => clearCellProp('layoutMode');
   const resetJustifyOverride = () => clearCellProp('justifyContent');
   const resetAlignOverride   = () => clearCellProp('alignItems');
+  const resetMinHeightOverride = () => clearCellProp('minHeight');
 
   return (
     <aside className={'pb-right-sidebar pb-flex-col'}>
@@ -286,11 +290,21 @@ export function GridCellPanel({
       <CollapsibleSection sectionKey="minHeight" label="Height" isOpen={sec('minHeight')} onToggle={toggle}>
           <div className={'pb-prop-row'}>
             <label>Min Height</label>
-            <PxInput value={style.minHeight ?? ''}
+            <PxInput value={effMinHeight ?? ''}
               placeholder={renderedHeight !== null ? String(renderedHeight) : 'auto'}
               onFocus={gcFocus} onBlur={gcBlur}
-              onChange={v => onUpdateGridCell(gc.id, { style: { ...style, minHeight: v || undefined } })} />
+              onChange={v => setCurrentMinHeight(v || undefined)} />
+            {!isDesktop && minHeightIsOverridden && (
+              <button className={'pb-resp-clear-btn'} title={`Reset to desktop (${style.minHeight ?? 'auto'})`} onClick={resetMinHeightOverride}>↺</button>
+            )}
           </div>
+          {!isDesktop && (
+            <div className={'pb-resp-ref-row'}>
+              <span className={'pb-resp-ref-label'}>Desktop:</span>
+              <span className={'pb-resp-ref-value'}>{style.minHeight ?? 'auto'}</span>
+              {minHeightIsOverridden && <span className={'pb-resp-badge'}>overridden</span>}
+            </div>
+          )}
       </CollapsibleSection>
 
       {/* ── Background ── */}
