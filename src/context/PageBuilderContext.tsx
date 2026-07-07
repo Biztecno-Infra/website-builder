@@ -5,6 +5,7 @@ import {
 } from 'react';
 import { useBuilderStore, makeEmpty, clearDraftStorage } from '../hooks/useBuilderStore';
 import { sparsifyNodes } from '../utils/sparse';
+import { captureCanvasScreenshot } from '../utils/screenshot';
 import type { Breakpoint, BuilderState } from '../types';
 import type { UploadedImage, ImageSearchResult, ImageSearchResponse, UploadLibraryResponse } from '../api/hostCallbacks';
 
@@ -73,6 +74,13 @@ export interface PageBuilderRef {
    * website so the builder begins blank and re-fills as the user builds.
    */
   clearDraft: () => void;
+  /**
+   * Rasterizes the current canvas to a PNG and returns it as a `File`
+   * (`screenshot.png`). Clears the active selection first so selection chrome
+   * (outlines, handles, quick bars) is not captured. Resolves to `null` if the
+   * canvas is not mounted or capture fails.
+   */
+  getScreenShot: () => Promise<File | null>;
 }
 
 /**
@@ -200,7 +208,14 @@ export function PageBuilderProvider({ initialState, onChange, apiRef, children, 
       clearDraftStorage();
       importState(makeEmpty());
     },
-  }), [apiRef, stateRef, importState]);
+    getScreenShot: () => captureCanvasScreenshot({
+      clearSelection: () => {
+        store.setSelectedId(null);
+        setSelectedCarouselId(null);
+        setSelectedAccordionId(null);
+      },
+    }),
+  }), [apiRef, stateRef, importState, store]);
 
   // Notify host of state changes (skip the first render).
   const isFirstRender = useRef(true);
