@@ -236,7 +236,7 @@ export function useSectionOps(
       return { ...s, nodes: newNodes, pages: s.pages.map(pg => pg.id === p.id ? { ...pg, sections } : pg) };
     });
     setSelectedSectionId(secId);
-    setSelectedGridCellId(null);
+    setSelectedGridCellId(cellIds[0] ?? null);
   }, [push]);
 
   const addSectionFromTemplate = useCallback((
