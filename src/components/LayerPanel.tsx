@@ -1,25 +1,25 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import type { Accordion, CanvasElement, Carousel, Container, GridCell, NodeMap, Section } from '../types';
 import { Icon } from './Icon';
 import { IconButton } from './IconButton';
+import { SearchInput } from './SearchInput';
 import { CANVAS_W } from '../hooks/useBuilderStore';
+import { collectSearchMatches, elementLabel, PAGE_ROOT_ID } from '../utils/layerSearch';
 
 const TYPE_ICON_ID: Record<string, string> = {
   text: 'elText', image: 'elImage', button: 'elButton', box: 'elBox',
   divider: 'elDivider', video: 'elVideo', spacer: 'elSpacer', icon: 'elIcon', form: 'elForm',
 };
 
-function elementLabel(el: CanvasElement): string {
-  switch (el.type) {
-    case 'text':    return el.content.plain?.slice(0, 24) || 'Text';
-    case 'button':  return el.content.label || 'Button';
-    case 'image':   return el.content.alt || 'Image';
-    case 'video':   return 'Video';
-    case 'divider': return 'Divider';
-    case 'spacer':  return 'Spacer';
-    case 'icon':    return el.content.iconName ? `Icon ${el.content.iconName}` : 'Icon';
-    default:        return 'Box';
-  }
+/** Bundle of search-driven helpers threaded down to SectionGroup and its nested row renderers. */
+interface LayerSearch {
+  isSearching: boolean;
+  isMatch: (id: string) => boolean;
+  isActive: (id: string) => boolean;
+  showAsSelected: (id: string, reallySelected: boolean) => boolean;
+  isCollapsed: (id: string, real: boolean) => boolean;
+  toggleCollapse: (id: string, real: boolean, setReal: () => void) => void;
 }
 
 function CollapseArrow({ collapsed }: { collapsed: boolean }) {
@@ -102,6 +102,7 @@ interface SectionGroupProps {
   collapsed: boolean;
   onToggleCollapsed: () => void;
   onExpandSection: () => void;
+  search: LayerSearch;
 }
 
 function SectionGroup({
@@ -110,7 +111,7 @@ function SectionGroup({
   onSelectElement, onSelectSection, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion,
   onScrollToElement, onUpdateElement, onDeleteElement, onDeleteSection, onReorderElement, onMoveElementToSection,
   onSectionDragStart, onSectionDragOver, onSectionDrop, onSectionDragEnd,
-  collapsed, onToggleCollapsed, onExpandSection,
+  collapsed, onToggleCollapsed, onExpandSection, search,
 }: SectionGroupProps) {
   const [dragOverElIdx, setDragOverElIdx] = useState<number | null>(null);
   const [collapsedCellMap, setCollapsedCellMap] = useState<Record<string, boolean>>({});
@@ -151,7 +152,7 @@ function SectionGroup({
       return (
         <div
           key={el.id}
-          className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+          className={['pb-layer-row pb-flex-row', search.showAsSelected(el.id, isSelected) && 'pb-selected', hidden && 'pb-layer-hidden', search.isMatch(el.id) && 'pb-layer-match', search.isActive(el.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
           style={{ paddingLeft: 8 + elIndent }}
           onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
         >
@@ -173,18 +174,20 @@ function SectionGroup({
     };
 
     const renderContainerLayerRow = (block: Container, cellIndent: number, subCells: GridCell[]): React.ReactElement => {
-      const containerCollapsed = collapsedContainerMap[block.id] ?? false;
+      const realContainerCollapsed = collapsedContainerMap[block.id] ?? false;
+      const containerCollapsed = search.isCollapsed(block.id, realContainerCollapsed);
       const isContainerSelected = selectedContainerId === block.id;
       const hasChildren = subCells.length > 0;
+      const toggle = () => search.toggleCollapse(block.id, realContainerCollapsed, () => toggleContainer(block.id));
       return (
         <div key={block.id}>
           <div
-            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isContainerSelected && 'pb-selected'].filter(Boolean).join(' ')}
+            className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(block.id, isContainerSelected) && 'pb-selected', search.isMatch(block.id) && 'pb-layer-match', search.isActive(block.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
             style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
-            onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); if (hasChildren) toggleContainer(block.id); }}
+            onClick={() => { onSelectSection(section.id); onSelectContainer?.(block.id); if (hasChildren) toggle(); }}
           >
             {hasChildren ? (
-              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleContainer(block.id); }}>
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggle(); }}>
                 <CollapseArrow collapsed={containerCollapsed} />
               </button>
             ) : (
@@ -199,20 +202,22 @@ function SectionGroup({
     };
 
     const renderCellLayerRow = (cell: GridCell, cellIdx: number, cellDepth: number): React.ReactElement => {
-      const cellCollapsed = collapsedCellMap[cell.id] ?? false;
+      const realCellCollapsed = collapsedCellMap[cell.id] ?? false;
+      const cellCollapsed = search.isCollapsed(cell.id, realCellCollapsed);
       const isCellSelected = selectedGridCellId === cell.id;
       const cellIndent = cellDepth * 16;
       const cellChildren = cell.children.map(id => nodes[id]).filter(Boolean);
       const hasChildren = cellChildren.length > 0;
+      const toggle = () => search.toggleCollapse(cell.id, realCellCollapsed, () => toggleCell(cell.id));
       return (
         <div key={cell.id}>
           <div
-            className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
+            className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(cell.id, isCellSelected) && 'pb-selected', search.isMatch(cell.id) && 'pb-layer-match', search.isActive(cell.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
             style={{ paddingLeft: 8 + cellIndent }}
-            onClick={() => { onSelectGridCell(cell.id); if (hasChildren) toggleCell(cell.id); }}
+            onClick={() => { onSelectGridCell(cell.id); if (hasChildren) toggle(); }}
           >
             {hasChildren ? (
-              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggleCell(cell.id); }}>
+              <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); toggle(); }}>
                 <CollapseArrow collapsed={cellCollapsed} />
               </button>
             ) : (
@@ -235,7 +240,7 @@ function SectionGroup({
               return (
                 <div key={carousel.id}>
                   <div
-                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(carousel.id, isCarSelected) && 'pb-selected', search.isMatch(carousel.id) && 'pb-layer-match', search.isActive(carousel.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
                     style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
                     onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
                   >
@@ -253,7 +258,7 @@ function SectionGroup({
               return (
                 <div key={acc.id}>
                   <div
-                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+                    className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(acc.id, isAccSelected) && 'pb-selected', search.isMatch(acc.id) && 'pb-layer-match', search.isActive(acc.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
                     style={{ paddingLeft: 8 + cellIndent + 16, cursor: 'pointer' }}
                     onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
                   >
@@ -281,7 +286,7 @@ function SectionGroup({
         onDrop={e => { e.preventDefault(); onSectionDrop(); }}
       >
         <div
-          className={['pb-layer-section-header pb-flex-row', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          className={['pb-layer-section-header pb-flex-row', search.showAsSelected(section.id, isSectionSelected) && 'pb-selected', search.isMatch(section.id) && 'pb-layer-match', search.isActive(section.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
           style={{ paddingLeft: 8 + indent }}
           draggable={draggable}
           onDragStart={() => draggable && onSectionDragStart(index)}
@@ -336,7 +341,7 @@ function SectionGroup({
     return (
       <div key={cell.id}>
         <div
-          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCellSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(cell.id, isCellSelected) && 'pb-selected', search.isMatch(cell.id) && 'pb-layer-match', search.isActive(cell.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
           style={{ paddingLeft: 8 + cellDepth * 16, cursor: 'pointer' }}
           onClick={() => { onSelectSection(section.id); onSelectGridCell(cell.id); }}
         >
@@ -350,7 +355,7 @@ function SectionGroup({
           return (
             <div
               key={el.id}
-              className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', hidden && 'pb-layer-hidden'].filter(Boolean).join(' ')}
+              className={['pb-layer-row pb-flex-row', search.showAsSelected(el.id, isSelected) && 'pb-selected', hidden && 'pb-layer-hidden', search.isMatch(el.id) && 'pb-layer-match', search.isActive(el.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
               style={{ paddingLeft: 8 + (cellDepth + 1) * 16 }}
               onClick={() => { onSelectGridCell(cell.id); onSelectElement(el.id); onScrollToElement?.(el.id); }}
             >
@@ -371,7 +376,7 @@ function SectionGroup({
     return (
       <div key={acc.id}>
         <div
-          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isAccSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(acc.id, isAccSelected) && 'pb-selected', search.isMatch(acc.id) && 'pb-layer-match', search.isActive(acc.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
           style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
           onClick={() => { onSelectSection(section.id); onSelectAccordion?.(acc.id); }}
         >
@@ -393,7 +398,7 @@ function SectionGroup({
     return (
       <div key={carousel.id}>
         <div
-          className={['pb-layer-row pb-flex-row pb-layer-row--cell', isCarSelected && 'pb-selected'].filter(Boolean).join(' ')}
+          className={['pb-layer-row pb-flex-row pb-layer-row--cell', search.showAsSelected(carousel.id, isCarSelected) && 'pb-selected', search.isMatch(carousel.id) && 'pb-layer-match', search.isActive(carousel.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
           style={{ paddingLeft: 8 + (depth + 1) * 16, cursor: 'pointer' }}
           onClick={() => { onSelectSection(section.id); onSelectCarousel?.(carousel.id); }}
         >
@@ -466,7 +471,7 @@ function SectionGroup({
     return (
       <div
         key={el.id}
-        className={['pb-layer-row pb-flex-row', isSelected && 'pb-selected', isDropTarget && 'pb-el-drop-target'].filter(Boolean).join(' ')}
+        className={['pb-layer-row pb-flex-row', search.showAsSelected(el.id, isSelected) && 'pb-selected', isDropTarget && 'pb-el-drop-target', search.isMatch(el.id) && 'pb-layer-match', search.isActive(el.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
         style={{ paddingLeft: 8 + elIndent }}
         draggable
         onClick={() => { onSelectElement(el.id); onScrollToElement?.(el.id); }}
@@ -502,7 +507,7 @@ function SectionGroup({
       onDrop={handleSectionBodyDrop}
     >
       <div
-        className={['pb-layer-section-header pb-flex-row', isSectionSelected && 'pb-selected'].filter(Boolean).join(' ')}
+        className={['pb-layer-section-header pb-flex-row', search.showAsSelected(section.id, isSectionSelected) && 'pb-selected', search.isMatch(section.id) && 'pb-layer-match', search.isActive(section.id) && 'pb-layer-active-match'].filter(Boolean).join(' ')}
         style={{ paddingLeft: 8 + indent }}
         draggable={draggable}
         onDragStart={() => draggable && onSectionDragStart(index)}
@@ -570,6 +575,70 @@ export function LayerPanel({
   const toggleSectionCollapsed = (id: string) => setCollapsedSections(p => ({ ...p, [id]: !p[id] }));
   const expandSectionById = (id: string) => setCollapsedSections(p => ({ ...p, [id]: false }));
   const [search, setSearch] = useState('');
+  const isSearching = search.trim().length > 0;
+  const searchMatches = useMemo(
+    () => collectSearchMatches(search, header, sections, footer, nodes),
+    [search, header, sections, footer, nodes]
+  );
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0);
+  const [searchTakesPriority, setSearchTakesPriority] = useState(false);
+  useEffect(() => { setDismissed(new Set()); setActiveMatchIndex(0); setSearchTakesPriority(true); }, [search]);
+  useEffect(() => { setSearchTakesPriority(false); }, [
+    selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
+  ]);
+
+  const orderedMatches = useMemo(() => Array.from(searchMatches.matchedIds), [searchMatches]);
+  const clampedMatchIndex = orderedMatches.length ? Math.min(activeMatchIndex, orderedMatches.length - 1) : 0;
+  const activeMatchId = orderedMatches[clampedMatchIndex] ?? null;
+
+  const goToMatch = (index: number) => {
+    if (orderedMatches.length === 0) return;
+    const next = ((index % orderedMatches.length) + orderedMatches.length) % orderedMatches.length;
+    setActiveMatchIndex(next);
+    setSearchTakesPriority(true);
+    const path = searchMatches.matchPath.get(orderedMatches[next]) ?? [];
+    if (path.length && path.some(id => dismissed.has(id))) {
+      setDismissed(prev => {
+        const nextDismissed = new Set(prev);
+        path.forEach(id => nextDismissed.delete(id));
+        return nextDismissed;
+      });
+    }
+  };
+  const goNext = () => goToMatch(clampedMatchIndex + 1);
+  const goPrev = () => goToMatch(clampedMatchIndex - 1);
+
+  const handleSearchKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!isSearching) return;
+    if (e.key === 'ArrowDown' || (e.key === 'Enter' && !e.shiftKey)) { e.preventDefault(); goNext(); }
+    else if (e.key === 'ArrowUp' || (e.key === 'Enter' && e.shiftKey)) { e.preventDefault(); goPrev(); }
+  };
+
+  const layerSearch: LayerSearch = {
+    isSearching,
+    isMatch: id => searchMatches.matchedIds.has(id),
+    isActive: id => activeMatchId === id,
+    showAsSelected: (id, reallySelected) => reallySelected && !(activeMatchId === id && searchTakesPriority),
+    isCollapsed: (id, real) => {
+      if (!isSearching) return real;
+      if (dismissed.has(id)) return true;
+      if (searchMatches.ancestorIds.has(id)) return false;
+      return real;
+    },
+    toggleCollapse: (id, real, setReal) => {
+      if (!isSearching || !(real && searchMatches.ancestorIds.has(id))) {
+        setReal();
+        return;
+      }
+      setDismissed(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+      });
+    },
+  };
+
   const layerListRef = useRef<HTMLDivElement>(null);
   // True while the most recent selection originated from a click inside this
   // panel. Used to suppress the auto-scroll/auto-expand sync that should only
@@ -600,6 +669,22 @@ export function LayerPanel({
     }, 60);
     return () => clearTimeout(t);
   }, [selectedIds, selectedSectionId]);
+
+  useEffect(() => {
+    if (!activeMatchId) return;
+    const t = setTimeout(() => {
+      const list = layerListRef.current;
+      if (!list) return;
+      const target = list.querySelector<HTMLElement>('.pb-layer-active-match');
+      if (!target) return;
+      const listRect = list.getBoundingClientRect();
+      const elRect = target.getBoundingClientRect();
+      if (elRect.top >= listRect.top && elRect.bottom <= listRect.bottom) return;
+      const relativeTop = elRect.top - listRect.top + list.scrollTop;
+      list.scrollTo({ top: relativeTop - list.clientHeight / 2 + target.offsetHeight / 2 });
+    }, 60);
+    return () => clearTimeout(t);
+  }, [activeMatchId]);
 
   const handleSectionDrop = () => {
     if (sectionDragFromIndex.current !== null && sectionDragOverIndex !== null && sectionDragFromIndex.current !== sectionDragOverIndex) {
@@ -643,6 +728,7 @@ export function LayerPanel({
     onReorderElement,
     onMoveElementToSection,
     onSectionDragEnd: handleSectionDragEnd,
+    search: layerSearch,
   };
 
   return (
@@ -654,15 +740,34 @@ export function LayerPanel({
       </div>
 
       <div className={'pb-blocks-search'}>
-        <div className={'pb-blocks-search-inner pb-flex-row'}>
-          <Icon id="search" size={14} className={'pb-blocks-search-icon'} />
-          <input
-            type="text"
-            placeholder="Search layers..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </div>
+        <SearchInput value={search} onChange={setSearch} placeholder="Search layers..." onKeyDown={handleSearchKeyDown} />
+        {isSearching && (
+          <div className={'pb-layer-search-nav pb-flex-row'}>
+            <span className={'pb-layer-search-count'}>
+              {orderedMatches.length ? `${clampedMatchIndex + 1}/${orderedMatches.length}` : '0/0'}
+            </span>
+            <button
+              type="button"
+              className={'pb-layer-search-nav-btn'}
+              title="Previous match"
+              disabled={orderedMatches.length === 0}
+              onClick={goPrev}
+            >
+              <span className={'pb-flex-center'} style={{ transform: 'rotate(180deg)' }}>
+                <Icon id="chevronDown" size={12} />
+              </span>
+            </button>
+            <button
+              type="button"
+              className={'pb-layer-search-nav-btn'}
+              title="Next match"
+              disabled={orderedMatches.length === 0}
+              onClick={goNext}
+            >
+              <Icon id="chevronDown" size={12} />
+            </button>
+          </div>
+        )}
       </div>
 
       <div className={'pb-layer-list pb-flex-col'} ref={layerListRef}>
@@ -670,16 +775,16 @@ export function LayerPanel({
         {/* Page virtual root */}
         <div
           className={['pb-layer-page-row pb-flex-row', isPageSelected && 'pb-selected'].filter(Boolean).join(' ')}
-          onClick={() => { onSelectPage?.(); setPageCollapsed(c => !c); }}
+          onClick={() => { onSelectPage?.(); layerSearch.toggleCollapse(PAGE_ROOT_ID, pageCollapsed, () => setPageCollapsed(c => !c)); }}
         >
-          <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); setPageCollapsed(c => !c); }}>
-            <CollapseArrow collapsed={pageCollapsed} />
+          <button className={'pb-layer-collapse-btn'} onClick={e => { e.stopPropagation(); layerSearch.toggleCollapse(PAGE_ROOT_ID, pageCollapsed, () => setPageCollapsed(c => !c)); }}>
+            <CollapseArrow collapsed={layerSearch.isCollapsed(PAGE_ROOT_ID, pageCollapsed)} />
           </button>
           <span className={'pb-layer-section-icon'}>◻</span>
           <span className={'pb-layer-section-name pb-truncate'}>Page</span>
         </div>
 
-        {!pageCollapsed && (
+        {!layerSearch.isCollapsed(PAGE_ROOT_ID, pageCollapsed) && (
           <>
             <SectionGroup
               {...commonSectionProps}
@@ -687,8 +792,8 @@ export function LayerPanel({
               isSectionSelected={selectedSectionId === header.id}
               isDragOver={false} isDragging={false}
               onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
-              collapsed={collapsedSections[header.id] ?? false}
-              onToggleCollapsed={() => toggleSectionCollapsed(header.id)}
+              collapsed={layerSearch.isCollapsed(header.id, collapsedSections[header.id] ?? false)}
+              onToggleCollapsed={() => layerSearch.toggleCollapse(header.id, collapsedSections[header.id] ?? false, () => toggleSectionCollapsed(header.id))}
               onExpandSection={() => expandSectionById(header.id)}
             />
 
@@ -707,8 +812,8 @@ export function LayerPanel({
                 }}
                 onSectionDragOver={setSectionDragOverIndex}
                 onSectionDrop={handleSectionDrop}
-                collapsed={collapsedSections[sec.id] ?? false}
-                onToggleCollapsed={() => toggleSectionCollapsed(sec.id)}
+                collapsed={layerSearch.isCollapsed(sec.id, collapsedSections[sec.id] ?? false)}
+                onToggleCollapsed={() => layerSearch.toggleCollapse(sec.id, collapsedSections[sec.id] ?? false, () => toggleSectionCollapsed(sec.id))}
                 onExpandSection={() => expandSectionById(sec.id)}
               />
             ))}
@@ -720,8 +825,8 @@ export function LayerPanel({
                 isSectionSelected={selectedSectionId === footer.id}
                 isDragOver={false} isDragging={false}
                 onSectionDragStart={() => {}} onSectionDragOver={() => {}} onSectionDrop={() => {}}
-                collapsed={collapsedSections[footer.id] ?? false}
-                onToggleCollapsed={() => toggleSectionCollapsed(footer.id)}
+                collapsed={layerSearch.isCollapsed(footer.id, collapsedSections[footer.id] ?? false)}
+                onToggleCollapsed={() => layerSearch.toggleCollapse(footer.id, collapsedSections[footer.id] ?? false, () => toggleSectionCollapsed(footer.id))}
                 onExpandSection={() => expandSectionById(footer.id)}
               />
             )}

@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { Icon } from './Icon';
 
 interface Props {
@@ -6,6 +7,7 @@ interface Props {
   placeholder?: string;
   variant?: 'default' | 'modal';
   iconPosition?: 'left' | 'right';
+  onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export function SearchInput({
@@ -14,6 +16,7 @@ export function SearchInput({
   placeholder = 'Search...',
   variant = 'default',
   iconPosition = 'left',
+  onKeyDown,
 }: Props) {
   const icon = <Icon id="search" size={14} className={'pb-blocks-search-icon'} />;
 
@@ -25,6 +28,7 @@ export function SearchInput({
         placeholder={placeholder}
         value={value}
         onChange={e => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
       />
       {iconPosition === 'right' && icon}
     </div>
