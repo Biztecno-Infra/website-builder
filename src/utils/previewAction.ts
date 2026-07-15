@@ -37,11 +37,12 @@ function mailtoHref(email: string, subject?: string, body?: string): string {
   return `mailto:${email}${params.length ? `?${params.join('&')}` : ''}`;
 }
 
-// Smoothly scroll the preview surface. In preview the page scrolls inside the
-// canvas wrapper (.pb-canvas-wrapper), not the window — so prefer that, falling
-// back to window for safety.
+// Smoothly scroll the preview surface. In preview the page scrolls inside
+// .pb-preview-canvas-wrapper (the outer frame) — .pb-canvas-wrapper nested
+// inside it is overflow:clip (a visual "device" box, not the scroll
+// container), so scrolling that one is a no-op. Fall back to window for safety.
 function scrollPreviewTo(top: number) {
-  const wrapper = document.querySelector('.pb-canvas-wrapper');
+  const wrapper = document.querySelector('.pb-preview-canvas-wrapper');
   if (wrapper) wrapper.scrollTo({ top, behavior: 'smooth' });
   else window.scrollTo({ top, behavior: 'smooth' });
 }
@@ -49,7 +50,7 @@ function scrollPreviewTo(top: number) {
 function scrollToSection(sectionId: string) {
   // Preview sections render with id="sec-{id}" (mirroring the export markup).
   const target = document.getElementById(`sec-${sectionId}`);
-  const wrapper = document.querySelector('.pb-canvas-wrapper');
+  const wrapper = document.querySelector('.pb-preview-canvas-wrapper');
   if (target && wrapper) {
     const wRect = wrapper.getBoundingClientRect();
     const tRect = target.getBoundingClientRect();

@@ -29,6 +29,16 @@ import {
   IMAGE_POSITION_OPTIONS,
 } from '../../utils/selectOptions';
 
+// document.queryCommandValue('foreColor') returns an "rgb(r, g, b)" string — the
+// inline color picker works in hex, so convert before handing it off as `value`.
+function rgbToHex(rgb: string): string {
+  const m = rgb.match(/\d+(\.\d+)?/g);
+  if (!m || m.length < 3) return '#000000';
+  const [r, g, b] = m.map(Number);
+  const toHex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
 interface Props {
   element: CanvasElement;
   eff: CanvasElement;
@@ -117,6 +127,7 @@ export function ElementPanelContent({
 
   const [textColorPickerOpen, setTextColorPickerOpen] = useState(false);
   const [textColorPickerPos, setTextColorPickerPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  const [textColorValue, setTextColorValue] = useState('#000000');
   const textColorBtnRef = useRef<HTMLLabelElement>(null);
   const PICKER_H = 380;
 
@@ -187,6 +198,19 @@ export function ElementPanelContent({
                           : { top: rect.bottom + 4, right }
                       );
                     }
+                    // Restore the saved selection so queryCommandValue reads the
+                    // selected text's actual color, not whatever the cursor last sat in.
+                    const range = richTextState.savedRange;
+                    if (range) {
+                      const sel = window.getSelection();
+                      if (sel) { sel.removeAllRanges(); sel.addRange(range); }
+                    }
+                    try {
+                      const val = document.queryCommandValue('foreColor');
+                      setTextColorValue(val ? rgbToHex(val) : '#000000');
+                    } catch {
+                      setTextColorValue('#000000');
+                    }
                     setTextColorPickerOpen(o => !o);
                   }}
                 >
@@ -199,9 +223,9 @@ export function ElementPanelContent({
                     onMouseDown={() => { richTextState.applyingFormat = true; }}
                   >
                     <PbColorPicker
-                      value={'#000000'}
+                      value={textColorValue}
                       swatches={swatches}
-                      onChange={color => { applyInlineFormat('foreColor', color); setTextColorPickerOpen(false); }}
+                      onChange={color => applyInlineFormat('foreColor', color)}
                     />
                   </div>
                 )}
