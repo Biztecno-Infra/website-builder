@@ -1066,12 +1066,15 @@ function generateCellCSS(
 
     // Overlay elements — absolutely positioned inside the cell, revert to static at tablet/mobile
     if (el.overlayInCell) {
+      // Text/button boxes grow with their content instead of a hard-clipped height,
+      // matching the free-section path's same exemption (see heightProp above).
+      const heightPropOverlay = (el.type === 'text' || el.type === 'button') ? 'min-height' : 'height';
       const base: string[] = [
         'position:absolute',
         `left:${el.layout.x}px`,
         `top:${el.layout.y}px`,
         `width:${el.layout.width}px`,
-        `height:${el.layout.height}px`,
+        `${heightPropOverlay}:${el.layout.height}px`,
         `z-index:${el.layout.zIndex ?? 1}`,
         `opacity:${el.style.opacity}`,
         'box-sizing:border-box',
@@ -1095,12 +1098,12 @@ function generateCellCSS(
       if (!tCell?.hidden) {
         const tx = tO?.x ?? 0; const ty = tO?.y ?? 0;
         const tw = tO?.width ?? el.layout.width; const th = tO?.height ?? el.layout.height;
-        tabletRules.push(`.ge-${el.id}{position:absolute;left:${tx}px;top:${ty}px;width:${tw}px;height:${th}px}`);
+        tabletRules.push(`.ge-${el.id}{position:absolute;left:${tx}px;top:${ty}px;width:${tw}px;${heightPropOverlay}:${th}px}`);
       }
       if (!mCell?.hidden && !tCell?.hidden) {
         const mx = mO?.x ?? tO?.x ?? 0; const my = mO?.y ?? tO?.y ?? 0;
         const mw = mO?.width ?? tO?.width ?? el.layout.width; const mh = mO?.height ?? tO?.height ?? el.layout.height;
-        mobileRules.push(`.ge-${el.id}{position:absolute;left:${mx}px;top:${my}px;width:${mw}px;height:${mh}px}`);
+        mobileRules.push(`.ge-${el.id}{position:absolute;left:${mx}px;top:${my}px;width:${mw}px;${heightPropOverlay}:${mh}px}`);
       }
       continue;
     }

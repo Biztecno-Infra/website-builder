@@ -520,7 +520,11 @@ export function GridCellView({
                 left: overlayX,
                 top: overlayY,
                 width: el.layout.width,
-                height: el.layout.height,
+                // Text/button grow with their content instead of a hard-clipped height,
+                // matching the same exemption in the non-overlay flex branch and in export.
+                ...(el.type === 'text' || el.type === 'button'
+                  ? { minHeight: el.layout.height }
+                  : { height: el.layout.height }),
                 zIndex: el.layout.zIndex ?? 1,
                 opacity: el.style.opacity,
                 cursor: previewMode ? 'default' : 'move',

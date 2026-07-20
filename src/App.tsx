@@ -330,7 +330,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${activePage.name.toLowerCase().replace(/\s+/g, '-')}.html`;
+    a.download = `${siteName.toLowerCase().replace(/\s+/g, '-')}.html`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -342,7 +342,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${activePage.name.toLowerCase().replace(/\s+/g, '-')}-export.json`;
+    a.download = `${siteName.toLowerCase().replace(/\s+/g, '-')}-export.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -569,7 +569,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
     <DndProvider backend={HTML5Backend}>
       <div className={'pb-app pb-flex-col'}>
         <Toolbar
-          siteName={websiteName || siteName}
+          siteName={siteName || websiteName}
           pages={pages}
           activePage={activePage}
           onSetActivePage={setActivePage}
