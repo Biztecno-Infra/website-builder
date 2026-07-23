@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type ReactNode } from 'react';
+import { useState, useRef, useEffect, type ReactNode, type MouseEvent as ReactMouseEvent } from 'react';
 
 import type { Border, BgType, Padding, Shadow, SectionBackground, SiteTheme } from '../../types';
 import { PbInput } from '../PbInput';
@@ -15,6 +15,32 @@ export function themeToSwatches(theme: SiteTheme): string[] {
   return [c.primary, c.accent, c.text, c.light, c.background, c.sectionBg].filter(Boolean) as string[];
 }
 
+// ── Shared popup positioning for color pickers ────────────────────────────
+
+const PICKER_H = 380;
+
+export interface PopupPos {
+  top?: number;
+  bottom?: number;
+  right: number;
+}
+
+export function computePopupPos(rect: DOMRect, clientX: number, assumedHeight = PICKER_H): PopupPos {
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const right = window.innerWidth - rect.right;
+
+  if (spaceBelow >= assumedHeight) {
+    return { top: rect.bottom + 4, right };
+  }
+  if (rect.top > assumedHeight) {
+    return { bottom: window.innerHeight - rect.top + 4, right };
+  }
+  return {
+    top: Math.max(8, (window.innerHeight - assumedHeight) / 2),
+    right: window.innerWidth - clientX + 20,
+  };
+}
+
 // ── Color field: swatch + hex, opens PbColorPicker popup on click ─────────────
 
 export function ColorField({ value, onChange, onFocus, onBlur, swatches }: {
@@ -25,10 +51,8 @@ export function ColorField({ value, onChange, onFocus, onBlur, swatches }: {
   swatches?: string[];
 }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  const [pos, setPos] = useState<PopupPos | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-
-  const PICKER_H = 380;
 
   useEffect(() => {
     if (!open) return;
@@ -47,18 +71,10 @@ export function ColorField({ value, onChange, onFocus, onBlur, swatches }: {
 
   const safe = /^#[0-9a-fA-F]{3,8}$/.test(value) ? value : '#000000';
 
-  const handleToggle = () => {
+  const handleToggle = (e: ReactMouseEvent) => {
     if (open) { setOpen(false); onBlur?.(); return; }
     const rect = wrapRef.current?.getBoundingClientRect();
-    if (rect) {
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const right = window.innerWidth - rect.right;
-      if (spaceBelow < PICKER_H && rect.top > PICKER_H) {
-        setPos({ bottom: window.innerHeight - rect.top + 4, right });
-      } else {
-        setPos({ top: rect.bottom + 4, right });
-      }
-    }
+    if (rect) setPos(computePopupPos(rect, e.clientX));
     onFocus?.();
     setOpen(true);
   };

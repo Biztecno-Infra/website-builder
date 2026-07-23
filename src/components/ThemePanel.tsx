@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import type { SiteTheme, ThemeColors } from '../types';
 import { PbSelect } from './PbSelect';
 import { PbButton } from './PbButton';
 import { PbColorPicker } from './PbColorPicker';
+import { computePopupPos, type PopupPos } from './panels/PanelFields';
 import { injectGoogleFont } from '../utils/fonts';
 import { FONT_FAMILY_OPTIONS } from '../utils/selectOptions';
 import { IconButton } from './IconButton';
@@ -27,8 +28,6 @@ interface Props {
   onClose?: () => void;
 }
 
-const PICKER_H = 380;
-
 function ColorCard({
   label, value, onChange,
 }: {
@@ -36,7 +35,7 @@ function ColorCard({
 }) {
   const safe = value?.startsWith('#') ? value : '#006e75';
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  const [pos, setPos] = useState<PopupPos | null>(null);
   const pillRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,18 +50,10 @@ function ColorCard({
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  const handleClick = () => {
+  const handleClick = (e: ReactMouseEvent) => {
     if (open) { setOpen(false); return; }
     const rect = pillRef.current?.getBoundingClientRect();
-    if (rect) {
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const right = window.innerWidth - rect.right;
-      if (spaceBelow < PICKER_H && rect.top > PICKER_H) {
-        setPos({ bottom: window.innerHeight - rect.top + 4, right });
-      } else {
-        setPos({ top: rect.bottom + 4, right });
-      }
-    }
+    if (rect) setPos(computePopupPos(rect, e.clientX));
     setOpen(true);
   };
 

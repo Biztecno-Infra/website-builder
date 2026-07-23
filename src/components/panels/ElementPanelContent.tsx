@@ -11,7 +11,7 @@ import { injectGoogleFont } from '../../utils/fonts';
 
 import { Icon } from '../Icon';
 import { CollapsibleSection } from './CollapsibleSection';
-import { ColorField, PxInput, ToggleGroup } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, computePopupPos, type PopupPos } from './PanelFields';
 import { PbColorPicker } from '../PbColorPicker';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
@@ -126,10 +126,18 @@ export function ElementPanelContent({
   };
 
   const [textColorPickerOpen, setTextColorPickerOpen] = useState(false);
-  const [textColorPickerPos, setTextColorPickerPos] = useState<{ top?: number; bottom?: number; right: number } | null>(null);
+  const [textColorPickerPos, setTextColorPickerPos] = useState<PopupPos | null>(null);
   const [textColorValue, setTextColorValue] = useState('#000000');
   const textColorBtnRef = useRef<HTMLLabelElement>(null);
-  const PICKER_H = 380;
+
+  const textColorApplyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (textColorApplyTimer.current) clearTimeout(textColorApplyTimer.current);
+  }, []);
+  const handleTextColorChange = (color: string) => {
+    if (textColorApplyTimer.current) clearTimeout(textColorApplyTimer.current);
+    textColorApplyTimer.current = setTimeout(() => applyInlineFormat('foreColor', color), 150);
+  };
 
   useEffect(() => {
     if (!textColorPickerOpen) return;
@@ -187,17 +195,9 @@ export function ElementPanelContent({
                   title="Text color"
                   className={'pb-format-color-label'}
                   onMouseDown={() => { richTextState.applyingFormat = true; }}
-                  onClick={() => {
+                  onClick={e => {
                     const rect = textColorBtnRef.current?.getBoundingClientRect();
-                    if (rect) {
-                      const spaceBelow = window.innerHeight - rect.bottom;
-                      const right = window.innerWidth - rect.right;
-                      setTextColorPickerPos(
-                        spaceBelow < PICKER_H && rect.top > PICKER_H
-                          ? { bottom: window.innerHeight - rect.top + 4, right }
-                          : { top: rect.bottom + 4, right }
-                      );
-                    }
+                    if (rect) setTextColorPickerPos(computePopupPos(rect, e.clientX));
                     // Restore the saved selection so queryCommandValue reads the
                     // selected text's actual color, not whatever the cursor last sat in.
                     const range = richTextState.savedRange;
@@ -225,7 +225,7 @@ export function ElementPanelContent({
                     <PbColorPicker
                       value={textColorValue}
                       swatches={swatches}
-                      onChange={color => applyInlineFormat('foreColor', color)}
+                      onChange={handleTextColorChange}
                     />
                   </div>
                 )}
