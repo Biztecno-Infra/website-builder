@@ -26,6 +26,11 @@ export interface SectionBackground extends ElementBackground {
   overlayColor?: string;
   /** Direct video file URL (mp4/webm) for a background video (type === 'video'). */
   video?: string;
+  /** Video playback flags. Undefined means on — omitting them keeps pre-existing
+   *  documents (saved before these were configurable) playing as they always did. */
+  videoAutoplay?: boolean;
+  videoLoop?: boolean;
+  videoMuted?: boolean;
 }
 
 export interface Padding {

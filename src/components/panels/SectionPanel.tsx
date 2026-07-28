@@ -11,7 +11,7 @@ import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal
 import { Modal } from '../Modal';
 import { ImagePickerModal } from '../ImagePickerModal';
 import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
-import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, themeToSwatches } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, VideoPlaybackFields, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -321,7 +321,7 @@ export function SectionPanel({
       {/* ── Background ── */}
       <CollapsibleSection sectionKey="background" label="Background" isOpen={sec('background')} onToggle={toggle}>
         <div className={'pb-prop-row'}>
-          <label>Type</label>
+          <label>Background Type</label>
           <PbSelect value={bg.type}
             options={SECTION_BG_TYPE_OPTIONS}
             onChange={v => { onPushSnapshot(snapshot); updateBg({ type: v as BgType }); }} />
@@ -391,7 +391,7 @@ export function SectionPanel({
               {bgImgError && <div className={'pb-img-upload-error'} role="alert">{bgImgError}</div>}
             </div>
             <div className={'pb-prop-row pb-full'}>
-              <label>Image URL</label>
+              <label>Background Source</label>
               <PbInput type="text" value={bg.image} placeholder="https://..."
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateBg({ image: e.target.value })} />
@@ -443,11 +443,12 @@ export function SectionPanel({
               {bgVideoError && <div className={'pb-img-upload-error'} role="alert">{bgVideoError}</div>}
             </div>
             <div className={'pb-prop-row pb-full'}>
-              <label>Video URL</label>
+              <label>Background Source</label>
               <PbInput type="text" value={bg.video ?? ''} placeholder="https://....mp4"
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateBg({ video: e.target.value })} />
             </div>
+            <VideoPlaybackFields bg={bg} onChange={updateBg} />
             <div className={'pb-prop-row'}>
               <label>Position</label>
               <PbSelect value={bg.position || 'center'}

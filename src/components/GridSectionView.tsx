@@ -11,6 +11,7 @@ import type {
 import { DEFAULT_FLEX_CONFIG } from '../utils/builderDefaults';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { sectionBgProps, sectionHasVideoBg } from '../utils/sectionStyle';
+import { BackgroundVideo } from './BackgroundVideo';
 import { getCellColumnSpan } from '../utils/cellUtils';
 import { resolveResponsive } from '../utils/responsive';
 import { useCanvasContext } from '../contexts/CanvasContext';
@@ -227,17 +228,7 @@ export function GridSectionView({
           e.stopPropagation(); onSelectSection(); onSelectGridCell?.(null);
         }}
       >
-        {sectionHasVideoBg(bg) && (
-          <video
-            key={bg.video}
-            src={bg.video}
-            autoPlay
-            muted
-            loop
-            playsInline
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', objectPosition: bg.position || 'center', zIndex: 0, pointerEvents: 'none' }}
-          />
-        )}
+        {sectionHasVideoBg(bg) && <BackgroundVideo bg={bg} />}
         {overlayStyle && <div style={overlayStyle} />}
         {breakpoint !== 'desktop' && !previewMode && (
           <>

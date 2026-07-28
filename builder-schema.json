@@ -565,7 +565,7 @@
       "type": "object",
       "required": ["type", "color", "image", "position", "from", "to", "angle"],
       "properties": {
-        "type":     { "type": "string", "enum": ["solid", "linear-gradient", "radial-gradient", "transparent"] },
+        "type":     { "type": "string", "enum": ["solid", "linear-gradient", "radial-gradient", "transparent", "image", "video"] },
         "color":    { "type": "string", "description": "Hex color or 'transparent'." },
         "image":    { "type": "string", "description": "Background image URL." },
         "position": { "type": "string", "description": "CSS background-position." },
@@ -581,7 +581,12 @@
         {
           "type": "object",
           "properties": {
-            "overlay": { "type": "number", "minimum": 0, "maximum": 1, "description": "Dark overlay opacity over background image." }
+            "overlay": { "type": "number", "minimum": 0, "maximum": 1, "description": "Dark overlay opacity over background image." },
+            "overlayColor": { "type": "string", "description": "Overlay color (hex). Defaults to #000000." },
+            "video": { "type": "string", "description": "Direct video file URL (mp4/webm) used when type === 'video'." },
+            "videoAutoplay": { "type": "boolean", "description": "Background video autoplay. Omitted means true." },
+            "videoLoop": { "type": "boolean", "description": "Background video loop. Omitted means true." },
+            "videoMuted": { "type": "boolean", "description": "Background video muted. Omitted means true; forced true while autoplay is on." }
           }
         }
       ]

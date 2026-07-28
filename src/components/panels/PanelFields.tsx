@@ -5,7 +5,7 @@ import { PbInput } from '../PbInput';
 import { PbSelect } from '../PbSelect';
 import { PbColorPicker } from '../PbColorPicker';
 import {
-  BG_TYPE_WITH_TRANSPARENT_OPTIONS,
+  SECTION_BG_TYPE_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
   BORDER_STYLE_OPTIONS,
 } from '../../utils/selectOptions';
@@ -263,16 +263,18 @@ export function BorderEditor({ border, onChange, onFocus, onBlur, swatches }: {
 
 // ── CheckboxField — label on left, checkbox on right ─────────────────────────
 
-export function CheckboxField({ label, checked, onChange, className = '' }: {
+export function CheckboxField({ label, checked, onChange, className = '', disabled = false, title }: {
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
   className?: string;
+  disabled?: boolean;
+  title?: string;
 }) {
   return (
-    <div className={['pb-prop-row', className].filter(Boolean).join(' ')}>
+    <div className={['pb-prop-row', className].filter(Boolean).join(' ')} title={title}>
       <label>{label}</label>
-      <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange(e.target.checked)} />
     </div>
   );
 }
@@ -293,6 +295,34 @@ export function VisibilityEditor({ hideOnTablet, hideOnMobile, onTabletChange, o
   );
 }
 
+// ── Video playback toggles — shared by the section and cell background panels ──
+
+/**
+ * Autoplay / Loop / Muted for a background video. All three default to on, hence
+ * the `!== false` reads: a background saved before these existed keeps its old
+ * behaviour instead of silently flipping off.
+ */
+export function VideoPlaybackFields({ bg, onChange }: {
+  bg: SectionBackground;
+  onChange: (updates: Partial<SectionBackground>) => void;
+}) {
+  const autoplay = bg.videoAutoplay !== false;
+  return (
+    <>
+      <CheckboxField label="Autoplay" checked={autoplay}
+        onChange={v => onChange({ videoAutoplay: v, ...(v ? { videoMuted: true } : {}) })} />
+      <CheckboxField label="Loop" checked={bg.videoLoop !== false}
+        onChange={v => onChange({ videoLoop: v })} />
+      {/* Browsers block autoplay on an unmuted video, so muted is locked on while
+          autoplay is on rather than offering a combination that silently fails. */}
+      <CheckboxField label="Muted" checked={bg.videoMuted !== false || autoplay}
+        disabled={autoplay}
+        title={autoplay ? 'Autoplaying videos must stay muted to play in the browser.' : undefined}
+        onChange={v => onChange({ videoMuted: v })} />
+    </>
+  );
+}
+
 // ── Background editor — full bg type/color/gradient/image ────────────────────
 
 export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur, theme }: {
@@ -305,12 +335,15 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
 }) {
   const safeColor = bg.color?.startsWith('#') ? bg.color : '#ffffff';
   const swatches = themeToSwatches(theme);
+  const isVideo = bg.type === 'video';
+  const isMedia = isVideo || bg.type === 'image';
+  const mediaSrc = isVideo ? bg.video : bg.image;
   return (
     <>
       <div className="pb-prop-row">
-        <label>Type</label>
+        <label>Background Type</label>
         <PbSelect value={bg.type}
-          options={BG_TYPE_WITH_TRANSPARENT_OPTIONS}
+          options={SECTION_BG_TYPE_OPTIONS}
           onChange={v => { onPushSnapshot(); onChange({ type: v as BgType }); }} />
       </div>
 
@@ -341,17 +374,34 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
         </>
       )}
 
-      <div className="pb-prop-row pb-full">
-        <label>Image URL</label>
-        <PbInput type="text" variant="plain" value={bg.image || ''} placeholder="https://..."
-          onFocus={onFocus} onBlur={onBlur}
-          onChange={e => onChange({ image: e.target.value })} />
-      </div>
+      {/* One "Background Source" field serving both media types — it edits `image`
+          or `video` depending on the selected type. */}
+      {isMedia && (
+        <div className="pb-prop-row pb-full">
+          <label>Background Source</label>
+          <PbInput type="text" variant="plain"
+            value={(isVideo ? bg.video : bg.image) || ''}
+            placeholder={isVideo ? 'https://....mp4' : 'https://...'}
+            onFocus={onFocus} onBlur={onBlur}
+            onChange={e => onChange(isVideo ? { video: e.target.value } : { image: e.target.value })} />
+        </div>
+      )}
 
-      {bg.image && (
+      {isVideo && (
+        <>
+          <VideoPlaybackFields bg={bg} onChange={onChange} />
+          <div className="pb-prop-row">
+            <label>Fallback</label>
+            <ColorField value={bg.color?.startsWith('#') ? bg.color : '#000000'}
+              onChange={v => onChange({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
+          </div>
+        </>
+      )}
+
+      {isMedia && mediaSrc && (
         <>
           <div className="pb-prop-row">
-            <label>Image Position</label>
+            <label>Position</label>
             <PbSelect value={bg.position || 'center'}
               options={BG_IMAGE_POSITION_OPTIONS}
               onChange={v => onChange({ position: v })} />

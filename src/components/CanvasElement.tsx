@@ -410,7 +410,11 @@ export function ElementContent({
 
   let bgImage: string | undefined;
   let bgColor: string | undefined = background.color;
-  if (background.type === 'linear-gradient') {
+  if (background.type === 'transparent') {
+    // Selecting Transparent must clear whatever the element painted before —
+    // both the colour and any image URL still sitting in state.
+    bgColor = undefined;
+  } else if (background.type === 'linear-gradient') {
     bgImage = `linear-gradient(${background.angle}deg, ${background.from}, ${background.to})`;
     bgColor = undefined;
   } else if (background.type === 'radial-gradient') {
@@ -420,13 +424,15 @@ export function ElementContent({
     bgImage = `url(${background.image})`;
   }
 
+  const hasBgImage = bgImage !== undefined && background.type !== 'linear-gradient' && background.type !== 'radial-gradient';
+
   const base: React.CSSProperties = {
     width: '100%',
     height: '100%',
     backgroundColor: bgColor,
     backgroundImage: bgImage,
-    backgroundSize: background.image && background.type === 'solid' ? 'cover' : undefined,
-    backgroundPosition: background.image && background.type === 'solid' ? background.position : undefined,
+    backgroundSize: hasBgImage ? 'cover' : undefined,
+    backgroundPosition: hasBgImage ? background.position : undefined,
     borderRadius: border.radius,
     border: border.width > 0 ? `${border.width}px ${border.style} ${border.color}` : 'none',
     boxSizing: 'border-box',

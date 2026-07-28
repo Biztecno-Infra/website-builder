@@ -141,7 +141,8 @@ function elBgBorderCss(el: CanvasElement): string {
   const parts: string[] = [];
   const bg = el.style.background;
   const border = el.style.border;
-  if (bg.type === 'linear-gradient') parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
+  if (bg.type === 'transparent') { /* nothing to paint */ }
+  else if (bg.type === 'linear-gradient') parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
   else if (bg.type === 'radial-gradient') parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
   else if (bg.image) parts.push(`background-image:url(${bg.image});background-size:cover;background-position:${bg.position}`);
   else if (bg.color && bg.color !== 'transparent') parts.push(`background-color:${bg.color}`);
@@ -599,10 +600,18 @@ function renderColumnsBlock(block: Container, nodes: NodeMap): string {
 function renderGridCell(cell: GridCell, nodes: NodeMap): string {
   const bg = cell.style.background;
   let bgCss = '';
-  if (bg.type === 'linear-gradient') bgCss = `background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`;
+  // Mirrors GridCellView: every branch keys off the selected type, so switching to
+  // Transparent drops a leftover image instead of exporting it.
+  if (bg.type === 'transparent') bgCss = '';
+  else if (bg.type === 'linear-gradient') bgCss = `background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`;
   else if (bg.type === 'radial-gradient') bgCss = `background-image:radial-gradient(circle,${bg.from},${bg.to})`;
-  else if (bg.image) bgCss = `background-image:url(${bg.image});background-size:cover;background-position:${bg.position || 'center'}`;
+  // Video backgrounds render as a <video> layer below; the colour stays as the
+  // fallback so there's no flash before the video loads.
+  else if (bg.type === 'video') bgCss = bg.color && bg.color !== 'transparent' ? `background-color:${bg.color}` : '';
+  else if (bg.type === 'image') bgCss = bg.image ? `background-image:url(${bg.image});background-size:cover;background-position:${bg.position || 'center'}` : '';
   else if (bg.color && bg.color !== 'transparent') bgCss = `background-color:${bg.color}`;
+
+  const cellVideoBg = sectionVideoBgHtml(bg);
 
   const { padding, gap, border, minHeight } = cell.style;
   const padStr = `${padding.top}px ${padding.right}px ${padding.bottom}px ${padding.left}px`;
@@ -648,7 +657,7 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     return '';
   }).join('\n');
 
-  return `<div class="gc-${cell.id}" style="${cellStyle}">${cellOverlay}${childrenHtml}</div>`;
+  return `<div class="gc-${cell.id}" style="${cellStyle}">${cellVideoBg}${cellOverlay}${childrenHtml}</div>`;
 }
 
 function sectionPositionCss(sec: Section): string {

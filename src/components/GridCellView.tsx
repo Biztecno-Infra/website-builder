@@ -12,6 +12,8 @@ import { getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../
 import { applyBreakpoint } from '../hooks/useBuilderStore';
 import { resolveResponsive } from '../utils/responsive';
 import { useCanvasContext } from '../contexts/CanvasContext';
+import { sectionHasVideoBg } from '../utils/sectionStyle';
+import { BackgroundVideo } from './BackgroundVideo';
 
 // Props that are truly per-cell — cell data and closures that close over cell.id.
 // All shared canvas state comes from CanvasContext.
@@ -252,10 +254,29 @@ export function GridCellView({
   let bgColor: string | undefined;
   let bgImage: string | undefined;
   const bg = cell.style.background;
-  if (bg.type === 'linear-gradient') bgImage = `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})`;
+  const cellHasVideoBg = sectionHasVideoBg(bg);
+  // Each branch keys off the selected type, never off a leftover value: switching
+  // to Transparent must drop an image the cell used to have, not keep painting it.
+  if (bg.type === 'transparent') { /* nothing painted */ }
+  else if (bg.type === 'linear-gradient') bgImage = `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})`;
   else if (bg.type === 'radial-gradient') bgImage = `radial-gradient(circle, ${bg.from}, ${bg.to})`;
-  else if (bg.image) bgImage = `url(${bg.image})`;
+  // A video background falls back to the colour underneath, so there's no flash
+  // before the video loads (and something still shows if it never does).
+  else if (bg.type === 'video') bgColor = bg.color && bg.color !== 'transparent' ? bg.color : undefined;
+  else if (bg.type === 'image') { if (bg.image) bgImage = `url(${bg.image})`; }
   else if (bg.color && bg.color !== 'transparent') bgColor = bg.color;
+
+  // Cell children are direct flex items with no positioned wrapper to lift them,
+  // so the media layers sit at z-index -1. The cell's own stacking context (it is
+  // position:relative) keeps them from escaping behind the section.
+  const cellOverlayStyle: React.CSSProperties | undefined =
+    (bg.overlay ?? 0) > 0 && (bg.type === 'image' || bg.type === 'video') && (bg.image || bg.video)
+      ? {
+          position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+          backgroundColor: bg.overlayColor ?? '#000000', opacity: bg.overlay,
+          borderRadius: border?.radius ?? 0,
+        }
+      : undefined;
 
   const borderRadius = border?.radius ?? 0;
   const borderWidth = border?.width ?? 0;
@@ -351,6 +372,9 @@ export function GridCellView({
       }}
       onClick={e => { if (previewMode) return; e.stopPropagation(); onSelectCell(); }}
     >
+      {cellHasVideoBg && <BackgroundVideo bg={bg} zIndex={-1} borderRadius={border?.radius ?? 0} />}
+      {cellOverlayStyle && <div style={cellOverlayStyle} />}
+
       {insertionLine(-1)}
 
       {flexChildrenWithIndex
