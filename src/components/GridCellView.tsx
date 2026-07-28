@@ -298,11 +298,19 @@ export function GridCellView({
     document.addEventListener('mouseup', onUp);
   }, [effectiveMinH, bp, cell, onUpdateCell, onCommit, snapshot]);
 
-  // True when a descendant element or container owns selection
-  const hasSelectedChild = !previewMode && !isSelected && !!(
+  // True when a child element/container/carousel/accordion owns selection. The cell stays
+  // `selectedGridCellId` as ancestor context for the right sidebar, but visually the child
+  // must be the only thing highlighted in the canvas.
+  const hasSelectedChild = !previewMode && !!(
     (selectedId && cell.children.includes(selectedId)) ||
-    (selectedContainerId && cell.children.includes(selectedContainerId))
+    (selectedContainerId && cell.children.includes(selectedContainerId)) ||
+    (selectedCarouselId && cell.children.includes(selectedCarouselId)) ||
+    (selectedAccordionId && cell.children.includes(selectedAccordionId))
   );
+
+  // The cell draws its own selection border/toolbar only when it is the selection target
+  // itself, not when it is merely the parent of the selected node.
+  const isSelfSelected = isSelected && !hasSelectedChild;
 
   const isRow = cellMode === 'row';
 
@@ -322,7 +330,7 @@ export function GridCellView({
       data-grid-cell-id={cell.id}
       className={[
         'pb-grid-cell',
-        isSelected && !previewMode && 'pb-grid-cell--selected',
+        isSelfSelected && !previewMode && 'pb-grid-cell--selected',
         hasSelectedChild && 'pb-child-selected',
         (isDragOverTarget || isPaletteOver) && 'pb-grid-cell--drop-over',
         isGridElOver && 'pb-grid-cell--el-over',

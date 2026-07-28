@@ -527,11 +527,24 @@
   cursor: pointer;
 }
 
-.pb-grid-el--hovered:not(.pb-grid-el--selected) {
+/* Selection/hover rings are drawn as an overlay above the element content, not as an
+   inset box-shadow on the wrapper. Opaque content (an <img>, a filled box, a button)
+   renders at 100%×100% inside the wrapper and would paint over an inset shadow. */
+.pb-grid-el--hovered::after,
+.pb-grid-el--selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pb-grid-el--hovered:not(.pb-grid-el--selected)::after {
   box-shadow: inset 0 0 0 1px var(--pb-primary-hover);
 }
 
-.pb-grid-el--selected {
+.pb-grid-el--selected::after {
   box-shadow: inset 0 0 0 2px var(--pb-primary);
 }
 

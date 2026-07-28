@@ -65,7 +65,7 @@ export function GridSectionView({
   const {
     nodes, canvasWidth, snapshot, onCommit,
     previewMode, breakpoint = 'desktop',
-    selectedId, selectedGridCellId,
+    selectedId, selectedGridCellId, selectedContainerId,
     onSelectElement, onSelectGridCell, onUpdateSection,
     onUpdateGridCell, onAddGridCell, onDeleteGridCell, onAddElementToCell,
     onReorderGridCell, onDropGridLayout,
@@ -74,6 +74,17 @@ export function GridSectionView({
 
   const bgRef = useRef<HTMLDivElement>(null);
   const [hovered, setHovered] = useState(false);
+
+  // A cell stays `selectedGridCellId` as ancestor context while one of its children is
+  // selected, but only the child should look selected in the canvas — so the cell's own
+  // border and toolbar are suppressed in that case.
+  const isCellSelfSelected = useCallback((cell: GridCell) => (
+    selectedGridCellId === cell.id
+    && !(selectedId && cell.children.includes(selectedId))
+    && !(selectedContainerId && cell.children.includes(selectedContainerId))
+    && !(selectedCarouselId && cell.children.includes(selectedCarouselId))
+    && !(selectedAccordionId && cell.children.includes(selectedAccordionId))
+  ), [selectedGridCellId, selectedId, selectedContainerId, selectedCarouselId, selectedAccordionId]);
 
   const handleMinHeightResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -310,7 +321,7 @@ export function GridSectionView({
                   breakpoint={breakpoint}
                   previewMode={previewMode}
                   isLast={!nextCell}
-                  isSelected={selectedGridCellId === cell.id}
+                  isSelected={isCellSelfSelected(cell)}
                   onMoveLeft={idx > 0 ? () => onReorderGridCell?.(section.id, idx, idx - 1) : undefined}
                   onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
                   onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}
