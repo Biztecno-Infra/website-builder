@@ -618,7 +618,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           selectedContainerId={selectedContainerId}
           selectedCarouselId={selectedCarouselId}
           onSelect={id => { setSelectedId(id); setSelectedCarouselId(null); setSelectedAccordionId(null); setSelectedContainerId(null); }}
-          onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+          onSelectGridCell={id => { setSelectedId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); setSelectedGridCellId(id); }}
           onSelectContainer={id => { setSelectedContainerId(id); setSelectedGridCellId(null); setSelectedId(null); setSelectedIds([]); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
           onSelectCarousel={id => { const c = nodes[id]; setSelectedCarouselId(id); setSelectedSectionId(c && 'parent' in c ? (c as Container).parent : null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedAccordionId(null); }}
           onAddAccordion={() => handleAddAccordion()}
@@ -659,7 +659,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
               selectedGridCellId={selectedGridCellId}
               onSelectSection={id => { setSelectedSectionId(id); setSelectedIds([]); setSelectedId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
               onSelectElement={(id, shift) => { if (shift) { toggleSelectedId(id); } else { setSelectedId(id); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); } }}
-              onSelectGridCell={id => { setSelectedGridCellId(id); setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
+              onSelectGridCell={id => { setSelectedId(null); setSelectedIds([]); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); setSelectedGridCellId(id); }}
               onDeselect={() => { setSelectedIds([]); setSelectedId(null); setSelectedSectionId(null); setSelectedGridCellId(null); setSelectedContainerId(null); setSelectedCarouselId(null); setSelectedAccordionId(null); }}
               onUpdate={updateElement}
               onCommit={pushSnapshot}
@@ -754,7 +754,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           onDuplicateSlide={duplicateSlide}
           onReorderSlide={reorderSlide}
           onSetActiveSlide={setActiveSlide}
-          onSelectSlide={id => { setSelectedGridCellId(id); setSelectedCarouselId(null); setSelectedId(null); setSelectedIds([]); }}
+          onSelectSlide={id => { setSelectedCarouselId(null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(id); }}
           selectedSlideId={selectedGridCellId}
           accordion={selectedElement || selectedGridCell || selectedContainer || selectedCarousel ? null : selectedAccordion}
           onUpdateAccordion={updateAccordion}
@@ -764,7 +764,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           onDuplicateAccordionItem={duplicateAccordionItem}
           onReorderAccordionItem={reorderAccordionItem}
           onToggleAccordionItem={toggleAccordionItem}
-          onSelectAccordionItemCell={id => { setSelectedGridCellId(id); setSelectedAccordionId(null); setSelectedId(null); setSelectedIds([]); }}
+          onSelectAccordionItemCell={id => { setSelectedAccordionId(null); setSelectedId(null); setSelectedIds([]); setSelectedGridCellId(id); }}
           nodes={nodes}
           isInGridCell={isInGridCell}
           snapshot={state}

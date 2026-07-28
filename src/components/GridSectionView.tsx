@@ -15,14 +15,6 @@ import { getCellColumnSpan } from '../utils/cellUtils';
 import { resolveResponsive } from '../utils/responsive';
 import { useCanvasContext } from '../contexts/CanvasContext';
 
-function isCellOrDescendant(nodes: import('../types').NodeMap, parentId: string, targetId: string | null | undefined): boolean {
-  if (!targetId) return false;
-  if (parentId === targetId) return true;
-  const node = nodes[parentId];
-  if (!node || !('children' in node)) return false;
-  return (node as { children: string[] }).children.some(cid => isCellOrDescendant(nodes, cid, targetId));
-}
-
 // Props that are truly per-section. All shared canvas state comes from CanvasContext.
 interface Props {
   section: GridSection | FlexSection;
@@ -318,7 +310,7 @@ export function GridSectionView({
                   breakpoint={breakpoint}
                   previewMode={previewMode}
                   isLast={!nextCell}
-                  isSelected={isCellOrDescendant(nodes, cell.id, selectedGridCellId)}
+                  isSelected={selectedGridCellId === cell.id}
                   onMoveLeft={idx > 0 ? () => onReorderGridCell?.(section.id, idx, idx - 1) : undefined}
                   onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
                   onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}

@@ -615,11 +615,24 @@ export function LayerPanel({
     else if (e.key === 'ArrowUp' || (e.key === 'Enter' && e.shiftKey)) { e.preventDefault(); goPrev(); }
   };
 
+  // Only the most specific selected node is highlighted. selectedSectionId /
+  // selectedGridCellId stay set as ancestor context for the canvas and the
+  // property panels, but showing every level as selected would make it look
+  // like the parent, the column and the element were all picked at once.
+  const deepestSelectedId =
+    selectedIds.length === 1 ? selectedIds[0] :
+    selectedIds.length > 1 ? null :          // multi-select: each row keeps its own highlight
+    selectedAccordionId ?? selectedCarouselId ?? selectedContainerId ??
+    selectedGridCellId ?? selectedSectionId ?? null;
+
   const layerSearch: LayerSearch = {
     isSearching,
     isMatch: id => searchMatches.matchedIds.has(id),
     isActive: id => activeMatchId === id,
-    showAsSelected: (id, reallySelected) => reallySelected && !(activeMatchId === id && searchTakesPriority),
+    showAsSelected: (id, reallySelected) =>
+      reallySelected
+      && (deepestSelectedId === null || id === deepestSelectedId)
+      && !(activeMatchId === id && searchTakesPriority),
     isCollapsed: (id, real) => {
       if (!isSearching) return real;
       if (dismissed.has(id)) return true;
