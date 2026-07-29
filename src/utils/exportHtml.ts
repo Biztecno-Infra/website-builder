@@ -1513,8 +1513,15 @@ const FORM_SUBMIT_SCRIPT = `<script>
 })();
 </script>`;
 
-export function exportHtml(state: BuilderState, pageName: string): string {
-  const page = state.pages.find(p => p.id === state.activePageId) ?? state.pages[0];
+/**
+ * Renders one page to a standalone HTML document (CSS and JS inlined).
+ *
+ * `pageId` selects which page to render; it defaults to the active one so
+ * existing single-page callers are unaffected. The multi-page publish bundle
+ * passes an explicit id to render every page in turn.
+ */
+export function exportHtml(state: BuilderState, pageName: string, pageId?: string): string {
+  const page = state.pages.find(p => p.id === (pageId ?? state.activePageId)) ?? state.pages[0];
   const nodes = state.nodes;
   const sections = page.sections.map(id => nodes[id] as Section).filter(Boolean);
 
