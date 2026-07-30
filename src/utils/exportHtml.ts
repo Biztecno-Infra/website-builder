@@ -1,5 +1,5 @@
-import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section } from '../types';
-import { sectionBgCssStr, sectionVideoBgHtml } from './sectionStyle';
+import type { Accordion, BuilderState, CanvasElement, Carousel, CellLayoutMode, Container, ContainerLayoutMode, ElementAction, FlexItemLayout, FlexSection, FormField, GridCell, GridSection, NodeMap, Page, Section, SectionBackground } from '../types';
+import { sectionBgCssStr, sectionVideoBgHtml, sectionHasVideoBg, videoBgFlags } from './sectionStyle';
 import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
 import { hoverCss } from './hoverStyle';
@@ -109,8 +109,47 @@ function collectGoogleFonts(state: BuilderState, sections: Section[]): string[] 
 }
 
 
+// Element types that get a decorative background (image/video/divider/spacer
+// paint their own content instead) — mirrors the exclusion in ElementPanelStyle.tsx.
+const RICH_BG_TYPES = new Set(['text', 'button', 'icon', 'box', 'form']);
+
+// Background <video> markup for an element. Same shape as sectionVideoBgHtml()
+// but layered at z-index -1: elements' content paints in normal flow (not its
+// own positioned stacking level), so a section's z-index:0 layer would sit
+// ON TOP of that content instead of behind it.
+function elVideoBgHtml(bg: SectionBackground, radius: number): string {
+  if (!sectionHasVideoBg(bg)) return '';
+  const pos = bg.position || 'center';
+  const src = (bg.video ?? '').replace(/"/g, '&quot;');
+  const f = videoBgFlags(bg);
+  const attrs = [
+    `src="${src}"`,
+    f.autoplay && 'autoplay',
+    f.muted && 'muted',
+    f.loop && 'loop',
+    'playsinline',
+    !f.autoplay && 'controls',
+  ].filter(Boolean).join(' ');
+  const pe = f.autoplay ? 'none' : 'auto';
+  return `<video ${attrs} style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pos};z-index:-1;pointer-events:${pe};border-radius:${radius}px"></video>`;
+}
+
+// Video layer + overlay for an element's background — '' for element types that
+// don't carry a decorative background, or when no video/overlay is configured.
+function elBgMediaHtml(el: CanvasElement): string {
+  if (!RICH_BG_TYPES.has(el.type)) return '';
+  const bg = el.style.background;
+  const radius = el.style.border.radius;
+  const video = elVideoBgHtml(bg, radius);
+  const hasOverlay = (bg.overlay ?? 0) > 0 && (bg.type === 'image' || bg.type === 'video') && !!(bg.image || bg.video);
+  const overlay = hasOverlay
+    ? `<div style="position:absolute;inset:0;z-index:-1;pointer-events:none;background:${overlayBg(bg.overlayColor, bg.overlay ?? 0)};border-radius:${radius}px"></div>`
+    : '';
+  return video + overlay;
+}
+
 function elContentStyle(el: CanvasElement): string {
-  const parts = ['width:100%', 'height:100%', 'box-sizing:border-box', 'overflow:hidden'];
+  const parts = ['width:100%', 'height:100%', 'position:relative', 'box-sizing:border-box', 'overflow:hidden'];
   const bg = el.style.background;
   const border = el.style.border;
 
@@ -138,7 +177,7 @@ function elContentStyle(el: CanvasElement): string {
 // Background + border declarations only (no width/height) — for wrappers that
 // already get their sizing elsewhere (e.g. grid flex classes).
 function elBgBorderCss(el: CanvasElement): string {
-  const parts: string[] = [];
+  const parts: string[] = ['position:relative'];
   const bg = el.style.background;
   const border = el.style.border;
   if (bg.type === 'transparent') { /* nothing to paint */ }
@@ -458,7 +497,8 @@ function renderForm(el: CanvasElement, wrapperCss: string, className: string, ex
   // data-form-email / data-form-subject drive the client-side mailto submit;
   // data-form-api-url / data-form-api-method drive the fetch() API submit.
   const cls = ['pb-form', className].filter(Boolean).join(' ');
-  return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" data-form-api-url="${esc(apiUrl)}" data-form-api-method="${esc(apiMethod)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${fieldsHtml}${submitBtn}</form>`;
+  const bgMedia = elBgMediaHtml(el);
+  return `<form class="${cls}"${extraAttrs} data-form-email="${esc(recipient)}" data-form-subject="${esc(subject)}" data-form-api-url="${esc(apiUrl)}" data-form-api-method="${esc(apiMethod)}" style="${wrapperCss};display:flex;flex-wrap:wrap;gap:${gap}px;align-content:flex-start;overflow:auto;color:${esc(typo.color)};font-family:${esc(typo.family)}">${bgMedia}${fieldsHtml}${submitBtn}</form>`;
 }
 
 // Type-specific inner HTML for an element, shared across all three render contexts.
@@ -471,14 +511,15 @@ function renderElementInner(
 ): string {
   const { padding, typography } = el.style;
   const textBase = `${cStyle};padding:${pad};word-break:break-word`;
+  const bgMedia = elBgMediaHtml(el);
   switch (el.type) {
     case 'text': {
       const content = el.content.rich || esc(el.content.plain ?? '');
-      return `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${content}</div>`;
+      return `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${bgMedia}${content}</div>`;
     }
     case 'button': {
       const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
-      return `<div class="ec-${el.id}" style="${btnStyle}">${esc(el.content.label ?? '')}</div>`;
+      return `<div class="ec-${el.id}" style="${btnStyle}">${bgMedia}${esc(el.content.label ?? '')}</div>`;
     }
     case 'image': {
       if (!el.content.src) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;background:#f1f5f9">No image</div>`;
@@ -502,12 +543,12 @@ function renderElementInner(
       const iconInner = el.content.iconSvg
         ? `<span style="display:inline-flex;width:${iconSz}px;height:${iconSz}px;color:${typography.color}">${el.content.iconSvg}</span>`
         : `<span style="font-size:${iconSz}px;color:${typography.color};line-height:1">${esc(el.content.iconName ?? '★')}</span>`;
-      return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${iconInner}</div>`;
+      return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad}">${bgMedia}${iconInner}</div>`;
     }
     case 'spacer':
       return spacerInner;
     default:
-      return `<div style="${cStyle};padding:${pad}"></div>`;
+      return `<div style="${cStyle};padding:${pad}">${bgMedia}</div>`;
   }
 }
 
@@ -621,8 +662,8 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
     : '';
   const radiusCss = border?.radius ? `border-radius:${border.radius}px` : '';
 
-  const cellOverlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;border-radius:inherit"></div>`
+  const cellOverlay = (bg.overlay ?? 0) > 0
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay ?? 0)};pointer-events:none;border-radius:inherit"></div>`
     : '';
 
   // Flex elements mode — align-items/justify-content live in the CSS class, not inline
@@ -669,8 +710,8 @@ function sectionPositionCss(sec: Section): string {
 function renderGridSection(sec: GridSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
   const videoBg = sectionVideoBgHtml(bg);
-  const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
+  const overlay = (bg.overlay ?? 0) > 0
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay ?? 0)};pointer-events:none;z-index:0"></div>`
     : '';
   const cells = sec.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -769,8 +810,8 @@ function renderCarousel(carousel: Carousel, nodes: NodeMap): string {
 function renderFlexSection(sec: FlexSection, nodes: NodeMap, pageFixed: boolean, pageMaxWidth: number): string {
   const bg = sec.style.background;
   const videoBg = sectionVideoBgHtml(bg);
-  const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
+  const overlay = (bg.overlay ?? 0) > 0
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay ?? 0)};pointer-events:none;z-index:0"></div>`
     : '';
   const cells = sec.children
     .map(id => nodes[id] as GridCell | undefined)
@@ -897,8 +938,8 @@ function renderSection(sec: Section, nodes: NodeMap, pageFixed: boolean, pageMax
 
   const bg = sec.style.background;
   const videoBg = sectionVideoBgHtml(bg);
-  const overlay = bg.overlay > 0
-    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay)};pointer-events:none;z-index:0"></div>`
+  const overlay = (bg.overlay ?? 0) > 0
+    ? `<div style="position:absolute;inset:0;background:${overlayBg(bg.overlayColor, bg.overlay ?? 0)};pointer-events:none;z-index:0"></div>`
     : '';
 
   const elements = sec.children

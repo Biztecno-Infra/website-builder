@@ -1,14 +1,11 @@
 import type { ReactNode } from 'react';
 import type {
-  Breakpoint, BuilderState, CanvasElement, ElementBackground,
-  Border, Padding, Shadow, BreakpointOverride, BgType, ElementHover,
+  Breakpoint, BuilderState, CanvasElement, SectionBackground,
+  Border, Padding, Shadow, BreakpointOverride, ElementHover, SiteTheme,
 } from '../../types';
 
 import { CollapsibleSection } from './CollapsibleSection';
-import { CheckboxField, ColorField, PxInput, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor } from './PanelFields';
-import { PbSelect } from '../PbSelect';
-import { PbInput } from '../PbInput';
-import { BG_TYPE_OPTIONS, IMAGE_POSITION_OPTIONS } from '../../utils/selectOptions';
+import { CheckboxField, ColorField, PxInput, BorderEditor, ShadowEditor, SpacingEditor, VisibilityEditor, BackgroundEditor } from './PanelFields';
 
 interface Props {
   element: CanvasElement;
@@ -21,7 +18,7 @@ interface Props {
   onBlur: () => void;
   snapshot: BuilderState;
   onPushSnapshot: (s: BuilderState) => void;
-  changeBg: (b: Partial<ElementBackground>) => void;
+  changeBg: (b: Partial<SectionBackground>) => void;
   changeBorder: (b: Partial<Border>) => void;
   changePad: (p: Partial<Padding>) => void;
   changeMargin: (p: Partial<Padding>) => void;
@@ -31,6 +28,7 @@ interface Props {
   commitChange: (updates: Partial<CanvasElement>) => void;
   allBpBadge: ReactNode;
   swatches: string[];
+  theme: SiteTheme;
   onUpdateResponsive?: (id: string, bp: Breakpoint, updates: Partial<BreakpointOverride>) => void;
 }
 
@@ -39,7 +37,7 @@ export function ElementPanelStyle({
   sec, toggleSection,
   onFocus, onBlur, snapshot, onPushSnapshot,
   changeBg, changeBorder, changePad, changeMargin, changeShadow, changeHover, changeLayout,
-  commitChange, allBpBadge, swatches, onUpdateResponsive,
+  commitChange, allBpBadge, swatches, theme, onUpdateResponsive,
 }: Props) {
   const elBg = element.style.background;
   const bgColor = elBg.color.startsWith('#') ? elBg.color : '#ffffff';
@@ -51,58 +49,13 @@ export function ElementPanelStyle({
       {!['image', 'video', 'divider', 'spacer'].includes(element.type) && (
         <CollapsibleSection sectionKey="background" label={<>Background {allBpBadge}</>}
           isOpen={sec('background')} onToggle={toggleSection}>
-          <div className={'pb-prop-row'}>
-            <label>Type</label>
-            <PbSelect value={elBg.type}
-              options={BG_TYPE_OPTIONS}
-              onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, type: v as BgType } } })} />
-          </div>
-          {elBg.type === 'solid' && (
-            <>
-              {elBg.color !== 'transparent' && (
-                <div className={'pb-prop-row'}>
-                  <label>Color</label>
-                  <ColorField value={bgColor} onChange={v => changeBg({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
-                </div>
-              )}
-              <CheckboxField label="Transparent" checked={elBg.color === 'transparent'} className="pb-vis-row"
-                onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, color: v ? 'transparent' : '#ffffff' } } })} />
-            </>
-          )}
-          {(elBg.type === 'linear-gradient' || elBg.type === 'radial-gradient') && (
-            <>
-              <div className={'pb-prop-row'}>
-                <label>From</label>
-                <ColorField value={elBg.from || '#006e75'} onChange={v => changeBg({ from: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
-              </div>
-              <div className={'pb-prop-row'}>
-                <label>To</label>
-                <ColorField value={elBg.to || '#0b978e'} onChange={v => changeBg({ to: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
-              </div>
-              {elBg.type === 'linear-gradient' && (
-                <div className={'pb-prop-row'}>
-                  <label>Angle</label>
-                  <PxInput value={elBg.angle ?? 135} unit="°"
-                    onFocus={onFocus} onBlur={onBlur}
-                    onChange={v => changeBg({ angle: v })} />
-                </div>
-              )}
-            </>
-          )}
-          <div className={"pb-prop-row pb-full"}>
-            <label>Image</label>
-            <PbInput type="text" value={elBg.image} placeholder="https://..."
-              onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeBg({ image: e.target.value })} />
-          </div>
-          {elBg.image && (
-            <div className={'pb-prop-row'}>
-              <label>Position</label>
-              <PbSelect value={elBg.position}
-                options={IMAGE_POSITION_OPTIONS}
-                onChange={v => commitChange({ style: { ...element.style, background: { ...elBg, position: v } } })} />
-            </div>
-          )}
+          <BackgroundEditor
+            bg={elBg}
+            onChange={changeBg}
+            onPushSnapshot={() => onPushSnapshot(snapshot)}
+            onFocus={onFocus} onBlur={onBlur}
+            theme={theme}
+          />
         </CollapsibleSection>
       )}
 

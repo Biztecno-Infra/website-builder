@@ -3,7 +3,10 @@ import { useState, useRef, useEffect, type ReactNode, type MouseEvent as ReactMo
 import type { Border, BgType, Padding, Shadow, SectionBackground, SiteTheme } from '../../types';
 import { PbInput } from '../PbInput';
 import { PbSelect } from '../PbSelect';
+import { PbButton } from '../PbButton';
 import { PbColorPicker } from '../PbColorPicker';
+import { ImagePickerModal } from '../ImagePickerModal';
+import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
 import {
   SECTION_BG_TYPE_OPTIONS,
   BG_IMAGE_POSITION_OPTIONS,
@@ -338,6 +341,26 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
   const isVideo = bg.type === 'video';
   const isMedia = isVideo || bg.type === 'image';
   const mediaSrc = isVideo ? bg.video : bg.image;
+
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const imgFileRef = useRef<HTMLInputElement>(null);
+  const videoFileRef = useRef<HTMLInputElement>(null);
+  const { upload: uploadImage, status: imgStatus, error: imgError, isUploading: imgUploading } = useWidenUpload();
+  const { upload: uploadVideo, status: videoStatus, error: videoError, isUploading: videoUploading } = useWidenUpload();
+
+  const handleImageUpload = async (file: File) => {
+    const result = await uploadImage(file);
+    if (!result) return;
+    onPushSnapshot();
+    onChange({ type: 'image', image: result.imageUrl });
+  };
+  const handleVideoUpload = async (file: File) => {
+    const result = await uploadVideo(file);
+    if (!result) return;
+    onPushSnapshot();
+    onChange({ type: 'video', video: result.imageUrl });
+  };
+
   return (
     <>
       <div className="pb-prop-row">
@@ -374,6 +397,57 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
         </>
       )}
 
+      {/* ── Media preview + search/upload — shared by image & video backgrounds ── */}
+      {isMedia && (
+        <>
+          {mediaSrc && (
+            <div className="pb-prop-row pb-full">
+              <div className="pb-bg-media-preview">
+                {isVideo
+                  ? <video src={mediaSrc} muted loop autoPlay playsInline />
+                  : <img src={mediaSrc} alt="Background" />}
+              </div>
+            </div>
+          )}
+          <div className="pb-prop-row pb-full">
+            <label>{mediaSrc ? (isVideo ? 'Replace Video' : 'Replace Image') : (isVideo ? 'Video' : 'Image')}</label>
+            <div className="pb-bg-media-actions">
+              {!isVideo && (
+                <button className="pb-img-action-btn pb-img-search-btn" onClick={() => setShowImagePicker(true)}>
+                  Search
+                </button>
+              )}
+              <button
+                className="pb-img-action-btn pb-img-upload-btn"
+                disabled={isVideo ? videoUploading : imgUploading}
+                onClick={() => (isVideo ? videoFileRef : imgFileRef).current?.click()}
+              >
+                {(isVideo ? videoStatus : imgStatus)
+                  ? UPLOAD_STAGE_LABEL[(isVideo ? videoStatus : imgStatus) as Exclude<typeof imgStatus, ''>]
+                  : 'Upload'}
+              </button>
+            </div>
+            <input
+              ref={imgFileRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void handleImageUpload(f); }}
+            />
+            <input
+              ref={videoFileRef}
+              type="file"
+              accept="video/*"
+              style={{ display: 'none' }}
+              onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void handleVideoUpload(f); }}
+            />
+            {(isVideo ? videoError : imgError) && (
+              <div className="pb-img-upload-error" role="alert">{isVideo ? videoError : imgError}</div>
+            )}
+          </div>
+        </>
+      )}
+
       {/* One "Background Source" field serving both media types — it edits `image`
           or `video` depending on the selected type. */}
       {isMedia && (
@@ -396,6 +470,17 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
               onChange={v => onChange({ color: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
           </div>
         </>
+      )}
+
+      {mediaSrc && (
+        <div className="pb-prop-row pb-full">
+          <PbButton variant="outline" onClick={() => {
+            onPushSnapshot();
+            onChange(isVideo ? { type: 'solid', video: '' } : { type: 'solid', image: '' });
+          }}>
+            {isVideo ? 'Remove video' : 'Remove image'}
+          </PbButton>
+        </div>
       )}
 
       {isMedia && mediaSrc && (
@@ -426,6 +511,12 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
           )}
         </>
       )}
+
+      <ImagePickerModal
+        isOpen={showImagePicker}
+        onClose={() => setShowImagePicker(false)}
+        onSelect={url => { onPushSnapshot(); onChange({ type: 'image', image: url }); }}
+      />
     </>
   );
 }

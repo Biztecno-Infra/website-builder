@@ -478,11 +478,11 @@ export function SectionPanel({
           <>
             <div className={'pb-prop-row'}>
               <label>Overlay</label>
-              <PbInput type="number" value={bg.overlay} min={0} max={1} step={0.05}
+              <PbInput type="number" value={bg.overlay ?? 0} min={0} max={1} step={0.05}
                 onFocus={onNumberFocus} onBlur={onNumberBlur}
                 onChange={e => updateBg({ overlay: Math.max(0, Math.min(1, Number(e.target.value))) })} />
             </div>
-            {bg.overlay > 0 && (
+            {(bg.overlay ?? 0) > 0 && (
               <div className={'pb-prop-row'}>
                 <label>Overlay Color</label>
                 <ColorField

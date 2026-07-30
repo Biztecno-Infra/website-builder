@@ -22,7 +22,7 @@ export interface ElementBackground {
 }
 
 export interface SectionBackground extends ElementBackground {
-  overlay: number;
+  overlay?: number;
   overlayColor?: string;
   /** Direct video file URL (mp4/webm) for a background video (type === 'video'). */
   video?: string;
@@ -96,7 +96,7 @@ export interface ElementHover {
 
 export interface ElementStyle {
   opacity: number;
-  background: ElementBackground;
+  background: SectionBackground;
   padding: Padding;
   margin?: Partial<Padding>;
   border: Border;

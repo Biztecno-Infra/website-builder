@@ -4,8 +4,10 @@ import { richTextState } from '../utils/richTextState';
 import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { hoverCss } from '../utils/hoverStyle';
 import { runPreviewAction, hasPreviewAction } from '../utils/previewAction';
+import { sectionHasVideoBg } from '../utils/sectionStyle';
 import { ElementQuickBar } from './ElementQuickBar';
 import { FormPreview } from './FormPreview';
+import { BackgroundVideo } from './BackgroundVideo';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
@@ -429,6 +431,7 @@ export function ElementContent({
   const base: React.CSSProperties = {
     width: '100%',
     height: '100%',
+    position: 'relative',
     backgroundColor: bgColor,
     backgroundImage: bgImage,
     backgroundSize: hasBgImage ? 'cover' : undefined,
@@ -438,6 +441,28 @@ export function ElementContent({
     boxSizing: 'border-box',
     overflow: 'hidden',
   };
+
+  // Background video/overlay layer — only for content elements that carry a
+  // decorative background (image/video/divider/spacer paint their own content
+  // instead, see the exclusion list in ElementPanelStyle.tsx).
+  const showsRichBg = ['text', 'button', 'icon', 'box', 'form'].includes(el.type);
+  const hasVideoBg = showsRichBg && sectionHasVideoBg(background);
+  const bgOverlayStyle: React.CSSProperties | undefined = showsRichBg
+    && (background.overlay ?? 0) > 0
+    && (background.type === 'image' || background.type === 'video')
+    && (background.image || background.video)
+    ? {
+        position: 'absolute', inset: 0, zIndex: -1, pointerEvents: 'none',
+        backgroundColor: background.overlayColor ?? '#000000', opacity: background.overlay,
+        borderRadius: border.radius,
+      }
+    : undefined;
+  const bgMediaLayer = (hasVideoBg || bgOverlayStyle) ? (
+    <>
+      {hasVideoBg && <BackgroundVideo bg={background} zIndex={-1} borderRadius={border.radius} />}
+      {bgOverlayStyle && <div style={bgOverlayStyle} />}
+    </>
+  ) : null;
 
   useEffect(() => {
     if (editing && editRef.current && el.type === 'text') {
@@ -453,29 +478,32 @@ export function ElementContent({
   if (el.type === 'text') {
     if (editing) {
       return (
-        <div
-          ref={editRef}
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={onBlur}
-          onKeyDown={onKeyDown}
-          onPaste={createCleanPasteHandler()}
-          style={{
-            ...base,
-            padding: padStr,
-            fontSize: typography.size,
-            fontWeight: typography.weight,
-            fontFamily: typography.family,
-            color: typography.color,
-            textAlign: typography.align,
-            lineHeight: typography.lineHeight,
-            letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
-            textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
-            wordBreak: 'break-word',
-            outline: '2px solid #006e75',
-            cursor: 'text',
-          }}
-        />
+        <>
+          {bgMediaLayer}
+          <div
+            ref={editRef}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+            onPaste={createCleanPasteHandler()}
+            style={{
+              ...base,
+              padding: padStr,
+              fontSize: typography.size,
+              fontWeight: typography.weight,
+              fontFamily: typography.family,
+              color: typography.color,
+              textAlign: typography.align,
+              lineHeight: typography.lineHeight,
+              letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+              textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
+              wordBreak: 'break-word',
+              outline: '2px solid #006e75',
+              cursor: 'text',
+            }}
+          />
+        </>
       );
     }
     const textStyle: React.CSSProperties = {
@@ -488,21 +516,24 @@ export function ElementContent({
     };
     if (el.content.rich) {
       return (
-        <div
-          style={textStyle}
-          dangerouslySetInnerHTML={{ __html: el.content.rich }}
-          onClick={previewMode ? (e => {
-            const anchor = (e.target as HTMLElement).closest('a');
-            if (!anchor) return;
-            e.preventDefault();
-            e.stopPropagation();
-            const href = anchor.getAttribute('href');
-            if (href) window.open(href, '_blank', 'noopener,noreferrer');
-          }) : undefined}
-        />
+        <>
+          {bgMediaLayer}
+          <div
+            style={textStyle}
+            dangerouslySetInnerHTML={{ __html: el.content.rich }}
+            onClick={previewMode ? (e => {
+              const anchor = (e.target as HTMLElement).closest('a');
+              if (!anchor) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const href = anchor.getAttribute('href');
+              if (href) window.open(href, '_blank', 'noopener,noreferrer');
+            }) : undefined}
+          />
+        </>
       );
     }
-    return <div style={textStyle}>{el.content.plain}</div>;
+    return <>{bgMediaLayer}<div style={textStyle}>{el.content.plain}</div></>;
   }
 
   if (el.type === 'image') {
@@ -532,25 +563,28 @@ export function ElementContent({
   if (el.type === 'button') {
     if (editing) {
       return (
-        <div
-          ref={editRef}
-          contentEditable
-          suppressContentEditableWarning
-          onBlur={onBlur}
-          onKeyDown={onKeyDown}
-          onPaste={createCleanPasteHandler()}
-          style={{
-            ...base,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-            color: typography.color, padding: padStr,
-            letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
-            textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
-            outline: '2px solid #006e75', cursor: 'text',
-          }}
-        >
-          {el.content.label}
-        </div>
+        <>
+          {bgMediaLayer}
+          <div
+            ref={editRef}
+            contentEditable
+            suppressContentEditableWarning
+            onBlur={onBlur}
+            onKeyDown={onKeyDown}
+            onPaste={createCleanPasteHandler()}
+            style={{
+              ...base,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
+              color: typography.color, padding: padStr,
+              letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
+              textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
+              outline: '2px solid #006e75', cursor: 'text',
+            }}
+          >
+            {el.content.label}
+          </div>
+        </>
       );
     }
     // Hover (Phase 1): emit a scoped :hover stylesheet so the in-editor canvas
@@ -560,6 +594,7 @@ export function ElementContent({
     return (
       <>
         {hovScoped && <style>{hovScoped}</style>}
+        {bgMediaLayer}
         <div
           className={hovScoped ? `pb-hov-${el.id}` : undefined}
           style={{
@@ -626,24 +661,30 @@ export function ElementContent({
     const iconSize = el.content.iconSize ?? 40;
     const iconColor = typography.color;
     return (
-      <div style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: padStr }}>
-        {el.content.iconSvg
-          ? <div style={{ width: iconSize, height: iconSize, color: iconColor, flexShrink: 0 }}
-                 dangerouslySetInnerHTML={{ __html: el.content.iconSvg }} />
-          : <span style={{ fontSize: iconSize, color: iconColor, lineHeight: 1 }}>{el.content.iconName ?? '★'}</span>
-        }
-      </div>
+      <>
+        {bgMediaLayer}
+        <div style={{ ...base, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: padStr }}>
+          {el.content.iconSvg
+            ? <div style={{ width: iconSize, height: iconSize, color: iconColor, flexShrink: 0 }}
+                   dangerouslySetInnerHTML={{ __html: el.content.iconSvg }} />
+            : <span style={{ fontSize: iconSize, color: iconColor, lineHeight: 1 }}>{el.content.iconName ?? '★'}</span>
+          }
+        </div>
+      </>
     );
   }
 
   if (el.type === 'form') {
     return (
-      <div style={{ ...base, padding: padStr }}>
-        <FormPreview el={el} stackFields={breakpoint === 'mobile'} />
-      </div>
+      <>
+        {bgMediaLayer}
+        <div style={{ ...base, padding: padStr }}>
+          <FormPreview el={el} stackFields={breakpoint === 'mobile'} />
+        </div>
+      </>
     );
   }
 
   // box
-  return <div style={{ ...base, padding: padStr }} />;
+  return <>{bgMediaLayer}<div style={{ ...base, padding: padStr }} /></>;
 }

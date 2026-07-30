@@ -2,7 +2,7 @@ import { useFocusSnapshot } from '../../hooks/useFocusSnapshot';
 import { BREAKPOINT_WIDTHS } from '../Canvas';
 import type {
   Breakpoint, CanvasElement, BuilderState,
-  BreakpointOverride, ElementBackground, ElementContent,
+  BreakpointOverride, SectionBackground, ElementContent,
   Border, Padding, Shadow, Typography,
   FlexWidthMode, NodeMap, SiteTheme, Page,
 } from '../../types';
@@ -52,7 +52,7 @@ export function ElementPanel({
   const id = element.id;
 
   const change = (updates: Partial<CanvasElement>) => onUpdate(id, updates);
-  const changeBg     = (b: Partial<ElementBackground>) => change({ style: { ...element.style, background: { ...element.style.background, ...b } } });
+  const changeBg     = (b: Partial<SectionBackground>) => change({ style: { ...element.style, background: { ...element.style.background, ...b } } });
   const changeBorder = (b: Partial<Border>) => change({ style: { ...element.style, border: { ...element.style.border, ...b } } });
   const changePad    = (p: Partial<Padding>) => change({ style: { ...element.style, padding: { ...element.style.padding, ...p } } });
   const changeMargin = (p: Partial<Padding>) => change({ style: { ...element.style, margin: { ...element.style.margin, ...p } } });
@@ -328,7 +328,7 @@ export function ElementPanel({
         changeShadow={changeShadow} changeLayout={changeLayout}
         changeHover={changeHover}
         commitChange={commitChange}
-        allBpBadge={allBpBadge} swatches={swatches}
+        allBpBadge={allBpBadge} swatches={swatches} theme={theme}
         onUpdateResponsive={onUpdateResponsive}
       />
     </aside>
