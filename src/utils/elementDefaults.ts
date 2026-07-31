@@ -5,7 +5,7 @@ import {
 } from './builderDefaults';
 import { newId } from './ids';
 
-export const CANVAS_W = 1280;
+export const CANVAS_W = 1920;
 
 export function createDefaultElement(
   type: ElementType, count: number, parentId: string,

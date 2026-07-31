@@ -213,13 +213,13 @@ export const FORM_FIELD_TYPE_OPTIONS: SelectOption[] = [
 ];
 
 export const BASE_ACTION_OPTIONS: SelectOption[] = [
-  { value: 'none', label: 'None' },
-  { value: 'external-url', label: 'Open External URL' },
-  { value: 'download-file', label: 'Download File' },
+  // { value: 'none', label: 'None' },
+  { value: 'external-url', label: 'Open URL' },
+  // { value: 'download-file', label: 'Download File' },
   { value: 'internal-page', label: 'Open Internal Page' },
-  { value: 'send-email', label: 'Send Email' },
-  { value: 'make-call', label: 'Make a Call' },
-  { value: 'send-sms', label: 'Send SMS' },
+  // { value: 'send-email', label: 'Send Email' },
+  // { value: 'make-call', label: 'Make a Call' },
+  // { value: 'send-sms', label: 'Send SMS' },
   { value: 'scroll-to-section', label: 'Scroll to Section' },
   { value: 'scroll-to-top', label: 'Scroll to Top' },
 ];

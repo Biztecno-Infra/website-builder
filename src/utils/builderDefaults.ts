@@ -37,7 +37,7 @@ export const DEFAULT_CONTENT: ElementContent = {
 };
 
 export const DEFAULT_INTERACTION: ElementInteraction = { type: 'link', linkUrl: '', linkTarget: '_self', smoothScroll: false };
-export const DEFAULT_ACTION: ElementAction = { type: 'none', target: '_self', smoothScroll: true };
+export const DEFAULT_ACTION: ElementAction = { type: 'external-url', target: '_self', smoothScroll: true };
 
 // Default fields for a freshly-dropped Form element.
 export function defaultFormFields(): FormField[] {

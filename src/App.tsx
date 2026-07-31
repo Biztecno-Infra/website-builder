@@ -7,7 +7,7 @@ import { LeftSidebar } from './components/LeftSidebar';
 import { RightSidebar } from './components/RightSidebar';
 import { Toolbar } from './components/Toolbar';
 import { Icon } from './components/Icon';
-import { makeEmpty, DEFAULT_THEME } from './hooks/useBuilderStore';
+import { makeEmpty, DEFAULT_THEME, CANVAS_W } from './hooks/useBuilderStore';
 import { PageBuilderProvider, usePageBuilder } from './context/PageBuilderContext';
 import type { PageBuilderRef } from './context/PageBuilderContext';
 import { makeKnightState } from './data/knightState';
@@ -551,12 +551,12 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
               previewMode
               previewWidth={previewWidth}
               canvasDisplayWidth={!previewWidth
-                ? Math.max(1280, activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? 1280) : 1280)
+                ? (activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? CANVAS_W) : CANVAS_W)
                 : undefined}
               onPreviewNavigatePage={setActivePage}
               breakpoint={previewBp}
               layoutWidth={activePage.layoutWidth ?? 'fluid'}
-              maxWidth={activePage.maxWidth ?? 1280}
+              maxWidth={activePage.maxWidth ?? CANVAS_W}
               initialScrollTop={previewScrollRef.current}
             />
           </div>
@@ -715,10 +715,10 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
               onAddAccordionItem={addAccordionItem}
               zoom={zoom}
               canvasDisplayWidth={breakpoint === 'desktop'
-                ? Math.max(1280, activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? 1280) : 1280)
+                ? (activePage.layoutWidth === 'fixed' ? (activePage.maxWidth ?? CANVAS_W) : CANVAS_W)
                 : undefined}
               layoutWidth={activePage.layoutWidth ?? 'fluid'}
-              maxWidth={activePage.maxWidth ?? 1280}
+              maxWidth={activePage.maxWidth ?? CANVAS_W}
             />
 
           </div>
@@ -783,7 +783,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           onClose={() => setRightPanelOpen(false)}
           pageLayoutWidth={activePage.layoutWidth ?? 'fluid'}
           isPageSelected={isPageSelected}
-          pageMaxWidth={activePage.maxWidth ?? 1280}
+          pageMaxWidth={activePage.maxWidth ?? CANVAS_W}
           onUpdatePageLayout={(w, mw) => updatePageLayout(activePage.id, w, mw)}
         />
         </div>

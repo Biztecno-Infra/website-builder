@@ -59,7 +59,7 @@ export function GridSectionView({
   onAddSectionBefore, onAddSectionAfter,
   onDeleteSection, onDuplicateSection, onCopyGridCell, onPasteGridCell, onPasteIntoGridCell, hasCellClipboard,
   onMoveSectionUp, onMoveSectionDown, onPromoteSection: _onPromoteSection,
-  pageLayoutWidth = 'fixed', pageMaxWidth = 1280,
+  pageLayoutWidth = 'fixed', pageMaxWidth = CANVAS_W,
   selectedCarouselId, onSelectCarousel, onUpdateCarousel, onUpdateCarouselResponsive, onSetActiveSlide, onAddSlide, onAddCarouselToCell,
   selectedAccordionId, onSelectAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem, onAddAccordionToCell,
 }: Props) {
@@ -317,7 +317,8 @@ export function GridSectionView({
                   onMoveRight={idx < cells.length - 1 ? () => onReorderGridCell?.(section.id, idx, idx + 1) : undefined}
                   onCopyCell={onCopyGridCell ? () => onCopyGridCell(cell.id) : undefined}
                   onPasteIntoCell={hasCellClipboard && onPasteIntoGridCell ? () => onPasteIntoGridCell(cell.id) : undefined}
-                  onDeleteCell={cells.length > 1 ? () => onDeleteGridCell?.(cell.id) : undefined}
+                  onDeleteCell={cells.length > 1 ? () => onDeleteGridCell?.(cell.id) : () => onDeleteSection?.()}
+                  deleteLabel={cells.length > 1 ? 'Delete column' : 'Delete section'}
                   onResizeDragStart={nextCell ? (e, span, el) => {
                     e.preventDefault();
                     e.stopPropagation();

@@ -212,7 +212,7 @@ export function ElementPanel({
             </div>
           </>
         )}
-        {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && !(isInGridCell && !element.overlayInCell && element.type === 'image') && (
+        {element.type !== 'divider' && !(isInGridCell && !element.overlayInCell && (element.type === 'text' || element.type === 'button')) && !(isInGridCell && !element.overlayInCell && (element.type === 'image' || element.type === 'box')) && (
           <div className={'pb-prop-row'}>
             <label>{!isInGridCell ? 'Height' : element.type === 'video' ? 'Height' : 'Min Height'}</label>
             <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
@@ -269,6 +269,13 @@ export function ElementPanel({
             {element.type === 'image' && (
               <div className={'pb-prop-row'}>
                 <label>Height</label>
+                <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
+                  onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
+              </div>
+            )}
+            {element.type === 'box' && (
+              <div className={'pb-prop-row'}>
+                <label>Min Height</label>
                 <PbInput type="number" value={eff.layout.height} min={0} onFocus={onFocus} onBlur={onBlur}
                   onChange={e => changeResp({ layout: { height: Math.max(0, Number(e.target.value)) } })} />
               </div>

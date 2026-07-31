@@ -10,6 +10,7 @@ import { ContainerPanel } from './panels/ContainerPanel';
 import { CarouselPanel } from './panels/CarouselPanel';
 import { AccordionPanel } from './panels/AccordionPanel';
 import { PagePanel } from './panels/PagePanel';
+import { CANVAS_W } from '../utils/elementDefaults';
 
 interface Props {
   element: CanvasElement | null;
@@ -73,7 +74,7 @@ export function RightSidebar({
   breakpoint = 'desktop', onUpdateResponsive,
   theme, pages,
   isOpen, onClose, pageLayoutWidth = 'fluid',
-  isPageSelected = false, pageMaxWidth = 1280, onUpdatePageLayout,
+  isPageSelected = false, pageMaxWidth = CANVAS_W, onUpdatePageLayout,
 }: Props) {
   const showAccordionPanel = !!(!element && accordion && onUpdateAccordion && onUpdateAccordionResponsive
     && onAddAccordionItem && onDeleteAccordionItem && onDuplicateAccordionItem && onReorderAccordionItem && onToggleAccordionItem && onSelectAccordionItemCell);

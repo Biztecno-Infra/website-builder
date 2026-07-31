@@ -109,7 +109,7 @@ export function Canvas({
   selectedAccordionId, onSelectAccordion, onAddAccordion, onUpdateAccordion, onUpdateAccordionResponsive, onToggleAccordionItem, onAddAccordionItem,
   zoom = 1,
   layoutWidth = 'fluid',
-  maxWidth = 1200,
+  maxWidth = CANVAS_W,
   initialScrollTop,
 }: Props) {
   const canvasWidth = previewWidth ?? canvasDisplayWidth ?? BREAKPOINT_WIDTHS[breakpoint];

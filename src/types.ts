@@ -123,6 +123,12 @@ export interface ElementContent {
   linkUrl?: string;
   label?: string;
   videoUrl?: string;
+  /** Playback flags for a direct video-file URL (ignored for YouTube embeds). Autoplay and loop
+   *  default on; muted defaults off but is forced on whenever autoplay is on (browsers block
+   *  unmuted autoplay). */
+  videoAutoplay?: boolean;
+  videoLoop?: boolean;
+  videoMuted?: boolean;
   thumbnailUrl?: string;
   iconName?: string;
   iconSize?: number;
@@ -600,7 +606,7 @@ export interface Page {
   seo: PageSEO;
   sections: string[];  // All sections in render order — role on each node determines header/footer identity
   layoutWidth?: 'fixed' | 'fluid';  // default 'fixed'
-  maxWidth?: number;                 // default 1280, used when layoutWidth is 'fixed'
+  maxWidth?: number;                 // default 1920, used when layoutWidth is 'fixed'
 }
 
 // ── Site & Theme ───────────────────────────────────────────────────────

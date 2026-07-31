@@ -8,10 +8,12 @@ import { DEFAULT_ACTION } from '../../utils/builderDefaults';
 import { richTextState } from '../../utils/richTextState';
 import { createCleanPasteHandler, stripRichFonts } from '../../utils/cleanPaste';
 import { injectGoogleFont } from '../../utils/fonts';
+import { isYouTubeUrl } from '../../utils/videoEmbed';
 
 import { Icon } from '../Icon';
+import { BREAKPOINT_WIDTHS } from '../Canvas';
 import { CollapsibleSection } from './CollapsibleSection';
-import { ColorField, PxInput, ToggleGroup, computePopupPos, type PopupPos } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, CheckboxField, computePopupPos, type PopupPos } from './PanelFields';
 import { PbColorPicker } from '../PbColorPicker';
 import { ActionEditor } from './ActionEditor';
 import { FormFieldsEditor } from './FormFieldsEditor';
@@ -27,6 +29,7 @@ import {
   DIVIDER_ORIENTATION_OPTIONS,
   OBJECT_FIT_OPTIONS,
   IMAGE_POSITION_OPTIONS,
+  ALIGN_SELF_OPTIONS,
 } from '../../utils/selectOptions';
 
 // document.queryCommandValue('foreColor') returns an "rgb(r, g, b)" string — the
@@ -481,16 +484,33 @@ export function ElementPanelContent({
       )}
 
       {/* ── Video ── */}
-      {element.type === 'video' && (
-        <CollapsibleSection sectionKey="video" label="Video" isOpen={sec('video')} onToggle={toggleSection}>
-          <div className={"pb-prop-row pb-full"}>
-            <label>Video path</label>
-            <PbInput type="text" variant="plain" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=..."
-              onFocus={onFocus} onBlur={onBlur}
-              onChange={e => changeContent({ videoUrl: e.target.value })} />
-          </div>
-        </CollapsibleSection>
-      )}
+      {element.type === 'video' && (() => {
+        const isYouTube = isYouTubeUrl(element.content.videoUrl ?? '');
+        const autoplay = element.content.videoAutoplay !== false;
+        return (
+          <CollapsibleSection sectionKey="video" label="Video" isOpen={sec('video')} onToggle={toggleSection}>
+            <div className={"pb-prop-row pb-full"}>
+              <label>Video path</label>
+              <PbInput type="text" variant="plain" value={element.content.videoUrl} placeholder="https://youtube.com/watch?v=... or a direct .mp4 URL"
+                onFocus={onFocus} onBlur={onBlur}
+                onChange={e => changeContent({ videoUrl: e.target.value })} />
+            </div>
+            {element.content.videoUrl && !isYouTube && (
+              <>
+                <CheckboxField label="Autoplay" checked={autoplay}
+                  onChange={v => { onPushSnapshot(snapshot); changeContent({ videoAutoplay: v, ...(v ? { videoMuted: true } : {}) }); }} />
+                <CheckboxField label="Loop" checked={element.content.videoLoop !== false}
+                  onChange={v => { onPushSnapshot(snapshot); changeContent({ videoLoop: v }); }} />
+                {/* Browsers block autoplay on an unmuted video, so muted is locked on while autoplay is on. */}
+                <CheckboxField label="Muted" checked={element.content.videoMuted === true || autoplay}
+                  disabled={autoplay}
+                  title={autoplay ? 'Autoplaying videos must stay muted to play in the browser.' : undefined}
+                  onChange={v => { onPushSnapshot(snapshot); changeContent({ videoMuted: v }); }} />
+              </>
+            )}
+          </CollapsibleSection>
+        );
+      })()}
 
       {/* ── Icon ── */}
       {element.type === 'icon' && (
@@ -623,6 +643,44 @@ export function ElementPanelContent({
                 <span className={'pb-hint-inline'}>Stretch to cell</span>
               </div>
             )}
+            {inGrid && !isFill && (
+              <div className={'pb-prop-row'}>
+                <label>Align</label>
+                <PbSelect size="sm" value={eff.flexLayout.alignSelf}
+                  options={ALIGN_SELF_OPTIONS}
+                  onChange={v => commitResp({ flexLayout: { alignSelf: v as CanvasElement['flexLayout']['alignSelf'] } })} />
+              </div>
+            )}
+            {!inGrid && !element.layout.fullWidth && (() => {
+              const containerW = BREAKPOINT_WIDTHS[breakpoint];
+              const w = eff.layout.width;
+              const leftX = 0;
+              const rightX = Math.max(0, containerW - w);
+              const centerX = Math.max(0, Math.round((containerW - w) / 2));
+              const TOL = 2;
+              const current = Math.abs(eff.layout.x - leftX) <= TOL ? 'left'
+                : Math.abs(eff.layout.x - rightX) <= TOL ? 'right'
+                : Math.abs(eff.layout.x - centerX) <= TOL ? 'center'
+                : '';
+              const alignTo = (mode: 'left' | 'center' | 'right') => {
+                const x = mode === 'left' ? leftX : mode === 'right' ? rightX : centerX;
+                commitResp({ layout: { x, xPercent: undefined } });
+              };
+              return (
+                <div className={'pb-prop-row'}>
+                  <label>Align</label>
+                  <ToggleGroup
+                    options={[
+                      { value: 'left',   label: <Icon id="alignLeft"   size={14} />, title: 'Left'   },
+                      { value: 'center', label: <Icon id="alignCenter" size={14} />, title: 'Center' },
+                      { value: 'right',  label: <Icon id="alignRight"  size={14} />, title: 'Right'  },
+                    ]}
+                    value={current}
+                    onChange={v => alignTo(v as 'left' | 'center' | 'right')}
+                  />
+                </div>
+              );
+            })()}
             {!isVertical && (
               <div className={'pb-prop-row'}>
                 <label>Width</label>

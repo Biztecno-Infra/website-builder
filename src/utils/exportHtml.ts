@@ -4,6 +4,7 @@ import { DEFAULT_FLEX_CONFIG, interactionToAction } from './builderDefaults';
 import { fieldHelpNote } from './formFormat';
 import { hoverCss } from './hoverStyle';
 import { CANVAS_W } from '../hooks/useBuilderStore';
+import { isYouTubeUrl, toYouTubeEmbedUrl } from './videoEmbed';
 
 const TABLET_W = 768;
 
@@ -16,18 +17,6 @@ function overlayBg(color: string | undefined, opacity: number): string {
 }
 const MOBILE_W = 375;
 const MOBILE_BREAK = TABLET_W - 1;
-
-function toYouTubeEmbedUrl(url: string): string {
-  if (!url) return url;
-  if (url.includes('youtube.com/embed/')) return url;
-  // youtu.be/VIDEO_ID
-  const short = url.match(/youtu\.be\/([^?&\s]+)/);
-  if (short) return `https://www.youtube.com/embed/${short[1]}`;
-  // youtube.com/watch?v=VIDEO_ID
-  const standard = url.match(/[?&]v=([^&\s]+)/);
-  if (standard) return `https://www.youtube.com/embed/${standard[1]}`;
-  return url;
-}
 
 const SYSTEM_FONTS = new Set([
   'Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Courier New',
@@ -518,7 +507,8 @@ function renderElementInner(
       return `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${bgMedia}${content}</div>`;
     }
     case 'button': {
-      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:center;padding:${pad};cursor:pointer`;
+      const btnJustify = typography.align === 'left' ? 'flex-start' : typography.align === 'right' ? 'flex-end' : 'center';
+      const btnStyle = `${cStyle};display:flex;align-items:center;justify-content:${btnJustify};padding:${pad};cursor:pointer`;
       return `<div class="ec-${el.id}" style="${btnStyle}">${bgMedia}${esc(el.content.label ?? '')}</div>`;
     }
     case 'image': {
@@ -535,8 +525,25 @@ function renderElementInner(
     }
     case 'video': {
       if (!el.content.videoUrl) return `<div style="${cStyle};display:flex;align-items:center;justify-content:center;background:#111;color:#888;font-size:13px">&#9654; Add video URL</div>`;
-      const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl ?? '');
-      return `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
+      if (isYouTubeUrl(el.content.videoUrl)) {
+        const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl);
+        return `<div style="${cStyle}"><iframe src="${esc(embedUrl)}" style="width:100%;height:100%;border:none;display:block" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" title="video"></iframe></div>`;
+      }
+      // Direct video-file URL — a real <video> tag plays it without the
+      // X-Frame-Options restrictions an <iframe> would run into.
+      const autoplay = el.content.videoAutoplay !== false;
+      const loop = el.content.videoLoop !== false;
+      const muted = el.content.videoMuted === true || autoplay;
+      const attrs = [
+        `src="${esc(el.content.videoUrl)}"`,
+        autoplay && 'autoplay',
+        muted && 'muted',
+        loop && 'loop',
+        'playsinline',
+        // Without autoplay the viewer needs a way to start it.
+        !autoplay && 'controls',
+      ].filter(Boolean).join(' ');
+      return `<div style="${cStyle}"><video ${attrs} style="width:100%;height:100%;object-fit:cover;display:block"></video></div>`;
     }
     case 'icon': {
       const iconSz = el.content.iconSize ?? 40;
@@ -1573,7 +1580,7 @@ export function exportHtml(state: BuilderState, pageName: string, pageId?: strin
   HAS_ACCORDION = false;
 
   const pageFixed = (page.layoutWidth ?? 'fluid') === 'fixed';
-  const pageMaxWidth = page.maxWidth ?? 1280;
+  const pageMaxWidth = page.maxWidth ?? CANVAS_W;
 
   const googleFonts = collectGoogleFonts(state, sections);
   const fontLinks = googleFonts

@@ -5,9 +5,12 @@ import { createCleanPasteHandler } from '../utils/cleanPaste';
 import { hoverCss } from '../utils/hoverStyle';
 import { runPreviewAction, hasPreviewAction } from '../utils/previewAction';
 import { sectionHasVideoBg } from '../utils/sectionStyle';
+import { CANVAS_W } from '../utils/elementDefaults';
+import { isYouTubeUrl, toYouTubeEmbedUrl } from '../utils/videoEmbed';
 import { ElementQuickBar } from './ElementQuickBar';
 import { FormPreview } from './FormPreview';
 import { BackgroundVideo } from './BackgroundVideo';
+import { VideoElementPreview } from './VideoElementPreview';
 
 
 export interface GuideLine { type: 'v' | 'h'; pos: number; }
@@ -153,7 +156,7 @@ export function CanvasElement({
     const startX = e.clientX;
     const startY = e.clientY;
     const usingXPct = isDesktop && el.layout.xPercent != null && !el.layout.fullWidth;
-    const containerW = usingXPct ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
+    const containerW = usingXPct ? (wrapperRef.current?.parentElement?.offsetWidth ?? CANVAS_W) : 1;
     const originX = usingXPct ? (el.layout.xPercent! / 100 * containerW) : el.layout.x;
     const originY = el.layout.y;
     const prevSnapshot = snapshot;
@@ -273,7 +276,7 @@ export function CanvasElement({
     const startY = e.clientY;
     const usingXPct = isDesktop && el.layout.xPercent != null && !el.layout.fullWidth;
     const usingWPct = isDesktop && el.layout.widthPercent != null && !el.layout.fullWidth;
-    const resizeContainerW = (usingXPct || usingWPct) ? (wrapperRef.current?.parentElement?.offsetWidth ?? 1280) : 1;
+    const resizeContainerW = (usingXPct || usingWPct) ? (wrapperRef.current?.parentElement?.offsetWidth ?? CANVAS_W) : 1;
     const ox = usingXPct ? (el.layout.xPercent! / 100 * resizeContainerW) : el.layout.x;
     const ow = usingWPct ? (el.layout.widthPercent! / 100 * resizeContainerW) : el.layout.width;
     const { y: oy, height: oh } = el.layout;
@@ -561,6 +564,10 @@ export function ElementContent({
   }
 
   if (el.type === 'button') {
+    // typography.align drives horizontal placement of the label inside the
+    // button box; since the box is a flex row, that's justify-content, not
+    // text-align (text-align only affects wrapped multi-line text).
+    const btnJustify = typography.align === 'left' ? 'flex-start' : typography.align === 'right' ? 'flex-end' : 'center';
     if (editing) {
       return (
         <>
@@ -574,9 +581,9 @@ export function ElementContent({
             onPaste={createCleanPasteHandler()}
             style={{
               ...base,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              display: 'flex', alignItems: 'center', justifyContent: btnJustify,
               fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-              color: typography.color, padding: padStr,
+              color: typography.color, textAlign: typography.align, padding: padStr, lineHeight: typography.lineHeight,
               letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
               textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
               outline: '2px solid #006e75', cursor: 'text',
@@ -599,9 +606,9 @@ export function ElementContent({
           className={hovScoped ? `pb-hov-${el.id}` : undefined}
           style={{
             ...base,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: btnJustify,
             fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
-            color: typography.color, padding: padStr,
+            color: typography.color, textAlign: typography.align, padding: padStr, lineHeight: typography.lineHeight,
             letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
             textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
           }}
@@ -641,9 +648,14 @@ export function ElementContent({
         </div>
       );
     }
-    const embedUrl = el.content.videoUrl
-      .replace('watch?v=', 'embed/')
-      .replace('youtu.be/', 'www.youtube.com/embed/');
+    if (!isYouTubeUrl(el.content.videoUrl)) {
+      return (
+        <div style={base}>
+          <VideoElementPreview el={el} />
+        </div>
+      );
+    }
+    const embedUrl = toYouTubeEmbedUrl(el.content.videoUrl);
     return (
       <div style={base}>
         <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}

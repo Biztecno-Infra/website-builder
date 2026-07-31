@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { Breakpoint, Page } from '../types';
 import { Icon } from './Icon';
+import { CANVAS_W } from '../utils/elementDefaults';
 
 interface Props {
   // Site / page
@@ -125,7 +126,7 @@ export function Toolbar({
         {/* Breakpoints */}
         <div className="pb-toolbar-icon-group pb-flex-row">
           {([
-            { bp: 'desktop' as Breakpoint, icon: 'desktop' as const, title: 'Desktop (1280px)' },
+            { bp: 'desktop' as Breakpoint, icon: 'desktop' as const, title: `Desktop (${CANVAS_W}px)` },
             { bp: 'tablet'  as Breakpoint, icon: 'tablet'  as const, title: 'Tablet (768px)'  },
             { bp: 'mobile'  as Breakpoint, icon: 'mobile'  as const, title: 'Mobile (375px)'  },
           ]).map(({ bp, icon, title }) => (

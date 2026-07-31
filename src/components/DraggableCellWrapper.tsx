@@ -17,13 +17,15 @@ interface Props {
   isSelected?: boolean;
   onResizeDragStart?: (e: React.MouseEvent, span: number, el: HTMLDivElement) => void;
   onDeleteCell?: () => void;
+  /** Tooltip for the delete button — "Delete section" when this is the section's only column. */
+  deleteLabel?: string;
   onMoveLeft?: () => void;
   onMoveRight?: () => void;
   onCopyCell?: () => void;
   onPasteIntoCell?: () => void;
 }
 
-export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, isLast, isSelected, onResizeDragStart, onDeleteCell, onMoveLeft, onMoveRight, onCopyCell, onPasteIntoCell }: Props) {
+export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, isLast, isSelected, onResizeDragStart, onDeleteCell, deleteLabel = 'Delete column', onMoveLeft, onMoveRight, onCopyCell, onPasteIntoCell }: Props) {
   const span = getCellSpan(cell, breakpoint);
   const rowSpan = cell.rowSpan ?? 1;
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
           {onDeleteCell && (
             <>
               <div className={'pb-cell-action-divider'} />
-              <IconButton variant="danger" title="Delete column"
+              <IconButton variant="danger" title={deleteLabel}
                 onClick={e => { e.stopPropagation(); onDeleteCell(); }}>✕</IconButton>
             </>
           )}
@@ -84,7 +86,7 @@ export function DraggableCellWrapper({ cell, breakpoint, previewMode, children, 
       {onDeleteCell && !previewMode && (
         <button
           className={'pb-sub-cell-delete-btn'}
-          title="Delete column"
+          title={deleteLabel}
           onMouseDown={e => e.stopPropagation()}
           onClick={e => { e.stopPropagation(); onDeleteCell(); }}
         >✕</button>
