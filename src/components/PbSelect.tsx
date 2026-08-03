@@ -64,6 +64,7 @@ export function PbSelect({ value, options, onChange, size = 'sm', className, sea
             <button
               key={opt.value}
               type="button"
+              title={opt.label}
               className={['pb-select-option', opt.value === value && 'pb-select-option--active'].filter(Boolean).join(' ')}
               onClick={() => { onChange(opt.value); setOpen(false); }}
             >

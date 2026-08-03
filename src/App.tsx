@@ -13,6 +13,7 @@ import type { PageBuilderRef } from './context/PageBuilderContext';
 import { makeKnightState } from './data/knightState';
 import { exportHtml } from './utils/exportHtml';
 import { sparsifyNodes } from './utils/sparse';
+import { isHeadingTag } from './utils/textTag';
 import type { Breakpoint, BuilderState, Container, GridCell, CanvasElement } from './types';
 import type { UploadedImage, ImageSearchResponse, UploadLibraryResponse } from './api/hostCallbacks';
 
@@ -265,9 +266,11 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
         const elBg   = el.style.background.color ?? '';
 
         if (el.type === 'text') {
+          const isHeading = isHeadingTag(el.content.tag);
+          const newFamily = isHeading ? (fonts.heading ?? fonts.body) : fonts.body;
           const newColor = match(elText, old.text) ? colors.text : elText;
           return [{ id: el.id, changes: { style: { ...el.style,
-            typography: { ...el.style.typography, family: fonts.body, color: newColor },
+            typography: { ...el.style.typography, family: newFamily, color: newColor },
           } } }];
         }
         if (el.type === 'button') {
@@ -613,6 +616,7 @@ function PageBuilderShell({ siteName, onPublish }: PageBuilderShellProps) {
           onAddSectionFromTemplate={addSectionFromTemplate}
           onAddContainer={(mode, spans) => selectedGridCellId && addContainer(selectedGridCellId, mode, spans)}
           selectedIds={selectedIds}
+          selectedElement={selectedElement}
           selectedSectionId={selectedSectionId}
           selectedGridCellId={selectedGridCellId}
           selectedContainerId={selectedContainerId}

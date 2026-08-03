@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect, type ReactNode, type MouseEvent as ReactMouseEvent } from 'react';
 
-import type { Border, BgType, Padding, Shadow, SectionBackground, SiteTheme } from '../../types';
+import type { Border, BgType, Padding, Shadow, SectionBackground, SiteTheme, GradientStop } from '../../types';
 import { PbInput } from '../PbInput';
 import { PbSelect } from '../PbSelect';
 import { PbButton } from '../PbButton';
 import { PbColorPicker } from '../PbColorPicker';
 import { ImagePickerModal } from '../ImagePickerModal';
+import { IconButton } from '../IconButton';
 import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
 import {
   SECTION_BG_TYPE_OPTIONS,
@@ -328,6 +329,45 @@ export function VideoPlaybackFields({ bg, onChange }: {
 
 // ── Background editor — full bg type/color/gradient/image ────────────────────
 
+export function GradientStopsEditor({ bg, onChange, swatches, onFocus, onBlur }: {
+  bg: SectionBackground;
+  onChange: (updates: Partial<SectionBackground>) => void;
+  swatches: string[];
+  onFocus: () => void;
+  onBlur: () => void;
+}) {
+  const stops = bg.stops && bg.stops.length >= 2
+    ? bg.stops
+    : [{ color: bg.from || '#006e75', position: 0 }, { color: bg.to || '#0b978e', position: 100 }];
+  const setStops = (next: GradientStop[]) =>
+    onChange({ stops: next, from: next[0]?.color, to: next[next.length - 1]?.color });
+
+  return (
+    <div className="pb-prop-row pb-full">
+      <label>Colors</label>
+      <div style={{ flex: 1 }}>
+        {stops.map((s, i) => (
+          <div key={i} className="pb-option-row">
+            <ColorField value={s.color} swatches={swatches} onFocus={onFocus} onBlur={onBlur}
+              onChange={v => setStops(stops.map((x, j) => j === i ? { ...x, color: v } : x))} />
+            <PxInput value={s.position} unit="%" min={0} max={100} onFocus={onFocus} onBlur={onBlur}
+              onChange={v => setStops(stops.map((x, j) => j === i ? { ...x, position: v } : x))} />
+            {stops.length > 2 && (
+              <IconButton variant="danger" title="Remove color"
+                onClick={() => setStops(stops.filter((_, j) => j !== i))}>✕</IconButton>
+            )}
+          </div>
+        ))}
+        <button type="button" className="pb-add-option-btn"
+          onClick={() => {
+            const last = stops[stops.length - 1];
+            setStops([...stops, { color: last.color, position: Math.min(100, last.position + 20) }]);
+          }}>+ Color</button>
+      </div>
+    </div>
+  );
+}
+
 export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur, theme }: {
   bg: SectionBackground;
   onChange: (updates: Partial<SectionBackground>) => void;
@@ -379,14 +419,7 @@ export function BackgroundEditor({ bg, onChange, onPushSnapshot, onFocus, onBlur
 
       {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (
         <>
-          <div className="pb-prop-row">
-            <label>From</label>
-            <ColorField value={bg.from || '#006e75'} onChange={v => onChange({ from: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
-          </div>
-          <div className="pb-prop-row">
-            <label>To</label>
-            <ColorField value={bg.to || '#0b978e'} onChange={v => onChange({ to: v })} onFocus={onFocus} onBlur={onBlur} swatches={swatches} />
-          </div>
+          <GradientStopsEditor bg={bg} onChange={onChange} swatches={swatches} onFocus={onFocus} onBlur={onBlur} />
           {bg.type === 'linear-gradient' && (
             <div className="pb-prop-row">
               <label>Angle</label>

@@ -6,6 +6,7 @@ import { IconButton } from './IconButton';
 import { SearchInput } from './SearchInput';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { collectSearchMatches, elementLabel, PAGE_ROOT_ID } from '../utils/layerSearch';
+import { textTagBadge } from '../utils/textTag';
 
 const TYPE_ICON_ID: Record<string, string> = {
   text: 'elText', image: 'elImage', button: 'elButton', box: 'elBox',
@@ -161,6 +162,9 @@ function SectionGroup({
             <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
           </span>
           <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+          {el.type === 'text' && textTagBadge(el.content.tag) && (
+            <span className={'pb-layer-style-badge'}>{textTagBadge(el.content.tag)}</span>
+          )}
           {onDeleteElement && (
             <span className={'pb-layer-actions'}>
               <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete"
@@ -364,6 +368,9 @@ function SectionGroup({
                 <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
               </span>
               <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+              {el.type === 'text' && textTagBadge(el.content.tag) && (
+                <span className={'pb-layer-style-badge'}>{textTagBadge(el.content.tag)}</span>
+              )}
             </div>
           );
         })}
@@ -485,6 +492,9 @@ function SectionGroup({
           <Icon id={TYPE_ICON_ID[el.type] ?? 'elBox'} size={14} />
         </span>
         <span className={'pb-layer-name pb-truncate'} title={elementLabel(el)}>{elementLabel(el)}</span>
+        {el.type === 'text' && textTagBadge(el.content.tag) && (
+          <span className={'pb-layer-style-badge'}>{textTagBadge(el.content.tag)}</span>
+        )}
         {onDeleteElement && (
           <span className={'pb-layer-actions'}>
             <button className={'pb-layer-btn pb-layer-btn--delete'} title="Delete"

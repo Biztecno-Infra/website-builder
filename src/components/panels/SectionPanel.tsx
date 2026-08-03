@@ -11,7 +11,7 @@ import { LayoutChangeModal, type LayoutChangeChoice } from '../LayoutChangeModal
 import { Modal } from '../Modal';
 import { ImagePickerModal } from '../ImagePickerModal';
 import { useWidenUpload, UPLOAD_STAGE_LABEL } from '../../hooks/useWidenUpload';
-import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, VideoPlaybackFields, themeToSwatches } from './PanelFields';
+import { ColorField, PxInput, ToggleGroup, ShadowEditor, BorderEditor, VisibilityEditor, SpacingEditor, VideoPlaybackFields, GradientStopsEditor, themeToSwatches } from './PanelFields';
 import { PanelHeader } from './PanelHeader';
 import { PbSelect } from '../PbSelect';
 import { PbInput } from '../PbInput';
@@ -338,14 +338,7 @@ export function SectionPanel({
         )}
         {(bg.type === 'linear-gradient' || bg.type === 'radial-gradient') && (
           <>
-            <div className={'pb-prop-row'}>
-              <label>From</label>
-              <ColorField value={bg.from || '#006e75'} onChange={v => updateBg({ from: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
-            </div>
-            <div className={'pb-prop-row'}>
-              <label>To</label>
-              <ColorField value={bg.to || '#0b978e'} onChange={v => updateBg({ to: v })} onFocus={onNumberFocus} onBlur={onNumberBlur} swatches={swatches} />
-            </div>
+            <GradientStopsEditor bg={bg} onChange={updateBg} swatches={swatches} onFocus={onNumberFocus} onBlur={onNumberBlur} />
             {bg.type === 'linear-gradient' && (
               <div className={'pb-prop-row'}>
                 <label>Angle</label>

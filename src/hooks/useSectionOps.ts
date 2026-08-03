@@ -7,6 +7,7 @@ import {
   removeNodesForSection,
 } from '../utils/nodeHelpers';
 import { CanvasElement } from '../types';
+import { isHeadingTag } from '../utils/textTag';
 
 function getActivePage(s: BuilderState) {
   return s.pages.find(p => p.id === s.activePageId) ?? s.pages[0];
@@ -247,11 +248,13 @@ export function useSectionOps(
     push(stateRef.current);
     const theme = stateRef.current.theme;
     const result = buildFn({ el: newId, cell: newGridCellId, sec: newSectionId }, theme);
-    const fontFamily = theme.fonts.body;
     Object.values(result.nodes).forEach(node => {
       if (node.type !== 'section' && node.type !== 'grid-cell' && node.type !== 'container') {
         const el = node as CanvasElement;
-        if (el.style?.typography) el.style.typography.family = fontFamily;
+        if (el.style?.typography) {
+          const isHeading = el.type === 'text' && isHeadingTag(el.content?.tag);
+          el.style.typography.family = isHeading ? (theme.fonts.heading ?? theme.fonts.body) : theme.fonts.body;
+        }
       }
     });
     setState(s => {

@@ -11,6 +11,8 @@ export type FlexWidthMode = 'fill' | 'auto' | 'fixed' | 'percent';
 
 // ── Style primitives ───────────────────────────────────────────────────
 
+export interface GradientStop { color: string; position: number; } // position: 0-100
+
 export interface ElementBackground {
   type: BgType;
   color: string;
@@ -19,6 +21,8 @@ export interface ElementBackground {
   from: string;
   to: string;
   angle: number;
+  /** Optional 3+ color gradient stops. When absent, `from`/`to` form the (2-stop) gradient. */
+  stops?: GradientStop[];
 }
 
 export interface SectionBackground extends ElementBackground {
@@ -105,9 +109,13 @@ export interface ElementStyle {
   hover?: ElementHover;
 }
 
+export type TextTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p1' | 'p2' | 'p3';
+
 export interface ElementContent {
   plain?: string;
   rich?: string;
+  /** Heading level for a `text` element — drives the theme's heading font and the exported tag (h1-h6). Undefined means plain body text. */
+  tag?: TextTag;
   src?: string;
   /** Widen DAM asset identifier for an uploaded image. */
   assetId?: string;

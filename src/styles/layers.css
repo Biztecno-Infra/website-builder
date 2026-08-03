@@ -159,6 +159,16 @@
   color: var(--pb-text-strong);
 }
 
+.pb-layer-style-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--pb-text-muted);
+  white-space: nowrap;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .pb-layer-actions {
   display: flex;
   gap: 2px;

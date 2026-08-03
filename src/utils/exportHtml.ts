@@ -5,6 +5,8 @@ import { fieldHelpNote } from './formFormat';
 import { hoverCss } from './hoverStyle';
 import { CANVAS_W } from '../hooks/useBuilderStore';
 import { isYouTubeUrl, toYouTubeEmbedUrl } from './videoEmbed';
+import { gradientStopsCss } from './gradient';
+import { textTagElement } from './textTag';
 
 const TABLET_W = 768;
 
@@ -145,9 +147,9 @@ function elContentStyle(el: CanvasElement): string {
   if (bg.type === 'transparent') {
     parts.push('background:transparent');
   } else if (bg.type === 'linear-gradient') {
-    parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
+    parts.push(`background-image:linear-gradient(${bg.angle}deg,${gradientStopsCss(bg)})`);
   } else if (bg.type === 'radial-gradient') {
-    parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
+    parts.push(`background-image:radial-gradient(circle,${gradientStopsCss(bg)})`);
   } else if (bg.image) {
     parts.push(`background-image:url(${bg.image});background-size:cover;background-position:${bg.position}`);
   } else {
@@ -170,8 +172,8 @@ function elBgBorderCss(el: CanvasElement): string {
   const bg = el.style.background;
   const border = el.style.border;
   if (bg.type === 'transparent') { /* nothing to paint */ }
-  else if (bg.type === 'linear-gradient') parts.push(`background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`);
-  else if (bg.type === 'radial-gradient') parts.push(`background-image:radial-gradient(circle,${bg.from},${bg.to})`);
+  else if (bg.type === 'linear-gradient') parts.push(`background-image:linear-gradient(${bg.angle}deg,${gradientStopsCss(bg)})`);
+  else if (bg.type === 'radial-gradient') parts.push(`background-image:radial-gradient(circle,${gradientStopsCss(bg)})`);
   else if (bg.image) parts.push(`background-image:url(${bg.image});background-size:cover;background-position:${bg.position}`);
   else if (bg.color && bg.color !== 'transparent') parts.push(`background-color:${bg.color}`);
   if (border.width > 0) parts.push(`border:${border.width}px ${border.style} ${border.color}`);
@@ -504,7 +506,8 @@ function renderElementInner(
   switch (el.type) {
     case 'text': {
       const content = el.content.rich || esc(el.content.plain ?? '');
-      return `<div class="ec-${el.id}" style="${textBase};white-space:pre-wrap">${bgMedia}${content}</div>`;
+      const tag = textTagElement(el.content.tag);
+      return `<${tag} class="ec-${el.id}" style="${textBase};white-space:pre-wrap;margin:0">${bgMedia}${content}</${tag}>`;
     }
     case 'button': {
       const btnJustify = typography.align === 'left' ? 'flex-start' : typography.align === 'right' ? 'flex-end' : 'center';
@@ -651,8 +654,8 @@ function renderGridCell(cell: GridCell, nodes: NodeMap): string {
   // Mirrors GridCellView: every branch keys off the selected type, so switching to
   // Transparent drops a leftover image instead of exporting it.
   if (bg.type === 'transparent') bgCss = '';
-  else if (bg.type === 'linear-gradient') bgCss = `background-image:linear-gradient(${bg.angle}deg,${bg.from},${bg.to})`;
-  else if (bg.type === 'radial-gradient') bgCss = `background-image:radial-gradient(circle,${bg.from},${bg.to})`;
+  else if (bg.type === 'linear-gradient') bgCss = `background-image:linear-gradient(${bg.angle}deg,${gradientStopsCss(bg)})`;
+  else if (bg.type === 'radial-gradient') bgCss = `background-image:radial-gradient(circle,${gradientStopsCss(bg)})`;
   // Video backgrounds render as a <video> layer below; the colour stays as the
   // fallback so there's no flash before the video loads.
   else if (bg.type === 'video') bgCss = bg.color && bg.color !== 'transparent' ? `background-color:${bg.color}` : '';

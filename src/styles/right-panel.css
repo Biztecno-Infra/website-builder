@@ -231,13 +231,15 @@
   position: absolute;
   top: calc(100% + 3px);
   left: 0;
-  right: 0;
+  min-width: 100%;
+  width: max-content;
+  max-width: 220px;
   background: var(--pb-white);
   border: 1px solid var(--pb-border-muted);
   border-radius: var(--pb-radius-lg);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   z-index: 9999;
-  overflow: hidden;
+  overflow-x: hidden;
   max-height: 220px;
   overflow-y: auto;
 }
@@ -253,6 +255,10 @@
   border: none;
   cursor: pointer;
   transition: var(--pb-transition);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .pb-select--md .pb-select-option {
@@ -306,6 +312,11 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--pb-text-dark);
+}
+.pb-font-pairing-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
 }
 
 /* ─── Property sections ─── */

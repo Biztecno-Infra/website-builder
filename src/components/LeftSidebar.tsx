@@ -192,6 +192,7 @@ interface Props {
   onAddSectionFromTemplate: (buildFn: (ids: TemplateIds, theme: SiteTheme) => TemplateResult) => void;
   onAddContainer?: (mode: ContainerLayoutMode, columnSpans?: number[]) => void;
   selectedIds: string[];
+  selectedElement?: CanvasElement | null;
   selectedSectionId: string | null;
   selectedGridCellId: string | null;
   selectedContainerId?: string | null;
@@ -236,7 +237,7 @@ const DEFAULT_WIDTH = 268; // 16.8rem
 
 export function LeftSidebar({
   onAdd, onAddCarousel, onAddAccordion, onAddFreeSection, onAddGridSection, onAddSectionFromTemplate, onAddContainer,
-  selectedIds, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
+  selectedIds, selectedElement, selectedSectionId, selectedGridCellId, selectedContainerId, selectedCarouselId, selectedAccordionId,
   onSelect, onSelectGridCell, onSelectContainer, onSelectCarousel, onSelectAccordion, onScrollToElement,
   onReorderSection, onReorderElement, onMoveElementToSection, onUpdate, onDeleteElement, onDeleteSection,
   onSelectPage, isPageSelected,
@@ -416,7 +417,7 @@ export function LeftSidebar({
       )}
 
       {activeTab === 'theme' && (
-        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={handleClose} />
+        <ThemePanel theme={theme} onUpdate={onUpdateTheme} onApplyTheme={onApplyTheme} onClose={handleClose} selectedElement={selectedElement} />
       )}
 
       {activeTab === 'uploads' && (

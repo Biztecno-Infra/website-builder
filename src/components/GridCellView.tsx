@@ -9,6 +9,7 @@ import { GridElementView, GRID_EL_DND_TYPE } from './GridElementView';
 import type { GridElDragItem } from './GridElementView';
 import { ColumnsBlockView } from './ColumnsBlockView';
 import { getCellLayoutMode, getCellAlignItems, getCellJustifyContent } from '../utils/cellUtils';
+import { gradientStopsCss } from '../utils/gradient';
 import { applyBreakpoint } from '../hooks/useBuilderStore';
 import { resolveResponsive } from '../utils/responsive';
 import { useCanvasContext } from '../contexts/CanvasContext';
@@ -258,8 +259,8 @@ export function GridCellView({
   // Each branch keys off the selected type, never off a leftover value: switching
   // to Transparent must drop an image the cell used to have, not keep painting it.
   if (bg.type === 'transparent') { /* nothing painted */ }
-  else if (bg.type === 'linear-gradient') bgImage = `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})`;
-  else if (bg.type === 'radial-gradient') bgImage = `radial-gradient(circle, ${bg.from}, ${bg.to})`;
+  else if (bg.type === 'linear-gradient') bgImage = `linear-gradient(${bg.angle}deg, ${gradientStopsCss(bg)})`;
+  else if (bg.type === 'radial-gradient') bgImage = `radial-gradient(circle, ${gradientStopsCss(bg)})`;
   // A video background falls back to the colour underneath, so there's no flash
   // before the video loads (and something still shows if it never does).
   else if (bg.type === 'video') bgColor = bg.color && bg.color !== 'transparent' ? bg.color : undefined;

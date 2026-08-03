@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
-import type { SiteTheme, ThemeColors } from '../types';
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from 'react';
+import type { CanvasElement, SiteTheme, ThemeColors } from '../types';
 import { PbSelect } from './PbSelect';
 import { PbButton } from './PbButton';
 import { PbColorPicker } from './PbColorPicker';
 import { computePopupPos, type PopupPos } from './panels/PanelFields';
 import { injectGoogleFont } from '../utils/fonts';
-import { FONT_FAMILY_OPTIONS } from '../utils/selectOptions';
+import { FONT_FAMILY_OPTIONS, TEXT_STYLE_PRESETS } from '../utils/selectOptions';
+import { isHeadingTag } from '../utils/textTag';
 import { IconButton } from './IconButton';
 
 const COLOR_FIELDS: Array<{
@@ -26,6 +27,7 @@ interface Props {
   onUpdate: (updates: Partial<SiteTheme>) => void;
   onApplyTheme?: () => void;
   onClose?: () => void;
+  selectedElement?: CanvasElement | null;
 }
 
 function ColorCard({
@@ -76,22 +78,27 @@ function ColorCard({
 }
 
 function FontSelect({
-  label, value, onChange,
+  label, value, onChange, hint,
 }: {
-  label: string; value: string; onChange: (v: string) => void;
+  label: string; value: string; onChange: (v: string) => void; hint?: ReactNode;
 }) {
   return (
     <div className={'pb-font-pairing-row pb-flex-col'}>
       <span className={'pb-font-pairing-label'}>{label}</span>
       <PbSelect value={value} options={FONT_FAMILY_OPTIONS} onChange={onChange} size="md" searchable />
+      {hint && <div className={'pb-font-pairing-hint'}>{hint}</div>}
     </div>
   );
 }
 
 
-export function ThemePanel({ theme, onUpdate, onApplyTheme, onClose }: Props) {
+export function ThemePanel({ theme, onUpdate, onApplyTheme, onClose, selectedElement }: Props) {
   const bodyFont = theme.fonts.body;
   const headingFont = theme.fonts.heading ?? theme.fonts.body;
+
+  const selectedTag = selectedElement?.type === 'text' ? selectedElement.content.tag : undefined;
+  const selectedPreset = selectedTag ? TEXT_STYLE_PRESETS[selectedTag] : null;
+  const appliedHint = selectedPreset ? `Applied: ${selectedPreset.label} (${selectedPreset.size}px)` : null;
 
   useEffect(() => {
     injectGoogleFont(bodyFont);
@@ -136,11 +143,13 @@ export function ThemePanel({ theme, onUpdate, onApplyTheme, onClose }: Props) {
             label="Headings"
             value={headingFont}
             onChange={v => onUpdate({ fonts: { ...theme.fonts, heading: v } })}
+            hint={selectedTag && isHeadingTag(selectedTag) ? appliedHint : null}
           />
           <FontSelect
             label="Body Text"
             value={bodyFont}
             onChange={v => onUpdate({ fonts: { ...theme.fonts, body: v } })}
+            hint={selectedTag && !isHeadingTag(selectedTag) ? appliedHint : null}
           />
         </div>
       </div>

@@ -6,6 +6,8 @@ import { hoverCss } from '../utils/hoverStyle';
 import { runPreviewAction, hasPreviewAction } from '../utils/previewAction';
 import { sectionHasVideoBg } from '../utils/sectionStyle';
 import { CANVAS_W } from '../utils/elementDefaults';
+import { gradientStopsCss } from '../utils/gradient';
+import { textTagElement } from '../utils/textTag';
 import { isYouTubeUrl, toYouTubeEmbedUrl } from '../utils/videoEmbed';
 import { ElementQuickBar } from './ElementQuickBar';
 import { FormPreview } from './FormPreview';
@@ -420,10 +422,10 @@ export function ElementContent({
     // both the colour and any image URL still sitting in state.
     bgColor = undefined;
   } else if (background.type === 'linear-gradient') {
-    bgImage = `linear-gradient(${background.angle}deg, ${background.from}, ${background.to})`;
+    bgImage = `linear-gradient(${background.angle}deg, ${gradientStopsCss(background)})`;
     bgColor = undefined;
   } else if (background.type === 'radial-gradient') {
-    bgImage = `radial-gradient(circle, ${background.from}, ${background.to})`;
+    bgImage = `radial-gradient(circle, ${gradientStopsCss(background)})`;
     bgColor = undefined;
   } else if (background.image) {
     bgImage = `url(${background.image})`;
@@ -510,21 +512,22 @@ export function ElementContent({
       );
     }
     const textStyle: React.CSSProperties = {
-      ...base, padding: padStr,
+      ...base, padding: padStr, margin: 0,
       fontSize: typography.size, fontWeight: typography.weight, fontFamily: typography.family,
       color: typography.color, textAlign: typography.align, lineHeight: typography.lineHeight,
       letterSpacing: typography.letterSpacing ? `${typography.letterSpacing}px` : undefined,
       textTransform: (typography.textTransform && typography.textTransform !== 'none') ? typography.textTransform : undefined,
       whiteSpace: 'pre-wrap', wordBreak: 'break-word',
     };
+    const Tag: any = textTagElement(el.content.tag);
     if (el.content.rich) {
       return (
         <>
           {bgMediaLayer}
-          <div
+          <Tag
             style={textStyle}
             dangerouslySetInnerHTML={{ __html: el.content.rich }}
-            onClick={previewMode ? (e => {
+            onClick={previewMode ? ((e: React.MouseEvent) => {
               const anchor = (e.target as HTMLElement).closest('a');
               if (!anchor) return;
               e.preventDefault();
@@ -536,7 +539,7 @@ export function ElementContent({
         </>
       );
     }
-    return <>{bgMediaLayer}<div style={textStyle}>{el.content.plain}</div></>;
+    return <>{bgMediaLayer}<Tag style={textStyle}>{el.content.plain}</Tag></>;
   }
 
   if (el.type === 'image') {

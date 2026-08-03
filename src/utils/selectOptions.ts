@@ -1,4 +1,5 @@
 import type { SelectOption } from '../components/PbSelect';
+import type { TextTag } from '../types';
 
 export const FONT_WEIGHT_OPTIONS: SelectOption[] = [
   { value: '100', label: 'Thin (100)' },
@@ -10,6 +11,27 @@ export const FONT_WEIGHT_OPTIONS: SelectOption[] = [
   { value: 'bold', label: 'Bold (700)' },
   { value: '800', label: 'ExtraBold (800)' },
   { value: '900', label: 'Heavy (900)' },
+];
+
+// Single source of truth for text "Style" presets — both the dropdown labels
+// (which show the size right in the option, e.g. "Heading 1 (40px)") and the
+// size/weight actually applied when a preset is picked (see ElementPanelContent).
+export const TEXT_STYLE_PRESETS: Record<TextTag, { label: string; size: number; weight: string }> = {
+  h1: { label: 'Heading 1', size: 40, weight: 'bold' },
+  h2: { label: 'Heading 2', size: 34, weight: 'bold' },
+  h3: { label: 'Heading 3', size: 28, weight: '600' },
+  h4: { label: 'Heading 4', size: 24, weight: '600' },
+  h5: { label: 'Heading 5', size: 20, weight: '500' },
+  h6: { label: 'Heading 6', size: 18, weight: '500' },
+  p1: { label: 'Paragraph 1', size: 18, weight: 'normal' },
+  p2: { label: 'Paragraph 2', size: 16, weight: 'normal' },
+  p3: { label: 'Paragraph 3', size: 14, weight: 'normal' },
+};
+
+export const TEXT_STYLE_OPTIONS: SelectOption[] = [
+  { value: '', label: 'None' },
+  ...(Object.entries(TEXT_STYLE_PRESETS) as [TextTag, typeof TEXT_STYLE_PRESETS[TextTag]][])
+    .map(([value, p]) => ({ value, label: `${p.label} (${p.size}px)` })),
 ];
 
 export const FONT_FAMILY_OPTIONS = [

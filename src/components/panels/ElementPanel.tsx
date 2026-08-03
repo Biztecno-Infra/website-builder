@@ -321,7 +321,7 @@ export function ElementPanel({
         changeContent={changeContent} changeTypo={changeTypo}
         changeLayout={changeLayout} changeResp={changeResp}
         commitChange={commitChange} commitResp={commitResp}
-        swatches={swatches} nodes={nodes} pages={pages}
+        swatches={swatches} theme={theme} nodes={nodes} pages={pages}
         isInGridCell={isInGridCell} minSize={minSize}
       />
 

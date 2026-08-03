@@ -1,4 +1,5 @@
 import type { SectionBackground } from '../types';
+import { gradientStopsCss } from './gradient';
 
 export function sectionBgProps(bg: SectionBackground): {
   backgroundColor?: string;
@@ -10,10 +11,10 @@ export function sectionBgProps(bg: SectionBackground): {
     return { backgroundColor: 'transparent' };
   }
   if (bg.type === 'linear-gradient') {
-    return { backgroundImage: `linear-gradient(${bg.angle}deg, ${bg.from}, ${bg.to})` };
+    return { backgroundImage: `linear-gradient(${bg.angle}deg, ${gradientStopsCss(bg)})` };
   }
   if (bg.type === 'radial-gradient') {
-    return { backgroundImage: `radial-gradient(circle, ${bg.from}, ${bg.to})` };
+    return { backgroundImage: `radial-gradient(circle, ${gradientStopsCss(bg)})` };
   }
   // Video backgrounds render via a <video> layer (see sectionHasVideoBg); the
   // surface itself falls back to the color so there's no flash before the video loads.

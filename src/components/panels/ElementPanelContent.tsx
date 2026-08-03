@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type {
   Breakpoint, BuilderState, CanvasElement, ElementAction,
   ElementContent, ElementLayout, BreakpointOverride,
-  Typography, TextAlign, ObjectFit, NodeMap, TextTransform, SiteTheme, Page,
+  Typography, TextAlign, ObjectFit, NodeMap, TextTransform, SiteTheme, Page, TextTag,
 } from '../../types';
 import { DEFAULT_ACTION } from '../../utils/builderDefaults';
 import { richTextState } from '../../utils/richTextState';
@@ -26,11 +26,16 @@ import {
   FONT_WEIGHT_OPTIONS,
   FONT_FAMILY_OPTIONS,
   TEXT_TRANSFORM_OPTIONS,
+  TEXT_STYLE_OPTIONS,
+  TEXT_STYLE_PRESETS,
   DIVIDER_ORIENTATION_OPTIONS,
   OBJECT_FIT_OPTIONS,
   IMAGE_POSITION_OPTIONS,
   ALIGN_SELF_OPTIONS,
 } from '../../utils/selectOptions';
+import { isHeadingTag, textTagBadge } from '../../utils/textTag';
+
+const NONE_PRESET = { size: 16, weight: 'normal' };
 
 // document.queryCommandValue('foreColor') returns an "rgb(r, g, b)" string — the
 // inline color picker works in hex, so convert before handing it off as `value`.
@@ -63,6 +68,7 @@ interface Props {
   commitChange: (updates: Partial<CanvasElement>) => void;
   commitResp: (updates: Partial<BreakpointOverride>) => void;
   swatches: ReturnType<(theme: SiteTheme) => string[]>;
+  theme: SiteTheme;
   nodes: NodeMap;
   pages: Page[];
   isInGridCell: boolean;
@@ -76,7 +82,7 @@ export function ElementPanelContent({
   snapshot, onPushSnapshot,
   onUpdate, change, changeContent, changeTypo, changeLayout, changeResp,
   commitChange, commitResp,
-  swatches, nodes, pages, isInGridCell, minSize,
+  swatches, theme, nodes, pages, isInGridCell, minSize,
 }: Props) {
   const sidebarEditRef = useRef<HTMLDivElement>(null);
   const imgFileRef = useRef<HTMLInputElement>(null);
@@ -254,6 +260,32 @@ export function ElementPanelContent({
             </div>
           )}
 
+          {element.type === 'text' && (
+            <div className={'pb-prop-row'}>
+              <label>Style</label>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <PbSelect value={element.content.tag ?? ''}
+                  options={TEXT_STYLE_OPTIONS}
+                  onChange={v => {
+                    const tag = (v || undefined) as TextTag | undefined;
+                    const { size, weight } = tag ? TEXT_STYLE_PRESETS[tag] : NONE_PRESET;
+                    const family = isHeadingTag(tag) ? (theme.fonts.heading ?? theme.fonts.body) : theme.fonts.body;
+                    injectGoogleFont(family);
+                    const update: Partial<CanvasElement> = {
+                      content: { ...element.content, tag },
+                      style: { ...element.style, typography: { ...element.style.typography, family, size, weight } },
+                    };
+                    if (element.content.rich) update.content = { ...update.content, rich: stripRichFonts(element.content.rich) };
+                    commitChange(update);
+                  }} />
+                {/* {textTagBadge(element.content.tag) && (
+                  <div className={'pb-format-toolbar-hint'} style={{ marginTop: 4, marginBottom: 0 }}>
+                    Applied: {textTagBadge(element.content.tag)}
+                  </div>
+                )} */}
+              </div>
+            </div>
+          )}
           {element.type === 'text' && (
             <div className={"pb-prop-row pb-full"}>
               <label>Text</label>
