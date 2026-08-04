@@ -573,7 +573,7 @@ export function GridCellView({
                 cellId={cell.id}
                 childIdx={0}
                 cellMode={cellMode}
-                isSelected={false}
+                isSelected={selectedId === rawOverlay.id}
                 onSelect={() => onSelectElement(rawOverlay.id)}
                 onUpdate={updates => onUpdateElement(rawOverlay.id, updates)}
                 disableDrag={true}

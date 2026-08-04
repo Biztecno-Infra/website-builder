@@ -76,8 +76,9 @@
 /* ─── Section label badge ─── */
 .pb-section-label-badge {
   position: absolute;
-  top: 0;
-  left: 0;
+  bottom: 100%;
+  left: 12px;
+  margin-bottom: 7px;
   z-index: 100;
   background: var(--pb-primary);
   color: var(--pb-white);
@@ -85,9 +86,22 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 2px 8px;
-  border-bottom-right-radius: 5px;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: 5px;
   pointer-events: none;
+}
+/* Caret pointing down from the badge to the section it labels */
+.pb-section-label-badge::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--pb-primary);
 }
 .pb-section-label-badge--clickable {
   pointer-events: auto;
@@ -98,9 +112,15 @@
 .pb-section-label-badge--clickable:hover {
   background: var(--pb-primary-dark);
 }
+.pb-section-label-badge--clickable:hover::after {
+  border-top-color: var(--pb-primary-dark);
+}
 .pb-section-label-badge--active {
   background: #004a50;
   box-shadow: 0 0 0 2px #00c8c8;
+}
+.pb-section-label-badge--active::after {
+  border-top-color: #004a50;
 }
 
 /* ─── Fixed-section preview notice ─── */
@@ -165,7 +185,8 @@
 
 .pb-cell-action-bar {
   position: absolute;
-  top: 4px;
+  bottom: 100%;
+  margin-bottom: 6px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 102;

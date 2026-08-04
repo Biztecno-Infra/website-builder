@@ -180,7 +180,7 @@ const PALETTE: Array<{ type: ElementType; iconId: string; label: string }> = [
   { type: 'video',     iconId: 'elVideo',     label: 'Video'     },
   { type: 'spacer',    iconId: 'elSpacer',    label: 'Spacer'    },
   { type: 'icon',      iconId: 'elIcon',      label: 'Icon'      },
-  { type: 'form',    iconId: 'elForm',    label: 'Form'    },
+  // { type: 'form',    iconId: 'elForm',    label: 'Form'    },
 ];
 
 interface Props {

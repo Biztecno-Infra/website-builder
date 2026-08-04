@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { IconButton } from './IconButton';
 
@@ -14,42 +14,30 @@ interface Props {
  */
 export function ElementQuickBar({ anchorRef, onDuplicate, onDelete }: Props) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    const update = () => {
+    let rafId: number;
+
+    // Polling via rAF (rather than Resize/MutationObserver on the anchor itself) so the
+    // bar keeps following during an absolute/overlay-element drag, where it's an ancestor
+    // wrapper's left/top that moves, not the anchor node's own size or style attribute.
+    const loop = () => {
       const el = anchorRef.current;
-      if (!el) { setPos(null); return; }
-      const rect = el.getBoundingClientRect();
-      setPos({
-        top:  rect.bottom + 6,
-        left: rect.left + rect.width / 2,
-      });
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        setPos({
+          top:  rect.bottom + 6,
+          left: rect.left + rect.width / 2,
+        });
+      } else {
+        setPos(null);
+      }
+      rafId = requestAnimationFrame(loop);
     };
 
-    update();
+    rafId = requestAnimationFrame(loop);
 
-    const schedule = () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(update);
-    };
-
-    // ResizeObserver catches size changes; MutationObserver catches style/position changes from drag
-    const resizeObs = new ResizeObserver(schedule);
-    const mutationObs = new MutationObserver(schedule);
-
-    if (anchorRef.current) {
-      resizeObs.observe(anchorRef.current);
-      mutationObs.observe(anchorRef.current, { attributes: true, attributeFilter: ['style'] });
-    }
-    window.addEventListener('scroll', update, true);
-
-    return () => {
-      resizeObs.disconnect();
-      mutationObs.disconnect();
-      window.removeEventListener('scroll', update, true);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+    return () => cancelAnimationFrame(rafId);
   }, [anchorRef]);
 
   if (!pos || (!onDuplicate && !onDelete)) return null;

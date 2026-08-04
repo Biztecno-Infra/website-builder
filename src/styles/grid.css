@@ -89,11 +89,21 @@
   box-shadow: inset 0 0 0 2px var(--pb-primary);
 }
 
-/* Parent cell when a child element/container owns selection — subtle tint, no border */
+/* Parent cell when a child element/container owns selection — subtle tint, no border.
+   Painted as an overlay (not the `background` shorthand) so it never clobbers the
+   cell's own inline background color/image/gradient. */
 .pb-grid-cell.pb-child-selected,
 .pb-grid-cell.pb-child-selected:hover {
   outline: none !important;
-  background: rgba(0, 110, 117, 0.025) !important;
+}
+.pb-grid-cell.pb-child-selected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 110, 117, 0.025);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: -1;
 }
 
 .pb-grid-cell--drop-over {
@@ -146,6 +156,11 @@
 }
 .pb-grid-overlay-el--selected {
   box-shadow: inset 0 0 0 2px var(--pb-warning);
+}
+/* The overlay wrapper already draws the selection ring above — suppress the
+   inner element's own ring so selecting an absolute element doesn't double it up. */
+.pb-grid-overlay-el .pb-grid-el--selected::after {
+  box-shadow: none;
 }
 
 
