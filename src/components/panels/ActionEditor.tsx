@@ -33,8 +33,7 @@ export function ActionEditor({ action, onChange, nodes, pages, allowSubmit, onFo
         { value: 'submit-api',  label: 'Submit to API' },
         ...BASE_ACTION_OPTIONS.filter(o => o.value !== 'none'),
       ]
-    // Standalone buttons get Submit to API too (fires an HTTP request on click).
-    : [...BASE_ACTION_OPTIONS, { value: 'submit-api', label: 'Submit to API' }];
+    : BASE_ACTION_OPTIONS;
 
   const allSections = Object.values(nodes)
     .filter((n): n is Section => n.type === 'section')
