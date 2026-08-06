@@ -6,7 +6,7 @@ import type {
 import { newId } from '../utils/ids';
 import {
   isContainer, isSection, isGridCell, isGridSection, isFreeSection,
-  appendToParent, removeFromParent,
+  insertAfterInParent, removeFromParent,
 } from '../utils/nodeHelpers';
 import { CANVAS_W, createDefaultElement } from '../utils/elementDefaults';
 
@@ -184,7 +184,7 @@ export function useElementOps(
     setState(s => {
       const nodes = { ...s.nodes };
       nodes[copy.id] = copy;
-      appendToParent(nodes, cel.parent, copy.id);
+      insertAfterInParent(nodes, cel.parent, id, copy.id);
       return { ...s, nodes };
     });
     setSelectedIds([copy.id]);

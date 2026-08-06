@@ -126,6 +126,18 @@ export function appendToParent(nodes: NodeMap, parentId: string, childId: string
   }
 }
 
+export function insertAfterInParent(nodes: NodeMap, parentId: string, siblingId: string, childId: string): void {
+  const parent = nodes[parentId];
+  if (!parent) return;
+  if (isSection(parent) || isGridCell(parent) || isContainer(parent) || isCarousel(parent)) {
+    const p = parent as { children: string[] };
+    const idx = p.children.indexOf(siblingId);
+    const children = [...p.children];
+    children.splice(idx === -1 ? children.length : idx + 1, 0, childId);
+    nodes[parentId] = { ...parent, children } as AnyNode;
+  }
+}
+
 // ── Carousel factories ─────────────────────────────────────────────────
 
 // A slide is a GridCell parented to a Carousel. It fills the carousel's full
